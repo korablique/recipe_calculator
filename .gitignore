@@ -1,0 +1,41 @@
+*.iml
+.gradle
+/local.properties
+/.idea/workspace.xml
+/.idea/libraries
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+
+#crashlytics
+app/src/main/assets/crashlytics-build.properties
+app/src/main/res/values/com_crashlytics_export_strings.xml
+app/crashlytics.properties
+
+#built application files
+*.apk
+*.ap_
+app/manifest-merger-release-report.txt
+
+# files for the dex VM
+*.dex
+
+# Java class files
+*.class
+
+# generated files
+bin/
+gen/
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Android Studio
+app/app.iml
+.idea
+.gradle
+RecipeCalculator.iml
+build/
+gradle/
+
