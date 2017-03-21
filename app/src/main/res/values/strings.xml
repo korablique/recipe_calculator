@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">RecipeCalculator</string>
+    <string name="component_name">продукт</string>
+    <string name="count">Рассчитать</string>
+    <string name="product_weight">масса</string>
+    <string name="protein">Б</string>
+    <string name="fat">Ж</string>
+    <string name="carbs">У</string>
+    <string name="calories">К</string>
+    <string name="weight_of_cooked_product">масса готового продукта:</string>
 </resources>
