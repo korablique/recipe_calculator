@@ -16,7 +16,7 @@
             android:id="@+id/table_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#000">
+            android:background="#D3D3D3">
 
             <!--шапка-->
             <TableRow>
@@ -59,27 +59,22 @@
                     android:layout_weight="1"/>
             </TableRow>
 
-            <include layout="@layout/recipe_component_layout" />
-            <include layout="@layout/recipe_component_layout" />
-            <include layout="@layout/recipe_component_layout" />
-            <include layout="@layout/recipe_component_layout" />
-            <include layout="@layout/recipe_component_layout" />
-            <include layout="@layout/recipe_component_layout" />
-            <include layout="@layout/recipe_component_layout" />
-            <include layout="@layout/recipe_component_layout" />
-            <include layout="@layout/recipe_component_layout" />
-            <include layout="@layout/recipe_component_layout" />
-
         </TableLayout>
     </ScrollView>
 
-    <!--textview и edittext поместить в linearlayout-->
+    <Button
+        android:id="@+id/button_add"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/scroll_view"
+        android:text="@string/add_product"/>
+
     <LinearLayout
         android:id="@+id/linear_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_below="@id/scroll_view">
+        android:layout_below="@id/button_add">
 
         <TextView
             android:id="@+id/result_weight_text_view"
@@ -111,4 +106,5 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/count_button"
         android:layout_marginTop="20dp" />
+
 </RelativeLayout>

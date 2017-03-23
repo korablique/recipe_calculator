@@ -1,11 +1,17 @@
 <resources>
     <string name="app_name">RecipeCalculator</string>
-    <string name="component_name">продукт</string>
+    <string name="component_name">Продукт</string>
     <string name="count">Рассчитать</string>
-    <string name="product_weight">масса</string>
+    <string name="product_weight">Масса</string>
     <string name="protein">Б</string>
     <string name="fat">Ж</string>
     <string name="carbs">У</string>
     <string name="calories">К</string>
-    <string name="weight_of_cooked_product">масса готового продукта:</string>
+    <string name="weight_of_cooked_product">Масса готового продукта:</string>
+    <string name="add_product">добавить продукт</string>
+    <string name="enter_protein">Белки (на 100 г):</string>
+    <string name="enter_fats">Жиры (на 100 г):</string>
+    <string name="enter_carbs">Углеводы (на 100 г):</string>
+    <string name="enter_calories">Калорийность (на 100г):</string>
+    <string name="enter_weight">Масса продукта:</string>
 </resources>

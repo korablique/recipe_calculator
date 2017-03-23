@@ -1,40 +1,57 @@
 package korablique.recipecalculator;
 
-import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ScrollView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Formatter;
 
 public class MainActivity extends AppCompatActivity {
-    public static final String RESULT_WEIGHT = "RESULT_WEIGHT";
-    public static final String PROTEIN_PER_100_GRAM = "PROTEIN_PER_100_GRAM";
-    public static final String FATS_PER_100_GRAM = "PROTEIN_PER_100_GRAM";
-    public static final String CARBS_PER_100_GRAM = "PROTEIN_PER_100_GRAM";
-    public static final String CALORIES_PER_100_GRAM = "PROTEIN_PER_100_GRAM";
+    private TableLayout tableLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        ScrollView scrollView = (ScrollView) findViewById(R.id.scroll_view);
+        tableLayout = (TableLayout) scrollView.getChildAt(0);
+
+        Button addProductButton = (Button) findViewById(R.id.button_add);
+        addProductButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TableRow row = (TableRow) LayoutInflater.from(MainActivity.this).inflate(R.layout.recipe_component_layout, null);
+                TableRow tableHeader = (TableRow) tableLayout.getChildAt(0);
+                for (int index = 0; index < row.getChildCount(); index++) {
+                    ((EditText) row.getChildAt(index)).setMaxWidth(tableHeader.getChildAt(index).getWidth());
+                    ((EditText) row.getChildAt(index)).setMaxLines(1);
+                }
+                tableLayout.addView(row);
+            }
+        });
+
         Button countButton = (Button) findViewById(R.id.count_button);
         countButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                TableLayout tableLayout = (TableLayout) findViewById(R.id.table_layout);
                 //получить все TableRaw, кроме первой, т к 1 - это шапка
                 //пройти циклом по всем этим TableRow и умножаем белок на массу продукта (массу перевести в кг)
                 //то же сделать с жирами и углеводами
                 //посчитать общую массу продукта
                 //потом по формуле рассчитать кбжу на 100 г
+                if (tableLayout.getChildCount() == 1) {
+                    Toast.makeText(MainActivity.this, "Добавьте ингридиенты", Toast.LENGTH_SHORT).show();
+                }
                 ArrayList<TableRow> rows = new ArrayList<>();
                 for (int index = 1; index < tableLayout.getChildCount(); index++) {
                     rows.add((TableRow) tableLayout.getChildAt(index));
