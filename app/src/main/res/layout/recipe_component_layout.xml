@@ -2,36 +2,36 @@
 <TableRow xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent">
 
-    <EditText
+    <TextView
         android:layout_margin="1dp"
         android:background="#FFF"
         android:textSize="20sp"
         android:layout_weight="2" />
-    <EditText
+    <TextView
         android:id="@+id/product_weight"
         android:layout_margin="1dp"
         android:background="#FFF"
         android:textSize="20sp"
         android:layout_weight="1" />
-    <EditText
+    <TextView
         android:id="@+id/protein"
         android:layout_margin="1dp"
         android:background="#FFF"
         android:textSize="20sp"
         android:layout_weight="1" />
-    <EditText
+    <TextView
         android:id="@+id/fat"
         android:layout_margin="1dp"
         android:background="#FFF"
         android:textSize="20sp"
         android:layout_weight="1" />
-    <EditText
+    <TextView
         android:id="@+id/carbs"
         android:layout_margin="1dp"
         android:background="#FFF"
         android:textSize="20sp"
         android:layout_weight="1" />
-    <EditText
+    <TextView
         android:id="@+id/calories"
         android:layout_margin="1dp"
         android:background="#FFF"

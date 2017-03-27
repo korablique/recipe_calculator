@@ -14,4 +14,5 @@
     <string name="enter_carbs">Углеводы (на 100 г):</string>
     <string name="enter_calories">Калорийность (на 100г):</string>
     <string name="enter_weight">Масса продукта:</string>
+    <string name="ok">ok</string>
 </resources>
