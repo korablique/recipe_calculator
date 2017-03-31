@@ -16,18 +16,16 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
-import android.widget.ScrollView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.w3c.dom.Text;
-
 import java.util.ArrayList;
 import java.util.Formatter;
 
 public class MainActivity extends AppCompatActivity {
+    public static final String RESULT_STRING = "RESULT_STRING";
     private TableLayout tableLayout;
     private RelativeLayout card;
 
@@ -38,8 +36,7 @@ public class MainActivity extends AppCompatActivity {
 
         final FrameLayout parent = (FrameLayout) findViewById(R.id.frame_layout);
         //инициализируем tableLayout:
-        ScrollView scrollView = (ScrollView) findViewById(R.id.scroll_view);
-        tableLayout = (TableLayout) scrollView.getChildAt(0);
+        tableLayout = (TableLayout) findViewById(R.id.table_layout);
 
         //создаем карточку и прячем её под экран:
         card = (RelativeLayout) findViewById(R.id.card);
@@ -85,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
                     carbs = Double.parseDouble(((EditText) findViewById(R.id.carbs_edit_text)).getText().toString());
                     calories = Double.parseDouble(((EditText) findViewById(R.id.calories_edit_text)).getText().toString());
                 } catch (NumberFormatException e) {
-                    Toast.makeText(MainActivity.this, "Вводите только числа", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Вводите только числа. Используйте точку для дробной части", Toast.LENGTH_SHORT).show();
                     return;
                 }
                 //добавить строчку в таблицу:
@@ -168,10 +165,58 @@ public class MainActivity extends AppCompatActivity {
                         recipeCarbsPer100Gram,
                         recipeCaloriesPer100Gram);
 
-                TextView textView = (TextView) findViewById(R.id.result);
-                textView.setText(formatter.toString());
+                Bundle bundle = new Bundle();
+                bundle.putString(RESULT_STRING, formatter.toString());
+                ShowResultDialogFragment dialog = new ShowResultDialogFragment();
+                dialog.setArguments(bundle);
+                dialog.show(getSupportFragmentManager(), "show result");
             }
         });
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        //если строка только одна (шапка), то сохранять ничего не надо
+        if (tableLayout.getChildCount() == 1) {
+            return;
+        }
+        //получить все TableRow
+        ArrayList<TableRow> rows = new ArrayList<>();
+        for (int index = 1; index < tableLayout.getChildCount(); index++) {
+            rows.add((TableRow) tableLayout.getChildAt(index));
+        }
+        outState.putInt("rows count", rows.size());
+        //у каждого TableRow получить TextView'хи
+        for (int index = 0; index < rows.size(); index++) {
+            TableRow currentRow = rows.get(index);
+            String[] cells = new String[currentRow.getChildCount()];
+            //проходим по всем клеткам строчки
+            for (int cellNumber = 0; cellNumber < currentRow.getChildCount(); cellNumber++) {
+                //и добавляем число из каждой - в массив cells
+                cells[cellNumber] = ((TextView) currentRow.getChildAt(cellNumber)).getText().toString();
+            }
+            outState.putStringArray("row " + index, cells);
+        }
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        //кривое условие... проверяем, есть ли хоть первый массив
+        if (savedInstanceState.containsKey("row " + 0)) {
+            //создать новые строки
+            for (int rowNumber = 0; rowNumber < savedInstanceState.getInt("rows count"); rowNumber++) {
+                TableRow row = (TableRow) LayoutInflater.from(this).inflate(R.layout.recipe_component_layout, null);
+                String[] savedData = savedInstanceState.getStringArray("row " + rowNumber);
+                //заполнить их сохраненными данными
+                for (int index = 0; index < row.getChildCount(); index++) {
+                    ((TextView) row.getChildAt(index)).setText(savedData[index]);
+                }
+                //добавить новую строку в tableLayout
+                tableLayout.addView(row);
+            }
+        }
     }
 
     private void raiseCardAboveKeyboard() {

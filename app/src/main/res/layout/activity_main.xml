@@ -13,67 +13,60 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <ScrollView
-            android:id="@+id/scroll_view"
+        <TableLayout
+            android:id="@+id/table_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentTop="true">
+            android:background="#D3D3D3">
 
-            <TableLayout
-                android:id="@+id/table_layout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="#D3D3D3">
+            <!--шапка-->
+            <TableRow>
 
-                <!--шапка-->
-                <TableRow>
+                <TextView
+                    android:layout_margin="1dp"
+                    android:background="#FFF"
+                    android:text="@string/component_name"
+                    android:textSize="20sp"
+                    android:layout_weight="2"/>
+                <TextView
+                    android:layout_margin="1dp"
+                    android:background="#FFF"
+                    android:text="@string/product_weight"
+                    android:textSize="20sp"
+                    android:layout_weight="1"/>
+                <TextView
+                    android:layout_margin="1dp"
+                    android:background="#FFF"
+                    android:text="@string/protein"
+                    android:textSize="20sp"
+                    android:layout_weight="1"/>
+                <TextView
+                    android:layout_margin="1dp"
+                    android:background="#FFF"
+                    android:text="@string/fat"
+                    android:textSize="20sp"
+                    android:layout_weight="1"/>
+                <TextView
+                    android:layout_margin="1dp"
+                    android:background="#FFF"
+                    android:text="@string/carbs"
+                    android:textSize="20sp"
+                    android:layout_weight="1"/>
+                <TextView
+                    android:layout_margin="1dp"
+                    android:background="#FFF"
+                    android:text="@string/calories"
+                    android:textSize="20sp"
+                    android:layout_weight="1"/>
+            </TableRow>
 
-                    <TextView
-                        android:layout_margin="1dp"
-                        android:background="#FFF"
-                        android:text="@string/component_name"
-                        android:textSize="20sp"
-                        android:layout_weight="2"/>
-                    <TextView
-                        android:layout_margin="1dp"
-                        android:background="#FFF"
-                        android:text="@string/product_weight"
-                        android:textSize="20sp"
-                        android:layout_weight="1"/>
-                    <TextView
-                        android:layout_margin="1dp"
-                        android:background="#FFF"
-                        android:text="@string/protein"
-                        android:textSize="20sp"
-                        android:layout_weight="1"/>
-                    <TextView
-                        android:layout_margin="1dp"
-                        android:background="#FFF"
-                        android:text="@string/fat"
-                        android:textSize="20sp"
-                        android:layout_weight="1"/>
-                    <TextView
-                        android:layout_margin="1dp"
-                        android:background="#FFF"
-                        android:text="@string/carbs"
-                        android:textSize="20sp"
-                        android:layout_weight="1"/>
-                    <TextView
-                        android:layout_margin="1dp"
-                        android:background="#FFF"
-                        android:text="@string/calories"
-                        android:textSize="20sp"
-                        android:layout_weight="1"/>
-                </TableRow>
-
-            </TableLayout>
-        </ScrollView>
+        </TableLayout>
 
         <Button
             android:id="@+id/button_add"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/scroll_view"
+            android:layout_below="@id/table_layout"
             android:text="@string/add_product"/>
 
         <LinearLayout
@@ -107,12 +100,6 @@
             android:layout_below="@id/linear_layout"
             android:text="@string/count" />
 
-        <TextView
-            android:id="@+id/result"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/count_button"
-            android:layout_marginTop="20dp" />
     </RelativeLayout>
 
 </FrameLayout>
