@@ -8,18 +8,37 @@
     android:clickable="true">
 
     <TextView
+        android:id="@+id/name_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:text="@string/product_name"
+        android:textSize="20sp" />
+    <EditText
+        android:id="@+id/name_edit_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/name_text_view"
+        android:maxLines="1"/>
+
+    <TextView
         android:id="@+id/weight_text_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/name_text_view"
         android:layout_marginLeft="10dp"
         android:layout_marginTop="10dp"
         android:text="@string/enter_weight"
         android:textSize="20sp" />
     <EditText
         android:id="@+id/weight_edit_text"
-        android:layout_width="50dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/weight_text_view" />
+        android:layout_below="@id/name_text_view"
+        android:layout_toRightOf="@id/weight_text_view"
+        android:inputType="numberDecimal"
+        android:maxLines="1" />
 
     <TextView
         android:id="@+id/protein_text_view"
@@ -32,10 +51,12 @@
         android:textSize="20sp" />
     <EditText
         android:id="@+id/protein_edit_text"
-        android:layout_width="50dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_toRightOf="@id/protein_text_view"
-        android:layout_below="@id/weight_text_view" />
+        android:layout_below="@id/weight_text_view"
+        android:inputType="numberDecimal"
+        android:maxLines="1" />
 
     <TextView
         android:id="@+id/fats_text_view"
@@ -48,10 +69,12 @@
         android:textSize="20sp" />
     <EditText
         android:id="@+id/fats_edit_text"
-        android:layout_width="50dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_toRightOf="@id/fats_text_view"
-        android:layout_below="@id/protein_text_view" />
+        android:layout_below="@id/protein_text_view"
+        android:inputType="numberDecimal"
+        android:maxLines="1" />
 
     <TextView
         android:id="@+id/carbs_text_view"
@@ -64,10 +87,12 @@
         android:textSize="20sp" />
     <EditText
         android:id="@+id/carbs_edit_text"
-        android:layout_width="50dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_toRightOf="@id/carbs_text_view"
-        android:layout_below="@id/fats_text_view" />
+        android:layout_below="@id/fats_text_view"
+        android:inputType="numberDecimal"
+        android:maxLines="1" />
 
     <TextView
         android:id="@+id/calories_text_view"
@@ -80,10 +105,12 @@
         android:textSize="20sp" />
     <EditText
         android:id="@+id/calories_edit_text"
-        android:layout_width="50dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_toRightOf="@id/calories_text_view"
-        android:layout_below="@id/carbs_text_view" />
+        android:layout_below="@id/carbs_text_view"
+        android:inputType="numberDecimal"
+        android:maxLines="1" />
 
     <Button
         android:id="@+id/button_ok"
@@ -93,4 +120,14 @@
         android:layout_marginLeft="10dp"
         android:layout_marginTop="10dp"
         android:text="@string/ok"/>
+
+    <Button
+        android:id="@+id/button_delete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/calories_text_view"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_toRightOf="@id/button_ok"
+        android:text="@string/delete"/>
 </RelativeLayout>

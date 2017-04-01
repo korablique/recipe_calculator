@@ -74,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 card.setY(card.getHeight() + displayHeight);
                 card.setVisibility(View.INVISIBLE);
+                String productName = ((EditText) findViewById(R.id.name_edit_text)).getText().toString();
                 double weight, protein, fats, carbs, calories;
                 try {
                     weight = Double.parseDouble(((EditText) findViewById(R.id.weight_edit_text)).getText().toString());
@@ -82,22 +83,29 @@ public class MainActivity extends AppCompatActivity {
                     carbs = Double.parseDouble(((EditText) findViewById(R.id.carbs_edit_text)).getText().toString());
                     calories = Double.parseDouble(((EditText) findViewById(R.id.calories_edit_text)).getText().toString());
                 } catch (NumberFormatException e) {
-                    Toast.makeText(MainActivity.this, "Вводите только числа. Используйте точку для дробной части", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Вводите только числа", Toast.LENGTH_SHORT).show();
                     return;
                 }
                 //добавить строчку в таблицу:
                 TableRow row = (TableRow) LayoutInflater.from(MainActivity.this).inflate(R.layout.recipe_component_layout, null);
+                for (int index = 0; index < row.getChildCount(); index++) {
+                    ((TextView)row.getChildAt(index)).setMaxWidth(row.getChildAt(index).getWidth());
+                }
                 //заполнить этими числами строчку в таблице:
+                ((TextView) row.getChildAt(0)).setText(productName);
                 ((TextView) row.getChildAt(1)).setText(String.valueOf(weight));
                 ((TextView) row.getChildAt(2)).setText(String.valueOf(protein));
                 ((TextView) row.getChildAt(3)).setText(String.valueOf(fats));
                 ((TextView) row.getChildAt(4)).setText(String.valueOf(carbs));
                 ((TextView) row.getChildAt(5)).setText(String.valueOf(calories));
+                addRowClickListener(row);
                 tableLayout.addView(row);
                 clearEditTexts();
                 hideKeyBoard();
             }
         });
+
+        
 
         Button countButton = (Button) findViewById(R.id.count_button);
         countButton.setOnClickListener(new View.OnClickListener() {
@@ -170,6 +178,16 @@ public class MainActivity extends AppCompatActivity {
                 ShowResultDialogFragment dialog = new ShowResultDialogFragment();
                 dialog.setArguments(bundle);
                 dialog.show(getSupportFragmentManager(), "show result");
+            }
+        });
+    }
+
+    private void addRowClickListener(TableRow row) {
+        row.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //тут изменить background у child'ов, чтоб было видно, на какую строчку нажал
+                //показать карточку
             }
         });
     }

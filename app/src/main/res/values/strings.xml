@@ -15,4 +15,6 @@
     <string name="enter_calories">Калорийность (на 100г):</string>
     <string name="enter_weight">Масса продукта:</string>
     <string name="ok">OK</string>
+    <string name="product_name">Название продукта:</string>
+    <string name="delete">Удалить</string>
 </resources>

@@ -6,36 +6,42 @@
         android:layout_margin="1dp"
         android:background="#FFF"
         android:textSize="20sp"
-        android:layout_weight="2" />
+        android:layout_weight="2"
+        android:maxLines="1"/>
     <TextView
         android:id="@+id/product_weight"
         android:layout_margin="1dp"
         android:background="#FFF"
         android:textSize="20sp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:maxLines="1"/>
     <TextView
         android:id="@+id/protein"
         android:layout_margin="1dp"
         android:background="#FFF"
         android:textSize="20sp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:maxLines="1"/>
     <TextView
         android:id="@+id/fat"
         android:layout_margin="1dp"
         android:background="#FFF"
         android:textSize="20sp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:maxLines="1"/>
     <TextView
         android:id="@+id/carbs"
         android:layout_margin="1dp"
         android:background="#FFF"
         android:textSize="20sp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:maxLines="1"/>
     <TextView
         android:id="@+id/calories"
         android:layout_margin="1dp"
         android:background="#FFF"
         android:textSize="20sp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:maxLines="1"/>
 
 </TableRow>
