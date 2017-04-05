@@ -10,7 +10,7 @@ public class ShowResultDialogFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        String resultString = getArguments().getString(MainActivity.RESULT_STRING);
+        String resultString = getArguments().getString(CalculatorActivity.RESULT_STRING);
         builder.setMessage(resultString)
                 .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
