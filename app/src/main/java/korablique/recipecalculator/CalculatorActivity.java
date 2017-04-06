@@ -1,11 +1,9 @@
 package korablique.recipecalculator;
 
 import android.content.Context;
-import android.graphics.Point;
 import android.graphics.Rect;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -14,7 +12,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.RelativeLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -26,24 +23,26 @@ import java.util.Formatter;
 public class CalculatorActivity extends AppCompatActivity {
     public static final String RESULT_STRING = "RESULT_STRING";
     private TableLayout tableLayout;
-    private RelativeLayout card;
+    private Card card;
+    private View.OnClickListener onRowClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            //показать карточку
+            card.displayForRow((TableRow) v);
+        }
+    };
 
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calculator);
 
-        final FrameLayout parent = (FrameLayout) findViewById(R.id.frame_layout);
         //инициализируем tableLayout:
         tableLayout = (TableLayout) findViewById(R.id.table_layout);
 
         //создаем карточку и прячем её под экран:
-        card = (RelativeLayout) findViewById(R.id.card); //TODO
-        Display display = getWindowManager().getDefaultDisplay(); //TODO: это наверное должен быть метод типа hideCard()
-        Point size = new Point();
-        display.getSize(size);
-        final int displayHeight = size.y;
-        card.setY(card.getHeight() + displayHeight);
+        FrameLayout parentLayout = (FrameLayout) findViewById(R.id.frame_layout);
+        card = new Card(this, parentLayout);
+        card.hide();
 
         raiseCardAboveKeyboard();
 
@@ -51,10 +50,7 @@ public class CalculatorActivity extends AppCompatActivity {
         addProductButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //показать карточку
-                card.setVisibility(View.VISIBLE);
-                card.bringToFront();
-                card.setY(parent.getHeight() - card.getHeight());
+                card.displayEmpty();
                 /*TranslateAnimation translateAnimation =
                         new TranslateAnimation(0, 0, displayHeight, parent.getHeight() - card.getHeight());
                 translateAnimation.setDuration(500);
@@ -63,7 +59,7 @@ public class CalculatorActivity extends AppCompatActivity {
             }
         });
 
-        Button cardsButtonOK = (Button) findViewById(R.id.button_ok); //TODO: это должно остаться в MainActivity?
+        Button cardsButtonOK = card.getButtonOk();
         cardsButtonOK.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -71,8 +67,8 @@ public class CalculatorActivity extends AppCompatActivity {
                     Toast.makeText(CalculatorActivity.this, "Заполните все данные", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                card.setY(card.getHeight() + displayHeight);
-                card.setVisibility(View.INVISIBLE);
+                card.hide();
+                card.setRequiredRow(null); //TODO: надо это сделать?
                 String productName = ((EditText) findViewById(R.id.name_edit_text)).getText().toString();
                 double weight, protein, fats, carbs, calories;
                 try {
@@ -97,18 +93,20 @@ public class CalculatorActivity extends AppCompatActivity {
                 ((TextView) row.getChildAt(3)).setText(String.valueOf(fats));
                 ((TextView) row.getChildAt(4)).setText(String.valueOf(carbs));
                 ((TextView) row.getChildAt(5)).setText(String.valueOf(calories));
-                addRowClickListener(row);
+                row.setOnClickListener(onRowClickListener); //как его правильно назвать?
                 tableLayout.addView(row);
-                clearEditTexts();
+                card.clear();
                 hideKeyBoard();
             }
         });
 
-        Button cardsButtonDelete = (Button) findViewById(R.id.button_delete);
+        Button cardsButtonDelete = card.getButtonDelete();
         cardsButtonDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                tableLayout.removeView(card.getRequiredRow());
+                card.setRequiredRow(null);
+                card.hide();
             }
         });
 
@@ -118,6 +116,7 @@ public class CalculatorActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (tableLayout.getChildCount() == 1) {
                     Toast.makeText(CalculatorActivity.this, "Добавьте ингридиенты", Toast.LENGTH_SHORT).show();
+                    return;
                 }
                 //получить все TableRaw, кроме первой, т к 1 - это шапка
                 ArrayList<TableRow> rows = new ArrayList<>();
@@ -187,16 +186,6 @@ public class CalculatorActivity extends AppCompatActivity {
         });
     }
 
-    private void addRowClickListener(TableRow row) {
-        row.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //тут изменить background у child'ов, чтоб было видно, на какую строчку нажал
-                //показать карточку
-            }
-        });
-    }
-
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -243,6 +232,7 @@ public class CalculatorActivity extends AppCompatActivity {
     }
 
     private void raiseCardAboveKeyboard() {
+        //TODO: этот метод можно исользовать, чтоб поднимать и массу готового продукта над клавиатурой?
         final Window mRootWindow = getWindow();
         final View mRootView = mRootWindow.getDecorView().findViewById(android.R.id.content);
         mRootView.getViewTreeObserver().addOnGlobalLayoutListener(
@@ -253,8 +243,8 @@ public class CalculatorActivity extends AppCompatActivity {
                         View view = mRootWindow.getDecorView();
                         view.getWindowVisibleDisplayFrame(rect);
                         int visibleDisplayFrameHeight = rect.left;
-                        int delta = mRootViewHeight - visibleDisplayFrameHeight;
-                        card.setY(delta - card.getHeight());
+                        int delta = mRootViewHeight - visibleDisplayFrameHeight; //это верхний левый угол клавиатуры?
+                        card.getCardLayout().setY(delta - card.getCardLayout().getHeight());
                     }
                 });
     }
@@ -278,14 +268,6 @@ public class CalculatorActivity extends AppCompatActivity {
         return true;
     }
 
-    private void clearEditTexts() {
-        ((EditText) findViewById(R.id.weight_edit_text)).setText("");
-        ((EditText) findViewById(R.id.protein_edit_text)).setText("");
-        ((EditText) findViewById(R.id.fats_edit_text)).setText("");
-        ((EditText) findViewById(R.id.carbs_edit_text)).setText("");
-        ((EditText) findViewById(R.id.calories_edit_text)).setText("");
-    }
-
     private void hideKeyBoard() {
         View view = this.getCurrentFocus();
         if (view != null) {
@@ -294,4 +276,3 @@ public class CalculatorActivity extends AppCompatActivity {
         }
     }
 }
-//TODO: наверное надо, чтоб пользователь мог вводить название продукта, который он вводит, чтоб он не забыл какой продукт вводил

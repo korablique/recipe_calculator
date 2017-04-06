@@ -7,8 +7,6 @@
     android:layout_height="match_parent"
     tools:context="korablique.recipecalculator.CalculatorActivity">
 
-    <include layout="@layout/card_layout" />
-
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
