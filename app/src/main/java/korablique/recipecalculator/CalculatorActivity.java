@@ -41,6 +41,15 @@ public class CalculatorActivity extends AppCompatActivity {
         card.hide();
         card.addOnGlobalLayoutListener();
 
+        EditText resultWeightEditText = (EditText) findViewById(R.id.result_weight_edit_text);
+        resultWeightEditText.clearFocus();
+        resultWeightEditText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                card.hide();
+            }
+        });
+
         Button addProductButton = (Button) findViewById(R.id.button_add);
         addProductButton.setOnClickListener(new View.OnClickListener() {
             @Override
