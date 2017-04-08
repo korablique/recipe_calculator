@@ -1,5 +1,6 @@
 package korablique.recipecalculator;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Point;
 import android.graphics.Rect;
@@ -16,8 +17,10 @@ import android.widget.TableRow;
 import android.widget.TextView;
 
 public class Card {
-    private Context context;
+    private Activity activity;
     private FrameLayout parentLayout;
+    private Window rootWindow;
+    private View rootView;
     private View cardLayout;
     private TableRow requiredRow;
     private EditText nameEditText;
@@ -29,10 +32,10 @@ public class Card {
     private Button buttonOk;
     private Button buttonDelete;
 
-    public Card(Context context, FrameLayout parentLayout) {
-        this.context = context;
+    public Card(Activity activity, FrameLayout parentLayout) {
+        this.activity = activity;
         this.parentLayout = parentLayout;
-        cardLayout = LayoutInflater.from(context).inflate(R.layout.card_layout, null);
+        cardLayout = LayoutInflater.from(activity).inflate(R.layout.card_layout, null);
         parentLayout.addView(cardLayout);
 
         // NOTE: тут происходит какая-то чёрная магия
@@ -42,6 +45,9 @@ public class Card {
         params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
         params.width = ViewGroup.LayoutParams.MATCH_PARENT;
         cardLayout.setLayoutParams(params);
+
+        rootWindow = activity.getWindow();
+        rootView = rootWindow.getDecorView().findViewById(android.R.id.content);
 
         nameEditText = (EditText) cardLayout.findViewById(R.id.name_edit_text);
         weightEditText = (EditText) cardLayout.findViewById(R.id.weight_edit_text);
@@ -56,7 +62,8 @@ public class Card {
     public void displayEmpty() {
         cardLayout.setVisibility(View.VISIBLE);
         cardLayout.bringToFront();
-        cardLayout.setY(parentLayout.getHeight() - cardLayout.getHeight());
+//        cardLayout.setY(parentLayout.getHeight() - cardLayout.getHeight());
+        cardLayout.setY(detectVisibleDisplayHeight() - cardLayout.getHeight());
         requiredRow = null;
     }
 
@@ -72,7 +79,7 @@ public class Card {
     }
 
     public void hide() {
-        Display display = ((CalculatorActivity) context).getWindowManager().getDefaultDisplay();
+        Display display = activity.getWindowManager().getDefaultDisplay();
         Point size = new Point();
         display.getSize(size);
         final int displayHeight = size.y;
@@ -81,24 +88,26 @@ public class Card {
         requiredRow = null;
     }
 
-    public void raiseWhenKeyboardAppears() {
-        final Window rootWindow = ((CalculatorActivity)context).getWindow(); //именно к CalculatorActivity приводить?
-        final View rootView = rootWindow.getDecorView().findViewById(android.R.id.content);
+    public void addOnGlobalLayoutListener() {
         rootView.getViewTreeObserver().addOnGlobalLayoutListener(
                 new ViewTreeObserver.OnGlobalLayoutListener() {
                     public void onGlobalLayout() {
-                        int rootViewHeight = rootView.getHeight(); //исходная высота лэйаута
-                        Rect rect = new Rect();
-                        View view = rootWindow.getDecorView();
-                        view.getWindowVisibleDisplayFrame(rect);
-                        int visibleDisplayFrameHeight = rect.height(); //видимая высота его
-                        int keyboardHeight = rootViewHeight - visibleDisplayFrameHeight; //это получается высота клавиатуры
-                        View cardParent = (View)cardLayout.getParent();
-                        int toolbarHeight = rootWindow.getDecorView().getHeight() - rootView.getHeight();
-                        int statusBarHeight = rect.top;
-                        cardLayout.setY(cardParent.getHeight() - cardLayout.getHeight() - keyboardHeight - toolbarHeight + statusBarHeight);
+                        cardLayout.setY(detectVisibleDisplayHeight() - cardLayout.getHeight());
                     }
                 });
+    }
+
+    private int detectVisibleDisplayHeight() {
+        int rootViewHeight = rootView.getHeight(); //исходная высота лэйаута
+        Rect rect = new Rect();
+        View view = rootWindow.getDecorView();
+        view.getWindowVisibleDisplayFrame(rect);
+        int visibleDisplayFrameHeight = rect.height(); //видимая высота его
+        int keyboardHeight = rootViewHeight - visibleDisplayFrameHeight; //это получается высота клавиатуры
+        View cardParent = (View)cardLayout.getParent();
+        int toolbarHeight = rootWindow.getDecorView().getHeight() - rootView.getHeight();
+        int statusBarHeight = rect.top;
+        return cardParent.getHeight() - keyboardHeight - toolbarHeight + statusBarHeight;
     }
 
     public void clear() {
@@ -127,10 +136,6 @@ public class Card {
             return false;
         }
         return true;
-    }
-
-    public View getCardLayout() {
-        return cardLayout;
     }
 
     public TableRow getRequiredRow() {

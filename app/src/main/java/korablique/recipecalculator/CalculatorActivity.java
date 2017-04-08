@@ -1,13 +1,10 @@
 package korablique.recipecalculator;
 
 import android.content.Context;
-import android.graphics.Rect;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewTreeObserver;
-import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -27,7 +24,6 @@ public class CalculatorActivity extends AppCompatActivity {
     private View.OnClickListener onRowClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            //показать карточку
             card.displayForRow((TableRow) v);
         }
     };
@@ -43,7 +39,7 @@ public class CalculatorActivity extends AppCompatActivity {
         FrameLayout parentLayout = (FrameLayout) findViewById(R.id.frame_layout);
         card = new Card(this, parentLayout);
         card.hide();
-        card.raiseWhenKeyboardAppears();
+        card.addOnGlobalLayoutListener();
 
         Button addProductButton = (Button) findViewById(R.id.button_add);
         addProductButton.setOnClickListener(new View.OnClickListener() {
