@@ -43,8 +43,7 @@ public class CalculatorActivity extends AppCompatActivity {
         FrameLayout parentLayout = (FrameLayout) findViewById(R.id.frame_layout);
         card = new Card(this, parentLayout);
         card.hide();
-
-        raiseCardAboveKeyboard();
+        card.raiseWhenKeyboardAppears();
 
         Button addProductButton = (Button) findViewById(R.id.button_add);
         addProductButton.setOnClickListener(new View.OnClickListener() {
@@ -63,40 +62,7 @@ public class CalculatorActivity extends AppCompatActivity {
         cardsButtonOK.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!areAllEditTextsFull()) {
-                    Toast.makeText(CalculatorActivity.this, "Заполните все данные", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                card.hide();
-                card.setRequiredRow(null); //TODO: надо это сделать?
-                String productName = ((EditText) findViewById(R.id.name_edit_text)).getText().toString();
-                double weight, protein, fats, carbs, calories;
-                try {
-                    weight = Double.parseDouble(((EditText) findViewById(R.id.weight_edit_text)).getText().toString());
-                    protein = Double.parseDouble(((EditText) findViewById(R.id.protein_edit_text)).getText().toString());
-                    fats = Double.parseDouble(((EditText) findViewById(R.id.fats_edit_text)).getText().toString());
-                    carbs = Double.parseDouble(((EditText) findViewById(R.id.carbs_edit_text)).getText().toString());
-                    calories = Double.parseDouble(((EditText) findViewById(R.id.calories_edit_text)).getText().toString());
-                } catch (NumberFormatException e) {
-                    Toast.makeText(CalculatorActivity.this, "Вводите только числа", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                //добавить строчку в таблицу:
-                TableRow row = (TableRow) LayoutInflater.from(CalculatorActivity.this).inflate(R.layout.recipe_component_layout, null);
-                for (int index = 0; index < row.getChildCount(); index++) {
-                    ((TextView)row.getChildAt(index)).setMaxWidth(row.getChildAt(index).getWidth());
-                }
-                //заполнить этими числами строчку в таблице:
-                ((TextView) row.getChildAt(0)).setText(productName);
-                ((TextView) row.getChildAt(1)).setText(String.valueOf(weight));
-                ((TextView) row.getChildAt(2)).setText(String.valueOf(protein));
-                ((TextView) row.getChildAt(3)).setText(String.valueOf(fats));
-                ((TextView) row.getChildAt(4)).setText(String.valueOf(carbs));
-                ((TextView) row.getChildAt(5)).setText(String.valueOf(calories));
-                row.setOnClickListener(onRowClickListener); //как его правильно назвать?
-                tableLayout.addView(row);
-                card.clear();
-                hideKeyBoard();
+                onButtonOkClicked();
             }
         });
 
@@ -105,85 +71,124 @@ public class CalculatorActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 tableLayout.removeView(card.getRequiredRow());
-                card.setRequiredRow(null);
                 card.hide();
             }
         });
 
-        Button countButton = (Button) findViewById(R.id.count_button);
-        countButton.setOnClickListener(new View.OnClickListener() {
+        Button calculateButton = (Button) findViewById(R.id.calculate_button);
+        calculateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (tableLayout.getChildCount() == 1) {
-                    Toast.makeText(CalculatorActivity.this, "Добавьте ингридиенты", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                //получить все TableRaw, кроме первой, т к 1 - это шапка
-                ArrayList<TableRow> rows = new ArrayList<>();
-                for (int index = 1; index < tableLayout.getChildCount(); index++) {
-                    rows.add((TableRow) tableLayout.getChildAt(index));
-                }
-
-                //пройти циклом по всем этим TableRow и умножаем белок на массу продукта
-                //то же сделать с жирами и углеводами
-                //посчитать общую массу продукта
-                //потом по формуле рассчитать кбжу на 100 г
-
-                //1 - масса
-                //2 - белки
-                //3 - жиры
-                //4 - углеводы
-                //5 - калории
-                double proteinPer100Gram, fatsPer100Gram, carbsPer100Gram, caloriesPer100Gram, productWeight;
-                double allProtein = 0, allFats = 0, allCarbs = 0, allCalories = 0, totalWeight = 0;
-                for (int index = 0; index < rows.size(); index++) {
-                    productWeight = Double.parseDouble(((TextView) rows.get(index).getChildAt(1)).getText().toString());
-                    proteinPer100Gram = Double.parseDouble(((TextView) rows.get(index).getChildAt(2)).getText().toString());
-                    fatsPer100Gram = Double.parseDouble(((TextView) rows.get(index).getChildAt(3)).getText().toString());
-                    carbsPer100Gram = Double.parseDouble(((TextView) rows.get(index).getChildAt(4)).getText().toString());
-                    caloriesPer100Gram = Double.parseDouble(((TextView) rows.get(index).getChildAt(5)).getText().toString());
-
-                    allProtein += (proteinPer100Gram * productWeight * 0.01);
-                    allFats += (fatsPer100Gram * productWeight * 0.01);
-                    allCarbs += (carbsPer100Gram * productWeight * 0.01);
-                    allCalories += (caloriesPer100Gram * productWeight * 0.01);
-                    totalWeight += productWeight;
-                }
-
-                double recipeProteinPer100Gram, recipeFatsPer100Gram, recipeCarbsPer100Gram, recipeCaloriesPer100Gram;
-
-                EditText resultWeightEditText = (EditText) findViewById(R.id.result_weight_edit_text);
-
-                double resultWeight;
-                if (!resultWeightEditText.getText().toString().isEmpty()) {
-                    resultWeight = Double.parseDouble(resultWeightEditText.getText().toString());
-                } else {
-                    resultWeight = totalWeight;
-                }
-                recipeProteinPer100Gram = allProtein * 100 / resultWeight;
-                recipeFatsPer100Gram = allFats * 100 / resultWeight;
-                recipeCarbsPer100Gram = allCarbs * 100 / resultWeight;
-                recipeCaloriesPer100Gram = allCalories * 100 / resultWeight;
-
-                Formatter formatter = new Formatter();
-                formatter.format("Масса готового продукта - %.0f грамм\n"
-                        + "Белки - %.2f\n"
-                        + "Жиры - %.2f\n"
-                        + "Углеводы - %.2f\n"
-                        + "Калорийность - %.2f\n",
-                        resultWeight,
-                        recipeProteinPer100Gram,
-                        recipeFatsPer100Gram,
-                        recipeCarbsPer100Gram,
-                        recipeCaloriesPer100Gram);
-
-                Bundle bundle = new Bundle();
-                bundle.putString(RESULT_STRING, formatter.toString());
-                ShowResultDialogFragment dialog = new ShowResultDialogFragment();
-                dialog.setArguments(bundle);
-                dialog.show(getSupportFragmentManager(), "show result");
+                onCalculateButtonClicked();
             }
         });
+    }
+
+    private void onCalculateButtonClicked() {
+        if (tableLayout.getChildCount() == 1) {
+            Toast.makeText(CalculatorActivity.this, "Добавьте ингридиенты", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        //получить все TableRaw, кроме первой, т к 1 - это шапка
+        ArrayList<TableRow> rows = new ArrayList<>();
+        for (int index = 1; index < tableLayout.getChildCount(); index++) {
+            rows.add((TableRow) tableLayout.getChildAt(index));
+        }
+
+        //пройти циклом по всем этим TableRow и умножаем белок на массу продукта
+        //то же сделать с жирами и углеводами
+        //посчитать общую массу продукта
+        //потом по формуле рассчитать бжук на 100 г
+
+        //1 - масса
+        //2 - белки
+        //3 - жиры
+        //4 - углеводы
+        //5 - калории
+        double proteinPer100Gram, fatsPer100Gram, carbsPer100Gram, caloriesPer100Gram, productWeight;
+        double allProtein = 0, allFats = 0, allCarbs = 0, allCalories = 0, totalWeight = 0;
+        for (int index = 0; index < rows.size(); index++) {
+            productWeight = Double.parseDouble(((TextView) rows.get(index).getChildAt(1)).getText().toString());
+            proteinPer100Gram = Double.parseDouble(((TextView) rows.get(index).getChildAt(2)).getText().toString());
+            fatsPer100Gram = Double.parseDouble(((TextView) rows.get(index).getChildAt(3)).getText().toString());
+            carbsPer100Gram = Double.parseDouble(((TextView) rows.get(index).getChildAt(4)).getText().toString());
+            caloriesPer100Gram = Double.parseDouble(((TextView) rows.get(index).getChildAt(5)).getText().toString());
+
+            allProtein += (proteinPer100Gram * productWeight * 0.01);
+            allFats += (fatsPer100Gram * productWeight * 0.01);
+            allCarbs += (carbsPer100Gram * productWeight * 0.01);
+            allCalories += (caloriesPer100Gram * productWeight * 0.01);
+            totalWeight += productWeight;
+        }
+
+        double recipeProteinPer100Gram, recipeFatsPer100Gram, recipeCarbsPer100Gram, recipeCaloriesPer100Gram;
+
+        EditText resultWeightEditText = (EditText) findViewById(R.id.result_weight_edit_text);
+
+        double resultWeight;
+        if (!resultWeightEditText.getText().toString().isEmpty()) {
+            resultWeight = Double.parseDouble(resultWeightEditText.getText().toString());
+        } else {
+            resultWeight = totalWeight;
+        }
+        recipeProteinPer100Gram = allProtein * 100 / resultWeight;
+        recipeFatsPer100Gram = allFats * 100 / resultWeight;
+        recipeCarbsPer100Gram = allCarbs * 100 / resultWeight;
+        recipeCaloriesPer100Gram = allCalories * 100 / resultWeight;
+
+        Formatter formatter = new Formatter();
+        formatter.format("Масса готового продукта - %.0f грамм\n"
+                + "Белки - %.2f\n"
+                + "Жиры - %.2f\n"
+                + "Углеводы - %.2f\n"
+                + "Калорийность - %.2f\n",
+                resultWeight,
+                recipeProteinPer100Gram,
+                recipeFatsPer100Gram,
+                recipeCarbsPer100Gram,
+                recipeCaloriesPer100Gram);
+
+        Bundle bundle = new Bundle();
+        bundle.putString(RESULT_STRING, formatter.toString());
+        ShowResultDialogFragment dialog = new ShowResultDialogFragment();
+        dialog.setArguments(bundle);
+        dialog.show(getSupportFragmentManager(), "show result");
+    }
+
+    private void onButtonOkClicked() {
+        if (!card.areAllEditTextsFull()) {
+            Toast.makeText(CalculatorActivity.this, "Заполните все данные", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        card.hide();
+        String productName = ((EditText) findViewById(R.id.name_edit_text)).getText().toString();
+        double weight, protein, fats, carbs, calories;
+        try {
+            weight = Double.parseDouble(((EditText) findViewById(R.id.weight_edit_text)).getText().toString());
+            protein = Double.parseDouble(((EditText) findViewById(R.id.protein_edit_text)).getText().toString());
+            fats = Double.parseDouble(((EditText) findViewById(R.id.fats_edit_text)).getText().toString());
+            carbs = Double.parseDouble(((EditText) findViewById(R.id.carbs_edit_text)).getText().toString());
+            calories = Double.parseDouble(((EditText) findViewById(R.id.calories_edit_text)).getText().toString());
+        } catch (NumberFormatException e) {
+            Toast.makeText(CalculatorActivity.this, "Вводите только числа", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        //добавить строчку в таблицу:
+        TableRow row = (TableRow) LayoutInflater.from(CalculatorActivity.this).inflate(R.layout.recipe_component_layout, null);
+        for (int index = 0; index < row.getChildCount(); index++) {
+            ((TextView)row.getChildAt(index)).setMaxWidth(row.getChildAt(index).getWidth());
+        }
+        //заполнить этими числами строчку в таблице:
+        ((TextView) row.getChildAt(0)).setText(productName);
+        ((TextView) row.getChildAt(1)).setText(String.valueOf(weight));
+        ((TextView) row.getChildAt(2)).setText(String.valueOf(protein));
+        ((TextView) row.getChildAt(3)).setText(String.valueOf(fats));
+        ((TextView) row.getChildAt(4)).setText(String.valueOf(carbs));
+        ((TextView) row.getChildAt(5)).setText(String.valueOf(calories));
+        row.setOnClickListener(onRowClickListener); //как его правильно назвать?
+        tableLayout.addView(row);
+        card.clear();
+        hideKeyBoard();
     }
 
     @Override
@@ -229,43 +234,6 @@ public class CalculatorActivity extends AppCompatActivity {
                 tableLayout.addView(row);
             }
         }
-    }
-
-    private void raiseCardAboveKeyboard() {
-        //TODO: этот метод можно исользовать, чтоб поднимать и массу готового продукта над клавиатурой?
-        final Window mRootWindow = getWindow();
-        final View mRootView = mRootWindow.getDecorView().findViewById(android.R.id.content);
-        mRootView.getViewTreeObserver().addOnGlobalLayoutListener(
-                new ViewTreeObserver.OnGlobalLayoutListener() {
-                    public void onGlobalLayout() {
-                        int mRootViewHeight = mRootView.getHeight();
-                        Rect rect = new Rect();
-                        View view = mRootWindow.getDecorView();
-                        view.getWindowVisibleDisplayFrame(rect);
-                        int visibleDisplayFrameHeight = rect.left;
-                        int delta = mRootViewHeight - visibleDisplayFrameHeight; //это верхний левый угол клавиатуры?
-                        card.getCardLayout().setY(delta - card.getCardLayout().getHeight());
-                    }
-                });
-    }
-
-    private boolean areAllEditTextsFull() {
-        if (((EditText) findViewById(R.id.weight_edit_text)).getText().toString().isEmpty()) {
-            return false;
-        }
-        if (((EditText) findViewById(R.id.protein_edit_text)).getText().toString().isEmpty()) {
-            return false;
-        }
-        if (((EditText) findViewById(R.id.fats_edit_text)).getText().toString().isEmpty()) {
-            return false;
-        }
-        if (((EditText) findViewById(R.id.carbs_edit_text)).getText().toString().isEmpty()) {
-            return false;
-        }
-        if (((EditText) findViewById(R.id.calories_edit_text)).getText().toString().isEmpty()) {
-            return false;
-        }
-        return true;
     }
 
     private void hideKeyBoard() {

@@ -2,10 +2,13 @@ package korablique.recipecalculator;
 
 import android.content.Context;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -32,6 +35,14 @@ public class Card {
         cardLayout = LayoutInflater.from(context).inflate(R.layout.card_layout, null);
         parentLayout.addView(cardLayout);
 
+        // NOTE: тут происходит какая-то чёрная магия
+        // (Когда карточку добавили в parentView, карточка внезапно становится высотой match_parent,
+        // а если parent'а карточки передать в inflate, то происходит какая-то непонятная фигня).
+        ViewGroup.LayoutParams params = cardLayout.getLayoutParams();
+        params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+        params.width = ViewGroup.LayoutParams.MATCH_PARENT;
+        cardLayout.setLayoutParams(params);
+
         nameEditText = (EditText) cardLayout.findViewById(R.id.name_edit_text);
         weightEditText = (EditText) cardLayout.findViewById(R.id.weight_edit_text);
         proteinEditText = (EditText) cardLayout.findViewById(R.id.protein_edit_text);
@@ -43,18 +54,10 @@ public class Card {
     }
 
     public void displayEmpty() {
-        // NOTE: тут происходит какая-то чёрная магия
-        // (Когда карточку добавили в parentView, карточка внезапно становится высотой match_parent,
-        // а если parent'а карточки передать в inflate, то происходит какая-то непонятная фигня,
-        // а мне лень разбираться).
-        ViewGroup.LayoutParams params = cardLayout.getLayoutParams();
-        params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
-        params.width = ViewGroup.LayoutParams.MATCH_PARENT;
-        cardLayout.setLayoutParams(params);
-
         cardLayout.setVisibility(View.VISIBLE);
         cardLayout.bringToFront();
         cardLayout.setY(parentLayout.getHeight() - cardLayout.getHeight());
+        requiredRow = null;
     }
 
     public void displayForRow(TableRow row) {
@@ -75,6 +78,27 @@ public class Card {
         final int displayHeight = size.y;
         cardLayout.setY(cardLayout.getHeight() + displayHeight);
         cardLayout.setVisibility(View.INVISIBLE);
+        requiredRow = null;
+    }
+
+    public void raiseWhenKeyboardAppears() {
+        final Window rootWindow = ((CalculatorActivity)context).getWindow(); //именно к CalculatorActivity приводить?
+        final View rootView = rootWindow.getDecorView().findViewById(android.R.id.content);
+        rootView.getViewTreeObserver().addOnGlobalLayoutListener(
+                new ViewTreeObserver.OnGlobalLayoutListener() {
+                    public void onGlobalLayout() {
+                        int rootViewHeight = rootView.getHeight(); //исходная высота лэйаута
+                        Rect rect = new Rect();
+                        View view = rootWindow.getDecorView();
+                        view.getWindowVisibleDisplayFrame(rect);
+                        int visibleDisplayFrameHeight = rect.height(); //видимая высота его
+                        int keyboardHeight = rootViewHeight - visibleDisplayFrameHeight; //это получается высота клавиатуры
+                        View cardParent = (View)cardLayout.getParent();
+                        int toolbarHeight = rootWindow.getDecorView().getHeight() - rootView.getHeight();
+                        int statusBarHeight = rect.top;
+                        cardLayout.setY(cardParent.getHeight() - cardLayout.getHeight() - keyboardHeight - toolbarHeight + statusBarHeight);
+                    }
+                });
     }
 
     public void clear() {
@@ -86,16 +110,31 @@ public class Card {
         caloriesEditText.setText("");
     }
 
+    public boolean areAllEditTextsFull() {
+        if (weightEditText.getText().toString().isEmpty()) {
+            return false;
+        }
+        if (proteinEditText.getText().toString().isEmpty()) {
+            return false;
+        }
+        if (fatsEditText.getText().toString().isEmpty()) {
+            return false;
+        }
+        if (carbsEditText.getText().toString().isEmpty()) {
+            return false;
+        }
+        if (caloriesEditText.getText().toString().isEmpty()) {
+            return false;
+        }
+        return true;
+    }
+
     public View getCardLayout() {
         return cardLayout;
     }
 
     public TableRow getRequiredRow() {
         return requiredRow;
-    }
-
-    public void setRequiredRow(TableRow row) {
-        requiredRow = row;
     }
 
     public Button getButtonOk() {
