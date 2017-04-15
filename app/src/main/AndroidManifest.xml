@@ -10,15 +10,17 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".MainActivity"
-            android:windowSoftInputMode="adjustResize|stateHidden">
+            android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".CalculatorActivity" />
+        <activity
+            android:name=".CalculatorActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden"
+            />
         <activity android:name=".ListOfRecipesActivity"></activity>
     </application>
 

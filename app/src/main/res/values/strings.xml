@@ -15,7 +15,7 @@
     <string name="enter_calories">Калорийность (на 100г):</string>
     <string name="enter_weight">Масса продукта:</string>
     <string name="ok">OK</string>
-    <string name="product_name">Название продукта:</string>
+    <string name="product_name">Наименование:</string>
     <string name="delete">Удалить</string>
     <string name="list_of_recipes">Список моих рецептов</string>
     <string name="recipe_calculator">Калькулятор рецептов</string>
