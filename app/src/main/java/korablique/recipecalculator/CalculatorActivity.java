@@ -42,7 +42,7 @@ public class CalculatorActivity extends AppCompatActivity {
         card.addOnGlobalLayoutListener();
 
         EditText resultWeightEditText = (EditText) findViewById(R.id.result_weight_edit_text);
-        resultWeightEditText.clearFocus();
+        resultWeightEditText.clearFocus(); //не работает
         resultWeightEditText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -166,7 +166,6 @@ public class CalculatorActivity extends AppCompatActivity {
             Toast.makeText(CalculatorActivity.this, "Заполните все данные", Toast.LENGTH_SHORT).show();
             return;
         }
-        card.hide();
         String productName = ((EditText) findViewById(R.id.name_edit_text)).getText().toString();
         double weight, protein, fats, carbs, calories;
         try {
@@ -179,10 +178,17 @@ public class CalculatorActivity extends AppCompatActivity {
             Toast.makeText(CalculatorActivity.this, "Вводите только числа", Toast.LENGTH_SHORT).show();
             return;
         }
-        //добавить строчку в таблицу:
-        TableRow row = (TableRow) LayoutInflater.from(CalculatorActivity.this).inflate(R.layout.recipe_component_layout, null);
-        for (int index = 0; index < row.getChildCount(); index++) {
-            ((TextView)row.getChildAt(index)).setMaxWidth(row.getChildAt(index).getWidth());
+
+        TableRow editedRow = card.getEditedRow();
+        TableRow row;
+        if (editedRow == null) {
+            //добавить строчку в таблицу:
+            row = (TableRow) LayoutInflater.from(CalculatorActivity.this).inflate(R.layout.recipe_component_layout, null);
+            for (int index = 0; index < row.getChildCount(); index++) {
+                ((TextView) row.getChildAt(index)).setMaxWidth(row.getChildAt(index).getWidth());
+            }
+        } else {
+            row = editedRow;
         }
         //заполнить этими числами строчку в таблице:
         ((TextView) row.getChildAt(0)).setText(productName);
@@ -191,8 +197,11 @@ public class CalculatorActivity extends AppCompatActivity {
         ((TextView) row.getChildAt(3)).setText(String.valueOf(fats));
         ((TextView) row.getChildAt(4)).setText(String.valueOf(carbs));
         ((TextView) row.getChildAt(5)).setText(String.valueOf(calories));
-        row.setOnClickListener(onRowClickListener); //как его правильно назвать?
-        tableLayout.addView(row);
+        if (editedRow == null) {
+            row.setOnClickListener(onRowClickListener);
+            tableLayout.addView(row);
+        }
+        card.hide();
         card.clear();
         hideKeyBoard();
     }

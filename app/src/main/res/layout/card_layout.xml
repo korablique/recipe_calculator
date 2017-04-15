@@ -20,7 +20,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_toRightOf="@id/name_text_view"
-        android:maxLines="1"/>
+        android:maxLines="1"
+        android:scrollHorizontally="true"/>
 
     <TextView
         android:id="@+id/weight_text_view"

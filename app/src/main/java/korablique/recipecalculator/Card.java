@@ -1,9 +1,7 @@
 package korablique.recipecalculator;
 
 import android.app.Activity;
-import android.content.Context;
 import android.graphics.Point;
-import android.graphics.Rect;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,7 +20,7 @@ public class Card {
     private Window rootWindow;
     private View rootView;
     private View cardLayout;
-    private TableRow requiredRow;
+    private TableRow editedRow;
     private EditText nameEditText;
     private EditText weightEditText;
     private EditText proteinEditText;
@@ -62,9 +60,8 @@ public class Card {
     public void displayEmpty() {
         cardLayout.setVisibility(View.VISIBLE);
         cardLayout.bringToFront();
-//        cardLayout.setY(parentLayout.getHeight() - cardLayout.getHeight());
-        cardLayout.setY(detectVisibleDisplayHeight() - cardLayout.getHeight());
-        requiredRow = null;
+        cardLayout.setY(getVisibleParentHeight() - cardLayout.getHeight());
+        editedRow = null;
     }
 
     public void displayForRow(TableRow row) {
@@ -75,7 +72,7 @@ public class Card {
         fatsEditText.setText(((TextView) row.getChildAt(3)).getText().toString());
         carbsEditText.setText(((TextView) row.getChildAt(4)).getText().toString());
         caloriesEditText.setText(((TextView) row.getChildAt(5)).getText().toString());
-        requiredRow = row;
+        editedRow = row;
     }
 
     public void hide() {
@@ -85,29 +82,32 @@ public class Card {
         final int displayHeight = size.y;
         cardLayout.setY(cardLayout.getHeight() + displayHeight);
         cardLayout.setVisibility(View.INVISIBLE);
-        requiredRow = null;
+        editedRow = null;
     }
 
     public void addOnGlobalLayoutListener() {
         rootView.getViewTreeObserver().addOnGlobalLayoutListener(
                 new ViewTreeObserver.OnGlobalLayoutListener() {
                     public void onGlobalLayout() {
-                        cardLayout.setY(detectVisibleDisplayHeight() - cardLayout.getHeight());
+                        cardLayout.setY(getVisibleParentHeight()
+                                + ((View)cardLayout.getParent()).getY()
+                                - cardLayout.getHeight());
                     }
                 });
     }
 
-    private int detectVisibleDisplayHeight() {
-        int rootViewHeight = rootView.getHeight(); //исходная высота лэйаута
-        Rect rect = new Rect();
-        View view = rootWindow.getDecorView();
-        view.getWindowVisibleDisplayFrame(rect);
-        int visibleDisplayFrameHeight = rect.height(); //видимая высота его
-        int keyboardHeight = rootViewHeight - visibleDisplayFrameHeight; //это получается высота клавиатуры
+    private int getVisibleParentHeight() {
+//        int rootViewHeight = rootView.getHeight(); //исходная высота лэйаута
+//        Rect rect = new Rect();
+//        View view = rootWindow.getDecorView();
+//        view.getWindowVisibleDisplayFrame(rect);
+//        int visibleDisplayFrameHeight = rect.height(); //видимая высота его
+//        int keyboardHeight = rootViewHeight - visibleDisplayFrameHeight; //это получается высота клавиатуры
         View cardParent = (View)cardLayout.getParent();
-        int toolbarHeight = rootWindow.getDecorView().getHeight() - rootView.getHeight();
-        int statusBarHeight = rect.top;
-        return cardParent.getHeight() - keyboardHeight - toolbarHeight + statusBarHeight;
+//        int toolbarHeight = rootWindow.getDecorView().getHeight() - rootView.getHeight();
+//        int statusBarHeight = rect.top;
+//        return cardParent.getHeight() - keyboardHeight - toolbarHeight + statusBarHeight;
+        return cardParent.getHeight();
     }
 
     public void clear() {
@@ -138,8 +138,8 @@ public class Card {
         return true;
     }
 
-    public TableRow getRequiredRow() {
-        return requiredRow;
+    public TableRow getEditedRow() {
+        return editedRow;
     }
 
     public Button getButtonOk() {
