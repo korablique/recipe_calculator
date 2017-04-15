@@ -75,8 +75,9 @@ public class CalculatorActivity extends AppCompatActivity {
         cardsButtonDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                tableLayout.removeView(card.getRequiredRow());
+                tableLayout.removeView(card.getEditedRow());
                 card.hide();
+                card.clear();
             }
         });
 
