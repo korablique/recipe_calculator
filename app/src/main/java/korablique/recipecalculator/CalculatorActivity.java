@@ -1,6 +1,8 @@
 package korablique.recipecalculator;
 
 import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -31,6 +33,15 @@ public class CalculatorActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calculator);
+
+        FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(this);
+        final SQLiteDatabase database = dbHelper.getWritableDatabase();
+        Cursor cursor = database.rawQuery("SELECT * FROM " + FoodstuffsContract.Foodstuffs.TABLE_NAME + ";", null);
+        //если база данных ещё пустая (типа при первом запуске приложения), то заполняем её:
+        if (cursor.getCount() == 0) {
+            DatabaseFiller.fillDbOnFirstAppStart(database);
+        }
+        cursor.close();
 
         //инициализируем tableLayout:
         tableLayout = (TableLayout) findViewById(R.id.table_layout);

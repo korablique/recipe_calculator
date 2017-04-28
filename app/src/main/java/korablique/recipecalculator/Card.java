@@ -149,4 +149,6 @@ public class Card {
     public Button getButtonDelete() {
         return buttonDelete;
     }
+
+
 }
