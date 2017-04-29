@@ -1,5 +1,6 @@
 package korablique.recipecalculator;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -19,8 +20,20 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.Formatter;
 
+import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_CALORIES;
+import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_CARBS;
+import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_FATS;
+import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_FOODSTUFF_NAME;
+import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_PROTEIN;
+import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.TABLE_NAME;
+
 public class CalculatorActivity extends AppCompatActivity {
-    public static final String RESULT_STRING = "RESULT_STRING";
+//    public static final String RESULT_STRING = "RESULT_STRING";
+    public static final String WEIGHT = "WEIGHT";
+    public static final String PROTEIN = "PROTEIN";
+    public static final String FATS = "FATS";
+    public static final String CARBS = "CARBS";
+    public static final String CALORIES = "CALORIES";
     private TableLayout tableLayout;
     private Card card;
     private View.OnClickListener onRowClickListener = new View.OnClickListener() {
@@ -36,7 +49,7 @@ public class CalculatorActivity extends AppCompatActivity {
 
         FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(this);
         final SQLiteDatabase database = dbHelper.getWritableDatabase();
-        Cursor cursor = database.rawQuery("SELECT * FROM " + FoodstuffsContract.Foodstuffs.TABLE_NAME + ";", null);
+        Cursor cursor = database.rawQuery("SELECT * FROM " + TABLE_NAME + ";", null);
         //если база данных ещё пустая (типа при первом запуске приложения), то заполняем её:
         if (cursor.getCount() == 0) {
             DatabaseFiller.fillDbOnFirstAppStart(database);
@@ -89,6 +102,49 @@ public class CalculatorActivity extends AppCompatActivity {
                 tableLayout.removeView(card.getEditedRow());
                 card.hide();
                 card.clear();
+            }
+        });
+
+        Button cardsButtonSave = card.getButtonSave();
+        cardsButtonSave.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //TODO: правильное условие? есть метод areAllEditTextFull(), но мне в данном случае не нужна масса продукта
+                if (card.getNameEditText().getText().toString().isEmpty()
+                        || card.getProteinEditText().getText().toString().isEmpty()
+                        || card.getFatsEditText().getText().toString().isEmpty()
+                        || card.getCarbsEditText().getText().toString().isEmpty()
+                        || card.getCaloriesEditText().getText().toString().isEmpty()) {
+                    Toast.makeText(CalculatorActivity.this, "Заполните название и БЖУК", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                //TODO: надо сначала проверить, нет ли уже такого продукта в БД
+                String name = card.getNameEditText().getText().toString();
+                double protein = Double.parseDouble(card.getProteinEditText().getText().toString());
+                double fats = Double.parseDouble(card.getFatsEditText().getText().toString());
+                double carbs = Double.parseDouble(card.getCarbsEditText().getText().toString());
+                double calories = Double.parseDouble(card.getCaloriesEditText().getText().toString());
+
+                Cursor cursor = database.rawQuery("SELECT * FROM " + TABLE_NAME
+                        + " WHERE " + COLUMN_NAME_FOODSTUFF_NAME + " = '" + name + "' AND "
+                        + COLUMN_NAME_PROTEIN + " = " + protein + " AND "
+                        + COLUMN_NAME_FATS + " = " + fats + " AND "
+                        + COLUMN_NAME_CARBS + " = " + carbs + " AND "
+                        + COLUMN_NAME_CALORIES + " = " + calories + ";", null);
+                //если такого продукта нет в БД:
+                if (cursor.getCount() == 0) {
+                    ContentValues values = new ContentValues();
+                    values.put(COLUMN_NAME_FOODSTUFF_NAME, name);
+                    values.put(COLUMN_NAME_PROTEIN, protein);
+                    values.put(COLUMN_NAME_FATS, fats);
+                    values.put(COLUMN_NAME_CARBS, carbs);
+                    values.put(COLUMN_NAME_CALORIES, calories);
+                    database.insert(TABLE_NAME, null, values);
+                    Toast.makeText(CalculatorActivity.this, "Продукт сохранён", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(CalculatorActivity.this, "Продукт уже существует", Toast.LENGTH_SHORT).show();
+                }
+                cursor.close();
             }
         });
 
@@ -153,20 +209,12 @@ public class CalculatorActivity extends AppCompatActivity {
         recipeCarbsPer100Gram = allCarbs * 100 / resultWeight;
         recipeCaloriesPer100Gram = allCalories * 100 / resultWeight;
 
-        Formatter formatter = new Formatter();
-        formatter.format("Масса готового продукта - %.0f грамм\n"
-                + "Белки - %.2f\n"
-                + "Жиры - %.2f\n"
-                + "Углеводы - %.2f\n"
-                + "Калорийность - %.2f\n",
-                resultWeight,
-                recipeProteinPer100Gram,
-                recipeFatsPer100Gram,
-                recipeCarbsPer100Gram,
-                recipeCaloriesPer100Gram);
-
         Bundle bundle = new Bundle();
-        bundle.putString(RESULT_STRING, formatter.toString());
+        bundle.putDouble(WEIGHT, resultWeight);
+        bundle.putDouble(PROTEIN, recipeProteinPer100Gram);
+        bundle.putDouble(FATS, recipeFatsPer100Gram);
+        bundle.putDouble(CARBS, recipeCarbsPer100Gram);
+        bundle.putDouble(CALORIES, recipeCaloriesPer100Gram);
         ShowResultDialogFragment dialog = new ShowResultDialogFragment();
         dialog.setArguments(bundle);
         dialog.show(getSupportFragmentManager(), "show result");

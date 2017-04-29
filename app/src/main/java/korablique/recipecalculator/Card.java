@@ -29,6 +29,7 @@ public class Card {
     private EditText caloriesEditText;
     private Button buttonOk;
     private Button buttonDelete;
+    private Button buttonSave;
 
     public Card(Activity activity, FrameLayout parentLayout) {
         this.activity = activity;
@@ -55,6 +56,7 @@ public class Card {
         caloriesEditText = (EditText) cardLayout.findViewById(R.id.calories_edit_text);
         buttonOk = (Button) cardLayout.findViewById(R.id.button_ok);
         buttonDelete = (Button) cardLayout.findViewById(R.id.button_delete);
+        buttonSave = (Button) cardLayout.findViewById(R.id.button_save);
     }
 
     public void displayEmpty() {
@@ -150,5 +152,27 @@ public class Card {
         return buttonDelete;
     }
 
+    public Button getButtonSave() {
+        return buttonSave;
+    }
 
+    public EditText getNameEditText() {
+        return nameEditText;
+    }
+
+    public EditText getProteinEditText() {
+        return proteinEditText;
+    }
+
+    public EditText getFatsEditText() {
+        return fatsEditText;
+    }
+
+    public EditText getCarbsEditText() {
+        return carbsEditText;
+    }
+
+    public EditText getCaloriesEditText() {
+        return caloriesEditText;
+    }
 }

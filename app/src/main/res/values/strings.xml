@@ -19,4 +19,6 @@
     <string name="delete">Удалить</string>
     <string name="list_of_recipes">Список моих рецептов</string>
     <string name="recipe_calculator">Калькулятор рецептов</string>
+    <string name="save">Сохранить</string>
+    <string name="recipe_name">Введите название рецепта</string>
 </resources>

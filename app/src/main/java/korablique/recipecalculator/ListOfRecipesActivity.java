@@ -22,5 +22,7 @@ public class ListOfRecipesActivity extends AppCompatActivity {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         MyAdapter recyclerViewAdapter = new MyAdapter(db);
         recyclerView.setAdapter(recyclerViewAdapter);
+
+
     }
 }

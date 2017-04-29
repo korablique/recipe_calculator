@@ -131,4 +131,14 @@
         android:layout_marginTop="10dp"
         android:layout_toRightOf="@id/button_ok"
         android:text="@string/delete"/>
+
+    <Button
+        android:id="@+id/button_save"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/calories_text_view"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_toRightOf="@id/button_delete"
+        android:text="@string/save"/>
 </RelativeLayout>

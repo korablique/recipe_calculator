@@ -1,10 +1,10 @@
 package korablique.recipecalculator;
 
-import android.app.Activity;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -12,7 +12,6 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
-import static android.provider.BaseColumns._ID;
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_CALORIES;
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_CARBS;
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_FATS;
@@ -42,6 +41,12 @@ public class MyAdapter extends RecyclerView.Adapter<MyViewHolder> {
     public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         LinearLayout item = (LinearLayout) LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.foodstuff_layout, parent, false);
+        item.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
         return new MyViewHolder(item);
     }
 
@@ -53,9 +58,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyViewHolder> {
         TextView carbsTextView = (TextView) holder.getItem().findViewById(R.id.carbs);
         TextView caloriesTextView = (TextView) holder.getItem().findViewById(R.id.calories);
 
-        String[] columns = new String[]{COLUMN_NAME_FOODSTUFF_NAME, COLUMN_NAME_PROTEIN, COLUMN_NAME_FATS,
-                COLUMN_NAME_CARBS, COLUMN_NAME_CALORIES};
-        String[] selectionArgs = new String[] { String.valueOf(position) };
         String name;
         double protein, fats, carbs, calories;
 
