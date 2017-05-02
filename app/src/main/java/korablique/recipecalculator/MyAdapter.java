@@ -23,9 +23,11 @@ import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.TABLE_NA
 public class MyAdapter extends RecyclerView.Adapter<MyViewHolder> {
     private List<Integer> itemsIDs = new ArrayList<>();
     private SQLiteDatabase db;
+    private View.OnClickListener onRowClickListener;
 
-    public MyAdapter(SQLiteDatabase db) {
+    public MyAdapter(SQLiteDatabase db, View.OnClickListener onRowClickListener) {
         this.db = db;
+        this.onRowClickListener = onRowClickListener;
         String[] columns = new String[]{ ID };
         Cursor cursor = db.query(TABLE_NAME, columns, null, null, null, null, null);
         if (cursor.moveToFirst()) {
@@ -38,20 +40,22 @@ public class MyAdapter extends RecyclerView.Adapter<MyViewHolder> {
     }
 
     @Override
-    public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        LinearLayout item = (LinearLayout) LayoutInflater.from(parent.getContext())
+    public MyViewHolder onCreateViewHolder(final ViewGroup parent, int viewType) {
+        final LinearLayout item = (LinearLayout) LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.foodstuff_layout, parent, false);
-        item.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
-        });
+        //прячем столбик с массой
+        View weightColumnName = item.findViewById(R.id.column_name_weight);
+        weightColumnName.setVisibility(View.GONE);
+        View weightView = item.findViewById(R.id.weight);
+        weightView.setVisibility(View.GONE);
+        item.setOnClickListener(onRowClickListener);
         return new MyViewHolder(item);
     }
 
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
+        holder.getItem().setTag(itemsIDs.get(position));
+
         TextView nameTextView = (TextView) holder.getItem().findViewById(R.id.name);
         TextView proteinTextView = (TextView) holder.getItem().findViewById(R.id.protein);
         TextView fatsTextView = (TextView) holder.getItem().findViewById(R.id.fats);
@@ -84,5 +88,10 @@ public class MyAdapter extends RecyclerView.Adapter<MyViewHolder> {
     @Override
     public int getItemCount() {
         return itemsIDs.size();
+    }
+
+    public void deleteItem(int id) {
+        itemsIDs.remove(Integer.valueOf(id));
+        notifyDataSetChanged();
     }
 }

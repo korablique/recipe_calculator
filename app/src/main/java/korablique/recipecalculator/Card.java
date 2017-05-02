@@ -11,16 +11,16 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
 public class Card {
     private Activity activity;
-    private FrameLayout parentLayout;
     private Window rootWindow;
     private View rootView;
     private View cardLayout;
-    private TableRow editedRow;
+    private LinearLayout editedRow; //или какой тут тип будет?
     private EditText nameEditText;
     private EditText weightEditText;
     private EditText proteinEditText;
@@ -30,10 +30,10 @@ public class Card {
     private Button buttonOk;
     private Button buttonDelete;
     private Button buttonSave;
+    private TextView weightTextview;
 
-    public Card(Activity activity, FrameLayout parentLayout) {
+    public Card(Activity activity, ViewGroup parentLayout) {
         this.activity = activity;
-        this.parentLayout = parentLayout;
         cardLayout = LayoutInflater.from(activity).inflate(R.layout.card_layout, null);
         parentLayout.addView(cardLayout);
 
@@ -57,6 +57,7 @@ public class Card {
         buttonOk = (Button) cardLayout.findViewById(R.id.button_ok);
         buttonDelete = (Button) cardLayout.findViewById(R.id.button_delete);
         buttonSave = (Button) cardLayout.findViewById(R.id.button_save);
+        weightTextview = (TextView) cardLayout.findViewById(R.id.weight_text_view);
     }
 
     public void displayEmpty() {
@@ -66,14 +67,14 @@ public class Card {
         editedRow = null;
     }
 
-    public void displayForRow(TableRow row) {
+    public void displayForRow(LinearLayout row) {
         displayEmpty();
-        nameEditText.setText(((TextView) row.getChildAt(0)).getText().toString());
-        weightEditText.setText(((TextView) row.getChildAt(1)).getText().toString());
-        proteinEditText.setText(((TextView) row.getChildAt(2)).getText().toString());
-        fatsEditText.setText(((TextView) row.getChildAt(3)).getText().toString());
-        carbsEditText.setText(((TextView) row.getChildAt(4)).getText().toString());
-        caloriesEditText.setText(((TextView) row.getChildAt(5)).getText().toString());
+        nameEditText.setText(((TextView) row.findViewById(R.id.name)).getText().toString());
+        weightEditText.setText(((TextView) row.findViewById(R.id.weight)).getText().toString());
+        proteinEditText.setText(((TextView) row.findViewById(R.id.protein)).getText().toString());
+        fatsEditText.setText(((TextView) row.findViewById(R.id.fats)).getText().toString());
+        carbsEditText.setText(((TextView) row.findViewById(R.id.carbs)).getText().toString());
+        caloriesEditText.setText(((TextView) row.findViewById(R.id.calories)).getText().toString());
         editedRow = row;
     }
 
@@ -99,16 +100,7 @@ public class Card {
     }
 
     private int getVisibleParentHeight() {
-//        int rootViewHeight = rootView.getHeight(); //исходная высота лэйаута
-//        Rect rect = new Rect();
-//        View view = rootWindow.getDecorView();
-//        view.getWindowVisibleDisplayFrame(rect);
-//        int visibleDisplayFrameHeight = rect.height(); //видимая высота его
-//        int keyboardHeight = rootViewHeight - visibleDisplayFrameHeight; //это получается высота клавиатуры
         View cardParent = (View)cardLayout.getParent();
-//        int toolbarHeight = rootWindow.getDecorView().getHeight() - rootView.getHeight();
-//        int statusBarHeight = rect.top;
-//        return cardParent.getHeight() - keyboardHeight - toolbarHeight + statusBarHeight;
         return cardParent.getHeight();
     }
 
@@ -140,7 +132,7 @@ public class Card {
         return true;
     }
 
-    public TableRow getEditedRow() {
+    public LinearLayout getEditedRow() {
         return editedRow;
     }
 
@@ -174,5 +166,13 @@ public class Card {
 
     public EditText getCaloriesEditText() {
         return caloriesEditText;
+    }
+
+    public EditText getWeightEditText() {
+        return weightEditText;
+    }
+
+    public TextView getWeightTextView() {
+        return weightTextview;
     }
 }

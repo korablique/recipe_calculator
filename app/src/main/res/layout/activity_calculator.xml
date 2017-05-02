@@ -5,6 +5,7 @@
     android:id="@+id/frame_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
     tools:context="korablique.recipecalculator.CalculatorActivity">
 
     <RelativeLayout
@@ -15,57 +16,14 @@
             android:id="@+id/scroll_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            custom:max_weight="0.5">
+            custom:max_weight="0.66">
 
-            <TableLayout
-                android:id="@+id/table_layout"
+            <LinearLayout
+                android:id="@+id/ingredients_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="#D3D3D3">
-
-                <!--шапка-->
-                <TableRow>
-
-                    <TextView
-                        android:layout_margin="1dp"
-                        android:background="#FFF"
-                        android:text="@string/component_name"
-                        android:textSize="20sp"
-                        android:layout_weight="2"/>
-                    <TextView
-                        android:layout_margin="1dp"
-                        android:background="#FFF"
-                        android:text="@string/product_weight"
-                        android:textSize="20sp"
-                        android:layout_weight="1"/>
-                    <TextView
-                        android:layout_margin="1dp"
-                        android:background="#FFF"
-                        android:text="@string/protein"
-                        android:textSize="20sp"
-                        android:layout_weight="1"/>
-                    <TextView
-                        android:layout_margin="1dp"
-                        android:background="#FFF"
-                        android:text="@string/fat"
-                        android:textSize="20sp"
-                        android:layout_weight="1"/>
-                    <TextView
-                        android:layout_margin="1dp"
-                        android:background="#FFF"
-                        android:text="@string/carbs"
-                        android:textSize="20sp"
-                        android:layout_weight="1"/>
-                    <TextView
-                        android:layout_margin="1dp"
-                        android:background="#FFF"
-                        android:text="@string/calories"
-                        android:textSize="20sp"
-                        android:layout_weight="1"/>
-                </TableRow>
-
-            </TableLayout>
-
+                android:orientation="vertical">
+            </LinearLayout>
         </korablique.recipecalculator.ScrollViewWithMaxHeight>
 
         <Button

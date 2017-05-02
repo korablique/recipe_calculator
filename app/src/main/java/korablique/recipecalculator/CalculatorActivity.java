@@ -12,13 +12,14 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.TableLayout;
+import android.widget.LinearLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
-import java.util.Formatter;
 
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_CALORIES;
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_CARBS;
@@ -28,13 +29,12 @@ import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_N
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.TABLE_NAME;
 
 public class CalculatorActivity extends AppCompatActivity {
-//    public static final String RESULT_STRING = "RESULT_STRING";
     public static final String WEIGHT = "WEIGHT";
     public static final String PROTEIN = "PROTEIN";
     public static final String FATS = "FATS";
     public static final String CARBS = "CARBS";
     public static final String CALORIES = "CALORIES";
-    private TableLayout tableLayout;
+    private LinearLayout ingredientsLayout;
     private Card card;
     private View.OnClickListener onRowClickListener = new View.OnClickListener() {
         @Override
@@ -57,7 +57,7 @@ public class CalculatorActivity extends AppCompatActivity {
         cursor.close();
 
         //инициализируем tableLayout:
-        tableLayout = (TableLayout) findViewById(R.id.table_layout);
+        ingredientsLayout = (LinearLayout) findViewById(R.id.ingredients_layout);
 
         //создаем карточку и прячем её под экран:
         FrameLayout parentLayout = (FrameLayout) findViewById(R.id.frame_layout);
@@ -99,7 +99,7 @@ public class CalculatorActivity extends AppCompatActivity {
         cardsButtonDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                tableLayout.removeView(card.getEditedRow());
+                ingredientsLayout.removeView(card.getEditedRow());
                 card.hide();
                 card.clear();
             }
@@ -118,7 +118,6 @@ public class CalculatorActivity extends AppCompatActivity {
                     Toast.makeText(CalculatorActivity.this, "Заполните название и БЖУК", Toast.LENGTH_LONG).show();
                     return;
                 }
-                //TODO: надо сначала проверить, нет ли уже такого продукта в БД
                 String name = card.getNameEditText().getText().toString();
                 double protein = Double.parseDouble(card.getProteinEditText().getText().toString());
                 double fats = Double.parseDouble(card.getFatsEditText().getText().toString());
@@ -158,17 +157,17 @@ public class CalculatorActivity extends AppCompatActivity {
     }
 
     private void onCalculateButtonClicked() {
-        if (tableLayout.getChildCount() == 1) {
+        if (ingredientsLayout.getChildCount() == 0) {
             Toast.makeText(CalculatorActivity.this, "Добавьте ингридиенты", Toast.LENGTH_SHORT).show();
             return;
         }
-        //получить все TableRaw, кроме первой, т к 1 - это шапка
-        ArrayList<TableRow> rows = new ArrayList<>();
-        for (int index = 1; index < tableLayout.getChildCount(); index++) {
-            rows.add((TableRow) tableLayout.getChildAt(index));
+        //получить все Row
+        ArrayList<LinearLayout> rows = new ArrayList<>();
+        for (int index = 0; index < ingredientsLayout.getChildCount(); index++) {
+            rows.add((LinearLayout) ingredientsLayout.getChildAt(index));
         }
 
-        //пройти циклом по всем этим TableRow и умножаем белок на массу продукта
+        //пройти циклом по всем Row и умножаем белок на массу продукта
         //то же сделать с жирами и углеводами
         //посчитать общую массу продукта
         //потом по формуле рассчитать бжук на 100 г
@@ -181,11 +180,17 @@ public class CalculatorActivity extends AppCompatActivity {
         double proteinPer100Gram, fatsPer100Gram, carbsPer100Gram, caloriesPer100Gram, productWeight;
         double allProtein = 0, allFats = 0, allCarbs = 0, allCalories = 0, totalWeight = 0;
         for (int index = 0; index < rows.size(); index++) {
-            productWeight = Double.parseDouble(((TextView) rows.get(index).getChildAt(1)).getText().toString());
-            proteinPer100Gram = Double.parseDouble(((TextView) rows.get(index).getChildAt(2)).getText().toString());
-            fatsPer100Gram = Double.parseDouble(((TextView) rows.get(index).getChildAt(3)).getText().toString());
-            carbsPer100Gram = Double.parseDouble(((TextView) rows.get(index).getChildAt(4)).getText().toString());
-            caloriesPer100Gram = Double.parseDouble(((TextView) rows.get(index).getChildAt(5)).getText().toString());
+            TextView weightTextView = (TextView) rows.get(index).findViewById(R.id.weight);
+            TextView proteinTextView = (TextView) rows.get(index).findViewById(R.id.protein);
+            TextView fatsTextView = (TextView) rows.get(index).findViewById(R.id.fats);
+            TextView carbsTextView = (TextView) rows.get(index).findViewById(R.id.carbs);
+            TextView caloriesTextView = (TextView) rows.get(index).findViewById(R.id.calories);
+
+            productWeight = Double.parseDouble((weightTextView.getText().toString()));
+            proteinPer100Gram = Double.parseDouble((proteinTextView.getText().toString()));
+            fatsPer100Gram = Double.parseDouble((fatsTextView.getText().toString()));
+            carbsPer100Gram = Double.parseDouble((carbsTextView.getText().toString()));
+            caloriesPer100Gram = Double.parseDouble((caloriesTextView.getText().toString()));
 
             allProtein += (proteinPer100Gram * productWeight * 0.01);
             allFats += (fatsPer100Gram * productWeight * 0.01);
@@ -238,27 +243,26 @@ public class CalculatorActivity extends AppCompatActivity {
             return;
         }
 
-        TableRow editedRow = card.getEditedRow();
-        TableRow row;
+        LinearLayout editedRow = card.getEditedRow();
+        LinearLayout row;
         if (editedRow == null) {
             //добавить строчку в таблицу:
-            row = (TableRow) LayoutInflater.from(CalculatorActivity.this).inflate(R.layout.recipe_component_layout, null);
-            for (int index = 0; index < row.getChildCount(); index++) {
-                ((TextView) row.getChildAt(index)).setMaxWidth(row.getChildAt(index).getWidth());
-            }
+            row = (LinearLayout) LayoutInflater.from(CalculatorActivity.this).inflate(R.layout.foodstuff_layout, null);
         } else {
             row = editedRow;
         }
         //заполнить этими числами строчку в таблице:
-        ((TextView) row.getChildAt(0)).setText(productName);
-        ((TextView) row.getChildAt(1)).setText(String.valueOf(weight));
-        ((TextView) row.getChildAt(2)).setText(String.valueOf(protein));
-        ((TextView) row.getChildAt(3)).setText(String.valueOf(fats));
-        ((TextView) row.getChildAt(4)).setText(String.valueOf(carbs));
-        ((TextView) row.getChildAt(5)).setText(String.valueOf(calories));
+        TextView nameTextView = (TextView) row.findViewById(R.id.name);
+        nameTextView.setText(productName);
+        LinearLayout linearWithTextViews = (LinearLayout) row.findViewById(R.id.linear_layout_with_text_views);
+        ((TextView) linearWithTextViews.getChildAt(0)).setText(String.valueOf(weight));
+        ((TextView) linearWithTextViews.getChildAt(1)).setText(String.valueOf(protein));
+        ((TextView) linearWithTextViews.getChildAt(2)).setText(String.valueOf(fats));
+        ((TextView) linearWithTextViews.getChildAt(3)).setText(String.valueOf(carbs));
+        ((TextView) linearWithTextViews.getChildAt(4)).setText(String.valueOf(calories));
         if (editedRow == null) {
             row.setOnClickListener(onRowClickListener);
-            tableLayout.addView(row);
+            ingredientsLayout.addView(row);
         }
         card.hide();
         card.clear();
@@ -268,26 +272,33 @@ public class CalculatorActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        //если строка только одна (шапка), то сохранять ничего не надо
-        if (tableLayout.getChildCount() == 1) {
+        if (ingredientsLayout.getChildCount() == 0) {
             return;
         }
-        //получить все TableRow
-        ArrayList<TableRow> rows = new ArrayList<>();
-        for (int index = 1; index < tableLayout.getChildCount(); index++) {
-            rows.add((TableRow) tableLayout.getChildAt(index));
+        //получить все Row
+        ArrayList<LinearLayout> rows = new ArrayList<>();
+        for (int index = 0; index < ingredientsLayout.getChildCount(); index++) {
+            rows.add((LinearLayout) ingredientsLayout.getChildAt(index));
         }
         outState.putInt("rows count", rows.size());
-        //у каждого TableRow получить TextView'хи
-        for (int index = 0; index < rows.size(); index++) {
-            TableRow currentRow = rows.get(index);
-            String[] cells = new String[currentRow.getChildCount()];
-            //проходим по всем клеткам строчки
-            for (int cellNumber = 0; cellNumber < currentRow.getChildCount(); cellNumber++) {
-                //и добавляем число из каждой - в массив cells
-                cells[cellNumber] = ((TextView) currentRow.getChildAt(cellNumber)).getText().toString();
-            }
-            outState.putStringArray("row " + index, cells);
+        //у каждого Row получить TextView'хи
+        for (int rowNumber = 0; rowNumber < rows.size(); rowNumber++) {
+            LinearLayout currentRow = rows.get(rowNumber);
+            TextView nameTextView = (TextView) currentRow.findViewById(R.id.name);
+            TextView weightTextView = (TextView) currentRow.findViewById(R.id.weight);
+            TextView proteinTextView = (TextView) currentRow.findViewById(R.id.protein);
+            TextView fatsTextView = (TextView) currentRow.findViewById(R.id.fats);
+            TextView carbsTextView = (TextView) currentRow.findViewById(R.id.carbs);
+            TextView caloriesTextView = (TextView) currentRow.findViewById(R.id.calories);
+            //и записать числа из них в массив data
+            String[] data = new String[6];
+            data[0] = nameTextView.getText().toString();
+            data[1] = weightTextView.getText().toString();
+            data[2] = proteinTextView.getText().toString();
+            data[3] = fatsTextView.getText().toString();
+            data[4] = carbsTextView.getText().toString();
+            data[5] = caloriesTextView.getText().toString();
+            outState.putStringArray("row " + rowNumber, data);
         }
     }
 
@@ -298,14 +309,26 @@ public class CalculatorActivity extends AppCompatActivity {
         if (savedInstanceState.containsKey("row " + 0)) {
             //создать новые строки
             for (int rowNumber = 0; rowNumber < savedInstanceState.getInt("rows count"); rowNumber++) {
-                TableRow row = (TableRow) LayoutInflater.from(this).inflate(R.layout.recipe_component_layout, null);
+                LinearLayout row = (LinearLayout) LayoutInflater.from(this).inflate(R.layout.foodstuff_layout, null);
                 String[] savedData = savedInstanceState.getStringArray("row " + rowNumber);
                 //заполнить их сохраненными данными
-                for (int index = 0; index < row.getChildCount(); index++) {
-                    ((TextView) row.getChildAt(index)).setText(savedData[index]);
-                }
-                //добавить новую строку в tableLayout
-                tableLayout.addView(row);
+                //TODO: было бы прикольно создать для такой row отдельный класс, а то сколько можно TextView'шки доставать
+                TextView nameTextView = (TextView) row.findViewById(R.id.name);
+                TextView weightTextView = (TextView) row.findViewById(R.id.weight);
+                TextView proteinTextView = (TextView) row.findViewById(R.id.protein);
+                TextView fatsTextView = (TextView) row.findViewById(R.id.fats);
+                TextView carbsTextView = (TextView) row.findViewById(R.id.carbs);
+                TextView caloriesTextView = (TextView) row.findViewById(R.id.calories);
+
+                nameTextView.setText(savedData[0]); //TODO: почему? (хотя вроде до этого тоже светилась)
+                weightTextView.setText(savedData[1]);
+                proteinTextView.setText(savedData[2]);
+                fatsTextView.setText(savedData[3]);
+                carbsTextView.setText(savedData[4]);
+                caloriesTextView.setText(savedData[5]);
+
+                //добавить новую строку в таблицу
+                ingredientsLayout.addView(row);
             }
         }
     }

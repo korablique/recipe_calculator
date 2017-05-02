@@ -16,7 +16,7 @@ public final class FoodstuffsContract {
     }
 
     private static final String TEXT_TYPE = " TEXT";
-    private static final String FLOAT_TYPE = " REAL"; //или назвать строку REAL?
+    private static final String FLOAT_TYPE = " REAL";
     private static final String COMMA_SEP = ", ";
 
     public static final String SQL_CREATE_ENTRIES =
