@@ -17,8 +17,9 @@
     <string name="ok">OK</string>
     <string name="product_name">Наименование:</string>
     <string name="delete">Удалить</string>
-    <string name="list_of_recipes">Список моих рецептов</string>
+    <string name="list_of_recipes">Список всех продуктов</string>
     <string name="recipe_calculator">Калькулятор рецептов</string>
     <string name="save">Сохранить</string>
     <string name="recipe_name">Введите название рецепта</string>
+    <string name="start">Для добавления продукта нажмите на +</string>
 </resources>

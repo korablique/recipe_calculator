@@ -10,17 +10,12 @@ import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.FrameLayout;
-import android.widget.LinearLayout;
-import android.widget.TableRow;
 import android.widget.TextView;
 
 public class Card {
     private Activity activity;
-    private Window rootWindow;
-    private View rootView;
     private View cardLayout;
-    private LinearLayout editedRow; //или какой тут тип будет?
+    private Row editedRow;
     private EditText nameEditText;
     private EditText weightEditText;
     private EditText proteinEditText;
@@ -30,7 +25,8 @@ public class Card {
     private Button buttonOk;
     private Button buttonDelete;
     private Button buttonSave;
-    private TextView weightTextview;
+    private TextView weightTextView;
+    private boolean isDisplayed;
 
     public Card(Activity activity, ViewGroup parentLayout) {
         this.activity = activity;
@@ -45,8 +41,8 @@ public class Card {
         params.width = ViewGroup.LayoutParams.MATCH_PARENT;
         cardLayout.setLayoutParams(params);
 
-        rootWindow = activity.getWindow();
-        rootView = rootWindow.getDecorView().findViewById(android.R.id.content);
+        Window rootWindow = activity.getWindow();
+        View rootView = rootWindow.getDecorView().findViewById(android.R.id.content);
 
         nameEditText = (EditText) cardLayout.findViewById(R.id.name_edit_text);
         weightEditText = (EditText) cardLayout.findViewById(R.id.weight_edit_text);
@@ -57,38 +53,8 @@ public class Card {
         buttonOk = (Button) cardLayout.findViewById(R.id.button_ok);
         buttonDelete = (Button) cardLayout.findViewById(R.id.button_delete);
         buttonSave = (Button) cardLayout.findViewById(R.id.button_save);
-        weightTextview = (TextView) cardLayout.findViewById(R.id.weight_text_view);
-    }
+        weightTextView = (TextView) cardLayout.findViewById(R.id.weight_text_view);
 
-    public void displayEmpty() {
-        cardLayout.setVisibility(View.VISIBLE);
-        cardLayout.bringToFront();
-        cardLayout.setY(getVisibleParentHeight() - cardLayout.getHeight());
-        editedRow = null;
-    }
-
-    public void displayForRow(LinearLayout row) {
-        displayEmpty();
-        nameEditText.setText(((TextView) row.findViewById(R.id.name)).getText().toString());
-        weightEditText.setText(((TextView) row.findViewById(R.id.weight)).getText().toString());
-        proteinEditText.setText(((TextView) row.findViewById(R.id.protein)).getText().toString());
-        fatsEditText.setText(((TextView) row.findViewById(R.id.fats)).getText().toString());
-        carbsEditText.setText(((TextView) row.findViewById(R.id.carbs)).getText().toString());
-        caloriesEditText.setText(((TextView) row.findViewById(R.id.calories)).getText().toString());
-        editedRow = row;
-    }
-
-    public void hide() {
-        Display display = activity.getWindowManager().getDefaultDisplay();
-        Point size = new Point();
-        display.getSize(size);
-        final int displayHeight = size.y;
-        cardLayout.setY(cardLayout.getHeight() + displayHeight);
-        cardLayout.setVisibility(View.INVISIBLE);
-        editedRow = null;
-    }
-
-    public void addOnGlobalLayoutListener() {
         rootView.getViewTreeObserver().addOnGlobalLayoutListener(
                 new ViewTreeObserver.OnGlobalLayoutListener() {
                     public void onGlobalLayout() {
@@ -99,12 +65,54 @@ public class Card {
                 });
     }
 
+    public void displayEmpty() {
+        this.clear();
+        buttonDelete.setVisibility(View.GONE);
+        cardLayout.setVisibility(View.VISIBLE);
+        cardLayout.bringToFront();
+        /*TranslateAnimation translateAnimation =
+                new TranslateAnimation(Animation.RELATIVE_TO_PARENT, 0,
+                        Animation.RELATIVE_TO_PARENT, 0,
+                        Animation.RELATIVE_TO_PARENT, parentLayout.getHeight(),
+                        Animation.RELATIVE_TO_PARENT, parentLayout.getHeight() - cardLayout.getHeight());
+        translateAnimation.setDuration(1000);
+        translateAnimation.setFillAfter(true);
+        cardLayout.startAnimation(translateAnimation);*/
+        cardLayout.setY(getVisibleParentHeight() - cardLayout.getHeight());
+        isDisplayed = true;
+        editedRow = null;
+    }
+
+    public void displayForRow(Row row) {
+        this.clear();
+        displayEmpty();
+        buttonDelete.setVisibility(View.VISIBLE);
+        nameEditText.setText(row.getNameTextView().getText().toString());
+        weightEditText.setText(row.getWeightTextView().getText().toString());
+        proteinEditText.setText(row.getProteinTextView().getText().toString());
+        fatsEditText.setText(row.getFatsTextView().getText().toString());
+        carbsEditText.setText(row.getCarbsTextView().getText().toString());
+        caloriesEditText.setText(row.getCaloriesTextView().getText().toString());
+        editedRow = row;
+    }
+
+    public void hide() {
+        Display display = activity.getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        final int displayHeight = size.y;
+        cardLayout.setY(cardLayout.getHeight() + displayHeight);
+        cardLayout.setVisibility(View.INVISIBLE);
+        isDisplayed = false;
+        editedRow = null;
+    }
+
     private int getVisibleParentHeight() {
         View cardParent = (View)cardLayout.getParent();
         return cardParent.getHeight();
     }
 
-    public void clear() {
+    private void clear() {
         nameEditText.setText("");
         weightEditText.setText("");
         proteinEditText.setText("");
@@ -132,10 +140,11 @@ public class Card {
         return true;
     }
 
-    public LinearLayout getEditedRow() {
+    public Row getEditedRow() {
         return editedRow;
     }
 
+    //setOnButtonOkClickedRunnable() сделать и передавать его в listener
     public Button getButtonOk() {
         return buttonOk;
     }
@@ -173,6 +182,10 @@ public class Card {
     }
 
     public TextView getWeightTextView() {
-        return weightTextview;
+        return weightTextView;
+    }
+
+    public boolean isDisplayed() {
+        return isDisplayed;
     }
 }

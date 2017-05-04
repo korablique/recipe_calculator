@@ -16,7 +16,7 @@ public class MainActivity extends AppCompatActivity {
         buttonListOfRecipes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, ListOfRecipesActivity.class);
+                Intent intent = new Intent(MainActivity.this, ListOfFoodstuffsActivity.class);
                 startActivity(intent);
             }
         });

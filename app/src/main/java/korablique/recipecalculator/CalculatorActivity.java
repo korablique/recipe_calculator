@@ -4,20 +4,17 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 
@@ -36,10 +33,11 @@ public class CalculatorActivity extends AppCompatActivity {
     public static final String CALORIES = "CALORIES";
     private LinearLayout ingredientsLayout;
     private Card card;
+    //TODO: только вот ingredientsLayout м.б. ещё не инициализирован
     private View.OnClickListener onRowClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            card.displayForRow((TableRow) v);
+            card.displayForRow(new Row(CalculatorActivity.this, ingredientsLayout, (LinearLayout) v));
         }
     };
 
@@ -60,10 +58,9 @@ public class CalculatorActivity extends AppCompatActivity {
         ingredientsLayout = (LinearLayout) findViewById(R.id.ingredients_layout);
 
         //создаем карточку и прячем её под экран:
-        FrameLayout parentLayout = (FrameLayout) findViewById(R.id.frame_layout);
+        final FrameLayout parentLayout = (FrameLayout) findViewById(R.id.frame_layout);
         card = new Card(this, parentLayout);
         card.hide();
-        card.addOnGlobalLayoutListener();
 
         EditText resultWeightEditText = (EditText) findViewById(R.id.result_weight_edit_text);
         resultWeightEditText.clearFocus(); //не работает
@@ -74,16 +71,11 @@ public class CalculatorActivity extends AppCompatActivity {
             }
         });
 
-        Button addProductButton = (Button) findViewById(R.id.button_add);
-        addProductButton.setOnClickListener(new View.OnClickListener() {
+        FloatingActionButton floatingActionButtonPlus = (FloatingActionButton) findViewById(R.id.floating_action_button_plus);
+        floatingActionButtonPlus.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 card.displayEmpty();
-                /*TranslateAnimation translateAnimation =
-                        new TranslateAnimation(0, 0, displayHeight, parent.getHeight() - card.getHeight());
-                translateAnimation.setDuration(500);
-                translateAnimation.setFillAfter(true);
-                card.startAnimation(translateAnimation);*/
             }
         });
 
@@ -99,9 +91,8 @@ public class CalculatorActivity extends AppCompatActivity {
         cardsButtonDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ingredientsLayout.removeView(card.getEditedRow());
+                ingredientsLayout.removeView(card.getEditedRow().getRowLayout());
                 card.hide();
-                card.clear();
             }
         });
 
@@ -156,15 +147,24 @@ public class CalculatorActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public void onBackPressed() {
+        if (card.isDisplayed()) {
+            card.hide();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
     private void onCalculateButtonClicked() {
         if (ingredientsLayout.getChildCount() == 0) {
             Toast.makeText(CalculatorActivity.this, "Добавьте ингридиенты", Toast.LENGTH_SHORT).show();
             return;
         }
         //получить все Row
-        ArrayList<LinearLayout> rows = new ArrayList<>();
+        ArrayList<Row> rows = new ArrayList<>();
         for (int index = 0; index < ingredientsLayout.getChildCount(); index++) {
-            rows.add((LinearLayout) ingredientsLayout.getChildAt(index));
+            rows.add(new Row(this, ingredientsLayout, (LinearLayout) ingredientsLayout.getChildAt(index)));
         }
 
         //пройти циклом по всем Row и умножаем белок на массу продукта
@@ -180,11 +180,11 @@ public class CalculatorActivity extends AppCompatActivity {
         double proteinPer100Gram, fatsPer100Gram, carbsPer100Gram, caloriesPer100Gram, productWeight;
         double allProtein = 0, allFats = 0, allCarbs = 0, allCalories = 0, totalWeight = 0;
         for (int index = 0; index < rows.size(); index++) {
-            TextView weightTextView = (TextView) rows.get(index).findViewById(R.id.weight);
-            TextView proteinTextView = (TextView) rows.get(index).findViewById(R.id.protein);
-            TextView fatsTextView = (TextView) rows.get(index).findViewById(R.id.fats);
-            TextView carbsTextView = (TextView) rows.get(index).findViewById(R.id.carbs);
-            TextView caloriesTextView = (TextView) rows.get(index).findViewById(R.id.calories);
+            TextView weightTextView = rows.get(index).getWeightTextView();
+            TextView proteinTextView = rows.get(index).getProteinTextView();
+            TextView fatsTextView = rows.get(index).getFatsTextView();
+            TextView carbsTextView = rows.get(index).getCarbsTextView();
+            TextView caloriesTextView = rows.get(index).getCaloriesTextView();
 
             productWeight = Double.parseDouble((weightTextView.getText().toString()));
             proteinPer100Gram = Double.parseDouble((proteinTextView.getText().toString()));
@@ -230,43 +230,41 @@ public class CalculatorActivity extends AppCompatActivity {
             Toast.makeText(CalculatorActivity.this, "Заполните все данные", Toast.LENGTH_SHORT).show();
             return;
         }
-        String productName = ((EditText) findViewById(R.id.name_edit_text)).getText().toString();
+
+        findViewById(R.id.start_text_view).setVisibility(View.GONE);
+
+        String productName = card.getNameEditText().getText().toString();
         double weight, protein, fats, carbs, calories;
         try {
-            weight = Double.parseDouble(((EditText) findViewById(R.id.weight_edit_text)).getText().toString());
-            protein = Double.parseDouble(((EditText) findViewById(R.id.protein_edit_text)).getText().toString());
-            fats = Double.parseDouble(((EditText) findViewById(R.id.fats_edit_text)).getText().toString());
-            carbs = Double.parseDouble(((EditText) findViewById(R.id.carbs_edit_text)).getText().toString());
-            calories = Double.parseDouble(((EditText) findViewById(R.id.calories_edit_text)).getText().toString());
+            weight = Double.parseDouble(card.getWeightEditText().getText().toString());
+            protein = Double.parseDouble(card.getProteinEditText().getText().toString());
+            fats = Double.parseDouble(card.getFatsEditText().getText().toString());
+            carbs = Double.parseDouble(card.getCarbsEditText().getText().toString());
+            calories = Double.parseDouble(card.getCaloriesEditText().getText().toString());
         } catch (NumberFormatException e) {
             Toast.makeText(CalculatorActivity.this, "Вводите только числа", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        LinearLayout editedRow = card.getEditedRow();
-        LinearLayout row;
+        Row editedRow = card.getEditedRow();
+        Row row;
         if (editedRow == null) {
-            //добавить строчку в таблицу:
-            row = (LinearLayout) LayoutInflater.from(CalculatorActivity.this).inflate(R.layout.foodstuff_layout, null);
+            //в конструкторе создаётся новая строчка:
+            row = new Row(this, ingredientsLayout);
+            row.getRowLayout().setOnClickListener(onRowClickListener);
         } else {
             row = editedRow;
         }
         //заполнить этими числами строчку в таблице:
-        TextView nameTextView = (TextView) row.findViewById(R.id.name);
-        nameTextView.setText(productName);
-        LinearLayout linearWithTextViews = (LinearLayout) row.findViewById(R.id.linear_layout_with_text_views);
-        ((TextView) linearWithTextViews.getChildAt(0)).setText(String.valueOf(weight));
-        ((TextView) linearWithTextViews.getChildAt(1)).setText(String.valueOf(protein));
-        ((TextView) linearWithTextViews.getChildAt(2)).setText(String.valueOf(fats));
-        ((TextView) linearWithTextViews.getChildAt(3)).setText(String.valueOf(carbs));
-        ((TextView) linearWithTextViews.getChildAt(4)).setText(String.valueOf(calories));
-        if (editedRow == null) {
-            row.setOnClickListener(onRowClickListener);
-            ingredientsLayout.addView(row);
-        }
+        row.getNameTextView().setText(productName);
+        row.getWeightTextView().setText(String.valueOf(weight));
+        row.getProteinTextView().setText(String.valueOf(protein));
+        row.getFatsTextView().setText(String.valueOf(fats));
+        row.getCarbsTextView().setText(String.valueOf(carbs));
+        row.getCaloriesTextView().setText(String.valueOf(calories));
         card.hide();
-        card.clear();
-        hideKeyBoard();
+        KeyboardHandler keyboardHandler = new KeyboardHandler(this);
+        keyboardHandler.hideKeyBoard();
     }
 
     @Override
@@ -276,28 +274,22 @@ public class CalculatorActivity extends AppCompatActivity {
             return;
         }
         //получить все Row
-        ArrayList<LinearLayout> rows = new ArrayList<>();
+        ArrayList<Row> rows = new ArrayList<>();
         for (int index = 0; index < ingredientsLayout.getChildCount(); index++) {
-            rows.add((LinearLayout) ingredientsLayout.getChildAt(index));
+            rows.add(new Row(this, ingredientsLayout, (LinearLayout) ingredientsLayout.getChildAt(index)));
         }
         outState.putInt("rows count", rows.size());
         //у каждого Row получить TextView'хи
         for (int rowNumber = 0; rowNumber < rows.size(); rowNumber++) {
-            LinearLayout currentRow = rows.get(rowNumber);
-            TextView nameTextView = (TextView) currentRow.findViewById(R.id.name);
-            TextView weightTextView = (TextView) currentRow.findViewById(R.id.weight);
-            TextView proteinTextView = (TextView) currentRow.findViewById(R.id.protein);
-            TextView fatsTextView = (TextView) currentRow.findViewById(R.id.fats);
-            TextView carbsTextView = (TextView) currentRow.findViewById(R.id.carbs);
-            TextView caloriesTextView = (TextView) currentRow.findViewById(R.id.calories);
+            Row currentRow = rows.get(rowNumber);
             //и записать числа из них в массив data
             String[] data = new String[6];
-            data[0] = nameTextView.getText().toString();
-            data[1] = weightTextView.getText().toString();
-            data[2] = proteinTextView.getText().toString();
-            data[3] = fatsTextView.getText().toString();
-            data[4] = carbsTextView.getText().toString();
-            data[5] = caloriesTextView.getText().toString();
+            data[0] = currentRow.getNameTextView().getText().toString();
+            data[1] = currentRow.getWeightTextView().getText().toString();
+            data[2] = currentRow.getProteinTextView().getText().toString();
+            data[3] = currentRow.getFatsTextView().getText().toString();
+            data[4] = currentRow.getCarbsTextView().getText().toString();
+            data[5] = currentRow.getCaloriesTextView().getText().toString();
             outState.putStringArray("row " + rowNumber, data);
         }
     }
@@ -309,35 +301,18 @@ public class CalculatorActivity extends AppCompatActivity {
         if (savedInstanceState.containsKey("row " + 0)) {
             //создать новые строки
             for (int rowNumber = 0; rowNumber < savedInstanceState.getInt("rows count"); rowNumber++) {
-                LinearLayout row = (LinearLayout) LayoutInflater.from(this).inflate(R.layout.foodstuff_layout, null);
+                Row row = new Row(this, ingredientsLayout);
                 String[] savedData = savedInstanceState.getStringArray("row " + rowNumber);
                 //заполнить их сохраненными данными
-                //TODO: было бы прикольно создать для такой row отдельный класс, а то сколько можно TextView'шки доставать
-                TextView nameTextView = (TextView) row.findViewById(R.id.name);
-                TextView weightTextView = (TextView) row.findViewById(R.id.weight);
-                TextView proteinTextView = (TextView) row.findViewById(R.id.protein);
-                TextView fatsTextView = (TextView) row.findViewById(R.id.fats);
-                TextView carbsTextView = (TextView) row.findViewById(R.id.carbs);
-                TextView caloriesTextView = (TextView) row.findViewById(R.id.calories);
-
-                nameTextView.setText(savedData[0]); //TODO: почему? (хотя вроде до этого тоже светилась)
-                weightTextView.setText(savedData[1]);
-                proteinTextView.setText(savedData[2]);
-                fatsTextView.setText(savedData[3]);
-                carbsTextView.setText(savedData[4]);
-                caloriesTextView.setText(savedData[5]);
-
+                row.getNameTextView().setText(savedData[0]); //TODO: почему? (хотя вроде до этого тоже светилась)
+                row.getWeightTextView().setText(savedData[1]);
+                row.getProteinTextView().setText(savedData[2]);
+                row.getFatsTextView().setText(savedData[3]);
+                row.getCarbsTextView().setText(savedData[4]);
+                row.getCaloriesTextView().setText(savedData[5]);
                 //добавить новую строку в таблицу
-                ingredientsLayout.addView(row);
+//                ingredientsLayout.addView(row);
             }
-        }
-    }
-
-    private void hideKeyBoard() {
-        View view = this.getCurrentFocus();
-        if (view != null) {
-            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
     }
 }

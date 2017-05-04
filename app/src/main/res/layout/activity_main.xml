@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:text="@string/list_of_recipes"
         android:textAlignment="textStart"
-        android:layout_gravity="start"/>
+        android:layout_gravity="start" />
 
     <Button
         android:id="@+id/button_recipe_calculator"
@@ -21,5 +21,5 @@
         android:layout_below="@id/button_list_of_recipes"
         android:text="@string/recipe_calculator"
         android:textAlignment="textStart"
-        android:layout_gravity="start"/>
+        android:layout_gravity="start" />
 </RelativeLayout>

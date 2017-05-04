@@ -9,7 +9,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_CALORIES;
@@ -17,30 +16,31 @@ import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_N
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_FATS;
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_FOODSTUFF_NAME;
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_PROTEIN;
-import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.ID;
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.TABLE_NAME;
 
-public class ListOfRecipesActivity extends AppCompatActivity {
+public class ListOfFoodstuffsActivity extends AppCompatActivity {
     private Card card;
     private MyAdapter recyclerViewAdapter;
     private View.OnClickListener onRowClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            card.displayForRow((LinearLayout) v);
+            card.displayForRow(new Row(
+                    ListOfFoodstuffsActivity.this,
+                    (ViewGroup)findViewById(R.id.recycler_view),
+                    (LinearLayout) v));
         }
     };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_list_of_recipes);
+        setContentView(R.layout.activity_list_of_foodstuffs);
 
         card = new Card(this, (ViewGroup)findViewById(R.id.list_of_recipes_parent));
         card.getButtonOk().setVisibility(View.GONE);
         card.getWeightTextView().setVisibility(View.GONE);
         card.getWeightEditText().setVisibility(View.GONE);
         card.hide();
-        card.addOnGlobalLayoutListener();
         card.getButtonSave().setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -49,7 +49,7 @@ public class ListOfRecipesActivity extends AppCompatActivity {
                         || card.getFatsEditText().getText().toString().isEmpty()
                         || card.getCarbsEditText().getText().toString().isEmpty()
                         || card.getCaloriesEditText().getText().toString().isEmpty()) {
-                    Toast.makeText(ListOfRecipesActivity.this, "Заполните название и БЖУК", Toast.LENGTH_LONG).show();
+                    Toast.makeText(ListOfFoodstuffsActivity.this, "Заполните название и БЖУК", Toast.LENGTH_LONG).show();
                     return;
                 }
                 String newName = card.getNameEditText().getText().toString();
@@ -58,8 +58,8 @@ public class ListOfRecipesActivity extends AppCompatActivity {
                 double newCarbs = Double.parseDouble(card.getCarbsEditText().getText().toString());
                 double newCalories = Double.parseDouble(card.getCaloriesEditText().getText().toString());
                 //сохраняем новые значения в базу данных
-                int id = (int)card.getEditedRow().getTag();
-                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(ListOfRecipesActivity.this);
+                int id = (int)card.getEditedRow().getRowLayout().getTag();
+                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(ListOfFoodstuffsActivity.this);
                 SQLiteDatabase database = dbHelper.getWritableDatabase();
 
                 ContentValues contentValues = new ContentValues();
@@ -70,24 +70,24 @@ public class ListOfRecipesActivity extends AppCompatActivity {
                 contentValues.put(COLUMN_NAME_CALORIES, newCalories);
                 database.update(TABLE_NAME, contentValues, "id = ?", new String[]{ String.valueOf(id) });
                 recyclerViewAdapter.notifyDataSetChanged();
-                Toast.makeText(ListOfRecipesActivity.this, "Изменения сохранены", Toast.LENGTH_SHORT).show();
+                Toast.makeText(ListOfFoodstuffsActivity.this, "Изменения сохранены", Toast.LENGTH_SHORT).show();
                 card.hide();
-                card.clear();
+                KeyboardHandler keyboardHandler = new KeyboardHandler(ListOfFoodstuffsActivity.this);
+                keyboardHandler.hideKeyBoard();
 
             }
         });
         card.getButtonDelete().setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int id = (int)card.getEditedRow().getTag();
-                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(ListOfRecipesActivity.this);
+                int id = (int)card.getEditedRow().getRowLayout().getTag();
+                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(ListOfFoodstuffsActivity.this);
                 SQLiteDatabase database = dbHelper.getWritableDatabase();
                 database.delete(TABLE_NAME, "id = ?", new String[]{ String.valueOf(id) });
                 recyclerViewAdapter.notifyDataSetChanged();
                 recyclerViewAdapter.deleteItem(id);
-                Toast.makeText(ListOfRecipesActivity.this, "Продукт удалён", Toast.LENGTH_SHORT).show();
+                Toast.makeText(ListOfFoodstuffsActivity.this, "Продукт удалён", Toast.LENGTH_SHORT).show();
                 card.hide();
-                card.clear();
             }
         });
 
