@@ -79,7 +79,7 @@ public class CalculatorActivity extends AppCompatActivity {
             }
         });
 
-        Button cardsButtonOK = card.getButtonOk();
+        View cardsButtonOK = card.getButtonOk();
         cardsButtonOK.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -87,7 +87,7 @@ public class CalculatorActivity extends AppCompatActivity {
             }
         });
 
-        Button cardsButtonDelete = card.getButtonDelete();
+        View cardsButtonDelete = card.getButtonDelete();
         cardsButtonDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -96,7 +96,7 @@ public class CalculatorActivity extends AppCompatActivity {
             }
         });
 
-        Button cardsButtonSave = card.getButtonSave();
+        View cardsButtonSave = card.getButtonSave();
         cardsButtonSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

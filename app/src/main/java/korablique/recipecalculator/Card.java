@@ -25,7 +25,6 @@ public class Card {
     private Button buttonOk;
     private Button buttonDelete;
     private Button buttonSave;
-    private TextView weightTextView;
     private boolean isDisplayed;
 
     public Card(Activity activity, ViewGroup parentLayout) {
@@ -53,7 +52,6 @@ public class Card {
         buttonOk = (Button) cardLayout.findViewById(R.id.button_ok);
         buttonDelete = (Button) cardLayout.findViewById(R.id.button_delete);
         buttonSave = (Button) cardLayout.findViewById(R.id.button_save);
-        weightTextView = (TextView) cardLayout.findViewById(R.id.weight_text_view);
 
         rootView.getViewTreeObserver().addOnGlobalLayoutListener(
                 new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -179,10 +177,6 @@ public class Card {
 
     public EditText getWeightEditText() {
         return weightEditText;
-    }
-
-    public TextView getWeightTextView() {
-        return weightTextView;
     }
 
     public boolean isDisplayed() {
