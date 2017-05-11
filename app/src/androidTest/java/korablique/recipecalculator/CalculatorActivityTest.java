@@ -33,7 +33,7 @@ public class CalculatorActivityTest {
     @Test
     public void testCardAppearence() {
         onView(withId(R.id.card)).check(matches(not(isDisplayed())));
-        onView(withId(R.id.button_add)).perform(click());
+        onView(withId(R.id.floating_action_button_plus)).perform(click());
         onView(withId(R.id.card)).check(matches(isDisplayed()));
     }
 
@@ -41,7 +41,7 @@ public class CalculatorActivityTest {
     public void testCanAddProductToTable() {
         onView(withId(R.id.ingredients_layout)).check(matches(hasChildren(is(0))));
 
-        onView(withId(R.id.button_add)).perform(click());
+        onView(withId(R.id.floating_action_button_plus)).perform(click());
 
         onView(withId(R.id.name_edit_text)).perform(typeText("tomato"));
         onView(withId(R.id.weight_edit_text)).perform(typeText("123"));
@@ -56,7 +56,7 @@ public class CalculatorActivityTest {
 
     @Test
     public void testEmptyCardHasNotDeleteButton() {
-        onView(withId(R.id.button_add)).perform(click());
+        onView(withId(R.id.floating_action_button_plus)).perform(click());
         onView(withId(R.id.button_delete)).check(matches(not(isDisplayed())));
     }
 
