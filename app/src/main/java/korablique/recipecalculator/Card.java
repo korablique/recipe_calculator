@@ -2,6 +2,7 @@ package korablique.recipecalculator;
 
 import android.app.Activity;
 import android.graphics.Point;
+import android.text.TextUtils;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,7 +16,8 @@ import android.widget.TextView;
 public class Card {
     private Activity activity;
     private View cardLayout;
-    private Row editedRow;
+    private Foodstuff editedFoodstuff;
+    private int editedFoodstuffPosition;
     private EditText nameEditText;
     private EditText weightEditText;
     private EditText proteinEditText;
@@ -78,20 +80,21 @@ public class Card {
         cardLayout.startAnimation(translateAnimation);*/
         cardLayout.setY(getVisibleParentHeight() - cardLayout.getHeight());
         isDisplayed = true;
-        editedRow = null;
+        editedFoodstuff = null;
     }
 
-    public void displayForRow(Row row) {
+    public void displayForFoodstuff(Foodstuff foodstuff, int position) {
         this.clear();
         displayEmpty();
         buttonDelete.setVisibility(View.VISIBLE);
-        nameEditText.setText(row.getNameTextView().getText().toString());
-        weightEditText.setText(row.getWeightTextView().getText().toString());
-        proteinEditText.setText(row.getProteinTextView().getText().toString());
-        fatsEditText.setText(row.getFatsTextView().getText().toString());
-        carbsEditText.setText(row.getCarbsTextView().getText().toString());
-        caloriesEditText.setText(row.getCaloriesTextView().getText().toString());
-        editedRow = row;
+        nameEditText.setText(foodstuff.getName());
+        weightEditText.setText(String.valueOf(foodstuff.getWeight()));
+        proteinEditText.setText(String.valueOf(foodstuff.getProtein()));
+        fatsEditText.setText(String.valueOf(foodstuff.getFats()));
+        carbsEditText.setText(String.valueOf(foodstuff.getCarbs()));
+        caloriesEditText.setText(String.valueOf(foodstuff.getCalories()));
+        editedFoodstuff = foodstuff;
+        editedFoodstuffPosition = position;
     }
 
     public void hide() {
@@ -102,7 +105,7 @@ public class Card {
         cardLayout.setY(cardLayout.getHeight() + displayHeight);
         cardLayout.setVisibility(View.INVISIBLE);
         isDisplayed = false;
-        editedRow = null;
+        editedFoodstuff = null;
     }
 
     private int getVisibleParentHeight() {
@@ -120,6 +123,9 @@ public class Card {
     }
 
     public boolean areAllEditTextsFull() {
+        if (nameEditText.getText().toString().isEmpty()) {
+            return false;
+        }
         if (weightEditText.getText().toString().isEmpty()) {
             return false;
         }
@@ -138,8 +144,34 @@ public class Card {
         return true;
     }
 
-    public Row getEditedRow() {
-        return editedRow;
+    public boolean isFilledEnoughToSaveFoodstuff() {
+        if (nameEditText.getText().toString().isEmpty()) {
+            return false;
+        }
+        if (proteinEditText.getText().toString().isEmpty()) {
+            return false;
+        }
+        if (fatsEditText.getText().toString().isEmpty()) {
+            return false;
+        }
+        if (carbsEditText.getText().toString().isEmpty()) {
+            return false;
+        }
+        if (caloriesEditText.getText().toString().isEmpty()) {
+            return false;
+        }
+        return true;
+    }
+
+    public Foodstuff getEditedFoodstuff() {
+        return editedFoodstuff;
+    }
+
+    public int getEditedFoodstuffPosition() {
+        if (editedFoodstuff == null) {
+            throw new IllegalStateException();
+        }
+        return editedFoodstuffPosition;
     }
 
     //setOnButtonOkClickedRunnable() сделать и передавать его в listener

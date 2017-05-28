@@ -4,6 +4,7 @@ import android.app.SearchManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -22,20 +23,21 @@ import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_N
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_FATS;
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_FOODSTUFF_NAME;
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_PROTEIN;
+import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.ID;
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.TABLE_NAME;
 
 public class ListOfFoodstuffsActivity extends AppCompatActivity {
     public static final String SEARCH_MESSAGE = "SEARCH_MESSAGE";
     private Card card;
-    private MyAdapter recyclerViewAdapter;
-    private View.OnClickListener onRowClickListener = new View.OnClickListener() {
+    private FoodstuffsAdapter recyclerViewAdapter;
+    private FoodstuffsAdapter.Observer adapterObserver = new FoodstuffsAdapter.Observer() {
         @Override
-        public void onClick(View v) {
-            card.displayForRow(new Row(
-                    ListOfFoodstuffsActivity.this,
-                    (ViewGroup)findViewById(R.id.recycler_view),
-                    (LinearLayout) v));
+        public void onItemClicked(Foodstuff foodstuff, int position) {
+            card.displayForFoodstuff(foodstuff, position);
         }
+
+        @Override
+        public void onItemsCountChanged(int count) {}
     };
 
     @Override
@@ -50,11 +52,7 @@ public class ListOfFoodstuffsActivity extends AppCompatActivity {
         card.getButtonSave().setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (card.getNameEditText().getText().toString().isEmpty()
-                        || card.getProteinEditText().getText().toString().isEmpty()
-                        || card.getFatsEditText().getText().toString().isEmpty()
-                        || card.getCarbsEditText().getText().toString().isEmpty()
-                        || card.getCaloriesEditText().getText().toString().isEmpty()) {
+                if (card.areAllEditTextsFull()) {
                     Toast.makeText(ListOfFoodstuffsActivity.this, "Заполните название и БЖУК", Toast.LENGTH_LONG).show();
                     return;
                 }
@@ -64,7 +62,7 @@ public class ListOfFoodstuffsActivity extends AppCompatActivity {
                 double newCarbs = Double.parseDouble(card.getCarbsEditText().getText().toString());
                 double newCalories = Double.parseDouble(card.getCaloriesEditText().getText().toString());
                 //сохраняем новые значения в базу данных
-                int id = (int)card.getEditedRow().getRowLayout().getTag();
+                long id = card.getEditedFoodstuff().getId();
                 FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(ListOfFoodstuffsActivity.this);
                 SQLiteDatabase database = dbHelper.getWritableDatabase();
 
@@ -86,12 +84,12 @@ public class ListOfFoodstuffsActivity extends AppCompatActivity {
         card.getButtonDelete().setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int id = (int)card.getEditedRow().getRowLayout().getTag();
+                long id = card.getEditedFoodstuff().getId();
                 FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(ListOfFoodstuffsActivity.this);
                 SQLiteDatabase database = dbHelper.getWritableDatabase();
                 database.delete(TABLE_NAME, "id = ?", new String[]{ String.valueOf(id) });
                 recyclerViewAdapter.notifyDataSetChanged();
-                recyclerViewAdapter.deleteItem(id);
+                recyclerViewAdapter.deleteItem(card.getEditedFoodstuffPosition());
                 Toast.makeText(ListOfFoodstuffsActivity.this, "Продукт удалён", Toast.LENGTH_SHORT).show();
                 card.hide();
             }
@@ -104,8 +102,22 @@ public class ListOfFoodstuffsActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(layoutManager);
         FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(this);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        recyclerViewAdapter = new MyAdapter(db, onRowClickListener);
+        recyclerViewAdapter = new FoodstuffsAdapter(adapterObserver);
         recyclerView.setAdapter(recyclerViewAdapter);
+
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
+        while (cursor.moveToNext()) {
+            Foodstuff foodstuff = new Foodstuff(
+                    cursor.getLong(cursor.getColumnIndex(ID)),
+                    cursor.getString(cursor.getColumnIndex(COLUMN_NAME_FOODSTUFF_NAME)),
+                    -1,
+                    cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_PROTEIN)),
+                    cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_FATS)),
+                    cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CARBS)),
+                    cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CALORIES)));
+            recyclerViewAdapter.addItem(foodstuff);
+        }
+        cursor.close();
     }
 
     @Override
@@ -123,9 +135,8 @@ public class ListOfFoodstuffsActivity extends AppCompatActivity {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 // запускаем поисковый intent
-                Intent searchIntent = new Intent(ListOfFoodstuffsActivity.this, SearchResultsActivity.class);
+                Intent searchIntent = new Intent(Intent.ACTION_SEARCH);
                 searchIntent.putExtra(SEARCH_MESSAGE, query);
-                searchIntent.setAction(Intent.ACTION_SEARCH);
                 startActivity(searchIntent);
                 return true;
             }
@@ -137,5 +148,14 @@ public class ListOfFoodstuffsActivity extends AppCompatActivity {
         });
 
         return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (card.isDisplayed()) {
+            card.hide();
+        } else {
+            super.onBackPressed();
+        }
     }
 }

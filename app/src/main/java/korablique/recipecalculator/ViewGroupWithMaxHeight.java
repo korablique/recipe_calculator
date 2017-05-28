@@ -3,35 +3,35 @@ package korablique.recipecalculator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.util.AttributeSet;
-import android.widget.ScrollView;
+import android.widget.LinearLayout;
 
-public class ScrollViewWithMaxHeight extends ScrollView {
+public class ViewGroupWithMaxHeight extends LinearLayout {
     private float maxWeight;
 
-    public ScrollViewWithMaxHeight(Context context) {
+    public ViewGroupWithMaxHeight(Context context) {
         super(context);
     }
 
-    public ScrollViewWithMaxHeight(Context context, AttributeSet attrs) {
+    public ViewGroupWithMaxHeight(Context context, AttributeSet attrs) {
         super(context, attrs);
         TypedArray typedArray = context.getTheme().obtainStyledAttributes(
                 attrs,
-                R.styleable.ScrollViewWithMaxHeight,
+                R.styleable.ViewGroupWithMaxHeight,
                 0, 0);
 
         float maxWeight;
         try {
-            maxWeight = typedArray.getFloat(R.styleable.ScrollViewWithMaxHeight_max_weight, 0.5f);
+            maxWeight = typedArray.getFloat(R.styleable.ViewGroupWithMaxHeight_max_weight, 0.5f);
         } finally {
             typedArray.recycle();
         }
         if (maxWeight > 1 || maxWeight < 0) {
-            throw new IllegalArgumentException("ScrollView maximum weight must be from 0 to 1");
+            throw new IllegalArgumentException("ViewGroup maximum weight must be from 0 to 1");
         }
         this.maxWeight = maxWeight;
     }
 
-    public ScrollViewWithMaxHeight(Context context, AttributeSet attrs, int defStyleAttr) {
+    public ViewGroupWithMaxHeight(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
 

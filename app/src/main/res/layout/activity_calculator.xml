@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:custom="http://schemas.android.com/apk/res-auto"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/frame_layout"
+    android:id="@+id/activity_calculator_frame_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
@@ -22,27 +22,28 @@
             android:textSize="15sp"
             android:gravity="center_vertical|center_horizontal"/>
 
-        <korablique.recipecalculator.ScrollViewWithMaxHeight
-            android:id="@+id/scroll_view"
+        <korablique.recipecalculator.ViewGroupWithMaxHeight
+            android:id="@+id/view_group_with_max_height"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/start_text_view"
             custom:max_weight="0.66">
 
-            <LinearLayout
-                android:id="@+id/ingredients_layout"
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/ingredients"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
-            </LinearLayout>
-        </korablique.recipecalculator.ScrollViewWithMaxHeight>
+
+            </android.support.v7.widget.RecyclerView>
+        </korablique.recipecalculator.ViewGroupWithMaxHeight>
 
         <LinearLayout
             android:id="@+id/result_weight_linear_layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_below="@id/scroll_view">
+            android:layout_below="@id/view_group_with_max_height">
 
             <TextView
                 android:id="@+id/result_weight_text_view"
@@ -70,7 +71,7 @@
             android:text="@string/count" />
         
         <android.support.design.widget.FloatingActionButton
-            android:id="@+id/floating_action_button_plus"
+            android:id="@+id/fab_add_foodstuff"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"

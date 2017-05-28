@@ -1,5 +1,6 @@
 package korablique.recipecalculator;
 
+import android.support.test.espresso.Espresso;
 import android.support.test.filters.LargeTest;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
@@ -13,13 +14,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static android.support.test.espresso.Espresso.closeSoftKeyboard;
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.action.ViewActions.typeText;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
+import static android.support.test.espresso.matcher.ViewMatchers.withParent;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
@@ -31,33 +32,88 @@ public class CalculatorActivityTest {
             new ActivityTestRule<>(CalculatorActivity.class);
 
     @Test
-    public void testCardAppearence() {
+    public void testCardAppearance() {
         onView(withId(R.id.card)).check(matches(not(isDisplayed())));
-        onView(withId(R.id.floating_action_button_plus)).perform(click());
+        onView(withId(R.id.fab_add_foodstuff)).perform(click());
         onView(withId(R.id.card)).check(matches(isDisplayed()));
     }
 
     @Test
     public void testCanAddProductToTable() {
-        onView(withId(R.id.ingredients_layout)).check(matches(hasChildren(is(0))));
+        onView(withId(R.id.ingredients)).check(matches(hasChildren(is(0))));
+        addItem();
+        onView(withId(R.id.ingredients)).check(matches(hasChildren(is(1))));
+    }
 
-        onView(withId(R.id.floating_action_button_plus)).perform(click());
+    @Test
+    public void testEmptyCardHasNoDeleteButton() {
+        onView(withId(R.id.fab_add_foodstuff)).perform(click());
+        onView(withId(R.id.button_delete)).check(matches(not(isDisplayed())));
+    }
+    @Test
+    public void testStartTextViewIsShownWhenNoItems() {
+        onView(withId(R.id.start_text_view)).check(matches(isDisplayed()));
+    }
 
+    @Test
+    public void testStartTextViewIsNotShownWhenItemsExist() {
+        addItem();
+        onView(withId(R.id.start_text_view)).check(matches(not(isDisplayed())));
+    }
+
+    @Test
+    public void testResultViewsAreNotShownWhenNoItems() {
+        onView(withId(R.id.result_weight_text_view)).check(matches(not(isDisplayed())));
+        onView(withId(R.id.result_weight_edit_text)).check(matches(not(isDisplayed())));
+        onView(withId(R.id.calculate_button)).check(matches(not(isDisplayed())));
+    }
+
+    @Test
+    public void testResultViewsAreShownWhenItemsExist() {
+        addItem();
+        onView(withId(R.id.result_weight_text_view)).check(matches(isDisplayed()));
+        onView(withId(R.id.result_weight_edit_text)).check(matches(isDisplayed()));
+        onView(withId(R.id.calculate_button)).check(matches(isDisplayed()));
+    }
+
+    @Test
+    public void testResultViewsAreNotShownWhenItemsDeleted() {
+        addItem();
+        deleteItem();
+        onView(withId(R.id.result_weight_text_view)).check(matches(not(isDisplayed())));
+        onView(withId(R.id.result_weight_edit_text)).check(matches(not(isDisplayed())));
+        onView(withId(R.id.calculate_button)).check(matches(not(isDisplayed())));
+    }
+
+    @Test
+    public void testStartTextViewIsShownWhenItemsDeleted() {
+        addItem();
+        deleteItem();
+        onView(withId(R.id.start_text_view)).check(matches(isDisplayed()));
+    }
+
+    @Test
+    public void testOnBackPressedCardHide() throws Throwable {
+        onView(withId(R.id.fab_add_foodstuff)).perform(click());
+        Espresso.pressBack();
+        onView(withId(R.id.activity_calculator_frame_layout)).check(matches(isDisplayed()));
+        onView(withId(R.id.card)).check(matches(not(isDisplayed())));
+    }
+
+    private void addItem() {
+        onView(withId(R.id.fab_add_foodstuff)).perform(click());
         onView(withId(R.id.name_edit_text)).perform(typeText("tomato"));
         onView(withId(R.id.weight_edit_text)).perform(typeText("123"));
         onView(withId(R.id.protein_edit_text)).perform(typeText("123"));
         onView(withId(R.id.fats_edit_text)).perform(typeText("123"));
         onView(withId(R.id.carbs_edit_text)).perform(typeText("123"));
         onView(withId(R.id.calories_edit_text)).perform(typeText("123"));
-
         onView(withId(R.id.button_ok)).perform(click());
-        onView(withId(R.id.ingredients_layout)).check(matches(hasChildren(is(1))));
     }
 
-    @Test
-    public void testEmptyCardHasNotDeleteButton() {
-        onView(withId(R.id.floating_action_button_plus)).perform(click());
-        onView(withId(R.id.button_delete)).check(matches(not(isDisplayed())));
+    private void deleteItem() {
+        onView(withParent(withId(R.id.ingredients))).perform(click());
+        onView(withId(R.id.button_delete)).perform(click());
     }
 
     public static Matcher<View> hasChildren(final Matcher<Integer> numChildrenMatcher) {

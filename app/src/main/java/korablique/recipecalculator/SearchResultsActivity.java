@@ -1,6 +1,5 @@
 package korablique.recipecalculator;
 
-import android.app.SearchManager;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;

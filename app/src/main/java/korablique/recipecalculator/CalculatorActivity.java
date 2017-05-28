@@ -1,14 +1,16 @@
 package korablique.recipecalculator;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Parcelable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -23,6 +25,7 @@ import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_N
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_FATS;
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_FOODSTUFF_NAME;
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_PROTEIN;
+import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.ID;
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.TABLE_NAME;
 
 public class CalculatorActivity extends AppCompatActivity {
@@ -31,15 +34,24 @@ public class CalculatorActivity extends AppCompatActivity {
     public static final String FATS = "FATS";
     public static final String CARBS = "CARBS";
     public static final String CALORIES = "CALORIES";
-    private LinearLayout ingredientsLayout;
+    private RecyclerView ingredients;
     private Card card;
-    //TODO: только вот ingredientsLayout м.б. ещё не инициализирован
-    private View.OnClickListener onRowClickListener = new View.OnClickListener() {
+    private FoodstuffsAdapter.Observer adapterObserver = new FoodstuffsAdapter.Observer() {
         @Override
-        public void onClick(View v) {
-            card.displayForRow(new Row(CalculatorActivity.this, ingredientsLayout, (LinearLayout) v));
+        public void onItemClicked(Foodstuff foodstuff, int position) {
+            card.displayForFoodstuff(foodstuff, position);
+        }
+
+        @Override
+        public void onItemsCountChanged(int count) {
+            if (count > 0) {
+                findViewById(R.id.start_text_view).setVisibility(View.GONE);
+            } else {
+                findViewById(R.id.start_text_view).setVisibility(View.VISIBLE);
+            }
         }
     };
+    private FoodstuffsAdapter foodstuffsAdapter = new FoodstuffsAdapter(adapterObserver);
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,11 +66,15 @@ public class CalculatorActivity extends AppCompatActivity {
         }
         cursor.close();
 
-        //инициализируем tableLayout:
-        ingredientsLayout = (LinearLayout) findViewById(R.id.ingredients_layout);
+        //инициализируем layout, который будет отображать введенные продукты:
+        ingredients = (RecyclerView) findViewById(R.id.ingredients);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        ingredients.setLayoutManager(layoutManager);
+        ingredients.setAdapter(foodstuffsAdapter);
 
         //создаем карточку и прячем её под экран:
-        final FrameLayout parentLayout = (FrameLayout) findViewById(R.id.frame_layout);
+        final FrameLayout parentLayout = (FrameLayout) findViewById(R.id.activity_calculator_frame_layout);
         card = new Card(this, parentLayout);
         card.hide();
 
@@ -71,7 +87,7 @@ public class CalculatorActivity extends AppCompatActivity {
             }
         });
 
-        FloatingActionButton floatingActionButtonPlus = (FloatingActionButton) findViewById(R.id.floating_action_button_plus);
+        FloatingActionButton floatingActionButtonPlus = (FloatingActionButton) findViewById(R.id.fab_add_foodstuff);
         floatingActionButtonPlus.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -91,7 +107,7 @@ public class CalculatorActivity extends AppCompatActivity {
         cardsButtonDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ingredientsLayout.removeView(card.getEditedRow().getRowLayout());
+                foodstuffsAdapter.deleteItem(card.getEditedFoodstuffPosition());
                 card.hide();
             }
         });
@@ -100,20 +116,16 @@ public class CalculatorActivity extends AppCompatActivity {
         cardsButtonSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //TODO: правильное условие? есть метод areAllEditTextFull(), но мне в данном случае не нужна масса продукта
-                if (card.getNameEditText().getText().toString().isEmpty()
-                        || card.getProteinEditText().getText().toString().isEmpty()
-                        || card.getFatsEditText().getText().toString().isEmpty()
-                        || card.getCarbsEditText().getText().toString().isEmpty()
-                        || card.getCaloriesEditText().getText().toString().isEmpty()) {
+                if (!card.isFilledEnoughToSaveFoodstuff()) {
                     Toast.makeText(CalculatorActivity.this, "Заполните название и БЖУК", Toast.LENGTH_LONG).show();
                     return;
                 }
-                String name = card.getNameEditText().getText().toString();
-                double protein = Double.parseDouble(card.getProteinEditText().getText().toString());
-                double fats = Double.parseDouble(card.getFatsEditText().getText().toString());
-                double carbs = Double.parseDouble(card.getCarbsEditText().getText().toString());
-                double calories = Double.parseDouble(card.getCaloriesEditText().getText().toString());
+                Foodstuff foodstuff = card.getEditedFoodstuff();
+                String name = foodstuff.getName();
+                double protein = foodstuff.getProtein();
+                double fats = foodstuff.getFats();
+                double carbs = foodstuff.getCarbs();
+                double calories = foodstuff.getCalories();
 
                 Cursor cursor = database.rawQuery("SELECT * FROM " + TABLE_NAME
                         + " WHERE " + COLUMN_NAME_FOODSTUFF_NAME + " = '" + name + "' AND "
@@ -157,14 +169,14 @@ public class CalculatorActivity extends AppCompatActivity {
     }
 
     private void onCalculateButtonClicked() {
-        if (ingredientsLayout.getChildCount() == 0) {
+        if (ingredients.getChildCount() == 0) {
             Toast.makeText(CalculatorActivity.this, "Добавьте ингридиенты", Toast.LENGTH_SHORT).show();
             return;
         }
         //получить все Row
         ArrayList<Row> rows = new ArrayList<>();
-        for (int index = 0; index < ingredientsLayout.getChildCount(); index++) {
-            rows.add(new Row(this, ingredientsLayout, (LinearLayout) ingredientsLayout.getChildAt(index)));
+        for (int index = 0; index < ingredients.getChildCount(); index++) {
+            rows.add(new Row(this, ingredients, (LinearLayout) ingredients.getChildAt(index)));
         }
 
         //пройти циклом по всем Row и умножаем белок на массу продукта
@@ -231,8 +243,6 @@ public class CalculatorActivity extends AppCompatActivity {
             return;
         }
 
-        findViewById(R.id.start_text_view).setVisibility(View.GONE);
-
         String productName = card.getNameEditText().getText().toString();
         double weight, protein, fats, carbs, calories;
         try {
@@ -246,22 +256,14 @@ public class CalculatorActivity extends AppCompatActivity {
             return;
         }
 
-        Row editedRow = card.getEditedRow();
-        Row row;
-        if (editedRow == null) {
-            //в конструкторе создаётся новая строчка:
-            row = new Row(this, ingredientsLayout);
-            row.getRowLayout().setOnClickListener(onRowClickListener);
+        Foodstuff foodstuff = new Foodstuff(productName, weight, protein, fats, carbs, calories);
+        Foodstuff editedFoodstuff = card.getEditedFoodstuff();
+        if (editedFoodstuff == null) {
+            foodstuffsAdapter.addItem(foodstuff);
         } else {
-            row = editedRow;
+            foodstuffsAdapter.replaceItem(foodstuff, card.getEditedFoodstuffPosition());
         }
-        //заполнить этими числами строчку в таблице:
-        row.getNameTextView().setText(productName);
-        row.getWeightTextView().setText(String.valueOf(weight));
-        row.getProteinTextView().setText(String.valueOf(protein));
-        row.getFatsTextView().setText(String.valueOf(fats));
-        row.getCarbsTextView().setText(String.valueOf(carbs));
-        row.getCaloriesTextView().setText(String.valueOf(calories));
+
         card.hide();
         KeyboardHandler keyboardHandler = new KeyboardHandler(this);
         keyboardHandler.hideKeyBoard();
@@ -270,49 +272,22 @@ public class CalculatorActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        if (ingredientsLayout.getChildCount() == 0) {
-            return;
+        Parcelable[] foodstuffs = new Parcelable[foodstuffsAdapter.getItemCount()];
+        for (int index = 0; index < foodstuffsAdapter.getItemCount(); index++) {
+            foodstuffs[index] = foodstuffsAdapter.getItem(index);
         }
-        //получить все Row
-        ArrayList<Row> rows = new ArrayList<>();
-        for (int index = 0; index < ingredientsLayout.getChildCount(); index++) {
-            rows.add(new Row(this, ingredientsLayout, (LinearLayout) ingredientsLayout.getChildAt(index)));
-        }
-        outState.putInt("rows count", rows.size());
-        //у каждого Row получить TextView'хи
-        for (int rowNumber = 0; rowNumber < rows.size(); rowNumber++) {
-            Row currentRow = rows.get(rowNumber);
-            //и записать числа из них в массив data
-            String[] data = new String[6];
-            data[0] = currentRow.getNameTextView().getText().toString();
-            data[1] = currentRow.getWeightTextView().getText().toString();
-            data[2] = currentRow.getProteinTextView().getText().toString();
-            data[3] = currentRow.getFatsTextView().getText().toString();
-            data[4] = currentRow.getCarbsTextView().getText().toString();
-            data[5] = currentRow.getCaloriesTextView().getText().toString();
-            outState.putStringArray("row " + rowNumber, data);
-        }
+        outState.putParcelableArray("foodstuffs", foodstuffs);
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        //кривое условие... проверяем, есть ли хоть первый массив
-        if (savedInstanceState.containsKey("row " + 0)) {
-            //создать новые строки
-            for (int rowNumber = 0; rowNumber < savedInstanceState.getInt("rows count"); rowNumber++) {
-                Row row = new Row(this, ingredientsLayout);
-                String[] savedData = savedInstanceState.getStringArray("row " + rowNumber);
-                //заполнить их сохраненными данными
-                row.getNameTextView().setText(savedData[0]); //TODO: почему? (хотя вроде до этого тоже светилась)
-                row.getWeightTextView().setText(savedData[1]);
-                row.getProteinTextView().setText(savedData[2]);
-                row.getFatsTextView().setText(savedData[3]);
-                row.getCarbsTextView().setText(savedData[4]);
-                row.getCaloriesTextView().setText(savedData[5]);
-                //добавить новую строку в таблицу
-//                ingredientsLayout.addView(row);
-            }
+        Parcelable[] foodstuffs = savedInstanceState.getParcelableArray("foodstuffs");
+        if (foodstuffs == null) {
+            return;
+        }
+        for (Parcelable foodstuff : foodstuffs) {
+            foodstuffsAdapter.addItem((Foodstuff) foodstuff);
         }
     }
 }
