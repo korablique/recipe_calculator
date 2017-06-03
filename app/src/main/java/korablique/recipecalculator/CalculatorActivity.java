@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -25,7 +24,6 @@ import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_N
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_FATS;
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_FOODSTUFF_NAME;
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_PROTEIN;
-import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.ID;
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.TABLE_NAME;
 
 public class CalculatorActivity extends AppCompatActivity {
@@ -76,7 +74,6 @@ public class CalculatorActivity extends AppCompatActivity {
         //создаем карточку и прячем её под экран:
         final FrameLayout parentLayout = (FrameLayout) findViewById(R.id.activity_calculator_frame_layout);
         card = new Card(this, parentLayout);
-        card.hide();
 
         EditText resultWeightEditText = (EditText) findViewById(R.id.result_weight_edit_text);
         resultWeightEditText.clearFocus(); //не работает
@@ -120,6 +117,8 @@ public class CalculatorActivity extends AppCompatActivity {
                     Toast.makeText(CalculatorActivity.this, "Заполните название и БЖУК", Toast.LENGTH_LONG).show();
                     return;
                 }
+                // TODO: 03.06.17 когда пытаешься сохранить новый продукт (не редактируемый), editedFoodstuff == null
+                // https://trello.com/c/H4mCPvli/
                 Foodstuff foodstuff = card.getEditedFoodstuff();
                 String name = foodstuff.getName();
                 double protein = foodstuff.getProtein();

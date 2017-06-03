@@ -1,9 +1,7 @@
 package korablique.recipecalculator;
 
+import android.animation.ValueAnimator;
 import android.app.Activity;
-import android.graphics.Point;
-import android.text.TextUtils;
-import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,27 +9,19 @@ import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 
 public class Card {
-    private Activity activity;
-    private View cardLayout;
+    private static long duration = 500;
+    private ViewGroup cardLayout;
     private Foodstuff editedFoodstuff;
     private int editedFoodstuffPosition;
-    private EditText nameEditText;
-    private EditText weightEditText;
-    private EditText proteinEditText;
-    private EditText fatsEditText;
-    private EditText carbsEditText;
-    private EditText caloriesEditText;
-    private Button buttonOk;
-    private Button buttonDelete;
-    private Button buttonSave;
     private boolean isDisplayed;
+    private ValueAnimator animator;
+    private float lastAnimatorDestination;
+    private Float lastParentVisibleHeight;
 
     public Card(Activity activity, ViewGroup parentLayout) {
-        this.activity = activity;
-        cardLayout = LayoutInflater.from(activity).inflate(R.layout.card_layout, null);
+        cardLayout = (ViewGroup) LayoutInflater.from(activity).inflate(R.layout.card_layout, null);
         parentLayout.addView(cardLayout);
 
         // NOTE: тут происходит какая-то чёрная магия
@@ -44,68 +34,110 @@ public class Card {
 
         Window rootWindow = activity.getWindow();
         View rootView = rootWindow.getDecorView().findViewById(android.R.id.content);
-
-        nameEditText = (EditText) cardLayout.findViewById(R.id.name_edit_text);
-        weightEditText = (EditText) cardLayout.findViewById(R.id.weight_edit_text);
-        proteinEditText = (EditText) cardLayout.findViewById(R.id.protein_edit_text);
-        fatsEditText = (EditText) cardLayout.findViewById(R.id.fats_edit_text);
-        carbsEditText = (EditText) cardLayout.findViewById(R.id.carbs_edit_text);
-        caloriesEditText = (EditText) cardLayout.findViewById(R.id.calories_edit_text);
-        buttonOk = (Button) cardLayout.findViewById(R.id.button_ok);
-        buttonDelete = (Button) cardLayout.findViewById(R.id.button_delete);
-        buttonSave = (Button) cardLayout.findViewById(R.id.button_save);
-
+        //чтобы когда появляется клавиатура - карточка была над ней:
         rootView.getViewTreeObserver().addOnGlobalLayoutListener(
                 new ViewTreeObserver.OnGlobalLayoutListener() {
                     public void onGlobalLayout() {
-                        cardLayout.setY(getVisibleParentHeight()
-                                + ((View)cardLayout.getParent()).getY()
-                                - cardLayout.getHeight());
+                        // сравнить предыдущую и текущую высоту видимой части родителя.
+                        // если они разные - остановить анимацию, телепортировать карточку на эту разницу (+),
+                        // продолжить анимацию (создать новый аниматор, задать конечный float = getYForDisplayedState()
+                        // и задать оставшееся время).
+                        if (lastParentVisibleHeight == null) {
+                            lastParentVisibleHeight = (float) getVisibleParentHeight();
+                        } else {
+                            float currentParentVisibleHeight = getVisibleParentHeight();
+                            if (currentParentVisibleHeight != lastParentVisibleHeight) {
+                                float visibleParentHeightDelta = currentParentVisibleHeight - lastParentVisibleHeight;
+                                cardLayout.setY(cardLayout.getY() + visibleParentHeightDelta);
+                                lastParentVisibleHeight = currentParentVisibleHeight;
+                                if (animator != null && animator.isRunning()) {
+                                    long duration = animator.getDuration() - animator.getCurrentPlayTime();
+                                    animateCard(cardLayout.getY(), lastAnimatorDestination + visibleParentHeightDelta, duration);
+                                }
+                            }
+                        }
                     }
                 });
+        cardLayout.setVisibility(View.INVISIBLE);
+        cardLayout.post(new Runnable() {
+            @Override
+            public void run() {
+                cardLayout.setY(getYForHiddenState());
+                //потому что первичное расположение карточки (вверху экрана) стоит перед setY()
+                cardLayout.setVisibility(View.VISIBLE);
+            }
+        });
+    }
+
+    private float getYForHiddenState() {
+        /*
+         *  |-----------|
+         *  |           | <--- status bar
+         *  |-----------| <--- parent.y
+         *  |           |
+         *  |           |
+         *  |           |
+         *  |           | <--- parent
+         *  |           |
+         *  |           |
+         *  |           |
+         *  |-----------| <--- getYForHiddenState()
+         */
+        return getVisibleParentHeight() + ((View)cardLayout.getParent()).getY();
+    }
+
+    private float getYForDisplayedState() {
+        return getYForHiddenState() - cardLayout.getHeight();
     }
 
     public void displayEmpty() {
         this.clear();
-        buttonDelete.setVisibility(View.GONE);
-        cardLayout.setVisibility(View.VISIBLE);
+        getButtonDelete().setVisibility(View.GONE);
         cardLayout.bringToFront();
-        /*TranslateAnimation translateAnimation =
-                new TranslateAnimation(Animation.RELATIVE_TO_PARENT, 0,
-                        Animation.RELATIVE_TO_PARENT, 0,
-                        Animation.RELATIVE_TO_PARENT, parentLayout.getHeight(),
-                        Animation.RELATIVE_TO_PARENT, parentLayout.getHeight() - cardLayout.getHeight());
-        translateAnimation.setDuration(1000);
-        translateAnimation.setFillAfter(true);
-        cardLayout.startAnimation(translateAnimation);*/
-        cardLayout.setY(getVisibleParentHeight() - cardLayout.getHeight());
+
+        animateCard(cardLayout.getY(), getYForDisplayedState(), duration);
         isDisplayed = true;
         editedFoodstuff = null;
+    }
+
+    private void animateCard(float startValue, float endValue, long duration) {
+        lastAnimatorDestination = endValue;
+        if (animator != null) {
+            animator.cancel();
+        }
+        animator = ValueAnimator.ofFloat(startValue, endValue);
+        animator.setDuration(duration);
+        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                float animatedValue = (float) animation.getAnimatedValue();
+                cardLayout.setTranslationY(animatedValue);
+            }
+        });
+        animator.start();
     }
 
     public void displayForFoodstuff(Foodstuff foodstuff, int position) {
         this.clear();
         displayEmpty();
-        buttonDelete.setVisibility(View.VISIBLE);
-        nameEditText.setText(foodstuff.getName());
-        weightEditText.setText(String.valueOf(foodstuff.getWeight()));
-        proteinEditText.setText(String.valueOf(foodstuff.getProtein()));
-        fatsEditText.setText(String.valueOf(foodstuff.getFats()));
-        carbsEditText.setText(String.valueOf(foodstuff.getCarbs()));
-        caloriesEditText.setText(String.valueOf(foodstuff.getCalories()));
+        getButtonDelete().setVisibility(View.VISIBLE);
+        getNameEditText().setText(foodstuff.getName());
+        getWeightEditText().setText(String.valueOf(foodstuff.getWeight()));
+        getProteinEditText().setText(String.valueOf(foodstuff.getProtein()));
+        getFatsEditText().setText(String.valueOf(foodstuff.getFats()));
+        getCarbsEditText().setText(String.valueOf(foodstuff.getCarbs()));
+        getCaloriesEditText().setText(String.valueOf(foodstuff.getCalories()));
         editedFoodstuff = foodstuff;
         editedFoodstuffPosition = position;
     }
 
     public void hide() {
-        Display display = activity.getWindowManager().getDefaultDisplay();
-        Point size = new Point();
-        display.getSize(size);
-        final int displayHeight = size.y;
-        cardLayout.setY(cardLayout.getHeight() + displayHeight);
-        cardLayout.setVisibility(View.INVISIBLE);
+        animateCard(cardLayout.getY(), getYForHiddenState(), duration);
         isDisplayed = false;
         editedFoodstuff = null;
+        for (int index = 0; index < cardLayout.getChildCount(); index++) {
+            cardLayout.getChildAt(index).clearFocus();
+        }
     }
 
     private int getVisibleParentHeight() {
@@ -114,50 +146,50 @@ public class Card {
     }
 
     private void clear() {
-        nameEditText.setText("");
-        weightEditText.setText("");
-        proteinEditText.setText("");
-        fatsEditText.setText("");
-        carbsEditText.setText("");
-        caloriesEditText.setText("");
+        getNameEditText().setText("");
+        getWeightEditText().setText("");
+        getProteinEditText().setText("");
+        getFatsEditText().setText("");
+        getCarbsEditText().setText("");
+        getCaloriesEditText().setText("");
     }
 
     public boolean areAllEditTextsFull() {
-        if (nameEditText.getText().toString().isEmpty()) {
+        if (getNameEditText().getText().toString().isEmpty()) {
             return false;
         }
-        if (weightEditText.getText().toString().isEmpty()) {
+        if (getWeightEditText().getText().toString().isEmpty()) {
             return false;
         }
-        if (proteinEditText.getText().toString().isEmpty()) {
+        if (getProteinEditText().getText().toString().isEmpty()) {
             return false;
         }
-        if (fatsEditText.getText().toString().isEmpty()) {
+        if (getFatsEditText().getText().toString().isEmpty()) {
             return false;
         }
-        if (carbsEditText.getText().toString().isEmpty()) {
+        if (getCarbsEditText().getText().toString().isEmpty()) {
             return false;
         }
-        if (caloriesEditText.getText().toString().isEmpty()) {
+        if (getCaloriesEditText().getText().toString().isEmpty()) {
             return false;
         }
         return true;
     }
 
     public boolean isFilledEnoughToSaveFoodstuff() {
-        if (nameEditText.getText().toString().isEmpty()) {
+        if (getNameEditText().getText().toString().isEmpty()) {
             return false;
         }
-        if (proteinEditText.getText().toString().isEmpty()) {
+        if (getProteinEditText().getText().toString().isEmpty()) {
             return false;
         }
-        if (fatsEditText.getText().toString().isEmpty()) {
+        if (getFatsEditText().getText().toString().isEmpty()) {
             return false;
         }
-        if (carbsEditText.getText().toString().isEmpty()) {
+        if (getCarbsEditText().getText().toString().isEmpty()) {
             return false;
         }
-        if (caloriesEditText.getText().toString().isEmpty()) {
+        if (getCaloriesEditText().getText().toString().isEmpty()) {
             return false;
         }
         return true;
@@ -176,42 +208,46 @@ public class Card {
 
     //setOnButtonOkClickedRunnable() сделать и передавать его в listener
     public Button getButtonOk() {
-        return buttonOk;
+        return (Button) cardLayout.findViewById(R.id.button_ok);
     }
 
     public Button getButtonDelete() {
-        return buttonDelete;
+        return (Button) cardLayout.findViewById(R.id.button_delete);
     }
 
     public Button getButtonSave() {
-        return buttonSave;
+        return (Button) cardLayout.findViewById(R.id.button_save);
     }
 
     public EditText getNameEditText() {
-        return nameEditText;
+        return (EditText) cardLayout.findViewById(R.id.name_edit_text);
     }
 
     public EditText getProteinEditText() {
-        return proteinEditText;
+        return (EditText) cardLayout.findViewById(R.id.protein_edit_text);
     }
 
     public EditText getFatsEditText() {
-        return fatsEditText;
+        return (EditText) cardLayout.findViewById(R.id.fats_edit_text);
     }
 
     public EditText getCarbsEditText() {
-        return carbsEditText;
+        return (EditText) cardLayout.findViewById(R.id.carbs_edit_text);
     }
 
     public EditText getCaloriesEditText() {
-        return caloriesEditText;
+        return (EditText) cardLayout.findViewById(R.id.calories_edit_text);
     }
 
     public EditText getWeightEditText() {
-        return weightEditText;
+        return (EditText) cardLayout.findViewById(R.id.weight_edit_text);
     }
 
     public boolean isDisplayed() {
         return isDisplayed;
+    }
+
+    public static void setAnimationDuration(long duration) {
+        Card.duration = duration;
     }
 }

@@ -48,7 +48,6 @@ public class ListOfFoodstuffsActivity extends AppCompatActivity {
         card = new Card(this, (ViewGroup)findViewById(R.id.list_of_recipes_parent));
         card.getButtonOk().setVisibility(View.GONE);
         card.getWeightEditText().setVisibility(View.GONE);
-        card.hide();
         card.getButtonSave().setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

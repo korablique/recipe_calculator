@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,6 +31,11 @@ public class CalculatorActivityTest {
     @Rule
     public ActivityTestRule<CalculatorActivity> mActivityRule =
             new ActivityTestRule<>(CalculatorActivity.class);
+
+    @Before
+    public void setUp() {
+        Card.setAnimationDuration(0);
+    }
 
     @Test
     public void testCardAppearance() {

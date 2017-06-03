@@ -6,7 +6,6 @@
     android:id="@+id/activity_calculator_frame_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:animateLayoutChanges="true"
     tools:context="korablique.recipecalculator.CalculatorActivity">
 
     <RelativeLayout
