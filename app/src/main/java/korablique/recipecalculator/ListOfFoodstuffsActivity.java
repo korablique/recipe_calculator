@@ -102,6 +102,7 @@ public class ListOfFoodstuffsActivity extends AppCompatActivity {
         FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(this);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         recyclerViewAdapter = new FoodstuffsAdapter(adapterObserver);
+        recyclerViewAdapter.hideWeight();
         recyclerView.setAdapter(recyclerViewAdapter);
 
         Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
