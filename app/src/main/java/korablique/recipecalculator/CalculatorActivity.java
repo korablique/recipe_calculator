@@ -117,14 +117,12 @@ public class CalculatorActivity extends AppCompatActivity {
                     Toast.makeText(CalculatorActivity.this, "Заполните название и БЖУК", Toast.LENGTH_LONG).show();
                     return;
                 }
-                // TODO: 03.06.17 когда пытаешься сохранить новый продукт (не редактируемый), editedFoodstuff == null
-                // https://trello.com/c/H4mCPvli/
-                Foodstuff foodstuff = card.getEditedFoodstuff();
-                String name = foodstuff.getName();
-                double protein = foodstuff.getProtein();
-                double fats = foodstuff.getFats();
-                double carbs = foodstuff.getCarbs();
-                double calories = foodstuff.getCalories();
+
+                String name = card.getNameEditText().getText().toString();
+                double protein = Double.valueOf(card.getProteinEditText().getText().toString());
+                double fats = Double.valueOf(card.getFatsEditText().getText().toString());
+                double carbs = Double.valueOf(card.getCarbsEditText().getText().toString());
+                double calories = Double.valueOf(card.getCaloriesEditText().getText().toString());
 
                 Cursor cursor = database.rawQuery("SELECT * FROM " + TABLE_NAME
                         + " WHERE " + COLUMN_NAME_FOODSTUFF_NAME + " = '" + name + "' AND "
@@ -146,6 +144,7 @@ public class CalculatorActivity extends AppCompatActivity {
                     Toast.makeText(CalculatorActivity.this, "Продукт уже существует", Toast.LENGTH_SHORT).show();
                 }
                 cursor.close();
+                card.hide();
             }
         });
 
@@ -288,5 +287,9 @@ public class CalculatorActivity extends AppCompatActivity {
         for (Parcelable foodstuff : foodstuffs) {
             foodstuffsAdapter.addItem((Foodstuff) foodstuff);
         }
+    }
+
+    public Card getCard() {
+        return card;
     }
 }

@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -35,6 +36,16 @@ public class CalculatorActivityTest {
     @Before
     public void setUp() {
         Card.setAnimationDuration(0);
+    }
+
+    @After
+    public void tearDown() {
+        mActivityRule.getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mActivityRule.getActivity().getCard().hide();
+            }
+        });
     }
 
     @Test
@@ -104,6 +115,18 @@ public class CalculatorActivityTest {
         Espresso.pressBack();
         onView(withId(R.id.activity_calculator_frame_layout)).check(matches(isDisplayed()));
         onView(withId(R.id.card)).check(matches(not(isDisplayed())));
+    }
+
+    @Test
+    public void testSavingProductDoesNotCrashApp() {
+        onView(withId(R.id.fab_add_foodstuff)).perform(click());
+        onView(withId(R.id.name_edit_text)).perform(typeText("tomato"));
+        onView(withId(R.id.weight_edit_text)).perform(typeText("123"));
+        onView(withId(R.id.protein_edit_text)).perform(typeText("123"));
+        onView(withId(R.id.fats_edit_text)).perform(typeText("123"));
+        onView(withId(R.id.carbs_edit_text)).perform(typeText("123"));
+        onView(withId(R.id.calories_edit_text)).perform(typeText("123"));
+        onView(withId(R.id.button_save)).perform(click());
     }
 
     private void addItem() {
