@@ -51,7 +51,7 @@ public class ListOfFoodstuffsActivity extends AppCompatActivity {
         card.getButtonSave().setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (card.areAllEditTextsFull()) {
+                if (!card.areAllEditTextsFull()) {
                     Toast.makeText(ListOfFoodstuffsActivity.this, "Заполните название и БЖУК", Toast.LENGTH_LONG).show();
                     return;
                 }
