@@ -16,10 +16,6 @@ public class Row {
     private TextView carbsTextView;
     private TextView caloriesTextView;
 
-    public Row(Activity activity, ViewGroup parentLayout) {
-        this(activity, parentLayout, null);
-    }
-
     public Row(Activity activity, ViewGroup parentLayout, LinearLayout newRowLayout) {
         if (newRowLayout == null) {
             rowLayout = LayoutInflater.from(activity).inflate(R.layout.foodstuff_layout, null);
@@ -58,9 +54,5 @@ public class Row {
 
     public TextView getCaloriesTextView() {
         return caloriesTextView;
-    }
-
-    public View getRowLayout() {
-        return rowLayout;
     }
 }

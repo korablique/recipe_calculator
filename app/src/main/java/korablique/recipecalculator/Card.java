@@ -243,6 +243,10 @@ public class Card {
         return (EditText) cardLayout.findViewById(R.id.weight_edit_text);
     }
 
+    public View getSearchImageButton() {
+        return cardLayout.findViewById(R.id.search_image_view);
+    }
+
     public boolean isDisplayed() {
         return isDisplayed;
     }

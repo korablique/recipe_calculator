@@ -1,6 +1,7 @@
 package korablique.recipecalculator;
 
 import android.content.ContentValues;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Parcelable;
@@ -27,11 +28,14 @@ import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_N
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.TABLE_NAME;
 
 public class CalculatorActivity extends AppCompatActivity {
+    public static final String NAME = "NAME";
     public static final String WEIGHT = "WEIGHT";
     public static final String PROTEIN = "PROTEIN";
     public static final String FATS = "FATS";
     public static final String CARBS = "CARBS";
     public static final String CALORIES = "CALORIES";
+    public static final String SEARCH_RESULT = "SEARCH_RESULT";
+    public static final int FIND_FOODSTUFF_REQUEST = 1;
     private RecyclerView ingredients;
     private Card card;
     private FoodstuffsAdapter.Observer adapterObserver = new FoodstuffsAdapter.Observer() {
@@ -92,6 +96,18 @@ public class CalculatorActivity extends AppCompatActivity {
             }
         });
 
+        View cardsSearchImageView = card.getSearchImageButton();
+        cardsSearchImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent sendIntent = new Intent(CalculatorActivity.this, ListOfFoodstuffsActivity.class);
+                sendIntent.setAction(getString(R.string.find_foodstuff_action));
+                String foodstuffName = card.getNameEditText().getText().toString();
+                sendIntent.putExtra(NAME, foodstuffName);
+                startActivityForResult(sendIntent, FIND_FOODSTUFF_REQUEST);
+            }
+        });
+
         View cardsButtonOK = card.getButtonOk();
         cardsButtonOK.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -144,7 +160,6 @@ public class CalculatorActivity extends AppCompatActivity {
                     Toast.makeText(CalculatorActivity.this, "Продукт уже существует", Toast.LENGTH_SHORT).show();
                 }
                 cursor.close();
-                card.hide();
             }
         });
 
@@ -286,6 +301,20 @@ public class CalculatorActivity extends AppCompatActivity {
         }
         for (Parcelable foodstuff : foodstuffs) {
             foodstuffsAdapter.addItem((Foodstuff) foodstuff);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == FIND_FOODSTUFF_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                Foodstuff foodstuff = data.getParcelableExtra(SEARCH_RESULT);
+                card.getNameEditText().setText(foodstuff.getName());
+                card.getProteinEditText().setText(String.valueOf(foodstuff.getProtein()));
+                card.getFatsEditText().setText(String.valueOf(foodstuff.getFats()));
+                card.getCarbsEditText().setText(String.valueOf(foodstuff.getCarbs()));
+                card.getCaloriesEditText().setText(String.valueOf(foodstuff.getCalories()));
+            }
         }
     }
 
