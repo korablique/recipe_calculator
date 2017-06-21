@@ -96,8 +96,8 @@ public class CalculatorActivity extends AppCompatActivity {
             }
         });
 
-        View cardsSearchImageView = card.getSearchImageButton();
-        cardsSearchImageView.setOnClickListener(new View.OnClickListener() {
+        View cardsSearchImageButton = card.getSearchImageButton();
+        cardsSearchImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent sendIntent = new Intent(CalculatorActivity.this, ListOfFoodstuffsActivity.class);

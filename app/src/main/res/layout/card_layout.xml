@@ -42,11 +42,12 @@
                         android:hint="@string/product_name"/>
                 </android.support.design.widget.TextInputLayout>
 
-                <ImageView
-                    android:id="@+id/search_image_view"
+                <ImageButton
+                    android:id="@+id/search_image_button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:src="@drawable/ic_search_black_24dp"
+                    android:background="@drawable/image_button_background"
                     android:layout_gravity="center"
                     android:layout_marginLeft="-30dp"
                     android:layout_marginTop="5dp"/>
