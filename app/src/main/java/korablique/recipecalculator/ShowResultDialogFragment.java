@@ -39,7 +39,7 @@ public class ShowResultDialogFragment extends DialogFragment {
         final double carbsPer100Gram = getArguments().getDouble(CalculatorActivity.CARBS);
         final double caloriesPer100Gram = getArguments().getDouble(CalculatorActivity.CALORIES);
         Formatter formatter = new Formatter();
-        formatter.format("Масса готового продукта - %.0f грамм\n"
+        formatter.format("Масса готового продукта - %.1f грамм\n"
                         + "Белки - %.2f\n"
                         + "Жиры - %.2f\n"
                         + "Углеводы - %.2f\n"
