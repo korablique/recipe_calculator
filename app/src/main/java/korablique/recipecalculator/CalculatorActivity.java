@@ -27,7 +27,7 @@ import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_N
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_PROTEIN;
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.TABLE_NAME;
 
-public class CalculatorActivity extends AppCompatActivity {
+public class CalculatorActivity extends MyActivity {
     public static final String NAME = "NAME";
     public static final String WEIGHT = "WEIGHT";
     public static final String PROTEIN = "PROTEIN";

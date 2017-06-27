@@ -18,6 +18,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.mikepenz.materialdrawer.Drawer;
+
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_CALORIES;
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_CARBS;
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_FATS;
@@ -26,7 +28,7 @@ import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_N
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.ID;
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.TABLE_NAME;
 
-public class ListOfFoodstuffsActivity extends AppCompatActivity {
+public class ListOfFoodstuffsActivity extends MyActivity {
     private Card card;
     private FoodstuffsAdapter recyclerViewAdapter;
     private FoodstuffsAdapter.Observer defaultObserver = new FoodstuffsAdapter.Observer() {

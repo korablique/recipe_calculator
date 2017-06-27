@@ -23,4 +23,7 @@
     <string name="start">Для добавления продукта нажмите на +</string>
     <string name="search">Поиск…</string>
     <string name="find_foodstuff_action">korablique.recipecalculator.FIND_FOODSTUFF_ACTION</string>
+    <string name="drawer_item_home">Калькулятор</string>
+    <string name="drawer_item_settings">Настройки</string>
+    <string name="drawer_item_list">Список сохранённых продуктов</string>
 </resources>
