@@ -59,7 +59,7 @@ public abstract class MyActivity extends AppCompatActivity {
                     public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
                         Intent intent = new Intent(MyActivity.this, ListOfFoodstuffsActivity.class);
                         MyActivity.this.startActivity(intent);
-                        return true;
+                        return false;
                     }
                 });
         IDrawerItem itemSecondary = new SecondaryDrawerItem()
