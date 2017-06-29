@@ -28,13 +28,29 @@
             android:layout_below="@id/start_text_view"
             custom:max_weight="0.66">
 
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/ingredients"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:orientation="vertical">
-
-            </android.support.v7.widget.RecyclerView>
+                <include
+                    android:id="@+id/header"
+                    layout="@layout/foodstuff_table_header_layout"/>
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="10dp"
+                        android:src="@drawable/shadow_top"
+                        android:scaleType="fitXY"
+                        android:rotation="180"/>
+                    <android.support.v7.widget.RecyclerView
+                        android:id="@+id/ingredients"
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:orientation="vertical"/>
+                </FrameLayout>
+            </LinearLayout>
         </korablique.recipecalculator.ViewGroupWithMaxHeight>
 
         <LinearLayout
