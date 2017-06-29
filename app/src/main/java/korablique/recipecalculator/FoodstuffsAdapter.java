@@ -48,13 +48,10 @@ public class FoodstuffsAdapter extends RecyclerView.Adapter<FoodstuffViewHolder>
                 observer.onItemClicked(foodstuff, holder.getAdapterPosition());
             }
         });
-        View weightColumnName = item.findViewById(R.id.column_name_weight);
         View weightView = item.findViewById(R.id.weight);
         if (shouldHideAllWeights) {
-            weightColumnName.setVisibility(View.GONE);
             weightView.setVisibility(View.GONE);
         } else {
-            weightColumnName.setVisibility(View.VISIBLE);
             weightView.setVisibility(View.VISIBLE);
         }
     }

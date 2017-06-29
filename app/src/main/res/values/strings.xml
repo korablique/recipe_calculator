@@ -3,10 +3,10 @@
     <string name="component_name">Продукт</string>
     <string name="count">Рассчитать</string>
     <string name="product_weight">Масса</string>
-    <string name="protein">Б</string>
-    <string name="fat">Ж</string>
-    <string name="carbs">У</string>
-    <string name="calories">К</string>
+    <string name="protein">Белки</string>
+    <string name="fat">Жиры</string>
+    <string name="carbs">Углеводы</string>
+    <string name="calories">Калории</string>
     <string name="weight_of_cooked_product">Масса готового продукта:</string>
     <string name="add_product">добавить продукт</string>
     <string name="enter_protein">Белки</string>

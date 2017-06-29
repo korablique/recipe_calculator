@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
@@ -112,6 +113,8 @@ public class ListOfFoodstuffsActivity extends AppCompatActivity {
             });
             createRecyclerView(defaultObserver);
         }
+        recyclerViewAdapter.hideWeight();
+        findViewById(R.id.column_name_weight).setVisibility(View.GONE);
     }
 
     private void createRecyclerView(FoodstuffsAdapter.Observer observer) {
@@ -123,7 +126,9 @@ public class ListOfFoodstuffsActivity extends AppCompatActivity {
         FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(this);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         recyclerViewAdapter = new FoodstuffsAdapter(observer);
-        recyclerViewAdapter.hideWeight();
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(),
+                layoutManager.getOrientation());
+        recyclerView.addItemDecoration(dividerItemDecoration);
         recyclerView.setAdapter(recyclerViewAdapter);
 
         Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
