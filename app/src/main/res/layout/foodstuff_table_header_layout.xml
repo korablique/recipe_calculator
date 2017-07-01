@@ -20,6 +20,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:textSize="12sp"
+                android:maxLines="1"
+                android:ellipsize="marquee"
                 android:text="@string/product_weight"
                 android:textStyle="bold"/>
             <!--Б-->
@@ -28,6 +30,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:textSize="12sp"
+                android:maxLines="1"
+                android:ellipsize="marquee"
                 android:text="@string/protein"
                 android:textStyle="bold"/>
             <!--Ж-->
@@ -36,6 +40,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:textSize="12sp"
+                android:maxLines="1"
+                android:ellipsize="marquee"
                 android:text="@string/fat"
                 android:textStyle="bold"/>
             <!--У-->
@@ -44,6 +50,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:textSize="12sp"
+                android:maxLines="1"
+                android:ellipsize="marquee"
                 android:text="@string/carbs"
                 android:textStyle="bold"/>
             <!--К-->
@@ -52,6 +60,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:textSize="12sp"
+                android:maxLines="1"
+                android:ellipsize="marquee"
                 android:text="@string/calories"
                 android:textStyle="bold"/>
         </LinearLayout>
