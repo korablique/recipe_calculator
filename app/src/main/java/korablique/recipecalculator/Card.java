@@ -244,7 +244,7 @@ public class Card {
     }
 
     public View getSearchImageButton() {
-        return cardLayout.findViewById(R.id.search_image_button);
+        return cardLayout.findViewById(R.id.search_icon_layout);
     }
 
     public boolean isDisplayed() {
