@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.v4.view.MenuItemCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -18,8 +17,6 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
-
-import com.mikepenz.materialdrawer.Drawer;
 
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_CALORIES;
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_CARBS;
@@ -83,7 +80,7 @@ public class ListOfFoodstuffsActivity extends MyActivity {
                     //сохраняем новые значения в базу данных
                     long id = card.getEditedFoodstuff().getId();
                     FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(ListOfFoodstuffsActivity.this);
-                    SQLiteDatabase database = dbHelper.getWritableDatabase();
+                    SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
 
                     ContentValues contentValues = new ContentValues();
                     contentValues.put(COLUMN_NAME_FOODSTUFF_NAME, newName);
@@ -105,7 +102,7 @@ public class ListOfFoodstuffsActivity extends MyActivity {
                 public void onClick(View v) {
                     long id = card.getEditedFoodstuff().getId();
                     FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(ListOfFoodstuffsActivity.this);
-                    SQLiteDatabase database = dbHelper.getWritableDatabase();
+                    SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
                     database.delete(TABLE_NAME, "id = ?", new String[]{String.valueOf(id)});
                     recyclerViewAdapter.notifyDataSetChanged();
                     recyclerViewAdapter.deleteItem(card.getEditedFoodstuffPosition());
@@ -126,7 +123,8 @@ public class ListOfFoodstuffsActivity extends MyActivity {
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(layoutManager);
         FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(this);
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        SQLiteDatabase db = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
+
         recyclerViewAdapter = new FoodstuffsAdapter(observer);
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(),
                 layoutManager.getOrientation());

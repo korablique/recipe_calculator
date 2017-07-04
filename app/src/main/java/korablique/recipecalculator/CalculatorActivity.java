@@ -6,7 +6,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Parcelable;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -18,6 +17,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_CALORIES;
@@ -59,14 +59,12 @@ public class CalculatorActivity extends MyActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calculator);
 
-        FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(this);
-        final SQLiteDatabase database = dbHelper.getWritableDatabase();
-        Cursor cursor = database.rawQuery("SELECT * FROM " + TABLE_NAME + ";", null);
-        //если база данных ещё пустая (типа при первом запуске приложения), то заполняем её:
-        if (cursor.getCount() == 0) {
-            DatabaseFiller.fillDbOnFirstAppStart(database);
+        final FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(this);
+        try {
+            dbHelper.createDatabase();
+        } catch (IOException e) {
+            throw new IllegalStateException("Unknown problem while creating database", e);
         }
-        cursor.close();
 
         //инициализируем layout, который будет отображать введенные продукты:
         ingredients = (RecyclerView) findViewById(R.id.ingredients);
@@ -140,6 +138,7 @@ public class CalculatorActivity extends MyActivity {
                 double carbs = Double.valueOf(card.getCarbsEditText().getText().toString());
                 double calories = Double.valueOf(card.getCaloriesEditText().getText().toString());
 
+                SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
                 Cursor cursor = database.rawQuery("SELECT * FROM " + TABLE_NAME
                         + " WHERE " + COLUMN_NAME_FOODSTUFF_NAME + " = '" + name + "' AND "
                         + COLUMN_NAME_PROTEIN + " = " + protein + " AND "
