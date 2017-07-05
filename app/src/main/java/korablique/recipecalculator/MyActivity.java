@@ -3,6 +3,7 @@ package korablique.recipecalculator;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 
@@ -26,11 +27,16 @@ public abstract class MyActivity extends AppCompatActivity {
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
         final DrawerBuilder drawerBuilder = new DrawerBuilder()
                 .withActivity(this)
                 .withSavedInstance(savedInstanceState)
                 .withTranslucentStatusBar(true)
                 .withActionBarDrawerToggle(true)
+                .withToolbar(toolbar)
                 .withSelectedItem(-1)
                 .withOnDrawerNavigationListener(new Drawer.OnDrawerNavigationListener() {
                     @Override

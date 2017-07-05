@@ -13,6 +13,8 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
+        <include layout="@layout/toolbar_layout" />
+
         <include
             android:id="@+id/header"
             layout="@layout/foodstuff_table_header_layout"/>
@@ -32,5 +34,4 @@
                 android:layout_width="match_parent"/>
         </FrameLayout>
     </LinearLayout>
-
 </FrameLayout>

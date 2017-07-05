@@ -8,94 +8,104 @@
     android:layout_height="match_parent"
     tools:context="korablique.recipecalculator.CalculatorActivity">
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/start_text_view"
+        <include layout="@layout/toolbar_layout" />
+
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="@string/start"
-            android:textColor="#D3D3D3"
-            android:textSize="15sp"
-            android:gravity="center_vertical|center_horizontal"/>
-
-        <korablique.recipecalculator.ViewGroupWithMaxHeight
-            android:id="@+id/view_group_with_max_height"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/start_text_view"
-            custom:max_weight="0.66">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
-                <include
-                    android:id="@+id/header"
-                    layout="@layout/foodstuff_table_header_layout"/>
-                <FrameLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-                    <ImageView
-                        android:layout_width="match_parent"
-                        android:layout_height="10dp"
-                        android:src="@drawable/shadow_top"
-                        android:scaleType="fitXY"
-                        android:rotation="180"/>
-                    <android.support.v7.widget.RecyclerView
-                        android:id="@+id/ingredients"
-                        android:layout_height="wrap_content"
-                        android:layout_width="match_parent"
-                        android:orientation="vertical"/>
-                </FrameLayout>
-            </LinearLayout>
-        </korablique.recipecalculator.ViewGroupWithMaxHeight>
-
-        <LinearLayout
-            android:id="@+id/result_weight_linear_layout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_below="@id/view_group_with_max_height">
+            android:layout_height="match_parent">
 
             <TextView
-                android:id="@+id/result_weight_text_view"
+                android:id="@+id/start_text_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="@string/start"
+                android:textColor="#D3D3D3"
+                android:textSize="15sp"
+                android:gravity="center_vertical|center_horizontal"/>
+
+            <korablique.recipecalculator.ViewGroupWithMaxHeight
+                android:id="@+id/view_group_with_max_height"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/start_text_view"
+                custom:max_weight="0.66">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+                    <include
+                        android:id="@+id/header"
+                        layout="@layout/foodstuff_table_header_layout"/>
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="10dp"
+                            android:src="@drawable/shadow_top"
+                            android:scaleType="fitXY"
+                            android:rotation="180"/>
+                        <android.support.v7.widget.RecyclerView
+                            android:id="@+id/ingredients"
+                            android:layout_height="wrap_content"
+                            android:layout_width="match_parent"
+                            android:orientation="vertical"/>
+                    </FrameLayout>
+                </LinearLayout>
+            </korablique.recipecalculator.ViewGroupWithMaxHeight>
+
+            <LinearLayout
+                android:id="@+id/result_weight_linear_layout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="@string/weight_of_cooked_product"
-                android:textSize="20sp" />
+                android:orientation="horizontal"
+                android:layout_below="@id/view_group_with_max_height">
 
-            <EditText
-                android:id="@+id/result_weight_edit_text"
-                android:layout_width="70dp"
+                <TextView
+                    android:id="@+id/result_weight_text_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:text="@string/weight_of_cooked_product"
+                    android:textSize="20sp" />
+
+                <EditText
+                    android:id="@+id/result_weight_edit_text"
+                    android:layout_width="70dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginLeft="5dp"
+                    android:textSize="20sp"
+                    android:inputType="numberDecimal" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/calculate_button"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:layout_marginLeft="5dp"
-                android:textSize="20sp"
-                android:inputType="numberDecimal" />
-        </LinearLayout>
+                android:layout_below="@id/result_weight_linear_layout"
+                android:text="@string/count" />
 
-        <Button
-            android:id="@+id/calculate_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/result_weight_linear_layout"
-            android:text="@string/count" />
-        
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/fab_add_foodstuff"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentRight="true"
-            android:layout_gravity="bottom|end"
-            android:layout_margin="16dp"
-            android:src="@drawable/plus48"
-            app:layout_anchorGravity="bottom|right|end" />
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/fab_add_foodstuff"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentRight="true"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="16dp"
+                android:src="@drawable/plus48"
+                app:layout_anchorGravity="bottom|right|end" />
 
-    </RelativeLayout>
+        </RelativeLayout>
+
+    </LinearLayout>
+
 
 </FrameLayout>
