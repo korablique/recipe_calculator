@@ -10,9 +10,9 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -74,7 +74,7 @@ public class CalculatorActivity extends MyActivity {
         ingredients.setAdapter(foodstuffsAdapter);
 
         //создаем карточку и прячем её под экран:
-        final FrameLayout parentLayout = (FrameLayout) findViewById(R.id.activity_calculator_frame_layout);
+        final ViewGroup parentLayout = (ViewGroup) findViewById(R.id.activity_calculator_frame_layout);
         card = new Card(this, parentLayout);
 
         EditText resultWeightEditText = (EditText) findViewById(R.id.result_weight_edit_text);
