@@ -2,6 +2,7 @@ package korablique.recipecalculator;
 
 import android.animation.ValueAnimator;
 import android.app.Activity;
+import android.graphics.Rect;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -83,7 +84,7 @@ public class Card {
          *  |           |
          *  |-----------| <--- getYForHiddenState()
          */
-        return getVisibleParentHeight() + ((View)cardLayout.getParent()).getY();
+        return getVisibleParentHeight() + ((View)cardLayout.getParent()).getTranslationY();
     }
 
     private float getYForDisplayedState() {
@@ -142,7 +143,9 @@ public class Card {
 
     private int getVisibleParentHeight() {
         View cardParent = (View)cardLayout.getParent();
-        return cardParent.getHeight();
+        Rect visibleRect = new Rect();
+        cardParent.getGlobalVisibleRect(visibleRect);
+        return visibleRect.height();
     }
 
     private void clear() {
