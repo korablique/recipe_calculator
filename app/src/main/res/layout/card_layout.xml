@@ -148,21 +148,21 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/ok"
-                android:background="?android:attr/selectableItemBackground"/>
+                android:background="@drawable/button_selector"/>
             <Button
                 android:id="@+id/button_delete"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/delete"
-                android:background="?android:attr/selectableItemBackground"/>
+                android:background="@drawable/button_selector"/>
             <Button
                 android:id="@+id/button_save"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/save"
-                android:background="?android:attr/selectableItemBackground"/>
+                android:background="@drawable/button_selector"/>
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>
