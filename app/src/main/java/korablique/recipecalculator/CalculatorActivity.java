@@ -72,6 +72,18 @@ public class CalculatorActivity extends MyActivity {
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         ingredients.setLayoutManager(layoutManager);
         ingredients.setAdapter(foodstuffsAdapter);
+        ingredients.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v, int left, int top, int right, int bottom,
+                                       int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                View shadowBottom = findViewById(R.id.shadow_bottom);
+                if (RecyclerViewUtils.isRecyclerScrollable(ingredients)) {
+                    shadowBottom.setVisibility(View.VISIBLE);
+                } else {
+                    shadowBottom.setVisibility(View.GONE);
+                }
+            }
+        });
 
         //создаем карточку и прячем её под экран:
         final ViewGroup parentLayout = (ViewGroup) findViewById(R.id.activity_calculator_frame_layout);
