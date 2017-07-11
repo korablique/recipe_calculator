@@ -84,7 +84,7 @@ public class Card {
          *  |           |
          *  |-----------| <--- getYForHiddenState()
          */
-        return getVisibleParentHeight() + ((View)cardLayout.getParent()).getTranslationY();
+        return getVisibleParentHeight() + ((View) cardLayout.getParent()).getTranslationY();
     }
 
     private float getYForDisplayedState() {
@@ -142,7 +142,7 @@ public class Card {
     }
 
     private int getVisibleParentHeight() {
-        View cardParent = (View)cardLayout.getParent();
+        View cardParent = (View) cardLayout.getParent();
         Rect visibleRect = new Rect();
         cardParent.getGlobalVisibleRect(visibleRect);
         return visibleRect.height();
