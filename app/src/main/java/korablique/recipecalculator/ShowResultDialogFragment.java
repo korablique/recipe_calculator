@@ -79,7 +79,7 @@ public class ShowResultDialogFragment extends DialogFragment {
                     values.put(COLUMN_NAME_CARBS, Double.parseDouble(String.format("%.2f", carbsPer100Gram).replace(',', '.')));
                     values.put(COLUMN_NAME_CALORIES, Double.parseDouble(String.format("%.2f", caloriesPer100Gram).replace(',', '.')));
                     FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(getContext());
-                    SQLiteDatabase database = dbHelper.getWritableDatabase();
+                    SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
                     database.insert(TABLE_NAME, null, values);
                     Toast.makeText(getActivity(), "Продукт сохранён", Toast.LENGTH_SHORT).show();
                 }
