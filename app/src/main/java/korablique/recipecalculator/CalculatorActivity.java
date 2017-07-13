@@ -284,8 +284,10 @@ public class CalculatorActivity extends MyActivity {
         Foodstuff editedFoodstuff = card.getEditedFoodstuff();
         if (editedFoodstuff == null) {
             foodstuffsAdapter.addItem(foodstuff);
+            ingredients.smoothScrollToPosition(foodstuffsAdapter.getItemCount() - 1);
         } else {
             foodstuffsAdapter.replaceItem(foodstuff, card.getEditedFoodstuffPosition());
+            ingredients.smoothScrollToPosition(card.getEditedFoodstuffPosition());
         }
 
         card.hide();
