@@ -89,7 +89,9 @@ public class ListOfFoodstuffsActivity extends MyActivity {
                     contentValues.put(COLUMN_NAME_CARBS, newCarbs);
                     contentValues.put(COLUMN_NAME_CALORIES, newCalories);
                     database.update(TABLE_NAME, contentValues, "id = ?", new String[]{String.valueOf(id)});
-                    recyclerViewAdapter.notifyDataSetChanged();
+                    recyclerViewAdapter.replaceItem(
+                            new Foodstuff(newName, 0, newProtein, newFats, newCarbs, newCalories),
+                            card.getEditedFoodstuffPosition());
                     Toast.makeText(ListOfFoodstuffsActivity.this, "Изменения сохранены", Toast.LENGTH_SHORT).show();
                     card.hide();
                     KeyboardHandler keyboardHandler = new KeyboardHandler(ListOfFoodstuffsActivity.this);
@@ -104,7 +106,6 @@ public class ListOfFoodstuffsActivity extends MyActivity {
                     FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(ListOfFoodstuffsActivity.this);
                     SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
                     database.delete(TABLE_NAME, "id = ?", new String[]{String.valueOf(id)});
-                    recyclerViewAdapter.notifyDataSetChanged();
                     recyclerViewAdapter.deleteItem(card.getEditedFoodstuffPosition());
                     Toast.makeText(ListOfFoodstuffsActivity.this, "Продукт удалён", Toast.LENGTH_SHORT).show();
                     card.hide();

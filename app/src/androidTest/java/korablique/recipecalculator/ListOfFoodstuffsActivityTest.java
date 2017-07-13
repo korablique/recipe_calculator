@@ -1,30 +1,27 @@
 package korablique.recipecalculator;
 
-import android.support.annotation.NonNull;
-import android.support.test.espresso.matcher.BoundedMatcher;
 import android.support.test.filters.LargeTest;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
-import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.EditText;
 
-import org.hamcrest.BaseMatcher;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
+import static android.support.test.espresso.action.ViewActions.replaceText;
+import static android.support.test.espresso.action.ViewActions.typeText;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.contrib.RecyclerViewActions.actionOnItemAtPosition;
-import static android.support.test.espresso.core.deps.guava.base.Preconditions.checkNotNull;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
-import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.not;
 
 @RunWith(AndroidJUnit4.class)
@@ -52,6 +49,17 @@ public class ListOfFoodstuffsActivityTest {
         onView(anyWithId(R.id.column_name_weight)).check(matches(not(isDisplayed())));
     }
 
+    @Test
+    public void itemIsEditable() {
+        onView(withId(R.id.recycler_view)).perform(actionOnItemAtPosition(0, click()));
+        String oldName = ((EditText) mActivityRule.getActivity().findViewById(R.id.name_edit_text)).getText().toString();
+        onView(withId(R.id.name_edit_text)).perform(replaceText(oldName + "2"));
+        onView(withId(R.id.button_save)).perform(click());
+        onView(withId(R.id.recycler_view)).perform(actionOnItemAtPosition(0, click()));
+        String newName = ((EditText) mActivityRule.getActivity().findViewById(R.id.name_edit_text)).getText().toString();
+        Assert.assertNotEquals(oldName, newName);
+    }
+
     private Matcher<View> anyWithId(final int id) {
         return new TypeSafeMatcher<View>() {
             private boolean found;
@@ -73,6 +81,4 @@ public class ListOfFoodstuffsActivityTest {
             }
         };
     }
-
-
 }
