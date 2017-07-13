@@ -12,6 +12,7 @@ public class RecyclerViewUtils {
         RecyclerView.Adapter adapter = recyclerView.getAdapter();
         if (layoutManager == null || adapter == null) return false;
 
-        return layoutManager.findLastCompletelyVisibleItemPosition() < adapter.getItemCount() - 1;
+        return layoutManager.findLastCompletelyVisibleItemPosition() < adapter.getItemCount() - 1
+                || layoutManager.findFirstCompletelyVisibleItemPosition() > 0;
     }
 }
