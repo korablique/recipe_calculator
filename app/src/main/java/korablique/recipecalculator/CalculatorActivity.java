@@ -17,6 +17,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
+import io.fabric.sdk.android.Fabric;
+
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -57,6 +60,7 @@ public class CalculatorActivity extends MyActivity {
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_calculator);
 
         final FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(this);
