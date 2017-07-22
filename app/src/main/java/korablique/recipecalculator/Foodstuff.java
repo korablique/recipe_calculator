@@ -2,8 +2,9 @@ package korablique.recipecalculator;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 
-public class Foodstuff implements Parcelable {
+public class Foodstuff implements Parcelable, Comparable<Foodstuff> {
     private final long id;
     private final String name;
     private final double weight;
@@ -87,4 +88,9 @@ public class Foodstuff implements Parcelable {
             return new Foodstuff[size];
         }
     };
+
+    @Override
+    public int compareTo(@NonNull Foodstuff foodstuff) {
+        return name.compareToIgnoreCase(foodstuff.getName());
+    }
 }

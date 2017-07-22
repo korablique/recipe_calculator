@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_CALORIES;
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_CARBS;
@@ -89,6 +90,7 @@ public class DatabaseWorker {
             allFoodstuffsFromDb.add(foodstuff);
         }
         cursor.close();
+        Collections.sort(allFoodstuffsFromDb);
         return allFoodstuffsFromDb;
     }
 }
