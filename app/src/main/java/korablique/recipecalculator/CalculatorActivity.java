@@ -1,12 +1,9 @@
 package korablique.recipecalculator;
 
-import android.content.ContentValues;
 import android.content.Intent;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
+import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.design.widget.FloatingActionButton;
-import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -18,17 +15,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
-import io.fabric.sdk.android.Fabric;
 
 import java.io.IOException;
 import java.util.ArrayList;
 
-import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_CALORIES;
-import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_CARBS;
-import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_FATS;
-import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_FOODSTUFF_NAME;
-import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_PROTEIN;
-import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.TABLE_NAME;
+import io.fabric.sdk.android.Fabric;
 
 public class CalculatorActivity extends MyActivity {
     public static final String NAME = "NAME";
@@ -153,28 +144,10 @@ public class CalculatorActivity extends MyActivity {
                 double fats = Double.valueOf(card.getFatsEditText().getText().toString());
                 double carbs = Double.valueOf(card.getCarbsEditText().getText().toString());
                 double calories = Double.valueOf(card.getCaloriesEditText().getText().toString());
+                Foodstuff savingFoodstuff = new Foodstuff(name, 0, protein, fats, carbs, calories);
 
-                SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-                Cursor cursor = database.rawQuery("SELECT * FROM " + TABLE_NAME
-                        + " WHERE " + COLUMN_NAME_FOODSTUFF_NAME + " = '" + name + "' AND "
-                        + COLUMN_NAME_PROTEIN + " = " + protein + " AND "
-                        + COLUMN_NAME_FATS + " = " + fats + " AND "
-                        + COLUMN_NAME_CARBS + " = " + carbs + " AND "
-                        + COLUMN_NAME_CALORIES + " = " + calories + ";", null);
-                //если такого продукта нет в БД:
-                if (cursor.getCount() == 0) {
-                    ContentValues values = new ContentValues();
-                    values.put(COLUMN_NAME_FOODSTUFF_NAME, name);
-                    values.put(COLUMN_NAME_PROTEIN, protein);
-                    values.put(COLUMN_NAME_FATS, fats);
-                    values.put(COLUMN_NAME_CARBS, carbs);
-                    values.put(COLUMN_NAME_CALORIES, calories);
-                    database.insert(TABLE_NAME, null, values);
-                    Toast.makeText(CalculatorActivity.this, "Продукт сохранён", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(CalculatorActivity.this, "Продукт уже существует", Toast.LENGTH_SHORT).show();
-                }
-                cursor.close();
+                DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
+                databaseWorker.saveFoodstuff(CalculatorActivity.this, savingFoodstuff);
             }
         });
 

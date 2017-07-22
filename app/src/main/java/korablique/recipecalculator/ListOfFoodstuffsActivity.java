@@ -18,6 +18,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_CALORIES;
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_CARBS;
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_FATS;
@@ -77,21 +79,12 @@ public class ListOfFoodstuffsActivity extends MyActivity {
                     double newFats = Double.parseDouble(card.getFatsEditText().getText().toString());
                     double newCarbs = Double.parseDouble(card.getCarbsEditText().getText().toString());
                     double newCalories = Double.parseDouble(card.getCaloriesEditText().getText().toString());
+                    Foodstuff newFoodstuff = new Foodstuff(newName, 0, newProtein, newFats, newCarbs, newCalories);
                     //сохраняем новые значения в базу данных
                     long id = card.getEditedFoodstuff().getId();
-                    FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(ListOfFoodstuffsActivity.this);
-                    SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-
-                    ContentValues contentValues = new ContentValues();
-                    contentValues.put(COLUMN_NAME_FOODSTUFF_NAME, newName);
-                    contentValues.put(COLUMN_NAME_PROTEIN, newProtein);
-                    contentValues.put(COLUMN_NAME_FATS, newFats);
-                    contentValues.put(COLUMN_NAME_CARBS, newCarbs);
-                    contentValues.put(COLUMN_NAME_CALORIES, newCalories);
-                    database.update(TABLE_NAME, contentValues, "id = ?", new String[]{String.valueOf(id)});
-                    recyclerViewAdapter.replaceItem(
-                            new Foodstuff(newName, 0, newProtein, newFats, newCarbs, newCalories),
-                            card.getEditedFoodstuffPosition());
+                    DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
+                    databaseWorker.editFoodstuff(ListOfFoodstuffsActivity.this, id, newFoodstuff);
+                    recyclerViewAdapter.replaceItem(newFoodstuff, card.getEditedFoodstuffPosition());
                     Toast.makeText(ListOfFoodstuffsActivity.this, "Изменения сохранены", Toast.LENGTH_SHORT).show();
                     card.hide();
                     KeyboardHandler keyboardHandler = new KeyboardHandler(ListOfFoodstuffsActivity.this);
@@ -103,9 +96,8 @@ public class ListOfFoodstuffsActivity extends MyActivity {
                 @Override
                 public void onClick(View v) {
                     long id = card.getEditedFoodstuff().getId();
-                    FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(ListOfFoodstuffsActivity.this);
-                    SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-                    database.delete(TABLE_NAME, "id = ?", new String[]{String.valueOf(id)});
+                    DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
+                    databaseWorker.deleteFoodstuff(ListOfFoodstuffsActivity.this, id);
                     recyclerViewAdapter.deleteItem(card.getEditedFoodstuffPosition());
                     Toast.makeText(ListOfFoodstuffsActivity.this, "Продукт удалён", Toast.LENGTH_SHORT).show();
                     card.hide();
@@ -123,8 +115,6 @@ public class ListOfFoodstuffsActivity extends MyActivity {
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(layoutManager);
-        FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(this);
-        SQLiteDatabase db = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
 
         recyclerViewAdapter = new FoodstuffsAdapter(observer);
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(),
@@ -132,19 +122,11 @@ public class ListOfFoodstuffsActivity extends MyActivity {
         recyclerView.addItemDecoration(dividerItemDecoration);
         recyclerView.setAdapter(recyclerViewAdapter);
 
-        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
-        while (cursor.moveToNext()) {
-            Foodstuff foodstuff = new Foodstuff(
-                    cursor.getLong(cursor.getColumnIndex(ID)),
-                    cursor.getString(cursor.getColumnIndex(COLUMN_NAME_FOODSTUFF_NAME)),
-                    -1,
-                    cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_PROTEIN)),
-                    cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_FATS)),
-                    cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CARBS)),
-                    cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CALORIES)));
+        DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
+        ArrayList<Foodstuff> allFoodstuffsFromDb = databaseWorker.getAllFoodstuffsFromDb(this);
+        for (Foodstuff foodstuff : allFoodstuffsFromDb) {
             recyclerViewAdapter.addItem(foodstuff);
         }
-        cursor.close();
     }
 
     @Override
