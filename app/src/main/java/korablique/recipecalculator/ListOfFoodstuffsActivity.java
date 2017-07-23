@@ -1,11 +1,8 @@
 package korablique.recipecalculator;
 
 import android.app.SearchManager;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.support.v4.view.MenuItemCompat;
 import android.os.Bundle;
 import android.support.v7.widget.DividerItemDecoration;
@@ -19,14 +16,6 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-
-import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_CALORIES;
-import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_CARBS;
-import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_FATS;
-import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_FOODSTUFF_NAME;
-import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_PROTEIN;
-import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.ID;
-import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.TABLE_NAME;
 
 public class ListOfFoodstuffsActivity extends MyActivity {
     private Card card;
@@ -123,10 +112,14 @@ public class ListOfFoodstuffsActivity extends MyActivity {
         recyclerView.setAdapter(recyclerViewAdapter);
 
         DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
-        ArrayList<Foodstuff> allFoodstuffsFromDb = databaseWorker.getAllFoodstuffsFromDb(this);
-        for (Foodstuff foodstuff : allFoodstuffsFromDb) {
-            recyclerViewAdapter.addItem(foodstuff);
-        }
+        databaseWorker.requestAllFoodstuffsFromDb(this, new DatabaseWorker.FoodstuffsRequestCallback() {
+            @Override
+            public void onResult(ArrayList<Foodstuff> foodstuffs) {
+                for (Foodstuff foodstuff : foodstuffs) {
+                    recyclerViewAdapter.addItem(foodstuff);
+                }
+            }
+        });
     }
 
     @Override
