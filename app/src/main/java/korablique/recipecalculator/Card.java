@@ -11,8 +11,10 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.crashlytics.android.Crashlytics;
+
 public class Card {
-    private static long duration = 500;
+    private static long duration = 500L;
     private ViewGroup cardLayout;
     private Foodstuff editedFoodstuff;
     private int editedFoodstuffPosition;
@@ -48,11 +50,16 @@ public class Card {
                         } else {
                             float currentParentVisibleHeight = getVisibleParentHeight();
                             if (currentParentVisibleHeight != lastParentVisibleHeight) {
+                                Crashlytics.log("currentParentVisibleHeight = " + currentParentVisibleHeight + "; " +
+                                        "lastParentVisibleHeight = " + lastParentVisibleHeight);
                                 float visibleParentHeightDelta = currentParentVisibleHeight - lastParentVisibleHeight;
                                 cardLayout.setY(cardLayout.getY() + visibleParentHeightDelta);
                                 lastParentVisibleHeight = currentParentVisibleHeight;
                                 if (animator != null && animator.isRunning()) {
+                                    Crashlytics.log("animator.getDuration() = " + animator.getDuration());
+                                    Crashlytics.log("animator.getCurrentPlayTime() = " + animator.getCurrentPlayTime());
                                     long duration = animator.getDuration() - animator.getCurrentPlayTime();
+                                    Crashlytics.log("new duration = " + duration);
                                     animateCard(cardLayout.getY(), lastAnimatorDestination + visibleParentHeightDelta, duration);
                                 }
                             }
@@ -64,7 +71,10 @@ public class Card {
             @Override
             public void run() {
                 cardLayout.setY(getYForHiddenState());
-                //потому что первичное расположение карточки (вверху экрана) стоит перед setY()
+                // setY() надо вызывать ПОСЛЕ того, как полностью развернется разметка карточки.
+                // Если сделать setY() ДО этого, то карточка сначала будет помещена в указанный Y,
+                // а потом, когда разметка будет полностью развернута, карточка поместится в положение (0; 0),
+                // поэтому надо дождаться полного развертывания разметки
                 cardLayout.setVisibility(View.VISIBLE);
             }
         });
@@ -92,6 +102,7 @@ public class Card {
     }
 
     public void displayEmpty() {
+        Crashlytics.log("Card.displayEmpty");
         this.clear();
         getButtonDelete().setVisibility(View.GONE);
         cardLayout.bringToFront();
@@ -102,6 +113,7 @@ public class Card {
     }
 
     private void animateCard(float startValue, float endValue, long duration) {
+        Crashlytics.log("Card.animateCard");
         lastAnimatorDestination = endValue;
         if (animator != null) {
             animator.cancel();
@@ -119,6 +131,7 @@ public class Card {
     }
 
     public void displayForFoodstuff(Foodstuff foodstuff, int position) {
+        Crashlytics.log("Card.displayForFoodstuff");
         this.clear();
         displayEmpty();
         getButtonDelete().setVisibility(View.VISIBLE);
@@ -133,6 +146,7 @@ public class Card {
     }
 
     public void hide() {
+        Crashlytics.log("Card.hide");
         animateCard(cardLayout.getY(), getYForHiddenState(), duration);
         isDisplayed = false;
         editedFoodstuff = null;
