@@ -85,6 +85,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="20dp"
+                        android:paddingLeft="10dp"
                         android:text="@string/weight_of_cooked_product"
                         android:textSize="20sp" />
 
@@ -98,12 +99,11 @@
                         android:inputType="numberDecimal" />
                 </LinearLayout>
 
-                <Button
-                    android:id="@+id/calculate_button"
+                <include
+                    layout="@layout/calculate_button_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_below="@id/result_weight_linear_layout"
-                    android:text="@string/count" />
+                    android:layout_below="@id/result_weight_linear_layout"/>
 
                 <android.support.design.widget.FloatingActionButton
                     android:id="@+id/fab_add_foodstuff"
@@ -115,7 +115,6 @@
                     android:layout_margin="16dp"
                     android:src="@drawable/plus48"
                     app:layout_anchorGravity="bottom|right|end" />
-
             </RelativeLayout>
 
             <ImageView
@@ -125,8 +124,5 @@
                 android:scaleType="fitXY"
                 android:rotation="180"/>
         </FrameLayout>
-
     </LinearLayout>
-
-
 </FrameLayout>
