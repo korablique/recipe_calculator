@@ -68,6 +68,14 @@ public class ListOfFoodstuffsActivity extends MyActivity {
                     double newFats = Double.parseDouble(card.getFatsEditText().getText().toString());
                     double newCarbs = Double.parseDouble(card.getCarbsEditText().getText().toString());
                     double newCalories = Double.parseDouble(card.getCaloriesEditText().getText().toString());
+                    if (newProtein + newFats + newCarbs > 100) {
+                        Toast.makeText(
+                                ListOfFoodstuffsActivity.this,
+                                "Сумма белков, жиров и углеводов не может быть больше 100",
+                                Toast.LENGTH_LONG)
+                                .show();
+                        return;
+                    }
                     Foodstuff newFoodstuff = new Foodstuff(newName, 0, newProtein, newFats, newCarbs, newCalories);
                     //сохраняем новые значения в базу данных
                     long id = card.getEditedFoodstuff().getId();

@@ -144,8 +144,16 @@ public class CalculatorActivity extends MyActivity {
                 double fats = Double.valueOf(card.getFatsEditText().getText().toString());
                 double carbs = Double.valueOf(card.getCarbsEditText().getText().toString());
                 double calories = Double.valueOf(card.getCaloriesEditText().getText().toString());
+                if (protein + fats + carbs > 100) {
+                    Toast.makeText(
+                            CalculatorActivity.this,
+                            "Сумма белков, жиров и углеводов не может быть больше 100",
+                            Toast.LENGTH_LONG)
+                            .show();
+                    return;
+                }
+                
                 Foodstuff savingFoodstuff = new Foodstuff(name, 0, protein, fats, carbs, calories);
-
                 DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
                 databaseWorker.saveFoodstuff(CalculatorActivity.this, savingFoodstuff);
             }
@@ -254,6 +262,11 @@ public class CalculatorActivity extends MyActivity {
             calories = Double.parseDouble(card.getCaloriesEditText().getText().toString());
         } catch (NumberFormatException e) {
             Toast.makeText(CalculatorActivity.this, "Вводите только числа", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (protein + fats + carbs > 100) {
+            Toast.makeText(this, "Сумма белков, жиров и углеводов не может быть больше 100", Toast.LENGTH_LONG).show();
             return;
         }
 
