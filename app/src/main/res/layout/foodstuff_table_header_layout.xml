@@ -42,7 +42,7 @@
                 android:textSize="12sp"
                 android:maxLines="1"
                 android:ellipsize="marquee"
-                android:text="@string/fat"
+                android:text="@string/fats"
                 android:textStyle="bold"/>
             <!--У-->
             <TextView

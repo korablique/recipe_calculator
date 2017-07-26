@@ -88,7 +88,7 @@
                     android:maxLines="1"
                     android:scrollHorizontally="true"
                     android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:hint="@string/enter_protein"
+                    android:hint="@string/protein"
                     android:inputType="numberDecimal"/>
             </android.support.design.widget.TextInputLayout>
             <android.support.design.widget.TextInputLayout
@@ -103,7 +103,7 @@
                     android:maxLines="1"
                     android:scrollHorizontally="true"
                     android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:hint="@string/enter_fats"
+                    android:hint="@string/fats"
                     android:inputType="numberDecimal"/>
             </android.support.design.widget.TextInputLayout>
             <android.support.design.widget.TextInputLayout
@@ -118,7 +118,7 @@
                     android:maxLines="1"
                     android:scrollHorizontally="true"
                     android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:hint="@string/enter_carbs"
+                    android:hint="@string/carbs"
                     android:inputType="numberDecimal"/>
             </android.support.design.widget.TextInputLayout>
             <android.support.design.widget.TextInputLayout
@@ -133,7 +133,7 @@
                     android:maxLines="1"
                     android:scrollHorizontally="true"
                     android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:hint="@string/enter_calories"
+                    android:hint="@string/calories"
                     android:inputType="numberDecimal"/>
             </android.support.design.widget.TextInputLayout>
         </LinearLayout>
