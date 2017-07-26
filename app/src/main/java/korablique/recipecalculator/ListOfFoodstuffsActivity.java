@@ -3,6 +3,7 @@ package korablique.recipecalculator;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
 import android.support.v4.view.MenuItemCompat;
 import android.os.Bundle;
 import android.support.v7.widget.DividerItemDecoration;
@@ -122,10 +123,15 @@ public class ListOfFoodstuffsActivity extends MyActivity {
         DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
         databaseWorker.requestAllFoodstuffsFromDb(this, new DatabaseWorker.FoodstuffsRequestCallback() {
             @Override
-            public void onResult(ArrayList<Foodstuff> foodstuffs) {
-                for (Foodstuff foodstuff : foodstuffs) {
-                    recyclerViewAdapter.addItem(foodstuff);
-                }
+            public void onResult(final ArrayList<Foodstuff> foodstuffs) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        for (Foodstuff foodstuff : foodstuffs) {
+                            recyclerViewAdapter.addItem(foodstuff);
+                        }
+                    }
+                });
             }
         });
     }
