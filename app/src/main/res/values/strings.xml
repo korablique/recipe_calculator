@@ -19,4 +19,5 @@
     <string name="drawer_item_home">Калькулятор</string>
     <string name="drawer_item_settings">Настройки</string>
     <string name="drawer_item_list">Список сохранённых продуктов</string>
+    <string name="per_100_g">(на 100 грамм)</string>
 </resources>

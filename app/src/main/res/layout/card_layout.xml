@@ -138,6 +138,15 @@
             </android.support.design.widget.TextInputLayout>
         </LinearLayout>
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingLeft="6dp"
+            android:layout_marginTop="-10dp"
+            android:textSize="12sp"
+            android:textColor="@color/colorDivider"
+            android:text="@string/per_100_g" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
