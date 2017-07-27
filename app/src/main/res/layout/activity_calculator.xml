@@ -112,9 +112,9 @@
                     android:layout_alignParentBottom="true"
                     android:layout_alignParentRight="true"
                     android:layout_gravity="bottom|end"
-                    android:layout_margin="16dp"
                     android:src="@drawable/plus48"
-                    app:layout_anchorGravity="bottom|right|end" />
+                    app:layout_anchorGravity="bottom|right|end"
+                    app:useCompatPadding="true"/>
             </RelativeLayout>
 
             <ImageView
