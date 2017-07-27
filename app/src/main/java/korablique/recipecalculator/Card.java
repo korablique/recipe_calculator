@@ -55,7 +55,11 @@ public class Card {
                                 float visibleParentHeightDelta = currentParentVisibleHeight - lastParentVisibleHeight;
                                 cardLayout.setY(cardLayout.getY() + visibleParentHeightDelta);
                                 lastParentVisibleHeight = currentParentVisibleHeight;
-                                if (animator != null && animator.isRunning()) {
+                                Crashlytics.log("animator != null: " + (animator != null));
+                                if (animator != null) {
+                                    Crashlytics.log("animator.isStarted() = " + animator.isStarted());
+                                }
+                                if (animator != null && animator.isStarted()) {
                                     Crashlytics.log("animator.getDuration() = " + animator.getDuration());
                                     Crashlytics.log("animator.getCurrentPlayTime() = " + animator.getCurrentPlayTime());
                                     long duration = animator.getDuration() - animator.getCurrentPlayTime();
