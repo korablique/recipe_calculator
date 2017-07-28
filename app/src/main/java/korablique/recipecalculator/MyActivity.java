@@ -33,6 +33,7 @@ public abstract class MyActivity extends AppCompatActivity {
 
         final DrawerBuilder drawerBuilder = new DrawerBuilder()
                 .withActivity(this)
+                .withHeader(R.layout.drawer_header)
                 .withSavedInstance(savedInstanceState)
                 .withTranslucentStatusBar(true)
                 .withActionBarDrawerToggle(true)
