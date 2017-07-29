@@ -50,6 +50,7 @@ public abstract class MyActivity extends AppCompatActivity {
         IDrawerItem itemPrimary1 = new PrimaryDrawerItem()
                 .withName(R.string.drawer_item_home)
                 .withSelectable(false)
+                .withIcon(R.drawable.calculator_icon)
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
                     @Override
                     public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
@@ -61,6 +62,7 @@ public abstract class MyActivity extends AppCompatActivity {
         IDrawerItem itemPrimary2 = new PrimaryDrawerItem()
                 .withName(R.string.drawer_item_list)
                 .withSelectable(false)
+                .withIcon(R.drawable.list_of_foodstuffs_icon)
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
                     @Override
                     public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
@@ -69,20 +71,9 @@ public abstract class MyActivity extends AppCompatActivity {
                         return false;
                     }
                 });
-        IDrawerItem itemSecondary = new SecondaryDrawerItem()
-                .withName(R.string.drawer_item_settings)
-                .withSelectable(false)
-                .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
-                    @Override
-                    public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
-                        //пока что никаких настроек нет
-                        return false;
-                    }
-                });
         List<IDrawerItem> drawerItems = new ArrayList<>();
         drawerItems.add(itemPrimary1);
         drawerItems.add(itemPrimary2);
-        drawerItems.add(itemSecondary);
 
         drawerBuilder.withDrawerItems(drawerItems);
 
