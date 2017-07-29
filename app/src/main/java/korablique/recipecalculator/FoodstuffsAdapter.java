@@ -98,7 +98,7 @@ public class FoodstuffsAdapter extends RecyclerView.Adapter<FoodstuffViewHolder>
         memorizedFilter = name;
         filteredFoodstuffs.clear();
         for (Foodstuff foodstuff : allFoodstuffs) {
-            if (foodstuff.getName().contains(name)) {
+            if (foodstuff.getName().toLowerCase().contains(name.toLowerCase())) {
                 filteredFoodstuffs.add(foodstuff);
             }
         }
