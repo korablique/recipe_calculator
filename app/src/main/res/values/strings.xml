@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">RecipeCalculator</string>
+    <string name="app_name">Broccalc</string>
     <string name="component_name">Продукт</string>
     <string name="count">Рассчитать</string>
     <string name="product_weight">Масса</string>
