@@ -118,6 +118,10 @@ public class Card {
 
     private void animateCard(float startValue, float endValue, long duration) {
         Crashlytics.log("Card.animateCard");
+        if (duration < 0) {
+            Crashlytics.logException(new IllegalArgumentException("duration is negative: " + duration));
+            duration = 0;
+        }
         lastAnimatorDestination = endValue;
         if (animator != null) {
             animator.cancel();
