@@ -16,6 +16,6 @@
     <string name="search">Поиск…</string>
     <string name="find_foodstuff_action">korablique.recipecalculator.FIND_FOODSTUFF_ACTION</string>
     <string name="drawer_item_home">Калькулятор</string>
-    <string name="drawer_item_list">Список сохранённых продуктов</string>
+    <string name="drawer_item_list">Все продукты</string>
     <string name="per_100_g">(на 100 грамм)</string>
 </resources>
