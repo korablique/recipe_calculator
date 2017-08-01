@@ -3,9 +3,8 @@ package korablique.recipecalculator;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Handler;
-import android.support.v4.view.MenuItemCompat;
 import android.os.Bundle;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -14,6 +13,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -162,6 +162,10 @@ public class ListOfFoodstuffsActivity extends MyActivity {
             MenuItemCompat.expandActionView(menu.findItem(R.id.search));
             searchView.setQuery(searchName, false);
         }
+
+        EditText searchEditText = (EditText) searchView.findViewById(R.id.search_src_text);
+        searchEditText.setHintTextColor(getResources().getColor(R.color.colorPrimaryLight));
+
         return super.onCreateOptionsMenu(menu);
     }
 
