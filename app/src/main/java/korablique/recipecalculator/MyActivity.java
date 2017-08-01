@@ -71,9 +71,21 @@ public abstract class MyActivity extends AppCompatActivity {
                         return false;
                     }
                 });
+        IDrawerItem itemPrimary3 = new PrimaryDrawerItem()
+                .withName(R.string.history)
+                .withSelectable(false)
+                .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
+                    @Override
+                    public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
+                        Intent intent = new Intent(MyActivity.this, HistoryActivity.class);
+                        MyActivity.this.startActivity(intent);
+                        return true;
+                    }
+                });
         List<IDrawerItem> drawerItems = new ArrayList<>();
         drawerItems.add(itemPrimary1);
         drawerItems.add(itemPrimary2);
+        drawerItems.add(itemPrimary3);
 
         drawerBuilder.withDrawerItems(drawerItems);
 
