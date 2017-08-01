@@ -24,7 +24,7 @@
                 android:name="android.app.searchable"
                 android:resource="@xml/searchable" />
             <intent-filter>
-                <action android:name="@string/find_foodstuff_action" />
+                <action android:name="korablique.recipecalculator.FIND_FOODSTUFF_ACTION" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
