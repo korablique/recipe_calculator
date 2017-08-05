@@ -64,7 +64,7 @@ public class ListOfFoodstuffsActivity extends MyActivity {
                         Toast.makeText(ListOfFoodstuffsActivity.this, "Заполните название и БЖУК", Toast.LENGTH_LONG).show();
                         return;
                     }
-                    String newName = card.getNameEditText().getText().toString();
+                    String newName = card.getNameEditText().getText().toString().trim();
                     double newProtein = Double.parseDouble(card.getProteinEditText().getText().toString());
                     double newFats = Double.parseDouble(card.getFatsEditText().getText().toString());
                     double newCarbs = Double.parseDouble(card.getCarbsEditText().getText().toString());

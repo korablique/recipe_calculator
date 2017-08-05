@@ -107,7 +107,7 @@ public class CalculatorActivity extends MyActivity {
             public void onClick(View v) {
                 Intent sendIntent = new Intent(CalculatorActivity.this, ListOfFoodstuffsActivity.class);
                 sendIntent.setAction(getString(R.string.find_foodstuff_action));
-                String foodstuffName = card.getNameEditText().getText().toString();
+                String foodstuffName = card.getNameEditText().getText().toString().trim();
                 sendIntent.putExtra(NAME, foodstuffName);
                 startActivityForResult(sendIntent, FIND_FOODSTUFF_REQUEST);
             }
@@ -139,7 +139,7 @@ public class CalculatorActivity extends MyActivity {
                     return;
                 }
 
-                String name = card.getNameEditText().getText().toString();
+                String name = card.getNameEditText().getText().toString().trim();
                 double protein = Double.valueOf(card.getProteinEditText().getText().toString());
                 double fats = Double.valueOf(card.getFatsEditText().getText().toString());
                 double carbs = Double.valueOf(card.getCarbsEditText().getText().toString());
@@ -252,7 +252,7 @@ public class CalculatorActivity extends MyActivity {
             return;
         }
 
-        String productName = card.getNameEditText().getText().toString();
+        String productName = card.getNameEditText().getText().toString().trim();
         double weight, protein, fats, carbs, calories;
         try {
             weight = Double.parseDouble(card.getWeightEditText().getText().toString());
