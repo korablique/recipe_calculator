@@ -18,6 +18,9 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 
+import static korablique.recipecalculator.IntentConstants.NAME;
+import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
+
 public class ListOfFoodstuffsActivity extends MyActivity {
     private Card card;
     private FoodstuffsAdapter recyclerViewAdapter;
@@ -34,7 +37,7 @@ public class ListOfFoodstuffsActivity extends MyActivity {
         @Override
         public void onItemClicked(Foodstuff foodstuff, int position) {
             Intent intent = new Intent();
-            intent.putExtra(CalculatorActivity.SEARCH_RESULT, foodstuff);
+            intent.putExtra(SEARCH_RESULT, foodstuff);
             setResult(RESULT_OK, intent);
             finish();
         }
@@ -158,7 +161,7 @@ public class ListOfFoodstuffsActivity extends MyActivity {
             }
         });
         if (getString(R.string.find_foodstuff_action).equals(getIntent().getAction())) {
-            final String searchName = getIntent().getStringExtra(CalculatorActivity.NAME);
+            final String searchName = getIntent().getStringExtra(NAME);
             MenuItemCompat.expandActionView(menu.findItem(R.id.search));
             searchView.setQuery(searchName, false);
         }

@@ -21,15 +21,16 @@ import java.util.ArrayList;
 
 import io.fabric.sdk.android.Fabric;
 
+import static korablique.recipecalculator.IntentConstants.FIND_FOODSTUFF_REQUEST;
+import static korablique.recipecalculator.IntentConstants.NAME;
+import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
+
 public class CalculatorActivity extends MyActivity {
-    public static final String NAME = "NAME";
     public static final String WEIGHT = "WEIGHT";
     public static final String PROTEIN = "PROTEIN";
     public static final String FATS = "FATS";
     public static final String CARBS = "CARBS";
     public static final String CALORIES = "CALORIES";
-    public static final String SEARCH_RESULT = "SEARCH_RESULT";
-    public static final int FIND_FOODSTUFF_REQUEST = 1;
     private RecyclerView ingredients;
     private Card card;
     private FoodstuffsAdapter.Observer adapterObserver = new FoodstuffsAdapter.Observer() {
