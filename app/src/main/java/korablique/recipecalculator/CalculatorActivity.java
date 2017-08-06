@@ -139,12 +139,9 @@ public class CalculatorActivity extends MyActivity {
                     return;
                 }
 
-                String name = card.getNameEditText().getText().toString().trim();
-                double protein = Double.valueOf(card.getProteinEditText().getText().toString());
-                double fats = Double.valueOf(card.getFatsEditText().getText().toString());
-                double carbs = Double.valueOf(card.getCarbsEditText().getText().toString());
-                double calories = Double.valueOf(card.getCaloriesEditText().getText().toString());
-                if (protein + fats + carbs > 100) {
+                Foodstuff savingFoodstuff = card.parseFoodstuff();
+
+                if (savingFoodstuff.getProtein() + savingFoodstuff.getFats() + savingFoodstuff.getCarbs() > 100) {
                     Toast.makeText(
                             CalculatorActivity.this,
                             "Сумма белков, жиров и углеводов не может быть больше 100",
@@ -153,7 +150,6 @@ public class CalculatorActivity extends MyActivity {
                     return;
                 }
                 
-                Foodstuff savingFoodstuff = new Foodstuff(name, 0, protein, fats, carbs, calories);
                 DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
                 databaseWorker.saveFoodstuff(CalculatorActivity.this, savingFoodstuff);
             }
@@ -252,25 +248,19 @@ public class CalculatorActivity extends MyActivity {
             return;
         }
 
-        String productName = card.getNameEditText().getText().toString().trim();
-        double weight, protein, fats, carbs, calories;
+        Foodstuff foodstuff;
         try {
-            weight = Double.parseDouble(card.getWeightEditText().getText().toString());
-            protein = Double.parseDouble(card.getProteinEditText().getText().toString());
-            fats = Double.parseDouble(card.getFatsEditText().getText().toString());
-            carbs = Double.parseDouble(card.getCarbsEditText().getText().toString());
-            calories = Double.parseDouble(card.getCaloriesEditText().getText().toString());
+            foodstuff = card.parseFoodstuff();
         } catch (NumberFormatException e) {
-            Toast.makeText(CalculatorActivity.this, "Вводите только числа", Toast.LENGTH_SHORT).show();
+            Toast.makeText(CalculatorActivity.this, "В полях для ввода БЖУК вводите только числа", Toast.LENGTH_LONG).show();
             return;
         }
 
-        if (protein + fats + carbs > 100) {
+        if (foodstuff.getProtein() + foodstuff.getFats() + foodstuff.getCarbs() > 100) {
             Toast.makeText(this, "Сумма белков, жиров и углеводов не может быть больше 100", Toast.LENGTH_LONG).show();
             return;
         }
 
-        Foodstuff foodstuff = new Foodstuff(productName, weight, protein, fats, carbs, calories);
         Foodstuff editedFoodstuff = card.getEditedFoodstuff();
         if (editedFoodstuff == null) {
             foodstuffsAdapter.addItem(foodstuff);

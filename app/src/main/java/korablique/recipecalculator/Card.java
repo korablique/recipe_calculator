@@ -10,6 +10,7 @@ import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 
@@ -266,6 +267,16 @@ public class Card {
 
     public EditText getWeightEditText() {
         return (EditText) cardLayout.findViewById(R.id.weight_edit_text);
+    }
+
+    public Foodstuff parseFoodstuff() throws NumberFormatException {
+        String productName = getNameEditText().getText().toString().trim();
+        double weight = Double.parseDouble(getWeightEditText().getText().toString());
+        double protein = Double.parseDouble(getProteinEditText().getText().toString());
+        double fats = Double.parseDouble(getFatsEditText().getText().toString());
+        double carbs = Double.parseDouble(getCarbsEditText().getText().toString());
+        double calories = Double.parseDouble(getCaloriesEditText().getText().toString());
+        return new Foodstuff(productName, weight, protein, fats, carbs, calories);
     }
 
     public View getSearchImageButton() {
