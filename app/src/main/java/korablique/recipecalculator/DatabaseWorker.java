@@ -4,11 +4,9 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -26,6 +24,9 @@ public class DatabaseWorker {
     public interface FoodstuffsRequestCallback {
         void onResult(ArrayList<Foodstuff> foodstuffs);
     }
+    public interface SaveFoodstuffCallback {
+        void onResult(boolean hasAlreadyContainsFoodstuff);
+    }
 
     private DatabaseWorker() {}
 
@@ -36,7 +37,7 @@ public class DatabaseWorker {
         return databaseWorker;
     }
 
-    public void saveFoodstuff(final Context context, final Foodstuff foodstuff) {
+    public void saveFoodstuff(final Context context, final Foodstuff foodstuff, final SaveFoodstuffCallback callback) {
         executorService.submit(new Runnable() {
             @Override
             public void run() {
@@ -49,6 +50,7 @@ public class DatabaseWorker {
                         + COLUMN_NAME_CARBS + " = " + foodstuff.getCarbs() + " AND "
                         + COLUMN_NAME_CALORIES + " = " + foodstuff.getCalories() + ";", null);
                 //если такого продукта нет в БД:
+                boolean hasAlreadyContainsFoodstuff = false;
                 if (cursor.getCount() == 0) {
                     ContentValues values = new ContentValues();
                     values.put(COLUMN_NAME_FOODSTUFF_NAME, foodstuff.getName());
@@ -57,11 +59,11 @@ public class DatabaseWorker {
                     values.put(COLUMN_NAME_CARBS, foodstuff.getCarbs());
                     values.put(COLUMN_NAME_CALORIES, foodstuff.getCalories());
                     database.insert(TABLE_NAME, null, values);
-                    Toast.makeText(context, "Продукт сохранён", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(context, "Продукт уже существует", Toast.LENGTH_SHORT).show();
+                    hasAlreadyContainsFoodstuff = true;
                 }
                 cursor.close();
+                callback.onResult(hasAlreadyContainsFoodstuff);
             }
         });
     }

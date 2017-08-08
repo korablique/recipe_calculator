@@ -4,6 +4,7 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -14,7 +15,6 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -64,7 +64,7 @@ public class ListOfFoodstuffsActivity extends MyActivity {
                 @Override
                 public void onClick(View v) {
                     if (!card.areAllEditTextsFull()) {
-                        Toast.makeText(ListOfFoodstuffsActivity.this, "Заполните название и БЖУК", Toast.LENGTH_LONG).show();
+                        Snackbar.make(findViewById(android.R.id.content), "Заполните название и БЖУК", Snackbar.LENGTH_LONG).show();
                         return;
                     }
                     String newName = card.getNameEditText().getText().toString().trim();
@@ -73,11 +73,7 @@ public class ListOfFoodstuffsActivity extends MyActivity {
                     double newCarbs = Double.parseDouble(card.getCarbsEditText().getText().toString());
                     double newCalories = Double.parseDouble(card.getCaloriesEditText().getText().toString());
                     if (newProtein + newFats + newCarbs > 100) {
-                        Toast.makeText(
-                                ListOfFoodstuffsActivity.this,
-                                "Сумма белков, жиров и углеводов не может быть больше 100",
-                                Toast.LENGTH_LONG)
-                                .show();
+                        Snackbar.make(findViewById(android.R.id.content), "Сумма белков, жиров и углеводов не может быть больше 100", Snackbar.LENGTH_LONG).show();
                         return;
                     }
                     Foodstuff newFoodstuff = new Foodstuff(newName, 0, newProtein, newFats, newCarbs, newCalories);
@@ -86,7 +82,7 @@ public class ListOfFoodstuffsActivity extends MyActivity {
                     DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
                     databaseWorker.editFoodstuff(ListOfFoodstuffsActivity.this, id, newFoodstuff);
                     recyclerViewAdapter.replaceItem(newFoodstuff, card.getEditedFoodstuffPosition());
-                    Toast.makeText(ListOfFoodstuffsActivity.this, "Изменения сохранены", Toast.LENGTH_SHORT).show();
+                    Snackbar.make(findViewById(android.R.id.content), "Изменения сохранены", Snackbar.LENGTH_SHORT).show();
                     card.hide();
                     KeyboardHandler keyboardHandler = new KeyboardHandler(ListOfFoodstuffsActivity.this);
                     keyboardHandler.hideKeyBoard();
@@ -100,7 +96,7 @@ public class ListOfFoodstuffsActivity extends MyActivity {
                     DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
                     databaseWorker.deleteFoodstuff(ListOfFoodstuffsActivity.this, id);
                     recyclerViewAdapter.deleteItem(card.getEditedFoodstuffPosition());
-                    Toast.makeText(ListOfFoodstuffsActivity.this, "Продукт удалён", Toast.LENGTH_SHORT).show();
+                    Snackbar.make(findViewById(android.R.id.content), "Продукт удалён", Snackbar.LENGTH_SHORT).show();
                     card.hide();
                 }
             });

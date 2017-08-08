@@ -7,16 +7,15 @@ import android.content.DialogInterface;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.DialogFragment;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.Formatter;
 
@@ -81,7 +80,7 @@ public class ShowResultDialogFragment extends DialogFragment {
                     FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(getContext());
                     SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
                     database.insert(TABLE_NAME, null, values);
-                    Toast.makeText(getActivity(), "Продукт сохранён", Toast.LENGTH_SHORT).show();
+                    Snackbar.make(getActivity().findViewById(android.R.id.content), "Продукт сохранён", Snackbar.LENGTH_SHORT).show();
                 }
             });
         builder.setView(layout);

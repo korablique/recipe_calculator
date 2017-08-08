@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -12,7 +13,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 
@@ -134,25 +134,35 @@ public class CalculatorActivity extends MyActivity {
         View cardsButtonSave = card.getButtonSave();
         cardsButtonSave.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View v) {
                 if (!card.isFilledEnoughToSaveFoodstuff()) {
-                    Toast.makeText(CalculatorActivity.this, "Заполните название и БЖУК", Toast.LENGTH_LONG).show();
+                    Snackbar.make(v, "Заполните название и БЖУК", Snackbar.LENGTH_LONG).show();
                     return;
                 }
 
                 Foodstuff savingFoodstuff = card.parseFoodstuff();
 
                 if (savingFoodstuff.getProtein() + savingFoodstuff.getFats() + savingFoodstuff.getCarbs() > 100) {
-                    Toast.makeText(
-                            CalculatorActivity.this,
-                            "Сумма белков, жиров и углеводов не может быть больше 100",
-                            Toast.LENGTH_LONG)
-                            .show();
+                    Snackbar.make(v, "Сумма белков, жиров и углеводов не может быть больше 100", Snackbar.LENGTH_LONG).show();
                     return;
                 }
                 
                 DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
-                databaseWorker.saveFoodstuff(CalculatorActivity.this, savingFoodstuff);
+                databaseWorker.saveFoodstuff(CalculatorActivity.this, savingFoodstuff, new DatabaseWorker.SaveFoodstuffCallback() {
+                    @Override
+                    public void onResult(final boolean hasAlreadyContainsFoodstuff) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (hasAlreadyContainsFoodstuff) {
+                                    Snackbar.make(findViewById(android.R.id.content), "Продукт уже существует", Snackbar.LENGTH_SHORT).show();
+                                } else {
+                                    Snackbar.make(findViewById(android.R.id.content), "Продукт сохранён", Snackbar.LENGTH_SHORT).show();
+                                }
+                            }
+                        });
+                    }
+                });
             }
         });
 
@@ -175,10 +185,6 @@ public class CalculatorActivity extends MyActivity {
     }
 
     private void onCalculateButtonClicked() {
-        if (ingredients.getChildCount() == 0) {
-            Toast.makeText(CalculatorActivity.this, "Добавьте ингридиенты", Toast.LENGTH_SHORT).show();
-            return;
-        }
         //получить все Row
         ArrayList<Row> rows = new ArrayList<>();
         for (int index = 0; index < ingredients.getChildCount(); index++) {
@@ -245,7 +251,7 @@ public class CalculatorActivity extends MyActivity {
 
     private void onButtonOkClicked() {
         if (!card.areAllEditTextsFull()) {
-            Toast.makeText(CalculatorActivity.this, "Заполните все данные", Toast.LENGTH_SHORT).show();
+            Snackbar.make(findViewById(android.R.id.content), "Заполните все данные", Snackbar.LENGTH_LONG).show();
             return;
         }
 
@@ -253,12 +259,12 @@ public class CalculatorActivity extends MyActivity {
         try {
             foodstuff = card.parseFoodstuff();
         } catch (NumberFormatException e) {
-            Toast.makeText(CalculatorActivity.this, "В полях для ввода БЖУК вводите только числа", Toast.LENGTH_LONG).show();
+            Snackbar.make(findViewById(android.R.id.content), "В полях для ввода БЖУК вводите только числа", Snackbar.LENGTH_LONG).show();
             return;
         }
 
         if (foodstuff.getProtein() + foodstuff.getFats() + foodstuff.getCarbs() > 100) {
-            Toast.makeText(this, "Сумма белков, жиров и углеводов не может быть больше 100", Toast.LENGTH_LONG).show();
+            Snackbar.make(findViewById(android.R.id.content), "Сумма белков, жиров и углеводов не может быть больше 100", Snackbar.LENGTH_LONG).show();
             return;
         }
 

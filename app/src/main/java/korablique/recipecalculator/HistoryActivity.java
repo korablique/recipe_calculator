@@ -3,11 +3,11 @@ package korablique.recipecalculator;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import java.util.Date;
 
@@ -61,7 +61,7 @@ public class HistoryActivity extends MyActivity {
             @Override
             public void onClick(View v) {
                 if (!card.areAllEditTextsFull()) {
-                    Toast.makeText(HistoryActivity.this, "Заполните все данные", Toast.LENGTH_SHORT).show();
+                    Snackbar.make(findViewById(android.R.id.content), "Заполните все данные", Snackbar.LENGTH_LONG).show();
                     return;
                 }
 
@@ -69,7 +69,7 @@ public class HistoryActivity extends MyActivity {
                 try {
                     foodstuff = card.parseFoodstuff();
                 } catch (NumberFormatException e) {
-                    Toast.makeText(HistoryActivity.this, "В полях для ввода БЖУК вводите только числа", Toast.LENGTH_LONG).show();
+                    Snackbar.make(findViewById(android.R.id.content), "В полях для ввода БЖУК вводите только числа", Snackbar.LENGTH_LONG).show();
                     return;
                 }
 
@@ -100,25 +100,35 @@ public class HistoryActivity extends MyActivity {
         View cardsButtonSave = card.getButtonSave();
         cardsButtonSave.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View v) {
                 if (!card.isFilledEnoughToSaveFoodstuff()) {
-                    Toast.makeText(HistoryActivity.this, "Заполните название и БЖУК", Toast.LENGTH_LONG).show();
+                    Snackbar.make(findViewById(android.R.id.content), "Заполните название и БЖУК", Snackbar.LENGTH_LONG).show();
                     return;
                 }
 
                 Foodstuff savingFoodstuff = card.parseFoodstuff();
 
                 if (savingFoodstuff.getProtein() + savingFoodstuff.getFats() + savingFoodstuff.getCarbs() > 100) {
-                    Toast.makeText(
-                            HistoryActivity.this,
-                            "Сумма белков, жиров и углеводов не может быть больше 100",
-                            Toast.LENGTH_LONG)
-                            .show();
+                    Snackbar.make(findViewById(android.R.id.content), "Сумма белков, жиров и углеводов не может быть больше 100", Snackbar.LENGTH_LONG).show();
                     return;
                 }
 
                 DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
-                databaseWorker.saveFoodstuff(HistoryActivity.this, savingFoodstuff);
+                databaseWorker.saveFoodstuff(HistoryActivity.this, savingFoodstuff, new DatabaseWorker.SaveFoodstuffCallback() {
+                    @Override
+                    public void onResult(final boolean hasAlreadyContainsFoodstuff) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (hasAlreadyContainsFoodstuff) {
+                                    Snackbar.make(findViewById(android.R.id.content), "Продукт уже существует", Snackbar.LENGTH_SHORT).show();
+                                } else {
+                                    Snackbar.make(findViewById(android.R.id.content), "Продукт сохранён", Snackbar.LENGTH_SHORT).show();
+                                }
+                            }
+                        });
+                    }
+                });
             }
         });
 
