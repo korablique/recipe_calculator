@@ -221,6 +221,21 @@ public class Card {
         return true;
     }
 
+    public Foodstuff parseFoodstuff() throws NumberFormatException {
+        String productName = getNameEditText().getText().toString().trim();
+        double weight;
+        if (getWeightEditText().getText().toString().isEmpty()) {
+            weight = -1;
+        } else {
+            weight = Double.parseDouble(getWeightEditText().getText().toString());
+        }
+        double protein = Double.parseDouble(getProteinEditText().getText().toString());
+        double fats = Double.parseDouble(getFatsEditText().getText().toString());
+        double carbs = Double.parseDouble(getCarbsEditText().getText().toString());
+        double calories = Double.parseDouble(getCaloriesEditText().getText().toString());
+        return new Foodstuff(productName, weight, protein, fats, carbs, calories);
+    }
+
     public Foodstuff getEditedFoodstuff() {
         return editedFoodstuff;
     }
@@ -267,16 +282,6 @@ public class Card {
 
     public EditText getWeightEditText() {
         return (EditText) cardLayout.findViewById(R.id.weight_edit_text);
-    }
-
-    public Foodstuff parseFoodstuff() throws NumberFormatException {
-        String productName = getNameEditText().getText().toString().trim();
-        double weight = Double.parseDouble(getWeightEditText().getText().toString());
-        double protein = Double.parseDouble(getProteinEditText().getText().toString());
-        double fats = Double.parseDouble(getFatsEditText().getText().toString());
-        double carbs = Double.parseDouble(getCarbsEditText().getText().toString());
-        double calories = Double.parseDouble(getCaloriesEditText().getText().toString());
-        return new Foodstuff(productName, weight, protein, fats, carbs, calories);
     }
 
     public View getSearchImageButton() {
