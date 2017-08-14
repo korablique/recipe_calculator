@@ -11,8 +11,6 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.crashlytics.android.Crashlytics;
-
 public class Card {
     private static long duration = 500L;
     private ViewGroup cardLayout;
@@ -50,20 +48,11 @@ public class Card {
                         } else {
                             float currentParentVisibleHeight = getVisibleParentHeight();
                             if (currentParentVisibleHeight != lastParentVisibleHeight) {
-                                Crashlytics.log("currentParentVisibleHeight = " + currentParentVisibleHeight + "; " +
-                                        "lastParentVisibleHeight = " + lastParentVisibleHeight);
                                 float visibleParentHeightDelta = currentParentVisibleHeight - lastParentVisibleHeight;
                                 cardLayout.setY(cardLayout.getY() + visibleParentHeightDelta);
                                 lastParentVisibleHeight = currentParentVisibleHeight;
-                                Crashlytics.log("animator != null: " + (animator != null));
-                                if (animator != null) {
-                                    Crashlytics.log("animator.isStarted() = " + animator.isStarted());
-                                }
                                 if (animator != null && animator.isStarted()) {
-                                    Crashlytics.log("animator.getDuration() = " + animator.getDuration());
-                                    Crashlytics.log("animator.getCurrentPlayTime() = " + animator.getCurrentPlayTime());
                                     long duration = animator.getDuration() - animator.getCurrentPlayTime();
-                                    Crashlytics.log("new duration = " + duration);
                                     animateCard(cardLayout.getY(), lastAnimatorDestination + visibleParentHeightDelta, duration);
                                 }
                             }
@@ -106,7 +95,6 @@ public class Card {
     }
 
     public void displayEmpty() {
-        Crashlytics.log("Card.displayEmpty");
         this.clear();
         getButtonDelete().setVisibility(View.GONE);
         cardLayout.bringToFront();
@@ -117,9 +105,7 @@ public class Card {
     }
 
     private void animateCard(float startValue, float endValue, long duration) {
-        Crashlytics.log("Card.animateCard");
         if (duration < 0) {
-            Crashlytics.logException(new IllegalArgumentException("duration is negative: " + duration));
             duration = 0;
         }
         lastAnimatorDestination = endValue;
@@ -139,7 +125,6 @@ public class Card {
     }
 
     public void displayForFoodstuff(Foodstuff foodstuff, int position) {
-        Crashlytics.log("Card.displayForFoodstuff");
         this.clear();
         displayEmpty();
         getButtonDelete().setVisibility(View.VISIBLE);
@@ -154,7 +139,6 @@ public class Card {
     }
 
     public void hide() {
-        Crashlytics.log("Card.hide");
         animateCard(cardLayout.getY(), getYForHiddenState(), duration);
         isDisplayed = false;
         editedFoodstuff = null;
