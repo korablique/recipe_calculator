@@ -35,7 +35,8 @@
             android:name="io.fabric.ApiKey"
             android:value="f8e3ec4d634763d9b91038aef3b8cf9c8c0a65d9" />
 
-        <activity android:name=".HistoryActivity"></activity>
+        <activity android:name=".HistoryActivity" />
+        <activity android:name=".UserGoalActivity"></activity>
     </application>
 
 </manifest>
