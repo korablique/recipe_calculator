@@ -6,39 +6,21 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.crashlytics.android.Crashlytics;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class FoodstuffsDbHelper extends SQLiteOpenHelper {
-    public static final int DATABASE_VERSION = 1;
+public class FoodstuffsDbHelper {
     public static final String DATABASE_NAME = "Main.db";
     private SQLiteDatabase database;
     private Context context;
 
     public FoodstuffsDbHelper(Context context) {
-        super(context, DATABASE_NAME, null, DATABASE_VERSION);
         this.context = context;
-    }
-
-    @Override
-    public void onCreate(SQLiteDatabase db) {
-        try {
-            createDatabase();
-        } catch (IOException ioe) {
-            throw new IllegalStateException("Unable to create database", ioe);
-        }
-    }
-
-    @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // This database is only a cache for online data, so its upgrade policy is
-        // to simply to discard the data and start over
-        //TODO: сделать нормально
-        /*db.execSQL(FoodstuffsContract.SQL_DELETE_ENTRIES);
-        onCreate(db);*/
     }
 
     /**
@@ -60,6 +42,7 @@ public class FoodstuffsDbHelper extends SQLiteOpenHelper {
             File dbFile = new File(getDbPath(), DATABASE_NAME);
             db = SQLiteDatabase.openDatabase(dbFile.getPath(), null, SQLiteDatabase.OPEN_READONLY);
         } catch (SQLiteException e) {
+            Crashlytics.log("openDatabase выбросил исключение: " + e.getMessage());
             //база еще не существует
         }
 
@@ -100,14 +83,6 @@ public class FoodstuffsDbHelper extends SQLiteOpenHelper {
         File path = new File(getDbPath(), DATABASE_NAME);
         database = SQLiteDatabase.openDatabase(path.getPath(), null, flag);
         return database;
-    }
-
-    @Override
-    public synchronized void close() {
-        if (database != null) {
-            database.close();
-        }
-        super.close();
     }
 
     private File getDbPath() {
