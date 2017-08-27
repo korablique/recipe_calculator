@@ -55,13 +55,6 @@ public class CalculatorActivity extends MyActivity {
         Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_calculator);
 
-        final FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(this);
-        try {
-            dbHelper.createDatabase();
-        } catch (IOException e) {
-            throw new IllegalStateException("Unknown problem while creating database", e);
-        }
-
         //инициализируем layout, который будет отображать введенные продукты:
         ingredients = (RecyclerView) findViewById(R.id.ingredients);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
