@@ -1,6 +1,7 @@
 package korablique.recipecalculator;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
@@ -14,33 +15,76 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import static korablique.recipecalculator.DatabaseUtils.tableExists;
+
 public class FoodstuffsDbHelper {
+    private static final int DATABASE_VERSION = 2;
+    private static final String TABLE_DATABASE_VERSION = "database_version";
+
     public static final String DATABASE_NAME = "Main.db";
-    private SQLiteDatabase database;
+
+    private static boolean initialized;
+
     private Context context;
 
     public FoodstuffsDbHelper(Context context) {
         this.context = context;
     }
 
+    public void initializeDatabase() throws IOException {
+        if (!dbExists()) {
+            createDatabase();
+        } else {
+            tryToUpgradeDatabase();
+        }
+    }
+
+    public static synchronized void deinitializeDatabase(Context context) {
+        File dbFile = getDbFile(context);
+        boolean deleted = dbFile.delete();
+        if (!deleted) {
+            throw new Error("Couldn't delete database");
+        }
+        initialized = false;
+    }
+
     /**
      * При отсутствии базы данных, копирует её из assets
      */
-    public void createDatabase() throws IOException {
-        if (!dbExists()) {
-            try {
-                copyDatabaseFromAssets();
-            } catch (IOException e) {
-                throw new Error("Error copying database");
-            }
+    private void createDatabase() throws IOException {
+        copyDatabaseFromAssets();
+        SQLiteDatabase database = openDatabase(SQLiteDatabase.OPEN_READWRITE);
+        createTableHistory(database);
+        createTableDatabaseVersion(database);
+    }
+
+    private void createTableHistory(SQLiteDatabase database) {
+        database.execSQL("CREATE TABLE history (" +
+                "id INTEGER PRIMARY KEY, " +
+                "date INTEGER, " +
+                "foodstuff_id INTEGER, " +
+                "FOREIGN KEY (foodstuff_id) REFERENCES foodstuffs(ID))");
+    }
+
+    private void createTableDatabaseVersion(SQLiteDatabase database) {
+        database.execSQL("CREATE TABLE " + TABLE_DATABASE_VERSION + " (version INTEGER)");
+        database.execSQL("INSERT INTO " + TABLE_DATABASE_VERSION + " VALUES (" + DATABASE_VERSION + ")");
+    }
+
+    private void tryToUpgradeDatabase() {
+        File path = getDbFile(context);
+        SQLiteDatabase database = SQLiteDatabase.openDatabase(path.getPath(), null, SQLiteDatabase.OPEN_READWRITE);
+        // В первой версии приложени не было таблицы TABLE_DATABASE_VERSION
+        if (!tableExists(database, TABLE_DATABASE_VERSION)) {
+            createTableHistory(database);
+            createTableDatabaseVersion(database);
         }
     }
 
     private boolean dbExists() {
         SQLiteDatabase db = null;
         try {
-            File dbFile = new File(getDbPath(), DATABASE_NAME);
-            db = SQLiteDatabase.openDatabase(dbFile.getPath(), null, SQLiteDatabase.OPEN_READONLY);
+            db = SQLiteDatabase.openDatabase(getDbFile(context).getPath(), null, SQLiteDatabase.OPEN_READONLY);
         } catch (SQLiteException e) {
             Crashlytics.log("openDatabase выбросил исключение: " + e.getMessage());
             //база еще не существует
@@ -61,7 +105,7 @@ public class FoodstuffsDbHelper {
         InputStream myInput = context.getAssets().open(DATABASE_NAME);
 
         //Путь ко вновь созданной БД
-        File outFile = new File(getDbPath(), DATABASE_NAME);
+        File outFile = getDbFile(context);
 
         //Открываем пустую базу данных как исходящий поток
         OutputStream myOutput = new FileOutputStream(outFile);
@@ -79,13 +123,19 @@ public class FoodstuffsDbHelper {
         myInput.close();
     }
 
-    public SQLiteDatabase openDatabase(int flag) throws SQLException {
-        File path = new File(getDbPath(), DATABASE_NAME);
-        database = SQLiteDatabase.openDatabase(path.getPath(), null, flag);
-        return database;
+    public synchronized SQLiteDatabase openDatabase(int flag) throws SQLException {
+        if (!initialized) {
+            try {
+                initializeDatabase();
+            } catch (IOException e) {
+                throw new Error(e);
+            }
+            initialized = true;
+        }
+        return SQLiteDatabase.openDatabase(getDbFile(context).getPath(), null, flag);
     }
 
-    private File getDbPath() {
-        return context.getFilesDir();
+    public static File getDbFile(Context context) {
+        return new File(context.getFilesDir(), DATABASE_NAME);
     }
 }
