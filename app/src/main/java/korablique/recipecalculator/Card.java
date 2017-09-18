@@ -14,8 +14,6 @@ import android.widget.EditText;
 public class Card {
     private static long duration = 500L;
     private ViewGroup cardLayout;
-    private Foodstuff editedFoodstuff;
-    private int editedFoodstuffPosition;
     private boolean isDisplayed;
     private ValueAnimator animator;
     private float lastAnimatorDestination;
@@ -101,7 +99,6 @@ public class Card {
 
         animateCard(cardLayout.getY(), getYForDisplayedState(), duration);
         isDisplayed = true;
-        editedFoodstuff = null;
     }
 
     private void animateCard(float startValue, float endValue, long duration) {
@@ -124,24 +121,19 @@ public class Card {
         animator.start();
     }
 
-    public void displayForFoodstuff(Foodstuff foodstuff, int position) {
+    /**
+     * id foodstuff'а не сохраняется
+     */
+    public void displayForFoodstuff(Foodstuff foodstuff) {
         this.clear();
         displayEmpty();
         getButtonDelete().setVisibility(View.VISIBLE);
-        getNameEditText().setText(foodstuff.getName());
-        getWeightEditText().setText(String.valueOf(foodstuff.getWeight()));
-        getProteinEditText().setText(String.valueOf(foodstuff.getProtein()));
-        getFatsEditText().setText(String.valueOf(foodstuff.getFats()));
-        getCarbsEditText().setText(String.valueOf(foodstuff.getCarbs()));
-        getCaloriesEditText().setText(String.valueOf(foodstuff.getCalories()));
-        editedFoodstuff = foodstuff;
-        editedFoodstuffPosition = position;
+        setFoodstuff(foodstuff);
     }
 
     public void hide() {
         animateCard(cardLayout.getY(), getYForHiddenState(), duration);
         isDisplayed = false;
-        editedFoodstuff = null;
         for (int index = 0; index < cardLayout.getChildCount(); index++) {
             cardLayout.getChildAt(index).clearFocus();
         }
@@ -205,7 +197,7 @@ public class Card {
     }
 
     public Foodstuff parseFoodstuff() throws NumberFormatException {
-        String productName = getNameEditText().getText().toString().trim();
+        String productName = getName();
         double weight;
         if (getWeightEditText().getText().toString().isEmpty()) {
             weight = -1;
@@ -219,56 +211,94 @@ public class Card {
         return new Foodstuff(productName, weight, protein, fats, carbs, calories);
     }
 
-    public Foodstuff getEditedFoodstuff() {
-        return editedFoodstuff;
+    public void setOnButtonOkClickedRunnable(final Runnable runnable) {
+        setOnButtonClickedRunnable(runnable, R.id.button_ok);
     }
 
-    public int getEditedFoodstuffPosition() {
-        if (editedFoodstuff == null) {
-            throw new IllegalStateException();
-        }
-        return editedFoodstuffPosition;
+    public void setOnButtonDeleteClickedRunnable(final Runnable runnable) {
+        setOnButtonClickedRunnable(runnable, R.id.button_delete);
     }
 
-    //setOnButtonOkClickedRunnable() сделать и передавать его в listener
-    public Button getButtonOk() {
+    public void setOnButtonSaveClickedRunnable(final Runnable runnable) {
+        setOnButtonClickedRunnable(runnable, R.id.button_save);
+    }
+
+    public void setOnSearchButtonClickedRunnable(final Runnable runnable) {
+        setOnButtonClickedRunnable(runnable, R.id.search_icon_layout);
+    }
+
+    private void setOnButtonClickedRunnable(final Runnable runnable, int buttonId) {
+        cardLayout.findViewById(buttonId).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                runnable.run();
+            }
+        });
+    }
+
+    public void hideWeight() {
+        getWeightEditText().setVisibility(View.GONE);
+    }
+
+    public void hideButtonOk() {
+        getButtonOk().setVisibility(View.GONE);
+    }
+
+    public void hideSearchButton() {
+        getSearchImageButton().setVisibility(View.GONE);
+    }
+
+    public String getName() {
+        return getNameEditText().getText().toString().trim();
+    }
+
+    private Button getButtonOk() {
         return (Button) cardLayout.findViewById(R.id.button_ok);
     }
 
-    public Button getButtonDelete() {
+    private Button getButtonDelete() {
         return (Button) cardLayout.findViewById(R.id.button_delete);
     }
 
-    public Button getButtonSave() {
-        return (Button) cardLayout.findViewById(R.id.button_save);
-    }
-
-    public EditText getNameEditText() {
+    private EditText getNameEditText() {
         return (EditText) cardLayout.findViewById(R.id.name_edit_text);
     }
 
-    public EditText getProteinEditText() {
+    private EditText getProteinEditText() {
         return (EditText) cardLayout.findViewById(R.id.protein_edit_text);
     }
 
-    public EditText getFatsEditText() {
+    private EditText getFatsEditText() {
         return (EditText) cardLayout.findViewById(R.id.fats_edit_text);
     }
 
-    public EditText getCarbsEditText() {
+    private EditText getCarbsEditText() {
         return (EditText) cardLayout.findViewById(R.id.carbs_edit_text);
     }
 
-    public EditText getCaloriesEditText() {
+    private EditText getCaloriesEditText() {
         return (EditText) cardLayout.findViewById(R.id.calories_edit_text);
     }
 
-    public EditText getWeightEditText() {
+    private EditText getWeightEditText() {
         return (EditText) cardLayout.findViewById(R.id.weight_edit_text);
     }
 
-    public View getSearchImageButton() {
+    private View getSearchImageButton() {
         return cardLayout.findViewById(R.id.search_icon_layout);
+    }
+
+    public void setFoodstuff(Foodstuff newFoodstuff) {
+        getNameEditText().setText(newFoodstuff.getName());
+        if (newFoodstuff.getWeight() > 0) {
+            getWeightEditText().setText(String.valueOf(newFoodstuff.getWeight()));
+        } else {
+            getWeightEditText().setText("");
+        }
+        getProteinEditText().setText(String.valueOf(newFoodstuff.getProtein()));
+        getFatsEditText().setText(String.valueOf(newFoodstuff.getFats()));
+        getCarbsEditText().setText(String.valueOf(newFoodstuff.getCarbs()));
+        getCaloriesEditText().setText(String.valueOf(newFoodstuff.getCalories()));
     }
 
     public boolean isDisplayed() {

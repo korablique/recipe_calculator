@@ -33,10 +33,14 @@ public class CalculatorActivity extends MyActivity {
     public static final String CALORIES = "CALORIES";
     private RecyclerView ingredients;
     private Card card;
+    private int editedFoodstuffPosition;
+    private CardDisplaySource cardSource;
     private FoodstuffsAdapter.Observer adapterObserver = new FoodstuffsAdapter.Observer() {
         @Override
         public void onItemClicked(Foodstuff foodstuff, int position) {
-            card.displayForFoodstuff(foodstuff, position);
+            editedFoodstuffPosition = position;
+            cardSource = CardDisplaySource.FoodstuffClicked;
+            card.displayForFoodstuff(foodstuff);
         }
 
         @Override
@@ -98,55 +102,52 @@ public class CalculatorActivity extends MyActivity {
         floatingActionButtonPlus.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                cardSource = CardDisplaySource.PlusClicked;
                 card.displayEmpty();
             }
         });
 
-        View cardsSearchImageButton = card.getSearchImageButton();
-        cardsSearchImageButton.setOnClickListener(new View.OnClickListener() {
+        card.setOnSearchButtonClickedRunnable(new Runnable() {
             @Override
-            public void onClick(View v) {
+            public void run() {
                 Intent sendIntent = new Intent(CalculatorActivity.this, ListOfFoodstuffsActivity.class);
                 sendIntent.setAction(getString(R.string.find_foodstuff_action));
-                String foodstuffName = card.getNameEditText().getText().toString().trim();
+                String foodstuffName = card.getName();
                 sendIntent.putExtra(NAME, foodstuffName);
                 startActivityForResult(sendIntent, FIND_FOODSTUFF_REQUEST);
             }
         });
 
-        View cardsButtonOK = card.getButtonOk();
-        cardsButtonOK.setOnClickListener(new View.OnClickListener() {
+        card.setOnButtonOkClickedRunnable(new Runnable() {
             @Override
-            public void onClick(View v) {
+            public void run() {
                 onButtonOkClicked();
             }
         });
 
-        View cardsButtonDelete = card.getButtonDelete();
-        cardsButtonDelete.setOnClickListener(new View.OnClickListener() {
+        card.setOnButtonDeleteClickedRunnable(new Runnable() {
             @Override
-            public void onClick(View v) {
-                foodstuffsAdapter.deleteItem(card.getEditedFoodstuffPosition());
+            public void run() {
+                foodstuffsAdapter.deleteItem(editedFoodstuffPosition);
                 card.hide();
             }
         });
 
-        View cardsButtonSave = card.getButtonSave();
-        cardsButtonSave.setOnClickListener(new View.OnClickListener() {
+        card.setOnButtonSaveClickedRunnable(new Runnable() {
             @Override
-            public void onClick(final View v) {
+            public void run() {
                 if (!card.isFilledEnoughToSaveFoodstuff()) {
-                    Snackbar.make(v, "Заполните название и БЖУК", Snackbar.LENGTH_LONG).show();
+                    Snackbar.make(findViewById(android.R.id.content), "Заполните название и БЖУК", Snackbar.LENGTH_LONG).show();
                     return;
                 }
 
                 Foodstuff savingFoodstuff = card.parseFoodstuff();
 
                 if (savingFoodstuff.getProtein() + savingFoodstuff.getFats() + savingFoodstuff.getCarbs() > 100) {
-                    Snackbar.make(v, "Сумма белков, жиров и углеводов не может быть больше 100", Snackbar.LENGTH_LONG).show();
+                    Snackbar.make(findViewById(android.R.id.content), "Сумма белков, жиров и углеводов не может быть больше 100", Snackbar.LENGTH_LONG).show();
                     return;
                 }
-                
+
                 DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
                 databaseWorker.saveFoodstuff(CalculatorActivity.this, savingFoodstuff, new DatabaseWorker.SaveFoodstuffCallback() {
                     @Override
@@ -268,13 +269,12 @@ public class CalculatorActivity extends MyActivity {
             return;
         }
 
-        Foodstuff editedFoodstuff = card.getEditedFoodstuff();
-        if (editedFoodstuff == null) {
+        if (cardSource == CardDisplaySource.PlusClicked) {
             foodstuffsAdapter.addItem(foodstuff);
             ingredients.smoothScrollToPosition(foodstuffsAdapter.getItemCount() - 1);
         } else {
-            foodstuffsAdapter.replaceItem(foodstuff, card.getEditedFoodstuffPosition());
-            ingredients.smoothScrollToPosition(card.getEditedFoodstuffPosition());
+            foodstuffsAdapter.replaceItem(foodstuff, editedFoodstuffPosition);
+            ingredients.smoothScrollToPosition(editedFoodstuffPosition);
         }
 
         card.hide();
@@ -309,11 +309,7 @@ public class CalculatorActivity extends MyActivity {
         if (requestCode == FIND_FOODSTUFF_REQUEST) {
             if (resultCode == RESULT_OK) {
                 Foodstuff foodstuff = data.getParcelableExtra(SEARCH_RESULT);
-                card.getNameEditText().setText(foodstuff.getName());
-                card.getProteinEditText().setText(String.valueOf(foodstuff.getProtein()));
-                card.getFatsEditText().setText(String.valueOf(foodstuff.getFats()));
-                card.getCarbsEditText().setText(String.valueOf(foodstuff.getCarbs()));
-                card.getCaloriesEditText().setText(String.valueOf(foodstuff.getCalories()));
+                card.setFoodstuff(foodstuff);
             }
         }
     }

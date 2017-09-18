@@ -20,12 +20,16 @@ import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
 
 public class HistoryActivity extends MyActivity {
     private Card card;
+    private int editedFoodstuffPosition;
+    private CardDisplaySource cardDisplaySource;
     private RecyclerView recyclerView;
     private HistoryAdapter adapter;
     private HistoryAdapter.Observer adapterObserver = new HistoryAdapter.Observer() {
         @Override
         public void onItemClicked(Foodstuff foodstuff, int position) {
-            card.displayForFoodstuff(foodstuff, position);
+            editedFoodstuffPosition = position;
+            cardDisplaySource = CardDisplaySource.FoodstuffClicked;
+            card.displayForFoodstuff(foodstuff);
         }
     };
 
@@ -64,14 +68,14 @@ public class HistoryActivity extends MyActivity {
         historyFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                cardDisplaySource = CardDisplaySource.PlusClicked;
                 card.displayEmpty();
             }
         });
 
-        View cardsButtonOK = card.getButtonOk();
-        cardsButtonOK.setOnClickListener(new View.OnClickListener() {
+        card.setOnButtonOkClickedRunnable(new Runnable() {
             @Override
-            public void onClick(View v) {
+            public void run() {
                 if (!card.areAllEditTextsFull()) {
                     Snackbar.make(findViewById(android.R.id.content), "Заполните все данные", Snackbar.LENGTH_LONG).show();
                     return;
@@ -85,13 +89,12 @@ public class HistoryActivity extends MyActivity {
                     return;
                 }
 
-                Foodstuff editedFoodstuff = card.getEditedFoodstuff();
-                if (editedFoodstuff == null) {
+                if (cardDisplaySource == CardDisplaySource.PlusClicked) {
                     adapter.addItem(foodstuff, new Date());
                     recyclerView.smoothScrollToPosition(1); //т к новый продукт добавляется в текущую дату
                 } else {
-                    adapter.replaceItem(foodstuff, card.getEditedFoodstuffPosition());
-                    recyclerView.smoothScrollToPosition(card.getEditedFoodstuffPosition());
+                    adapter.replaceItem(foodstuff, editedFoodstuffPosition);
+                    recyclerView.smoothScrollToPosition(editedFoodstuffPosition);
                 }
 
                 card.hide();
@@ -100,19 +103,17 @@ public class HistoryActivity extends MyActivity {
             }
         });
 
-        View cardsButtonDelete = card.getButtonDelete();
-        cardsButtonDelete.setOnClickListener(new View.OnClickListener() {
+        card.setOnButtonDeleteClickedRunnable(new Runnable() {
             @Override
-            public void onClick(View v) {
-                adapter.deleteItem(card.getEditedFoodstuffPosition());
+            public void run() {
+                adapter.deleteItem(editedFoodstuffPosition);
                 card.hide();
             }
         });
 
-        View cardsButtonSave = card.getButtonSave();
-        cardsButtonSave.setOnClickListener(new View.OnClickListener() {
+        card.setOnButtonSaveClickedRunnable(new Runnable() {
             @Override
-            public void onClick(final View v) {
+            public void run() {
                 if (!card.isFilledEnoughToSaveFoodstuff()) {
                     Snackbar.make(findViewById(android.R.id.content), "Заполните название и БЖУК", Snackbar.LENGTH_LONG).show();
                     return;
@@ -144,13 +145,12 @@ public class HistoryActivity extends MyActivity {
             }
         });
 
-        View cardsSearchImageButton = card.getSearchImageButton();
-        cardsSearchImageButton.setOnClickListener(new View.OnClickListener() {
+        card.setOnSearchButtonClickedRunnable(new Runnable() {
             @Override
-            public void onClick(View v) {
+            public void run() {
                 Intent sendIntent = new Intent(HistoryActivity.this, ListOfFoodstuffsActivity.class);
                 sendIntent.setAction(getString(R.string.find_foodstuff_action));
-                String foodstuffName = card.getNameEditText().getText().toString().trim();
+                String foodstuffName = card.getName();
                 sendIntent.putExtra(NAME, foodstuffName);
                 startActivityForResult(sendIntent, FIND_FOODSTUFF_REQUEST);
             }
@@ -162,11 +162,7 @@ public class HistoryActivity extends MyActivity {
         if (requestCode == FIND_FOODSTUFF_REQUEST) {
             if (resultCode == RESULT_OK) {
                 Foodstuff foodstuff = data.getParcelableExtra(SEARCH_RESULT);
-                card.getNameEditText().setText(foodstuff.getName());
-                card.getProteinEditText().setText(String.valueOf(foodstuff.getProtein()));
-                card.getFatsEditText().setText(String.valueOf(foodstuff.getFats()));
-                card.getCarbsEditText().setText(String.valueOf(foodstuff.getCarbs()));
-                card.getCaloriesEditText().setText(String.valueOf(foodstuff.getCalories()));
+                card.setFoodstuff(foodstuff);
             }
         }
     }

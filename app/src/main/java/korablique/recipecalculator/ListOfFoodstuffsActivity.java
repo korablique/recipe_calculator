@@ -24,10 +24,15 @@ import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
 public class ListOfFoodstuffsActivity extends MyActivity {
     private Card card;
     private FoodstuffsAdapter recyclerViewAdapter;
+    private CardDisplaySource cardDisplaySource;
+    private int editedFoodstuffPosition;
+    private long editedFoodstuffId; //id из базы данных
     private FoodstuffsAdapter.Observer defaultObserver = new FoodstuffsAdapter.Observer() {
         @Override
         public void onItemClicked(Foodstuff foodstuff, int position) {
-            card.displayForFoodstuff(foodstuff, position);
+            editedFoodstuffPosition = position;
+            editedFoodstuffId = foodstuff.getId();
+            card.displayForFoodstuff(foodstuff);
         }
 
         @Override
@@ -57,45 +62,38 @@ public class ListOfFoodstuffsActivity extends MyActivity {
             createRecyclerView(findFoodstuffObserver);
         } else {
             card = new Card(this, (ViewGroup) findViewById(R.id.list_of_recipes_parent));
-            card.getButtonOk().setVisibility(View.GONE);
-            card.getWeightEditText().setVisibility(View.GONE);
-            card.getSearchImageButton().setVisibility(View.GONE);
-            card.getButtonSave().setOnClickListener(new View.OnClickListener() {
+            card.hideButtonOk();
+            card.hideWeight();
+            card.hideSearchButton();
+            card.setOnButtonSaveClickedRunnable(new Runnable() {
                 @Override
-                public void onClick(View v) {
+                public void run() {
                     if (!card.areAllEditTextsFull()) {
                         Snackbar.make(findViewById(android.R.id.content), "Заполните название и БЖУК", Snackbar.LENGTH_LONG).show();
                         return;
                     }
-                    String newName = card.getNameEditText().getText().toString().trim();
-                    double newProtein = Double.parseDouble(card.getProteinEditText().getText().toString());
-                    double newFats = Double.parseDouble(card.getFatsEditText().getText().toString());
-                    double newCarbs = Double.parseDouble(card.getCarbsEditText().getText().toString());
-                    double newCalories = Double.parseDouble(card.getCaloriesEditText().getText().toString());
-                    if (newProtein + newFats + newCarbs > 100) {
+                    Foodstuff newFoodstuff = card.parseFoodstuff();
+                    if (newFoodstuff.getProtein() + newFoodstuff.getFats() + newFoodstuff.getCarbs() > 100) {
                         Snackbar.make(findViewById(android.R.id.content), "Сумма белков, жиров и углеводов не может быть больше 100", Snackbar.LENGTH_LONG).show();
                         return;
                     }
-                    Foodstuff newFoodstuff = new Foodstuff(newName, 0, newProtein, newFats, newCarbs, newCalories);
                     //сохраняем новые значения в базу данных
-                    long id = card.getEditedFoodstuff().getId();
                     DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
-                    databaseWorker.editFoodstuff(ListOfFoodstuffsActivity.this, id, newFoodstuff);
-                    recyclerViewAdapter.replaceItem(newFoodstuff, card.getEditedFoodstuffPosition());
+                    databaseWorker.editFoodstuff(ListOfFoodstuffsActivity.this, editedFoodstuffId, newFoodstuff);
+                    recyclerViewAdapter.replaceItem(newFoodstuff, editedFoodstuffPosition);
                     Snackbar.make(findViewById(android.R.id.content), "Изменения сохранены", Snackbar.LENGTH_SHORT).show();
                     card.hide();
                     KeyboardHandler keyboardHandler = new KeyboardHandler(ListOfFoodstuffsActivity.this);
                     keyboardHandler.hideKeyBoard();
-
                 }
             });
-            card.getButtonDelete().setOnClickListener(new View.OnClickListener() {
+
+            card.setOnButtonDeleteClickedRunnable(new Runnable() {
                 @Override
-                public void onClick(View v) {
-                    long id = card.getEditedFoodstuff().getId();
+                public void run() {
                     DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
-                    databaseWorker.deleteFoodstuff(ListOfFoodstuffsActivity.this, id);
-                    recyclerViewAdapter.deleteItem(card.getEditedFoodstuffPosition());
+                    databaseWorker.deleteFoodstuff(ListOfFoodstuffsActivity.this, editedFoodstuffId);
+                    recyclerViewAdapter.deleteItem(editedFoodstuffPosition);
                     Snackbar.make(findViewById(android.R.id.content), "Продукт удалён", Snackbar.LENGTH_SHORT).show();
                     card.hide();
                 }
