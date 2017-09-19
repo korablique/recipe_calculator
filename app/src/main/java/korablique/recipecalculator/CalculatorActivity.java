@@ -11,8 +11,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import com.crashlytics.android.Crashlytics;
 
@@ -186,36 +184,21 @@ public class CalculatorActivity extends MyActivity {
     }
 
     private void onCalculateButtonClicked() {
-        //получить все Row
-        ArrayList<Row> rows = new ArrayList<>();
-        for (int index = 0; index < ingredients.getChildCount(); index++) {
-            rows.add(new Row(this, ingredients, (LinearLayout) ingredients.getChildAt(index)));
+        //получить все Foodstuff'ы
+        ArrayList<Foodstuff> foodstuffs = new ArrayList<>();
+        for (int index = 0; index < foodstuffsAdapter.getItemCount(); index++) {
+            foodstuffs.add(foodstuffsAdapter.getItem(index));
         }
 
-        //пройти циклом по всем Row и умножаем белок на массу продукта
-        //то же сделать с жирами и углеводами
-        //посчитать общую массу продукта
-        //потом по формуле рассчитать бжук на 100 г
-
-        //1 - масса
-        //2 - белки
-        //3 - жиры
-        //4 - углеводы
-        //5 - калории
         double proteinPer100Gram, fatsPer100Gram, carbsPer100Gram, caloriesPer100Gram, productWeight;
+        //пройти циклом по всем фудстаффам и умножить Б, Ж, У и К (указанные в карточке на 100 г) на массу продукта
         double allProtein = 0, allFats = 0, allCarbs = 0, allCalories = 0, totalWeight = 0;
-        for (int index = 0; index < rows.size(); index++) {
-            TextView weightTextView = rows.get(index).getWeightTextView();
-            TextView proteinTextView = rows.get(index).getProteinTextView();
-            TextView fatsTextView = rows.get(index).getFatsTextView();
-            TextView carbsTextView = rows.get(index).getCarbsTextView();
-            TextView caloriesTextView = rows.get(index).getCaloriesTextView();
-
-            productWeight = Double.parseDouble((weightTextView.getText().toString()));
-            proteinPer100Gram = Double.parseDouble((proteinTextView.getText().toString()));
-            fatsPer100Gram = Double.parseDouble((fatsTextView.getText().toString()));
-            carbsPer100Gram = Double.parseDouble((carbsTextView.getText().toString()));
-            caloriesPer100Gram = Double.parseDouble((caloriesTextView.getText().toString()));
+        for (Foodstuff foodstuff : foodstuffs) {
+            productWeight = foodstuff.getWeight();
+            proteinPer100Gram = foodstuff.getProtein();
+            fatsPer100Gram = foodstuff.getFats();
+            carbsPer100Gram = foodstuff.getCarbs();
+            caloriesPer100Gram = foodstuff.getCalories();
 
             allProtein += (proteinPer100Gram * productWeight * 0.01);
             allFats += (fatsPer100Gram * productWeight * 0.01);
@@ -227,13 +210,14 @@ public class CalculatorActivity extends MyActivity {
         double recipeProteinPer100Gram, recipeFatsPer100Gram, recipeCarbsPer100Gram, recipeCaloriesPer100Gram;
 
         EditText resultWeightEditText = (EditText) findViewById(R.id.result_weight_edit_text);
-
         double resultWeight;
         if (!resultWeightEditText.getText().toString().isEmpty()) {
             resultWeight = Double.parseDouble(resultWeightEditText.getText().toString());
         } else {
             resultWeight = totalWeight;
         }
+
+        //рассчитать бжук на 100 г
         recipeProteinPer100Gram = allProtein * 100 / resultWeight;
         recipeFatsPer100Gram = allFats * 100 / resultWeight;
         recipeCarbsPer100Gram = allCarbs * 100 / resultWeight;
