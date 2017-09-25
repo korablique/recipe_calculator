@@ -4,6 +4,8 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Handler;
+import android.os.Looper;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,8 +39,39 @@ public class DatabaseWorker {
         return databaseWorker;
     }
 
+    private void runInBackground(final Runnable runnable) {
+        // Executor'ы (в т.ч. Executors.newSingleThreadExecutor) ловят исключения, выброшенные
+        // переданными в них Runnable'ами, и ничего с ними не делают, пока не будет вызван
+        // Future.get (Executor.submit возвращает Future).
+        //
+        // Мы никогда не вызываем Future.get (потому что он блокирует вызывающий поток) -
+        // а значит исключения втихую проглатываются.
+        //
+        // Чтобы запретить проглатывание исключений, передадим в Executor не конечный Runnable,
+        // а свой, промежуточный. Внутри промежуточного Runnable обернём конечный в try-catch,
+        // и т.о. сами поймаем исключение, которое было бы молча проглочено Executor'ом.
+        //
+        // Далее переместим исключение на главный поток и выбросим оттуда, чтобы приложение закрешилось.
+        Runnable realRunnable = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    runnable.run();
+                } catch (final Throwable e) {
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            throw new RuntimeException(e);
+                        }
+                    });
+                }
+            }
+        };
+        executorService.submit(realRunnable);
+    }
+
     public void saveFoodstuff(final Context context, final Foodstuff foodstuff, final SaveFoodstuffCallback callback) {
-        executorService.submit(new Runnable() {
+        runInBackground(new Runnable() {
             @Override
             public void run() {
                 FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
@@ -69,7 +102,7 @@ public class DatabaseWorker {
     }
 
     public void editFoodstuff(final Context context, final long editedFoodstuffId, final Foodstuff newFoodstuff) {
-        executorService.submit(new Runnable() {
+        runInBackground(new Runnable() {
             @Override
             public void run() {
                 FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
@@ -87,7 +120,7 @@ public class DatabaseWorker {
     }
 
     public void deleteFoodstuff(final Context context, final long foodstuffsId) {
-        executorService.submit(new Runnable() {
+        runInBackground(new Runnable() {
             @Override
             public void run() {
                 FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
@@ -98,7 +131,7 @@ public class DatabaseWorker {
     }
 
     public void requestAllFoodstuffsFromDb(final Context context, final FoodstuffsRequestCallback callback) {
-        executorService.submit(new Runnable() {
+        runInBackground(new Runnable() {
             @Override
             public void run() {
                 FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
