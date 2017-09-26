@@ -38,7 +38,7 @@ public class CalculatorActivity extends MyActivity {
         public void onItemClicked(Foodstuff foodstuff, int position) {
             editedFoodstuffPosition = position;
             cardSource = CardDisplaySource.FoodstuffClicked;
-            card.displayForFoodstuff(foodstuff);
+            card.displayForFoodstuff(foodstuff, foodstuff.getId());
         }
 
         @Override

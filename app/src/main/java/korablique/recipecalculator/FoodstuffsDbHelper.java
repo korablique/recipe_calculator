@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import static korablique.recipecalculator.DatabaseUtils.tableExists;
+import static korablique.recipecalculator.HistoryContract.*;
 
 public class FoodstuffsDbHelper {
     private static final int DATABASE_VERSION = 2;
@@ -59,10 +60,11 @@ public class FoodstuffsDbHelper {
     }
 
     private void createTableHistory(SQLiteDatabase database) {
-        database.execSQL("CREATE TABLE history (" +
-                "id INTEGER PRIMARY KEY, " +
-                "date INTEGER, " +
-                "foodstuff_id INTEGER, " +
+        database.execSQL("CREATE TABLE " + HISTORY_TABLE_NAME + " (" +
+                HistoryContract.ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_NAME_DATE + " INTEGER, " +
+                COLUMN_NAME_FOODSTUFF_ID + " INTEGER, " +
+                COLUMN_NAME_WEIGHT + " REAL, " +
                 "FOREIGN KEY (foodstuff_id) REFERENCES foodstuffs(ID))");
     }
 

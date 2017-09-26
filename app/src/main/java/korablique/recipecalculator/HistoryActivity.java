@@ -11,6 +11,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 import static korablique.recipecalculator.IntentConstants.FIND_FOODSTUFF_REQUEST;
@@ -29,7 +30,7 @@ public class HistoryActivity extends MyActivity {
         public void onItemClicked(Foodstuff foodstuff, int position) {
             editedFoodstuffPosition = position;
             cardDisplaySource = CardDisplaySource.FoodstuffClicked;
-            card.displayForFoodstuff(foodstuff);
+            card.displayForFoodstuff(foodstuff, foodstuff.getId());
         }
     };
 
@@ -54,12 +55,19 @@ public class HistoryActivity extends MyActivity {
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(adapter);
 
-        adapter.addItem(new Foodstuff("помидорка", 100, 0.5, 0.2, 4, 20), new Date(117, 7, 5));
-        adapter.addItem(new Foodstuff("тортик", 100, 5, 20, 50, 400), new Date(117, 7, 3));
-        adapter.addItem(new Foodstuff("помидорка", 100, 0.5, 0.2, 4, 20), new Date(117, 7, 6));
-        adapter.addItem(new Foodstuff("помидорка", 100, 0.5, 0.2, 4, 20), new Date(117, 6, 31));
-        adapter.addItem(new Foodstuff("тортик", 100, 5, 20, 50, 400), new Date(117, 7, 4));
-        adapter.addItem(new Foodstuff("помидорка", 100, 0.5, 0.2, 4, 20), new Date(117, 7, 3));
+        DatabaseWorker.getInstance().requestAllHistoryFromDb(this, new DatabaseWorker.RequestHistoryCallback() {
+            @Override
+            public void onResult(final ArrayList<TimedFoodstuff> timedFoodstuffs) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        for (TimedFoodstuff timedFoodstuff : timedFoodstuffs) {
+                            adapter.addItem(timedFoodstuff.getFoodstuff(), timedFoodstuff.getTime());
+                        }
+                    }
+                });
+            }
+        });
 
         ViewGroup parentLayout = (ViewGroup) findViewById(R.id.history_parent);
         card = new Card(this, parentLayout);
@@ -69,6 +77,7 @@ public class HistoryActivity extends MyActivity {
             @Override
             public void onClick(View view) {
                 cardDisplaySource = CardDisplaySource.PlusClicked;
+                card.setFocusableExceptWeight(false);
                 card.displayEmpty();
             }
         });
@@ -81,6 +90,8 @@ public class HistoryActivity extends MyActivity {
                     return;
                 }
 
+                card.setFocusableExceptWeight(true);
+
                 Foodstuff foodstuff;
                 try {
                     foodstuff = card.parseFoodstuff();
@@ -89,9 +100,15 @@ public class HistoryActivity extends MyActivity {
                     return;
                 }
 
+                //пока можно добавлять в историю только продукты из списка, так что проверка пока правильная
                 if (cardDisplaySource == CardDisplaySource.PlusClicked) {
-                    adapter.addItem(foodstuff, new Date());
+                    Date date = new Date();
+                    adapter.addItem(foodstuff, date);
+                    DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
+                    databaseWorker.saveFoodstuffFromListToHistory(
+                            HistoryActivity.this, date, (long) card.getCurrentCustomPayload(), foodstuff.getWeight());
                     recyclerView.smoothScrollToPosition(1); //т к новый продукт добавляется в текущую дату
+
                 } else {
                     adapter.replaceItem(foodstuff, editedFoodstuffPosition);
                     recyclerView.smoothScrollToPosition(editedFoodstuffPosition);
@@ -162,7 +179,7 @@ public class HistoryActivity extends MyActivity {
         if (requestCode == FIND_FOODSTUFF_REQUEST) {
             if (resultCode == RESULT_OK) {
                 Foodstuff foodstuff = data.getParcelableExtra(SEARCH_RESULT);
-                card.setFoodstuff(foodstuff);
+                card.displayForFoodstuff(foodstuff, foodstuff.getId());
             }
         }
     }

@@ -24,7 +24,7 @@ import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_N
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_FATS;
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_FOODSTUFF_NAME;
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_PROTEIN;
-import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.TABLE_NAME;
+import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.FOODSTUFFS_TABLE_NAME;
 
 public class ShowResultDialogFragment extends DialogFragment {
     private EditText recipeName;
@@ -79,7 +79,7 @@ public class ShowResultDialogFragment extends DialogFragment {
                     values.put(COLUMN_NAME_CALORIES, Double.parseDouble(String.format("%.2f", caloriesPer100Gram).replace(',', '.')));
                     FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(getContext());
                     SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-                    database.insert(TABLE_NAME, null, values);
+                    database.insert(FOODSTUFFS_TABLE_NAME, null, values);
                     Snackbar.make(getActivity().findViewById(android.R.id.content), "Продукт сохранён", Snackbar.LENGTH_SHORT).show();
                 }
             });

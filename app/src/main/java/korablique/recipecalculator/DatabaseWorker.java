@@ -4,11 +4,10 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.Handler;
-import android.os.Looper;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -18,7 +17,11 @@ import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_N
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_FOODSTUFF_NAME;
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_PROTEIN;
 import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.ID;
-import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.TABLE_NAME;
+import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.FOODSTUFFS_TABLE_NAME;
+import static korablique.recipecalculator.HistoryContract.COLUMN_NAME_DATE;
+import static korablique.recipecalculator.HistoryContract.COLUMN_NAME_FOODSTUFF_ID;
+import static korablique.recipecalculator.HistoryContract.COLUMN_NAME_WEIGHT;
+import static korablique.recipecalculator.HistoryContract.HISTORY_TABLE_NAME;
 
 public class DatabaseWorker {
     private static DatabaseWorker databaseWorker;
@@ -28,6 +31,9 @@ public class DatabaseWorker {
     }
     public interface SaveFoodstuffCallback {
         void onResult(boolean hasAlreadyContainsFoodstuff);
+    }
+    public interface RequestHistoryCallback {
+        void onResult(ArrayList<TimedFoodstuff> timedFoodstuffs);
     }
 
     private DatabaseWorker() {}
@@ -45,7 +51,7 @@ public class DatabaseWorker {
             public void run() {
                 FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
                 SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-                Cursor cursor = database.rawQuery("SELECT * FROM " + TABLE_NAME
+                Cursor cursor = database.rawQuery("SELECT * FROM " + FOODSTUFFS_TABLE_NAME
                         + " WHERE " + COLUMN_NAME_FOODSTUFF_NAME + " = '" + foodstuff.getName() + "' AND "
                         + COLUMN_NAME_PROTEIN + " = " + foodstuff.getProtein() + " AND "
                         + COLUMN_NAME_FATS + " = " + foodstuff.getFats() + " AND "
@@ -60,7 +66,7 @@ public class DatabaseWorker {
                     values.put(COLUMN_NAME_FATS, foodstuff.getFats());
                     values.put(COLUMN_NAME_CARBS, foodstuff.getCarbs());
                     values.put(COLUMN_NAME_CALORIES, foodstuff.getCalories());
-                    database.insert(TABLE_NAME, null, values);
+                    database.insert(FOODSTUFFS_TABLE_NAME, null, values);
                 } else {
                     hasAlreadyContainsFoodstuff = true;
                 }
@@ -83,7 +89,7 @@ public class DatabaseWorker {
                 contentValues.put(COLUMN_NAME_FATS, newFoodstuff.getFats());
                 contentValues.put(COLUMN_NAME_CARBS, newFoodstuff.getCarbs());
                 contentValues.put(COLUMN_NAME_CALORIES, newFoodstuff.getCalories());
-                database.update(TABLE_NAME, contentValues, "id = ?", new String[]{String.valueOf(editedFoodstuffId)});
+                database.update(FOODSTUFFS_TABLE_NAME, contentValues, "id = ?", new String[]{String.valueOf(editedFoodstuffId)});
             }
         });
     }
@@ -94,7 +100,7 @@ public class DatabaseWorker {
             public void run() {
                 FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
                 SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-                database.delete(TABLE_NAME, "id = ?", new String[]{String.valueOf(foodstuffsId)});
+                database.delete(FOODSTUFFS_TABLE_NAME, "id = ?", new String[]{String.valueOf(foodstuffsId)});
             }
         });
     }
@@ -105,7 +111,7 @@ public class DatabaseWorker {
             public void run() {
                 FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
                 SQLiteDatabase db = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
-                Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
+                Cursor cursor = db.rawQuery("SELECT * FROM " + FOODSTUFFS_TABLE_NAME, null);
                 ArrayList<Foodstuff> allFoodstuffsFromDb = new ArrayList<>();
                 while (cursor.moveToNext()) {
                     Foodstuff foodstuff = new Foodstuff(
@@ -123,5 +129,59 @@ public class DatabaseWorker {
                 callback.onResult(allFoodstuffsFromDb);
             }
         });
+    }
+
+    public void requestAllHistoryFromDb(final Context context, final RequestHistoryCallback callback) {
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+                SQLiteDatabase db = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
+                Cursor cursor = db.rawQuery("SELECT * FROM " + HISTORY_TABLE_NAME + " JOIN " + FOODSTUFFS_TABLE_NAME
+                        + " ON " + HISTORY_TABLE_NAME + "." + COLUMN_NAME_FOODSTUFF_ID
+                        + "=" + FOODSTUFFS_TABLE_NAME + "." + FoodstuffsContract.Foodstuffs.ID, null);
+                ArrayList<TimedFoodstuff> timedFoodstuffs = new ArrayList<>();
+                while (cursor.moveToNext()) {
+                    long foodstuffId = cursor.getLong(
+                            cursor.getColumnIndex(HISTORY_TABLE_NAME + "." + COLUMN_NAME_FOODSTUFF_ID));
+                    double weight = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_WEIGHT));
+                    String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_FOODSTUFF_NAME));
+                    double protein = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_PROTEIN));
+                    double fats = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_FATS));
+                    double carbs = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CARBS));
+                    double calories = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CALORIES));
+                    Foodstuff foodstuff = new Foodstuff(foodstuffId, name, weight, protein, fats, carbs, calories);
+
+                    long time = cursor.getLong(cursor.getColumnIndex(COLUMN_NAME_DATE));
+                    long historyId = cursor.getLong(cursor.getColumnIndex(HISTORY_TABLE_NAME + "." + HistoryContract.ID));
+                    TimedFoodstuff timedFoodstuff = new TimedFoodstuff(historyId, foodstuff, new Date(time), weight);
+                    timedFoodstuffs.add(timedFoodstuff);
+                }
+                cursor.close();
+                callback.onResult(timedFoodstuffs);
+            }
+        });
+    }
+
+    public void saveFoodstuffFromListToHistory(final Context context, final Date date, final long foodstuffId, final double foodstuffWeight, final Runnable callback) {
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+                SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+                ContentValues values = new ContentValues();
+                values.put(COLUMN_NAME_DATE, date.getTime());
+                values.put(COLUMN_NAME_FOODSTUFF_ID, foodstuffId);
+                values.put(COLUMN_NAME_WEIGHT, foodstuffWeight);
+                database.insert(HISTORY_TABLE_NAME, null, values);
+                if (callback != null) {
+                    callback.run();
+                }
+            }
+        });
+    }
+
+    public void saveFoodstuffFromListToHistory(final Context context, final Date date, final long foodstuffId, double foodstuffWeight) {
+        saveFoodstuffFromListToHistory(context, date, foodstuffId, foodstuffWeight, null);
     }
 }

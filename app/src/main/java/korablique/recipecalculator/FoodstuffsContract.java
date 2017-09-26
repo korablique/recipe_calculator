@@ -7,7 +7,7 @@ public final class FoodstuffsContract {
 
     public static abstract class Foodstuffs implements BaseColumns {
         public static final String ID = "ID";
-        public static final String TABLE_NAME = "foodstuffs";
+        public static final String FOODSTUFFS_TABLE_NAME = "foodstuffs";
         public static final String COLUMN_NAME_FOODSTUFF_NAME = "foodstuff_name";
         public static final String COLUMN_NAME_PROTEIN = "protein";
         public static final String COLUMN_NAME_FATS = "fats";
@@ -20,7 +20,7 @@ public final class FoodstuffsContract {
     private static final String COMMA_SEP = ", ";
 
     public static final String SQL_CREATE_ENTRIES =
-            "CREATE TABLE " + Foodstuffs.TABLE_NAME + " (" +
+            "CREATE TABLE " + Foodstuffs.FOODSTUFFS_TABLE_NAME + " (" +
                     Foodstuffs.ID + " INTEGER PRIMARY KEY, " +
                     Foodstuffs.COLUMN_NAME_FOODSTUFF_NAME + TEXT_TYPE + COMMA_SEP +
                     Foodstuffs.COLUMN_NAME_PROTEIN + FLOAT_TYPE + COMMA_SEP +
@@ -29,6 +29,6 @@ public final class FoodstuffsContract {
                     Foodstuffs.COLUMN_NAME_CALORIES + FLOAT_TYPE + " )";
 
     public static final String SQL_DELETE_ENTRIES =
-            "DROP TABLE IF EXISTS " + Foodstuffs.TABLE_NAME;
+            "DROP TABLE IF EXISTS " + Foodstuffs.FOODSTUFFS_TABLE_NAME;
 }
 

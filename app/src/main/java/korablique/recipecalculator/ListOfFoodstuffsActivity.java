@@ -32,7 +32,7 @@ public class ListOfFoodstuffsActivity extends MyActivity {
         public void onItemClicked(Foodstuff foodstuff, int position) {
             editedFoodstuffPosition = position;
             editedFoodstuffId = foodstuff.getId();
-            card.displayForFoodstuff(foodstuff);
+            card.displayForFoodstuff(foodstuff, editedFoodstuffId);
         }
 
         @Override

@@ -18,6 +18,7 @@ public class Card {
     private ValueAnimator animator;
     private float lastAnimatorDestination;
     private Float lastParentVisibleHeight;
+    private Object customPayload; // здесь хранится id фудстаффа из списка
 
     public Card(Activity activity, ViewGroup parentLayout) {
         cardLayout = (ViewGroup) LayoutInflater.from(activity).inflate(R.layout.card_layout, null);
@@ -124,7 +125,8 @@ public class Card {
     /**
      * id foodstuff'а не сохраняется
      */
-    public void displayForFoodstuff(Foodstuff foodstuff) {
+    public void displayForFoodstuff(Foodstuff foodstuff, Object customPayload) {
+        this.customPayload = customPayload;
         this.clear();
         displayEmpty();
         getButtonDelete().setVisibility(View.VISIBLE);
@@ -137,6 +139,14 @@ public class Card {
         for (int index = 0; index < cardLayout.getChildCount(); index++) {
             cardLayout.getChildAt(index).clearFocus();
         }
+    }
+
+    public void setFocusableExceptWeight(boolean focusable) {
+        getNameEditText().setFocusable(focusable);
+        getProteinEditText().setFocusable(focusable);
+        getFatsEditText().setFocusable(focusable);
+        getCarbsEditText().setFocusable(focusable);
+        getCaloriesEditText().setFocusable(focusable);
     }
 
     private int getVisibleParentHeight() {
@@ -246,6 +256,10 @@ public class Card {
 
     public void hideSearchButton() {
         getSearchImageButton().setVisibility(View.GONE);
+    }
+
+    public Object getCurrentCustomPayload() {
+        return customPayload;
     }
 
     public String getName() {
