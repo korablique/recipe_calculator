@@ -11,13 +11,13 @@ import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_CALORIES;
-import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_CARBS;
-import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_FATS;
-import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_FOODSTUFF_NAME;
-import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_PROTEIN;
-import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.ID;
-import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.FOODSTUFFS_TABLE_NAME;
+import static korablique.recipecalculator.FoodstuffsContract.COLUMN_NAME_CALORIES;
+import static korablique.recipecalculator.FoodstuffsContract.COLUMN_NAME_CARBS;
+import static korablique.recipecalculator.FoodstuffsContract.COLUMN_NAME_FATS;
+import static korablique.recipecalculator.FoodstuffsContract.COLUMN_NAME_FOODSTUFF_NAME;
+import static korablique.recipecalculator.FoodstuffsContract.COLUMN_NAME_PROTEIN;
+import static korablique.recipecalculator.FoodstuffsContract.ID;
+import static korablique.recipecalculator.FoodstuffsContract.FOODSTUFFS_TABLE_NAME;
 import static korablique.recipecalculator.HistoryContract.COLUMN_NAME_DATE;
 import static korablique.recipecalculator.HistoryContract.COLUMN_NAME_FOODSTUFF_ID;
 import static korablique.recipecalculator.HistoryContract.COLUMN_NAME_WEIGHT;
@@ -139,7 +139,7 @@ public class DatabaseWorker {
                 SQLiteDatabase db = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
                 Cursor cursor = db.rawQuery("SELECT * FROM " + HISTORY_TABLE_NAME + " JOIN " + FOODSTUFFS_TABLE_NAME
                         + " ON " + HISTORY_TABLE_NAME + "." + COLUMN_NAME_FOODSTUFF_ID
-                        + "=" + FOODSTUFFS_TABLE_NAME + "." + FoodstuffsContract.Foodstuffs.ID, null);
+                        + "=" + FOODSTUFFS_TABLE_NAME + "." + FoodstuffsContract.ID, null);
                 ArrayList<TimedFoodstuff> timedFoodstuffs = new ArrayList<>();
                 while (cursor.moveToNext()) {
                     long foodstuffId = cursor.getLong(

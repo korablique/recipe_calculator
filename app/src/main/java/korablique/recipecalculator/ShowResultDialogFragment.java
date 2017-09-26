@@ -19,12 +19,12 @@ import android.widget.TextView;
 
 import java.util.Formatter;
 
-import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_CALORIES;
-import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_CARBS;
-import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_FATS;
-import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_FOODSTUFF_NAME;
-import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.COLUMN_NAME_PROTEIN;
-import static korablique.recipecalculator.FoodstuffsContract.Foodstuffs.FOODSTUFFS_TABLE_NAME;
+import static korablique.recipecalculator.FoodstuffsContract.COLUMN_NAME_CALORIES;
+import static korablique.recipecalculator.FoodstuffsContract.COLUMN_NAME_CARBS;
+import static korablique.recipecalculator.FoodstuffsContract.COLUMN_NAME_FATS;
+import static korablique.recipecalculator.FoodstuffsContract.COLUMN_NAME_FOODSTUFF_NAME;
+import static korablique.recipecalculator.FoodstuffsContract.COLUMN_NAME_PROTEIN;
+import static korablique.recipecalculator.FoodstuffsContract.FOODSTUFFS_TABLE_NAME;
 
 public class ShowResultDialogFragment extends DialogFragment {
     private EditText recipeName;
