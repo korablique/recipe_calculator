@@ -173,4 +173,26 @@ public class ListOfFoodstuffsActivity extends MyActivity {
             super.onBackPressed();
         }
     }
+
+    //метод для тестов
+    public void reload(final Runnable callback) {
+        for (int index = recyclerViewAdapter.getItemCount() - 1; index >= 0; index--) {
+            recyclerViewAdapter.deleteItem(index);
+        }
+        DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
+        databaseWorker.requestListedFoodstuffsFromDb(this, new DatabaseWorker.FoodstuffsRequestCallback() {
+            @Override
+            public void onResult(final ArrayList<Foodstuff> foodstuffs) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        for (Foodstuff foodstuff : foodstuffs) {
+                            recyclerViewAdapter.addItem(foodstuff);
+                        }
+                        callback.run();
+                    }
+                });
+            }
+        });
+    }
 }

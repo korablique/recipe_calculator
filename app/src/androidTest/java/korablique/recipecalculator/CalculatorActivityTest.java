@@ -121,22 +121,22 @@ public class CalculatorActivityTest {
     public void testSavingProductDoesNotCrashApp() {
         onView(withId(R.id.fab_add_foodstuff)).perform(click());
         onView(withId(R.id.name_edit_text)).perform(typeText("tomato"));
-        onView(withId(R.id.weight_edit_text)).perform(typeText("123"));
-        onView(withId(R.id.protein_edit_text)).perform(typeText("123"));
-        onView(withId(R.id.fats_edit_text)).perform(typeText("123"));
-        onView(withId(R.id.carbs_edit_text)).perform(typeText("123"));
-        onView(withId(R.id.calories_edit_text)).perform(typeText("123"));
+        onView(withId(R.id.weight_edit_text)).perform(typeText("13"));
+        onView(withId(R.id.protein_edit_text)).perform(typeText("13"));
+        onView(withId(R.id.fats_edit_text)).perform(typeText("12"));
+        onView(withId(R.id.carbs_edit_text)).perform(typeText("12"));
+        onView(withId(R.id.calories_edit_text)).perform(typeText("13"));
         onView(withId(R.id.button_save)).perform(click());
     }
 
     private void addItem() {
         onView(withId(R.id.fab_add_foodstuff)).perform(click());
         onView(withId(R.id.name_edit_text)).perform(typeText("tomato"));
-        onView(withId(R.id.weight_edit_text)).perform(typeText("123"));
-        onView(withId(R.id.protein_edit_text)).perform(typeText("123"));
-        onView(withId(R.id.fats_edit_text)).perform(typeText("123"));
-        onView(withId(R.id.carbs_edit_text)).perform(typeText("123"));
-        onView(withId(R.id.calories_edit_text)).perform(typeText("123"));
+        onView(withId(R.id.weight_edit_text)).perform(typeText("12"));
+        onView(withId(R.id.protein_edit_text)).perform(typeText("12"));
+        onView(withId(R.id.fats_edit_text)).perform(typeText("12"));
+        onView(withId(R.id.carbs_edit_text)).perform(typeText("12"));
+        onView(withId(R.id.calories_edit_text)).perform(typeText("12"));
         onView(withId(R.id.button_ok)).perform(click());
     }
 

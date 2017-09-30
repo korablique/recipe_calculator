@@ -14,6 +14,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.concurrent.CountDownLatch;
+
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.action.ViewActions.replaceText;
@@ -32,8 +34,27 @@ public class ListOfFoodstuffsActivityTest {
             new ActivityTestRule<>(ListOfFoodstuffsActivity.class);
 
     @Before
-    public void setUp() {
+    public void setUp() throws InterruptedException {
         Card.setAnimationDuration(0);
+        DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
+        Foodstuff foodstuff1 = new Foodstuff("product1", -1, 10, 10, 10, 10);
+        final CountDownLatch mutex = new CountDownLatch(1);
+        databaseWorker.saveFoodstuff(mActivityRule.getActivity(), foodstuff1, new DatabaseWorker.SaveFoodstuffCallback() {
+            @Override
+            public void onResult(boolean hasAlreadyContainsFoodstuff) {
+                mutex.countDown();
+            }
+        });
+        mutex.await();
+
+        final CountDownLatch mutex2 = new CountDownLatch(1);
+        mActivityRule.getActivity().reload(new Runnable() {
+            @Override
+            public void run() {
+                mutex2.countDown();
+            }
+        });
+        mutex2.await();
     }
 
     @Test
