@@ -24,7 +24,6 @@ import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
 public class ListOfFoodstuffsActivity extends MyActivity {
     private Card card;
     private FoodstuffsAdapter recyclerViewAdapter;
-    private CardDisplaySource cardDisplaySource;
     private int editedFoodstuffPosition;
     private long editedFoodstuffId; //id из базы данных
     private FoodstuffsAdapter.Observer defaultObserver = new FoodstuffsAdapter.Observer() {
@@ -68,7 +67,7 @@ public class ListOfFoodstuffsActivity extends MyActivity {
             card.setOnButtonSaveClickedRunnable(new Runnable() {
                 @Override
                 public void run() {
-                    if (!card.areAllEditTextsFull()) {
+                    if (!card.isFilledEnoughToSaveFoodstuff()) {
                         Snackbar.make(findViewById(android.R.id.content), "Заполните название и БЖУК", Snackbar.LENGTH_LONG).show();
                         return;
                     }
@@ -118,7 +117,7 @@ public class ListOfFoodstuffsActivity extends MyActivity {
         recyclerView.setAdapter(recyclerViewAdapter);
 
         DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
-        databaseWorker.requestAllFoodstuffsFromDb(this, new DatabaseWorker.FoodstuffsRequestCallback() {
+        databaseWorker.requestListedFoodstuffsFromDb(this, new DatabaseWorker.FoodstuffsRequestCallback() {
             @Override
             public void onResult(final ArrayList<Foodstuff> foodstuffs) {
                 runOnUiThread(new Runnable() {

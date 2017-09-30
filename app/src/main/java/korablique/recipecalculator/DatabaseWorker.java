@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.support.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,9 +16,10 @@ import static korablique.recipecalculator.FoodstuffsContract.COLUMN_NAME_CALORIE
 import static korablique.recipecalculator.FoodstuffsContract.COLUMN_NAME_CARBS;
 import static korablique.recipecalculator.FoodstuffsContract.COLUMN_NAME_FATS;
 import static korablique.recipecalculator.FoodstuffsContract.COLUMN_NAME_FOODSTUFF_NAME;
+import static korablique.recipecalculator.FoodstuffsContract.COLUMN_NAME_IS_LISTED;
 import static korablique.recipecalculator.FoodstuffsContract.COLUMN_NAME_PROTEIN;
-import static korablique.recipecalculator.FoodstuffsContract.ID;
 import static korablique.recipecalculator.FoodstuffsContract.FOODSTUFFS_TABLE_NAME;
+import static korablique.recipecalculator.FoodstuffsContract.ID;
 import static korablique.recipecalculator.HistoryContract.COLUMN_NAME_DATE;
 import static korablique.recipecalculator.HistoryContract.COLUMN_NAME_FOODSTUFF_ID;
 import static korablique.recipecalculator.HistoryContract.COLUMN_NAME_WEIGHT;
@@ -35,6 +37,9 @@ public class DatabaseWorker {
     public interface RequestHistoryCallback {
         void onResult(ArrayList<TimedFoodstuff> timedFoodstuffs);
     }
+    public interface SaveUnlistedFoodstuffCallback {
+        void onResult(long foodstuffId);
+    }
 
     private DatabaseWorker() {}
 
@@ -45,7 +50,7 @@ public class DatabaseWorker {
         return databaseWorker;
     }
 
-    public void saveFoodstuff(final Context context, final Foodstuff foodstuff, final SaveFoodstuffCallback callback) {
+    public void saveFoodstuff(final Context context, final Foodstuff foodstuff, @NonNull final SaveFoodstuffCallback callback) {
         executorService.execute(new Runnable() {
             @Override
             public void run() {
@@ -72,6 +77,28 @@ public class DatabaseWorker {
                 }
                 cursor.close();
                 callback.onResult(hasAlreadyContainsFoodstuff);
+            }
+        });
+    }
+
+    public void saveUnlistedFoodstuff(
+            final Context context,
+            final Foodstuff foodstuff,
+            @NonNull final SaveUnlistedFoodstuffCallback callback) {
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+                SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+                ContentValues values = new ContentValues();
+                values.put(COLUMN_NAME_FOODSTUFF_NAME, foodstuff.getName());
+                values.put(COLUMN_NAME_PROTEIN, foodstuff.getProtein());
+                values.put(COLUMN_NAME_FATS, foodstuff.getFats());
+                values.put(COLUMN_NAME_CARBS, foodstuff.getCarbs());
+                values.put(COLUMN_NAME_CALORIES, foodstuff.getCalories());
+                values.put(COLUMN_NAME_IS_LISTED, 0);
+                long foodstuffId = database.insert(FOODSTUFFS_TABLE_NAME, null, values);
+                callback.onResult(foodstuffId);
             }
         });
     }
@@ -105,13 +132,14 @@ public class DatabaseWorker {
         });
     }
 
-    public void requestAllFoodstuffsFromDb(final Context context, final FoodstuffsRequestCallback callback) {
+    public void requestListedFoodstuffsFromDb(final Context context, @NonNull final FoodstuffsRequestCallback callback) {
         executorService.execute(new Runnable() {
             @Override
             public void run() {
                 FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
                 SQLiteDatabase db = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
-                Cursor cursor = db.rawQuery("SELECT * FROM " + FOODSTUFFS_TABLE_NAME, null);
+                Cursor cursor = db.rawQuery(
+                        "SELECT * FROM " + FOODSTUFFS_TABLE_NAME + " WHERE " + COLUMN_NAME_IS_LISTED + "=1", null);
                 ArrayList<Foodstuff> allFoodstuffsFromDb = new ArrayList<>();
                 while (cursor.moveToNext()) {
                     Foodstuff foodstuff = new Foodstuff(
@@ -131,7 +159,7 @@ public class DatabaseWorker {
         });
     }
 
-    public void requestAllHistoryFromDb(final Context context, final RequestHistoryCallback callback) {
+    public void requestAllHistoryFromDb(final Context context, @NonNull final RequestHistoryCallback callback) {
         executorService.execute(new Runnable() {
             @Override
             public void run() {
@@ -163,7 +191,12 @@ public class DatabaseWorker {
         });
     }
 
-    public void saveFoodstuffFromListToHistory(final Context context, final Date date, final long foodstuffId, final double foodstuffWeight, final Runnable callback) {
+    public void saveFoodstuffToHistory(
+            final Context context,
+            final Date date,
+            final long foodstuffId,
+            final double foodstuffWeight,
+            final Runnable callback) {
         executorService.execute(new Runnable() {
             @Override
             public void run() {
@@ -181,7 +214,11 @@ public class DatabaseWorker {
         });
     }
 
-    public void saveFoodstuffFromListToHistory(final Context context, final Date date, final long foodstuffId, double foodstuffWeight) {
-        saveFoodstuffFromListToHistory(context, date, foodstuffId, foodstuffWeight, null);
+    public void saveFoodstuffToHistory(
+            final Context context,
+            final Date date,
+            final long foodstuffId,
+            double foodstuffWeight) {
+        saveFoodstuffToHistory(context, date, foodstuffId, foodstuffWeight, null);
     }
 }

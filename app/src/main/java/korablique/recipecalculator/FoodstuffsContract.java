@@ -8,6 +8,7 @@ public final class FoodstuffsContract {
     public static final String COLUMN_NAME_FATS = "fats";
     public static final String COLUMN_NAME_CARBS = "carbs";
     public static final String COLUMN_NAME_CALORIES = "calories";
+    public static final String COLUMN_NAME_IS_LISTED = "is_listed";
 
     private FoodstuffsContract() {}
 }

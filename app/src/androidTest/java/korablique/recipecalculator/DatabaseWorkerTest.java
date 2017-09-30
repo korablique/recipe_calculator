@@ -1,6 +1,5 @@
 package korablique.recipecalculator;
 
-import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.test.filters.LargeTest;
@@ -17,6 +16,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 
+import static korablique.recipecalculator.FoodstuffsContract.COLUMN_NAME_IS_LISTED;
+import static korablique.recipecalculator.FoodstuffsContract.FOODSTUFFS_TABLE_NAME;
 import static korablique.recipecalculator.HistoryContract.COLUMN_NAME_DATE;
 import static korablique.recipecalculator.HistoryContract.COLUMN_NAME_FOODSTUFF_ID;
 import static korablique.recipecalculator.HistoryContract.HISTORY_TABLE_NAME;
@@ -27,6 +28,68 @@ public class DatabaseWorkerTest {
     @Rule
     public ActivityTestRule<CalculatorActivity> mActivityRule =
             new ActivityTestRule<>(CalculatorActivity.class);
+
+    @Test
+    public void requestListedFoodstuffsFromDbWorks() throws InterruptedException {
+        FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(mActivityRule.getActivity());
+        SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+        database.delete(FOODSTUFFS_TABLE_NAME, null, null);
+        Cursor cursor = database.rawQuery("SELECT * FROM " + FOODSTUFFS_TABLE_NAME, null);
+        Assert.assertTrue(cursor.getCount() == 0);
+        cursor.close();
+
+        final CountDownLatch mutex = new CountDownLatch(4);
+        DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
+        Foodstuff foodstuff1 = new Foodstuff("продукт1", 1, 1, 1, 1, 1);
+        Foodstuff foodstuff2 = new Foodstuff("продукт2", 1, 1, 1, 1, 1);
+        Foodstuff foodstuff3 = new Foodstuff("продукт3", 1, 1, 1, 1, 1);
+        Foodstuff foodstuff4 = new Foodstuff("продукт4", 1, 1, 1, 1, 1);
+        databaseWorker.saveFoodstuff(mActivityRule.getActivity(), foodstuff1, new DatabaseWorker.SaveFoodstuffCallback() {
+            @Override
+            public void onResult(boolean hasAlreadyContainsFoodstuff) {
+                mutex.countDown();
+            }
+        });
+        databaseWorker.saveFoodstuff(mActivityRule.getActivity(), foodstuff2, new DatabaseWorker.SaveFoodstuffCallback() {
+            @Override
+            public void onResult(boolean hasAlreadyContainsFoodstuff) {
+                mutex.countDown();
+            }
+        });
+        //сохраняем два unlisted foodstuff'а
+        databaseWorker.saveUnlistedFoodstuff(mActivityRule.getActivity(), foodstuff3, new DatabaseWorker.SaveUnlistedFoodstuffCallback() {
+            @Override
+            public void onResult(long foodstuffId) {
+                mutex.countDown();
+            }
+        });
+        databaseWorker.saveUnlistedFoodstuff(mActivityRule.getActivity(), foodstuff4, new DatabaseWorker.SaveUnlistedFoodstuffCallback() {
+            @Override
+            public void onResult(long foodstuffId) {
+                mutex.countDown();
+            }
+        });
+        mutex.await();
+
+        final CountDownLatch mutex2 = new CountDownLatch(1);
+        final int[] listedFoodstuffsCount = new int[1];
+        databaseWorker.requestListedFoodstuffsFromDb(mActivityRule.getActivity(), new DatabaseWorker.FoodstuffsRequestCallback() {
+            @Override
+            public void onResult(ArrayList<Foodstuff> foodstuffs) {
+                listedFoodstuffsCount[0] = foodstuffs.size();
+                mutex2.countDown();
+            }
+        });
+        mutex2.await();
+
+        Cursor unlistedFoodstuffs = database.rawQuery(
+                "SELECT * FROM " + FOODSTUFFS_TABLE_NAME + " WHERE " + COLUMN_NAME_IS_LISTED + "=0", null);
+        int unlistedFoodstuffsCount = unlistedFoodstuffs.getCount();
+        unlistedFoodstuffs.close();
+
+        Assert.assertEquals(2, unlistedFoodstuffsCount);
+        Assert.assertEquals(2, listedFoodstuffsCount[0]);
+    }
 
     @Test
     public void savingToHistoryWorks() throws InterruptedException {
@@ -50,7 +113,7 @@ public class DatabaseWorkerTest {
         };
         DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
         Date date = new Date();
-        databaseWorker.saveFoodstuffFromListToHistory(mActivityRule.getActivity(), date, foodstuff.getId(), 100, saveFinishCallback);
+        databaseWorker.saveFoodstuffToHistory(mActivityRule.getActivity(), date, foodstuff.getId(), 100, saveFinishCallback);
         mutex.await();
         Cursor cursorAfterSaving = database.rawQuery("SELECT * FROM " + HISTORY_TABLE_NAME, null);
         long dateInt = -1, foodstuffId = -1;
@@ -85,7 +148,7 @@ public class DatabaseWorkerTest {
         Foodstuff foodstuff = getAnyFoodstuffFromDb();
         double weight = 100;
         Date date = new Date();
-        databaseWorker.saveFoodstuffFromListToHistory(
+        databaseWorker.saveFoodstuffToHistory(
                 mActivityRule.getActivity(), date, foodstuff.getId(), weight, savingFinishCallback);
         mutex.await();
 
@@ -109,7 +172,7 @@ public class DatabaseWorkerTest {
         final CountDownLatch mutex = new CountDownLatch(1);
         DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
         final ArrayList<Foodstuff> foodstuffArrayList = new ArrayList<>();
-        databaseWorker.requestAllFoodstuffsFromDb(mActivityRule.getActivity(), new DatabaseWorker.FoodstuffsRequestCallback() {
+        databaseWorker.requestListedFoodstuffsFromDb(mActivityRule.getActivity(), new DatabaseWorker.FoodstuffsRequestCallback() {
             @Override
             public void onResult(ArrayList<Foodstuff> foodstuffs) {
                 foodstuffArrayList.addAll(foodstuffs);

@@ -122,9 +122,6 @@ public class Card {
         animator.start();
     }
 
-    /**
-     * id foodstuff'а не сохраняется
-     */
     public void displayForFoodstuff(Foodstuff foodstuff, Object customPayload) {
         this.customPayload = customPayload;
         this.clear();
@@ -139,14 +136,7 @@ public class Card {
         for (int index = 0; index < cardLayout.getChildCount(); index++) {
             cardLayout.getChildAt(index).clearFocus();
         }
-    }
-
-    public void setFocusableExceptWeight(boolean focusable) {
-        getNameEditText().setFocusable(focusable);
-        getProteinEditText().setFocusable(focusable);
-        getFatsEditText().setFocusable(focusable);
-        getCarbsEditText().setFocusable(focusable);
-        getCaloriesEditText().setFocusable(focusable);
+        customPayload = null;
     }
 
     private int getVisibleParentHeight() {
@@ -166,42 +156,20 @@ public class Card {
     }
 
     public boolean areAllEditTextsFull() {
-        if (getNameEditText().getText().toString().isEmpty()) {
-            return false;
-        }
-        if (getWeightEditText().getText().toString().isEmpty()) {
-            return false;
-        }
-        if (getProteinEditText().getText().toString().isEmpty()) {
-            return false;
-        }
-        if (getFatsEditText().getText().toString().isEmpty()) {
-            return false;
-        }
-        if (getCarbsEditText().getText().toString().isEmpty()) {
-            return false;
-        }
-        if (getCaloriesEditText().getText().toString().isEmpty()) {
-            return false;
-        }
-        return true;
+        return haveData(getNameEditText(), getWeightEditText(), getProteinEditText(),
+                getFatsEditText(), getCarbsEditText(), getCaloriesEditText());
     }
 
     public boolean isFilledEnoughToSaveFoodstuff() {
-        if (getNameEditText().getText().toString().isEmpty()) {
-            return false;
-        }
-        if (getProteinEditText().getText().toString().isEmpty()) {
-            return false;
-        }
-        if (getFatsEditText().getText().toString().isEmpty()) {
-            return false;
-        }
-        if (getCarbsEditText().getText().toString().isEmpty()) {
-            return false;
-        }
-        if (getCaloriesEditText().getText().toString().isEmpty()) {
-            return false;
+        return haveData(getNameEditText(), getProteinEditText(),
+                getFatsEditText(), getCarbsEditText(), getCaloriesEditText());
+    }
+
+    private boolean haveData(EditText... views) {
+        for (EditText view : views) {
+            if (view.getText().toString().isEmpty()) {
+                return false;
+            }
         }
         return true;
     }

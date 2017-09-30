@@ -1,11 +1,9 @@
 package korablique.recipecalculator;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
-import android.database.sqlite.SQLiteOpenHelper;
 
 import com.crashlytics.android.Crashlytics;
 
@@ -16,11 +14,17 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import static korablique.recipecalculator.DatabaseUtils.tableExists;
-import static korablique.recipecalculator.HistoryContract.*;
+import static korablique.recipecalculator.FoodstuffsContract.COLUMN_NAME_IS_LISTED;
+import static korablique.recipecalculator.FoodstuffsContract.FOODSTUFFS_TABLE_NAME;
+import static korablique.recipecalculator.HistoryContract.COLUMN_NAME_DATE;
+import static korablique.recipecalculator.HistoryContract.COLUMN_NAME_FOODSTUFF_ID;
+import static korablique.recipecalculator.HistoryContract.COLUMN_NAME_WEIGHT;
+import static korablique.recipecalculator.HistoryContract.HISTORY_TABLE_NAME;
 
 public class FoodstuffsDbHelper {
     private static final int DATABASE_VERSION = 2;
-    private static final String TABLE_DATABASE_VERSION = "database_version";
+    public static final String TABLE_DATABASE_VERSION = "database_version";
+    private static final String COLUMN_NAME_VERSION = "version";
 
     public static final String DATABASE_NAME = "Main.db";
 
@@ -54,7 +58,8 @@ public class FoodstuffsDbHelper {
      */
     private void createDatabase() throws IOException {
         copyDatabaseFromAssets();
-        SQLiteDatabase database = openDatabase(SQLiteDatabase.OPEN_READWRITE);
+        File path = getDbFile(context);
+        SQLiteDatabase database = SQLiteDatabase.openDatabase(path.getPath(), null, SQLiteDatabase.OPEN_READWRITE);
         createTableHistory(database);
         createTableDatabaseVersion(database);
     }
@@ -65,11 +70,12 @@ public class FoodstuffsDbHelper {
                 COLUMN_NAME_DATE + " INTEGER, " +
                 COLUMN_NAME_FOODSTUFF_ID + " INTEGER, " +
                 COLUMN_NAME_WEIGHT + " REAL, " +
-                "FOREIGN KEY (foodstuff_id) REFERENCES foodstuffs(ID))");
+                "FOREIGN KEY (" + COLUMN_NAME_FOODSTUFF_ID + ") " +
+                "REFERENCES " + FOODSTUFFS_TABLE_NAME + "(" + FoodstuffsContract.ID + "))");
     }
 
     private void createTableDatabaseVersion(SQLiteDatabase database) {
-        database.execSQL("CREATE TABLE " + TABLE_DATABASE_VERSION + " (version INTEGER)");
+        database.execSQL("CREATE TABLE " + TABLE_DATABASE_VERSION + " (" + COLUMN_NAME_VERSION + " INTEGER)");
         database.execSQL("INSERT INTO " + TABLE_DATABASE_VERSION + " VALUES (" + DATABASE_VERSION + ")");
     }
 
@@ -80,7 +86,13 @@ public class FoodstuffsDbHelper {
         if (!tableExists(database, TABLE_DATABASE_VERSION)) {
             createTableHistory(database);
             createTableDatabaseVersion(database);
+            addColumnIsListed(database);
         }
+    }
+
+    private void addColumnIsListed(SQLiteDatabase database) {
+        database.execSQL("ALTER TABLE " + FOODSTUFFS_TABLE_NAME + " ADD COLUMN " + COLUMN_NAME_IS_LISTED
+                + " INTEGER DEFAULT 1 NOT NULL");
     }
 
     private boolean dbExists() {

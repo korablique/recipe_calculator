@@ -93,4 +93,20 @@ public class Foodstuff implements Parcelable, Comparable<Foodstuff> {
     public int compareTo(@NonNull Foodstuff foodstuff) {
         return name.compareToIgnoreCase(foodstuff.getName());
     }
+
+    /**
+     * @param lhs - left hand side
+     * @param rhs - right hand side
+     * @return true, if foodstuffs' nutritions are equal
+     */
+    public static boolean haveSameNutrition(Foodstuff lhs, Foodstuff rhs) {
+        if (Math.abs(lhs.getProtein() - rhs.getProtein()) < 0.0001
+                && Math.abs(lhs.getFats() - rhs.getFats()) < 0.0001
+                && Math.abs(lhs.getCarbs() - rhs.getCarbs()) < 0.0001
+                && Math.abs(lhs.getCalories() - rhs.getCalories()) < 0.0001) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

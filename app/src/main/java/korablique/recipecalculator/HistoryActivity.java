@@ -30,7 +30,7 @@ public class HistoryActivity extends MyActivity {
         public void onItemClicked(Foodstuff foodstuff, int position) {
             editedFoodstuffPosition = position;
             cardDisplaySource = CardDisplaySource.FoodstuffClicked;
-            card.displayForFoodstuff(foodstuff, foodstuff.getId());
+            card.displayForFoodstuff(foodstuff, foodstuff);
         }
     };
 
@@ -77,7 +77,6 @@ public class HistoryActivity extends MyActivity {
             @Override
             public void onClick(View view) {
                 cardDisplaySource = CardDisplaySource.PlusClicked;
-                card.setFocusableExceptWeight(false);
                 card.displayEmpty();
             }
         });
@@ -86,32 +85,47 @@ public class HistoryActivity extends MyActivity {
             @Override
             public void run() {
                 if (!card.areAllEditTextsFull()) {
-                    Snackbar.make(findViewById(android.R.id.content), "Заполните все данные", Snackbar.LENGTH_LONG).show();
+                    Snackbar.make(
+                            findViewById(android.R.id.content),
+                            "Заполните все данные",
+                            Snackbar.LENGTH_LONG).show();
                     return;
                 }
 
-                card.setFocusableExceptWeight(true);
-
-                Foodstuff foodstuff;
+                final Foodstuff foodstuff;
                 try {
                     foodstuff = card.parseFoodstuff();
                 } catch (NumberFormatException e) {
-                    Snackbar.make(findViewById(android.R.id.content), "В полях для ввода БЖУК вводите только числа", Snackbar.LENGTH_LONG).show();
+                    Snackbar.make(
+                            findViewById(android.R.id.content),
+                            "В полях для ввода БЖУК вводите только числа",
+                            Snackbar.LENGTH_LONG).show();
                     return;
                 }
 
-                //пока можно добавлять в историю только продукты из списка, так что проверка пока правильная
                 if (cardDisplaySource == CardDisplaySource.PlusClicked) {
-                    Date date = new Date();
-                    adapter.addItem(foodstuff, date);
-                    DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
-                    databaseWorker.saveFoodstuffFromListToHistory(
-                            HistoryActivity.this, date, (long) card.getCurrentCustomPayload(), foodstuff.getWeight());
-                    recyclerView.smoothScrollToPosition(1); //т к новый продукт добавляется в текущую дату
+                    if (card.getCurrentCustomPayload() != null) { // значит, продукт добавлен из списка
+                        // проверяем, был ли редактирован продукт
+                        Foodstuff foodstuffFromDatabase = (Foodstuff) card.getCurrentCustomPayload();
 
+                        boolean areFoodstuffsSame = Foodstuff.haveSameNutrition(foodstuff, foodstuffFromDatabase)
+                                && foodstuff.getName().equals(foodstuffFromDatabase.getName());
+                        boolean wasFoodstuffFromListEdited = !areFoodstuffsSame;
+
+                        if (wasFoodstuffFromListEdited) {
+                            addUnlistedFoodstuffToHistory(foodstuff);
+                        } else {
+                            addListedFoodstuffToHistory(foodstuff, foodstuffFromDatabase.getId());
+                        }
+                    } else {
+                        addUnlistedFoodstuffToHistory(foodstuff);
+                    }
+                    recyclerView.smoothScrollToPosition(1); //т к новый продукт добавляется в текущую дату
                 } else {
+                    // TODO: 29.09.17 сделать возможным редактирование записи в истории
                     adapter.replaceItem(foodstuff, editedFoodstuffPosition);
                     recyclerView.smoothScrollToPosition(editedFoodstuffPosition);
+                    throw new UnsupportedOperationException("Не редактируй!");
                 }
 
                 card.hide();
@@ -132,14 +146,20 @@ public class HistoryActivity extends MyActivity {
             @Override
             public void run() {
                 if (!card.isFilledEnoughToSaveFoodstuff()) {
-                    Snackbar.make(findViewById(android.R.id.content), "Заполните название и БЖУК", Snackbar.LENGTH_LONG).show();
+                    Snackbar.make(
+                            findViewById(android.R.id.content),
+                            "Заполните название и БЖУК",
+                            Snackbar.LENGTH_LONG).show();
                     return;
                 }
 
                 Foodstuff savingFoodstuff = card.parseFoodstuff();
 
                 if (savingFoodstuff.getProtein() + savingFoodstuff.getFats() + savingFoodstuff.getCarbs() > 100) {
-                    Snackbar.make(findViewById(android.R.id.content), "Сумма белков, жиров и углеводов не может быть больше 100", Snackbar.LENGTH_LONG).show();
+                    Snackbar.make(
+                            findViewById(android.R.id.content),
+                            "Сумма белков, жиров и углеводов не может быть больше 100",
+                            Snackbar.LENGTH_LONG).show();
                     return;
                 }
 
@@ -151,9 +171,15 @@ public class HistoryActivity extends MyActivity {
                             @Override
                             public void run() {
                                 if (hasAlreadyContainsFoodstuff) {
-                                    Snackbar.make(findViewById(android.R.id.content), "Продукт уже существует", Snackbar.LENGTH_SHORT).show();
+                                    Snackbar.make(
+                                            findViewById(android.R.id.content),
+                                            "Продукт уже существует",
+                                            Snackbar.LENGTH_SHORT).show();
                                 } else {
-                                    Snackbar.make(findViewById(android.R.id.content), "Продукт сохранён", Snackbar.LENGTH_SHORT).show();
+                                    Snackbar.make(
+                                            findViewById(android.R.id.content),
+                                            "Продукт сохранён",
+                                            Snackbar.LENGTH_SHORT).show();
                                 }
                             }
                         });
@@ -174,12 +200,34 @@ public class HistoryActivity extends MyActivity {
         });
     }
 
+    private void addListedFoodstuffToHistory(Foodstuff foodstuff, long foodstuffId) {
+        Date date = new Date();
+        adapter.addItem(foodstuff, date);
+        DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
+        databaseWorker.saveFoodstuffToHistory(
+                HistoryActivity.this, date, foodstuffId, foodstuff.getWeight());
+    }
+
+    private void addUnlistedFoodstuffToHistory(final Foodstuff foodstuff) {
+        final Date date = new Date();
+        adapter.addItem(foodstuff, date);
+        final DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
+        databaseWorker.saveUnlistedFoodstuff(
+                HistoryActivity.this, foodstuff, new DatabaseWorker.SaveUnlistedFoodstuffCallback() {
+                    @Override
+                    public void onResult(long foodstuffId) {
+                        databaseWorker.saveFoodstuffToHistory(
+                                HistoryActivity.this, date, foodstuffId, foodstuff.getWeight());
+                    }
+                });
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == FIND_FOODSTUFF_REQUEST) {
             if (resultCode == RESULT_OK) {
                 Foodstuff foodstuff = data.getParcelableExtra(SEARCH_RESULT);
-                card.displayForFoodstuff(foodstuff, foodstuff.getId());
+                card.displayForFoodstuff(foodstuff, foodstuff);
             }
         }
     }
