@@ -35,7 +35,7 @@ public class DatabaseWorker {
         void onResult(boolean hasAlreadyContainsFoodstuff);
     }
     public interface RequestHistoryCallback {
-        void onResult(ArrayList<TimedFoodstuff> timedFoodstuffs);
+        void onResult(ArrayList<HistoryEntry> historyEntries);
     }
     public interface SaveUnlistedFoodstuffCallback {
         void onResult(long foodstuffId);
@@ -168,7 +168,7 @@ public class DatabaseWorker {
                 Cursor cursor = db.rawQuery("SELECT * FROM " + HISTORY_TABLE_NAME + " JOIN " + FOODSTUFFS_TABLE_NAME
                         + " ON " + HISTORY_TABLE_NAME + "." + COLUMN_NAME_FOODSTUFF_ID
                         + "=" + FOODSTUFFS_TABLE_NAME + "." + FoodstuffsContract.ID, null);
-                ArrayList<TimedFoodstuff> timedFoodstuffs = new ArrayList<>();
+                ArrayList<HistoryEntry> historyEntries = new ArrayList<>();
                 while (cursor.moveToNext()) {
                     long foodstuffId = cursor.getLong(
                             cursor.getColumnIndex(HISTORY_TABLE_NAME + "." + COLUMN_NAME_FOODSTUFF_ID));
@@ -182,11 +182,11 @@ public class DatabaseWorker {
 
                     long time = cursor.getLong(cursor.getColumnIndex(COLUMN_NAME_DATE));
                     long historyId = cursor.getLong(cursor.getColumnIndex(HISTORY_TABLE_NAME + "." + HistoryContract.ID));
-                    TimedFoodstuff timedFoodstuff = new TimedFoodstuff(historyId, foodstuff, new Date(time), weight);
-                    timedFoodstuffs.add(timedFoodstuff);
+                    HistoryEntry historyEntry = new HistoryEntry(historyId, foodstuff, new Date(time), weight);
+                    historyEntries.add(historyEntry);
                 }
                 cursor.close();
-                callback.onResult(timedFoodstuffs);
+                callback.onResult(historyEntries);
             }
         });
     }

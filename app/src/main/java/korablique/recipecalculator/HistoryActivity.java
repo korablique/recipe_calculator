@@ -57,12 +57,12 @@ public class HistoryActivity extends MyActivity {
 
         DatabaseWorker.getInstance().requestAllHistoryFromDb(this, new DatabaseWorker.RequestHistoryCallback() {
             @Override
-            public void onResult(final ArrayList<TimedFoodstuff> timedFoodstuffs) {
+            public void onResult(final ArrayList<HistoryEntry> historyEntries) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        for (TimedFoodstuff timedFoodstuff : timedFoodstuffs) {
-                            adapter.addItem(timedFoodstuff.getFoodstuff(), timedFoodstuff.getTime());
+                        for (HistoryEntry historyEntry : historyEntries) {
+                            adapter.addItem(historyEntry.getFoodstuff(), historyEntry.getTime());
                         }
                     }
                 });

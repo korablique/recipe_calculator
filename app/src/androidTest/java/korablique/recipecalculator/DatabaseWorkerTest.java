@@ -153,12 +153,12 @@ public class DatabaseWorkerTest {
         mutex.await();
 
         final CountDownLatch mutex1 = new CountDownLatch(1);
-        final ArrayList<TimedFoodstuff> historyList = new ArrayList<>();
+        final ArrayList<HistoryEntry> historyList = new ArrayList<>();
         databaseWorker.requestAllHistoryFromDb(mActivityRule.getActivity(), new DatabaseWorker.RequestHistoryCallback() {
             @Override
-            public void onResult(ArrayList<TimedFoodstuff> timedFoodstuffs) {
+            public void onResult(ArrayList<HistoryEntry> historyEntries) {
                 mutex1.countDown();
-                historyList.addAll(timedFoodstuffs);
+                historyList.addAll(historyEntries);
             }
         });
         mutex1.await();

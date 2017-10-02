@@ -2,13 +2,13 @@ package korablique.recipecalculator;
 
 import java.util.Date;
 
-public class TimedFoodstuff {
+public class HistoryEntry {
     private long historyId;
     private Foodstuff foodstuff;
     private Date time;
     private double weight;
 
-    public TimedFoodstuff(long historyId, Foodstuff foodstuff, Date time, double weight) {
+    public HistoryEntry(long historyId, Foodstuff foodstuff, Date time, double weight) {
         this.historyId = historyId;
         this.foodstuff = foodstuff;
         this.time = time;
