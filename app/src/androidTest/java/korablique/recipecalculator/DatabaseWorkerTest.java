@@ -105,15 +105,15 @@ public class DatabaseWorkerTest {
         Foodstuff foodstuff = getAnyFoodstuffFromDb();
 
         final CountDownLatch mutex = new CountDownLatch(1);
-        Runnable saveFinishCallback = new Runnable() {
-            @Override
-            public void run() {
-                mutex.countDown();
-            }
-        };
         DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
         Date date = new Date();
-        databaseWorker.saveFoodstuffToHistory(mActivityRule.getActivity(), date, foodstuff.getId(), 100, saveFinishCallback);
+        databaseWorker.saveFoodstuffToHistory(
+                mActivityRule.getActivity(), date, foodstuff.getId(), 100, new DatabaseWorker.AddHistoryEntryCallback() {
+            @Override
+            public void onResult(long historyEntryId) {
+                mutex.countDown();
+            }
+        });
         mutex.await();
         Cursor cursorAfterSaving = database.rawQuery("SELECT * FROM " + HISTORY_TABLE_NAME, null);
         long dateInt = -1, foodstuffId = -1;
@@ -138,18 +138,17 @@ public class DatabaseWorkerTest {
         cursor.close();
 
         final CountDownLatch mutex = new CountDownLatch(1);
-        Runnable savingFinishCallback = new Runnable() {
-            @Override
-            public void run() {
-                mutex.countDown();
-            }
-        };
         DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
         Foodstuff foodstuff = getAnyFoodstuffFromDb();
         double weight = 100;
         Date date = new Date();
         databaseWorker.saveFoodstuffToHistory(
-                mActivityRule.getActivity(), date, foodstuff.getId(), weight, savingFinishCallback);
+                mActivityRule.getActivity(), date, foodstuff.getId(), weight, new DatabaseWorker.AddHistoryEntryCallback() {
+                    @Override
+                    public void onResult(long historyEntryId) {
+                        mutex.countDown();
+                    }
+                });
         mutex.await();
 
         final CountDownLatch mutex1 = new CountDownLatch(1);
@@ -165,7 +164,6 @@ public class DatabaseWorkerTest {
         Assert.assertTrue(historyList.size() == 1);
         Assert.assertEquals(historyList.get(0).getFoodstuff().getId(), foodstuff.getId());
         Assert.assertEquals(historyList.get(0).getTime(), date);
-        Assert.assertEquals(historyList.get(0).getWeight(), weight);
     }
 
     public Foodstuff getAnyFoodstuffFromDb() throws InterruptedException {

@@ -40,6 +40,9 @@ public class DatabaseWorker {
     public interface SaveUnlistedFoodstuffCallback {
         void onResult(long foodstuffId);
     }
+    public interface AddHistoryEntryCallback {
+        void onResult(long historyEntryId);
+    }
 
     private DatabaseWorker() {}
 
@@ -182,7 +185,7 @@ public class DatabaseWorker {
 
                     long time = cursor.getLong(cursor.getColumnIndex(COLUMN_NAME_DATE));
                     long historyId = cursor.getLong(cursor.getColumnIndex(HISTORY_TABLE_NAME + "." + HistoryContract.ID));
-                    HistoryEntry historyEntry = new HistoryEntry(historyId, foodstuff, new Date(time), weight);
+                    HistoryEntry historyEntry = new HistoryEntry(historyId, foodstuff, new Date(time));
                     historyEntries.add(historyEntry);
                 }
                 cursor.close();
@@ -196,7 +199,7 @@ public class DatabaseWorker {
             final Date date,
             final long foodstuffId,
             final double foodstuffWeight,
-            final Runnable callback) {
+            final AddHistoryEntryCallback callback) {
         executorService.execute(new Runnable() {
             @Override
             public void run() {
@@ -206,19 +209,22 @@ public class DatabaseWorker {
                 values.put(COLUMN_NAME_DATE, date.getTime());
                 values.put(COLUMN_NAME_FOODSTUFF_ID, foodstuffId);
                 values.put(COLUMN_NAME_WEIGHT, foodstuffWeight);
-                database.insert(HISTORY_TABLE_NAME, null, values);
+                long historyEntryId = database.insert(HISTORY_TABLE_NAME, null, values);
                 if (callback != null) {
-                    callback.run();
+                    callback.onResult(historyEntryId);
                 }
             }
         });
     }
 
-    public void saveFoodstuffToHistory(
-            final Context context,
-            final Date date,
-            final long foodstuffId,
-            double foodstuffWeight) {
-        saveFoodstuffToHistory(context, date, foodstuffId, foodstuffWeight, null);
+    public void deleteEntryFromHistory(final Context context, final long historyId) {
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+                SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+                database.delete(HISTORY_TABLE_NAME, HistoryContract.ID + " = ?", new String[]{String.valueOf(historyId)});
+            }
+        });
     }
 }

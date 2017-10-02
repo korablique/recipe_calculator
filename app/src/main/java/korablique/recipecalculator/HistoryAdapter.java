@@ -31,14 +31,14 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     public interface Data {}
 
     public class FoodstuffData implements Data {
-        private Foodstuff foodstuff;
+        private HistoryEntry historyEntry;
 
-        public FoodstuffData(Foodstuff foodstuff) {
-            this.foodstuff = foodstuff;
+        public FoodstuffData(HistoryEntry historyEntry) {
+            this.historyEntry = historyEntry;
         }
 
-        public Foodstuff getFoodstuff() {
-            return foodstuff;
+        public HistoryEntry getHistoryEntry() {
+            return historyEntry;
         }
     }
 
@@ -72,7 +72,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         int itemType = getItemViewType(position);
         if (itemType == ITEM_TYPE_FOODSTUFF) {
             LinearLayout item = ((FoodstuffViewHolder)holder).getItem();
-            final Foodstuff foodstuff = ((FoodstuffData) getItem(position)).getFoodstuff();
+            final Foodstuff foodstuff = ((FoodstuffData) getItem(position)).getHistoryEntry().getFoodstuff();
             ((TextView) item.findViewById(R.id.name)).setText(foodstuff.getName());
             ((TextView) item.findViewById(R.id.weight)).setText(String.valueOf(foodstuff.getWeight()));
             ((TextView) item.findViewById(R.id.protein)).setText(String.valueOf(foodstuff.getProtein()));
@@ -107,7 +107,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             // сложить с остальными
             double ateProtein = 0, ateFats = 0, ateCarbs = 0, ateCalories = 0;
             for (FoodstuffData foodstuffData : dailyFood) {
-                Foodstuff foodstuff = foodstuffData.getFoodstuff();
+                Foodstuff foodstuff = foodstuffData.getHistoryEntry().getFoodstuff();
                 double weight = foodstuff.getWeight();
                 ateProtein += foodstuff.getProtein() * weight * 0.01;
                 ateFats += foodstuff.getFats() * weight * 0.01;
@@ -183,16 +183,16 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         return data.get(position);
     }
 
-    public void addItem(Foodstuff foodstuff, Date newDate) {
+    public void addItem(HistoryEntry historyEntry) {
         DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.SHORT);
-        String newDateString = dateFormat.format(newDate);
+        String newDateString = dateFormat.format(historyEntry.getTime());
         boolean isRequiredDateFound = false;
         for (int index = 0; index < data.size(); index++) {
             if (data.get(index) instanceof DateData) {
                 String dateString = dateFormat.format(((DateData) data.get(index)).getDate());
                 // если нужная дата найдена
                 if (newDateString.equals(dateString)) {
-                    data.add(index + 1, new FoodstuffData(foodstuff));
+                    data.add(index + 1, new FoodstuffData(historyEntry));
                     notifyItemInserted(index + 1);
                     // обновляем вьюшку с прогрессбарами
                     notifyItemChanged(index);
@@ -204,9 +204,9 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         if (!isRequiredDateFound) {
             // если ещё ни одной даты нет - добавить новую + продукт
             if (data.size() == 0) {
-                data.add(new DateData(newDate));
+                data.add(new DateData(historyEntry.getTime()));
                 notifyItemInserted(data.size() - 1);
-                data.add(new FoodstuffData(foodstuff));
+                data.add(new FoodstuffData(historyEntry));
                 notifyItemInserted(data.size() - 1);
                 // обновляем вьюшку с прогрессбарами
                 notifyItemChanged(data.size() - 2);
@@ -215,10 +215,11 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 boolean isPreviousDateFound = false;
                 for (int index = 0; index < data.size(); index++) {
                     // если дата по индексу - более ранняя
-                    if (data.get(index) instanceof DateData && ((DateData)data.get(index)).getDate().compareTo(newDate) == -1) {
-                        data.add(index, new DateData(newDate));
+                    if (data.get(index) instanceof DateData
+                            && ((DateData)data.get(index)).getDate().compareTo(historyEntry.getTime()) == -1) {
+                        data.add(index, new DateData(historyEntry.getTime()));
                         notifyItemInserted(index);
-                        data.add(index + 1, new FoodstuffData(foodstuff));
+                        data.add(index + 1, new FoodstuffData(historyEntry));
                         notifyItemInserted(index + 1);
                         // обновляем вьюшку с прогрессбарами
                         notifyItemChanged(index);
@@ -228,9 +229,9 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 }
                 // если более ранней даты нет
                 if (!isPreviousDateFound) {
-                    data.add(new DateData(newDate));
+                    data.add(new DateData(historyEntry.getTime()));
                     notifyItemInserted(data.size() - 1);
-                    data.add(new FoodstuffData(foodstuff));
+                    data.add(new FoodstuffData(historyEntry));
                     notifyItemInserted(data.size() - 1);
                 }
             }
@@ -274,8 +275,8 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
     }
 
-    public void replaceItem(Foodstuff newFoodstuff, int displayedPosition) {
-        data.set(displayedPosition, new FoodstuffData(newFoodstuff));
+    public void replaceItem(HistoryEntry newHistoryEntry, int displayedPosition) {
+        data.set(displayedPosition, new FoodstuffData(newHistoryEntry));
         notifyItemChanged(displayedPosition);
         // пересчитываем прогрессбары
         notifyItemChanged(displayedPosition - 1);

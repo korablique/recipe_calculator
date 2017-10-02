@@ -62,7 +62,7 @@ public class HistoryActivity extends MyActivity {
                     @Override
                     public void run() {
                         for (HistoryEntry historyEntry : historyEntries) {
-                            adapter.addItem(historyEntry.getFoodstuff(), historyEntry.getTime());
+                            adapter.addItem(historyEntry);
                         }
                     }
                 });
@@ -123,7 +123,7 @@ public class HistoryActivity extends MyActivity {
                     recyclerView.smoothScrollToPosition(1); //т к новый продукт добавляется в текущую дату
                 } else {
                     // TODO: 29.09.17 сделать возможным редактирование записи в истории
-                    adapter.replaceItem(foodstuff, editedFoodstuffPosition);
+                    //adapter.replaceItem(foodstuff, editedFoodstuffPosition);
                     recyclerView.smoothScrollToPosition(editedFoodstuffPosition);
                     throw new UnsupportedOperationException("Не редактируй!");
                 }
@@ -137,7 +137,10 @@ public class HistoryActivity extends MyActivity {
         card.setOnButtonDeleteClickedRunnable(new Runnable() {
             @Override
             public void run() {
+                long historyId = ((HistoryAdapter.FoodstuffData) adapter.getItem(editedFoodstuffPosition))
+                        .getHistoryEntry().getHistoryId();
                 adapter.deleteItem(editedFoodstuffPosition);
+                DatabaseWorker.getInstance().deleteEntryFromHistory(HistoryActivity.this, historyId);
                 card.hide();
             }
         });
@@ -200,26 +203,49 @@ public class HistoryActivity extends MyActivity {
         });
     }
 
-    private void addListedFoodstuffToHistory(Foodstuff foodstuff, long foodstuffId) {
-        Date date = new Date();
-        adapter.addItem(foodstuff, date);
+    private void addListedFoodstuffToHistory(final Foodstuff foodstuff, long foodstuffId) {
+        final Date date = new Date();
         DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
         databaseWorker.saveFoodstuffToHistory(
-                HistoryActivity.this, date, foodstuffId, foodstuff.getWeight());
+                HistoryActivity.this, date, foodstuffId, foodstuff.getWeight(), new DatabaseWorker.AddHistoryEntryCallback() {
+                    @Override
+                    public void onResult(final long historyEntryId) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                adapter.addItem(new HistoryEntry(historyEntryId, foodstuff, date));
+                            }
+                        });
+                    }
+                });
     }
 
     private void addUnlistedFoodstuffToHistory(final Foodstuff foodstuff) {
         final Date date = new Date();
-        adapter.addItem(foodstuff, date);
         final DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
         databaseWorker.saveUnlistedFoodstuff(
                 HistoryActivity.this, foodstuff, new DatabaseWorker.SaveUnlistedFoodstuffCallback() {
                     @Override
                     public void onResult(long foodstuffId) {
                         databaseWorker.saveFoodstuffToHistory(
-                                HistoryActivity.this, date, foodstuffId, foodstuff.getWeight());
+                                HistoryActivity.this,
+                                date,
+                                foodstuffId,
+                                foodstuff.getWeight(), new DatabaseWorker.AddHistoryEntryCallback() {
+                                    @Override
+                                    public void onResult(final long historyEntryId) {
+                                        runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                adapter.addItem(new HistoryEntry(historyEntryId, foodstuff, date));
+                                            }
+                                        });
+                                    }
+                                });
                     }
                 });
+
+
     }
 
     @Override
