@@ -222,6 +222,10 @@ public class Card {
         getButtonOk().setVisibility(View.GONE);
     }
 
+    public void hideDeleteButton() {
+        getButtonDelete().setVisibility(View.GONE);
+    }
+
     public void hideSearchButton() {
         getSearchImageButton().setVisibility(View.GONE);
     }
@@ -270,7 +274,7 @@ public class Card {
         return cardLayout.findViewById(R.id.search_icon_layout);
     }
 
-    public void setFoodstuff(Foodstuff newFoodstuff) {
+    private void setFoodstuff(Foodstuff newFoodstuff) {
         getNameEditText().setText(newFoodstuff.getName());
         if (newFoodstuff.getWeight() > 0) {
             getWeightEditText().setText(String.valueOf(newFoodstuff.getWeight()));

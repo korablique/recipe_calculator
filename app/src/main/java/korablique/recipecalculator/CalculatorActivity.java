@@ -311,7 +311,8 @@ public class CalculatorActivity extends MyActivity {
         if (requestCode == FIND_FOODSTUFF_REQUEST) {
             if (resultCode == RESULT_OK) {
                 Foodstuff foodstuff = data.getParcelableExtra(SEARCH_RESULT);
-                card.setFoodstuff(foodstuff);
+                card.displayForFoodstuff(foodstuff, null);
+                card.hideDeleteButton();
             }
         }
     }

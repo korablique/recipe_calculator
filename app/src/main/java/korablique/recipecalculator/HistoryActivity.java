@@ -256,6 +256,7 @@ public class HistoryActivity extends MyActivity {
             if (resultCode == RESULT_OK) {
                 Foodstuff foodstuff = data.getParcelableExtra(SEARCH_RESULT);
                 card.displayForFoodstuff(foodstuff, foodstuff);
+                card.hideDeleteButton();
             }
         }
     }
