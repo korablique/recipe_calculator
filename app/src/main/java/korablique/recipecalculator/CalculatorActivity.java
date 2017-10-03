@@ -13,8 +13,8 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.crashlytics.android.Crashlytics;
+import com.tapadoo.alerter.Alerter;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 import io.fabric.sdk.android.Fabric;
@@ -128,14 +128,26 @@ public class CalculatorActivity extends MyActivity {
             @Override
             public void run() {
                 if (!card.isFilledEnoughToSaveFoodstuff()) {
-                    Snackbar.make(findViewById(android.R.id.content), "Заполните название и БЖУК", Snackbar.LENGTH_LONG).show();
+                    Alerter.create(CalculatorActivity.this)
+                            .setBackgroundColorRes(R.color.colorAccent)
+                            .setTitle("Сохранить не получится!")
+                            .setText("Нужно заполнить название и БЖУК")
+                            .setDuration(3500)
+                            .enableSwipeToDismiss()
+                            .show();
                     return;
                 }
 
                 Foodstuff savingFoodstuff = card.parseFoodstuff();
 
                 if (savingFoodstuff.getProtein() + savingFoodstuff.getFats() + savingFoodstuff.getCarbs() > 100) {
-                    Snackbar.make(findViewById(android.R.id.content), "Сумма белков, жиров и углеводов не может быть больше 100", Snackbar.LENGTH_LONG).show();
+                    Alerter.create(CalculatorActivity.this)
+                            .setBackgroundColorRes(R.color.colorAccent)
+                            .setTitle("Опаньки...")
+                            .setText("Сумма белков, жиров и углеводов не может быть больше 100")
+                            .setDuration(3500)
+                            .enableSwipeToDismiss()
+                            .show();
                     return;
                 }
 
@@ -147,9 +159,17 @@ public class CalculatorActivity extends MyActivity {
                             @Override
                             public void run() {
                                 if (hasAlreadyContainsFoodstuff) {
-                                    Snackbar.make(findViewById(android.R.id.content), "Продукт уже существует", Snackbar.LENGTH_SHORT).show();
+                                    Alerter.create(CalculatorActivity.this)
+                                            .setBackgroundColorRes(R.color.colorAccent)
+                                            .setTitle("Опаньки...")
+                                            .setText("Продукт уже существует")
+                                            .setDuration(2000)
+                                            .enableSwipeToDismiss()
+                                            .show();
                                 } else {
-                                    Snackbar.make(findViewById(android.R.id.content), "Продукт сохранён", Snackbar.LENGTH_SHORT).show();
+                                    new KeyboardHandler(CalculatorActivity.this).hideKeyBoard();
+                                    Snackbar.make(findViewById(android.R.id.content), "Продукт сохранён", Snackbar.LENGTH_SHORT)
+                                            .show();
                                 }
                             }
                         });
@@ -229,20 +249,25 @@ public class CalculatorActivity extends MyActivity {
 
     private void onButtonOkClicked() {
         if (!card.areAllEditTextsFull()) {
-            Snackbar.make(findViewById(android.R.id.content), "Заполните все данные", Snackbar.LENGTH_LONG).show();
+            Alerter.create(CalculatorActivity.this)
+                    .setBackgroundColorRes(R.color.colorAccent)
+                    .setTitle("Опаньки...")
+                    .setText("Заполнены не все данные")
+                    .setDuration(2000)
+                    .enableSwipeToDismiss()
+                    .show();
             return;
         }
 
-        Foodstuff foodstuff;
-        try {
-            foodstuff = card.parseFoodstuff();
-        } catch (NumberFormatException e) {
-            Snackbar.make(findViewById(android.R.id.content), "В полях для ввода БЖУК вводите только числа", Snackbar.LENGTH_LONG).show();
-            return;
-        }
-
+        Foodstuff foodstuff = card.parseFoodstuff();
         if (foodstuff.getProtein() + foodstuff.getFats() + foodstuff.getCarbs() > 100) {
-            Snackbar.make(findViewById(android.R.id.content), "Сумма белков, жиров и углеводов не может быть больше 100", Snackbar.LENGTH_LONG).show();
+            Alerter.create(CalculatorActivity.this)
+                    .setBackgroundColorRes(R.color.colorAccent)
+                    .setTitle("Опаньки")
+                    .setText("Сумма белков, жиров и углеводов не может быть больше 100")
+                    .setDuration(3500)
+                    .enableSwipeToDismiss()
+                    .show();
             return;
         }
 

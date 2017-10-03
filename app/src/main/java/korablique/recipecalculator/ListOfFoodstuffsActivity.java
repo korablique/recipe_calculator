@@ -16,6 +16,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 
+import com.tapadoo.alerter.Alerter;
+
 import java.util.ArrayList;
 
 import static korablique.recipecalculator.IntentConstants.NAME;
@@ -68,22 +70,34 @@ public class ListOfFoodstuffsActivity extends MyActivity {
                 @Override
                 public void run() {
                     if (!card.isFilledEnoughToSaveFoodstuff()) {
-                        Snackbar.make(findViewById(android.R.id.content), "Заполните название и БЖУК", Snackbar.LENGTH_LONG).show();
+                        Alerter.create(ListOfFoodstuffsActivity.this)
+                                .setTitle("Сохранить не получится!")
+                                .setText("Нужно заполнить название и БЖУК")
+                                .setDuration(3500)
+                                .setBackgroundColorRes(R.color.colorAccent)
+                                .enableSwipeToDismiss()
+                                .show();
                         return;
                     }
                     Foodstuff newFoodstuff = card.parseFoodstuff();
                     if (newFoodstuff.getProtein() + newFoodstuff.getFats() + newFoodstuff.getCarbs() > 100) {
-                        Snackbar.make(findViewById(android.R.id.content), "Сумма белков, жиров и углеводов не может быть больше 100", Snackbar.LENGTH_LONG).show();
+                        Alerter.create(ListOfFoodstuffsActivity.this)
+                                .setTitle("Опаньки...")
+                                .setText("Сумма белков, жиров и углеводов не может быть больше 100")
+                                .setDuration(3500)
+                                .setBackgroundColorRes(R.color.colorAccent)
+                                .enableSwipeToDismiss()
+                                .show();
                         return;
                     }
                     //сохраняем новые значения в базу данных
                     DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
                     databaseWorker.editFoodstuff(ListOfFoodstuffsActivity.this, editedFoodstuffId, newFoodstuff);
                     recyclerViewAdapter.replaceItem(newFoodstuff, editedFoodstuffPosition);
-                    Snackbar.make(findViewById(android.R.id.content), "Изменения сохранены", Snackbar.LENGTH_SHORT).show();
-                    card.hide();
                     KeyboardHandler keyboardHandler = new KeyboardHandler(ListOfFoodstuffsActivity.this);
                     keyboardHandler.hideKeyBoard();
+                    card.hide();
+                    Snackbar.make(findViewById(android.R.id.content), "Изменения сохранены", Snackbar.LENGTH_SHORT).show();
                 }
             });
 
@@ -93,8 +107,9 @@ public class ListOfFoodstuffsActivity extends MyActivity {
                     DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
                     databaseWorker.deleteFoodstuff(ListOfFoodstuffsActivity.this, editedFoodstuffId);
                     recyclerViewAdapter.deleteItem(editedFoodstuffPosition);
-                    Snackbar.make(findViewById(android.R.id.content), "Продукт удалён", Snackbar.LENGTH_SHORT).show();
+                    new KeyboardHandler(ListOfFoodstuffsActivity.this).hideKeyBoard();
                     card.hide();
+                    Snackbar.make(findViewById(android.R.id.content), "Продукт удалён", Snackbar.LENGTH_SHORT).show();
                 }
             });
             createRecyclerView(defaultObserver);

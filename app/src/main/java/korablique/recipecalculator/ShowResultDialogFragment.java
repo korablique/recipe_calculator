@@ -80,7 +80,8 @@ public class ShowResultDialogFragment extends DialogFragment {
                     FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(getContext());
                     SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
                     database.insert(FOODSTUFFS_TABLE_NAME, null, values);
-                    Snackbar.make(getActivity().findViewById(android.R.id.content), "Продукт сохранён", Snackbar.LENGTH_SHORT).show();
+                    Snackbar.make(getActivity().findViewById(android.R.id.content), "Продукт сохранён", Snackbar.LENGTH_SHORT)
+                            .show();
                 }
             });
         builder.setView(layout);
