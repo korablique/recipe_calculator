@@ -28,7 +28,9 @@ import static korablique.recipecalculator.HistoryContract.HISTORY_TABLE_NAME;
 public class DatabaseWorker {
     private static DatabaseWorker databaseWorker;
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
+
     public interface FoodstuffsRequestCallback {
+
         void onResult(ArrayList<Foodstuff> foodstuffs);
     }
     public interface SaveFoodstuffCallback {
@@ -43,7 +45,6 @@ public class DatabaseWorker {
     public interface AddHistoryEntryCallback {
         void onResult(long historyEntryId);
     }
-
     private DatabaseWorker() {}
 
     public static synchronized DatabaseWorker getInstance() {
@@ -119,7 +120,11 @@ public class DatabaseWorker {
                 contentValues.put(COLUMN_NAME_FATS, newFoodstuff.getFats());
                 contentValues.put(COLUMN_NAME_CARBS, newFoodstuff.getCarbs());
                 contentValues.put(COLUMN_NAME_CALORIES, newFoodstuff.getCalories());
-                database.update(FOODSTUFFS_TABLE_NAME, contentValues, "id = ?", new String[]{String.valueOf(editedFoodstuffId)});
+                database.update(
+                        FOODSTUFFS_TABLE_NAME,
+                        contentValues,
+                        FoodstuffsContract.ID + " = ?",
+                        new String[]{String.valueOf(editedFoodstuffId)});
             }
         });
     }
@@ -130,7 +135,27 @@ public class DatabaseWorker {
             public void run() {
                 FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
                 SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-                database.delete(FOODSTUFFS_TABLE_NAME, "id = ?", new String[]{String.valueOf(foodstuffsId)});
+                database.delete(
+                        FOODSTUFFS_TABLE_NAME,
+                        FoodstuffsContract.ID + " = ?",
+                        new String[]{String.valueOf(foodstuffsId)});
+            }
+        });
+    }
+
+    public void makeFoodstuffUnlisted(final Context context, final long foodstuffId) {
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+                SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+                ContentValues values = new ContentValues();
+                values.put(COLUMN_NAME_IS_LISTED, 0);
+                database.update(
+                        FOODSTUFFS_TABLE_NAME,
+                        values,
+                        FoodstuffsContract.ID + "=?",
+                        new String[]{String.valueOf(foodstuffId)});
             }
         });
     }

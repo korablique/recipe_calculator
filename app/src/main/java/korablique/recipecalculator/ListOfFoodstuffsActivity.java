@@ -105,7 +105,7 @@ public class ListOfFoodstuffsActivity extends MyActivity {
                 @Override
                 public void run() {
                     DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
-                    databaseWorker.deleteFoodstuff(ListOfFoodstuffsActivity.this, editedFoodstuffId);
+                    databaseWorker.makeFoodstuffUnlisted(ListOfFoodstuffsActivity.this, editedFoodstuffId);
                     recyclerViewAdapter.deleteItem(editedFoodstuffPosition);
                     new KeyboardHandler(ListOfFoodstuffsActivity.this).hideKeyBoard();
                     card.hide();
