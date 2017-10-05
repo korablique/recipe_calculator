@@ -33,6 +33,9 @@ public class HistoryActivity extends MyActivity {
             editedFoodstuffPosition = position;
             cardDisplaySource = CardDisplaySource.FoodstuffClicked;
             card.displayForFoodstuff(foodstuff, foodstuff);
+            card.setFocusableExceptWeight(false);
+            card.setFocusableWeight(false);
+            card.setButtonsVisible(false, Card.ButtonType.OK, Card.ButtonType.SAVE, Card.ButtonType.SEARCH);
         }
     };
 
@@ -80,6 +83,9 @@ public class HistoryActivity extends MyActivity {
             public void onClick(View view) {
                 cardDisplaySource = CardDisplaySource.PlusClicked;
                 card.displayEmpty();
+                card.setFocusableExceptWeight(true);
+                card.setFocusableWeight(true);
+                card.setButtonsVisible(true, Card.ButtonType.OK, Card.ButtonType.SAVE, Card.ButtonType.SEARCH);
             }
         });
 
@@ -256,7 +262,10 @@ public class HistoryActivity extends MyActivity {
             if (resultCode == RESULT_OK) {
                 Foodstuff foodstuff = data.getParcelableExtra(SEARCH_RESULT);
                 card.displayForFoodstuff(foodstuff, foodstuff);
-                card.hideDeleteButton();
+                card.setButtonsVisible(false, Card.ButtonType.DELETE);
+                card.setButtonsVisible(true, Card.ButtonType.OK, Card.ButtonType.SAVE, Card.ButtonType.SEARCH);
+                card.setFocusableExceptWeight(false);
+                card.setFocusableWeight(true);
             }
         }
     }

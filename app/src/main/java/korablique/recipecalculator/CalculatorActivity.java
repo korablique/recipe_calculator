@@ -312,7 +312,7 @@ public class CalculatorActivity extends MyActivity {
             if (resultCode == RESULT_OK) {
                 Foodstuff foodstuff = data.getParcelableExtra(SEARCH_RESULT);
                 card.displayForFoodstuff(foodstuff, null);
-                card.hideDeleteButton();
+                card.setButtonsVisible(false, Card.ButtonType.DELETE);
             }
         }
     }

@@ -3,6 +3,7 @@ package korablique.recipecalculator;
 import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.graphics.Rect;
+import android.text.method.KeyListener;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +12,8 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 
+import static korablique.recipecalculator.Card.ButtonType.*;
+
 public class Card {
     private static long duration = 500L;
     private ViewGroup cardLayout;
@@ -18,7 +21,14 @@ public class Card {
     private ValueAnimator animator;
     private float lastAnimatorDestination;
     private Float lastParentVisibleHeight;
-    private Object customPayload; // здесь хранится id фудстаффа из списка
+    private Object customPayload; // здесь хранится id фудстаффа из списка, в HistoryActivity - сам фудстафф
+
+    public enum ButtonType {
+        OK,
+        DELETE,
+        SAVE,
+        SEARCH
+    }
 
     public Card(Activity activity, ViewGroup parentLayout) {
         cardLayout = (ViewGroup) LayoutInflater.from(activity).inflate(R.layout.card_layout, null);
@@ -214,20 +224,33 @@ public class Card {
         });
     }
 
+    public void setButtonsVisible(boolean areVisible, ButtonType... buttons) {
+        int visibilityFlag;
+        if (areVisible) {
+            visibilityFlag = View.VISIBLE;
+        } else {
+            visibilityFlag = View.GONE;
+        }
+        for (ButtonType button : buttons) {
+            switch (button) {
+                case OK:
+                    getButtonOk().setVisibility(visibilityFlag);
+                    break;
+                case DELETE:
+                    getButtonDelete().setVisibility(visibilityFlag);
+                    break;
+                case SAVE:
+                    getButtonSave().setVisibility(visibilityFlag);
+                    break;
+                case SEARCH:
+                    getSearchImageButton().setVisibility(visibilityFlag);
+                    break;
+            }
+        }
+    }
+
     public void hideWeight() {
         getWeightEditText().setVisibility(View.GONE);
-    }
-
-    public void hideButtonOk() {
-        getButtonOk().setVisibility(View.GONE);
-    }
-
-    public void hideDeleteButton() {
-        getButtonDelete().setVisibility(View.GONE);
-    }
-
-    public void hideSearchButton() {
-        getSearchImageButton().setVisibility(View.GONE);
     }
 
     public Object getCurrentCustomPayload() {
@@ -244,6 +267,10 @@ public class Card {
 
     private Button getButtonDelete() {
         return (Button) cardLayout.findViewById(R.id.button_delete);
+    }
+
+    private Button getButtonSave() {
+        return (Button) cardLayout.findViewById(R.id.button_save);
     }
 
     private EditText getNameEditText() {
@@ -293,5 +320,27 @@ public class Card {
 
     public static void setAnimationDuration(long duration) {
         Card.duration = duration;
+    }
+
+    public void setFocusableExceptWeight(boolean focusable) {
+        setFocusable(getNameEditText(), focusable);
+        setFocusable(getProteinEditText(), focusable);
+        setFocusable(getFatsEditText(), focusable);
+        setFocusable(getCarbsEditText(), focusable);
+        setFocusable(getCaloriesEditText(), focusable);
+    }
+
+    public void setFocusableWeight(boolean focusable) {
+        setFocusable(getWeightEditText(), focusable);
+    }
+
+    private void setFocusable(EditText editText, boolean focusable) {
+        if (!focusable) {
+            editText.setTag(editText.getKeyListener());
+            editText.setKeyListener(null);
+        } else {
+            if (editText.getTag() != null)
+                editText.setKeyListener((KeyListener) editText.getTag());
+        }
     }
 }

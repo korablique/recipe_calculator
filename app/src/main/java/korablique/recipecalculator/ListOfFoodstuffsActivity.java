@@ -63,9 +63,8 @@ public class ListOfFoodstuffsActivity extends MyActivity {
             createRecyclerView(findFoodstuffObserver);
         } else {
             card = new Card(this, (ViewGroup) findViewById(R.id.list_of_recipes_parent));
-            card.hideButtonOk();
+            card.setButtonsVisible(false, Card.ButtonType.OK, Card.ButtonType.SEARCH);
             card.hideWeight();
-            card.hideSearchButton();
             card.setOnButtonSaveClickedRunnable(new Runnable() {
                 @Override
                 public void run() {
