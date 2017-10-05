@@ -7,29 +7,34 @@
     android:layout_height="match_parent"
     tools:context="korablique.recipecalculator.HistoryActivity">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="match_parent">
 
-        <include layout="@layout/toolbar_layout" />
-
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/recycler_view"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical" />
+            android:orientation="vertical">
 
-    </LinearLayout>
+            <include layout="@layout/toolbar_layout" />
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/history_fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_gravity="bottom|end"
-        android:src="@drawable/plus48"
-        app:layout_anchorGravity="bottom|right|end"
-        app:useCompatPadding="true"/>
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical" />
+
+        </LinearLayout>
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/history_fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            android:layout_gravity="bottom|end"
+            android:src="@drawable/plus48"
+            app:layout_anchorGravity="bottom|right|end"
+            app:useCompatPadding="true"/>
+    </RelativeLayout>
 </FrameLayout>
