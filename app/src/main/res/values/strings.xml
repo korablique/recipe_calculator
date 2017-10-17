@@ -27,23 +27,29 @@
     <string name="height">Рост (см):</string>
     <string name="weight">Вес (кг):</string>
     <string name="physical_activity">Коэффициент физической активности:</string>
+    <string name="formula">Формула:</string>
 
-    <string-array name="goals">
+    <string-array name="goals_array">
         <item name="losing_weight">Похудение</item>
         <item name="maintaining_current_weight">Поддержание текущего веса</item>
         <item name="mass_gathering">Массонабор</item>
     </string-array>
 
-    <string-array name="gender">
+    <string-array name="gender_array">
         <item name="male">Мужской</item>
         <item name="female">Женский</item>
     </string-array>
 
-    <string-array name="physical_activity">
+    <string-array name="physical_activity_array">
         <item name="passive_lifestyle">1,2 (сидячий образ жизни)</item>
         <item name="insignificant_activity">1,375 (незначительная активность: неторопливые прогулки 30-50 мин 3-4 раза/нед., домашние дела, легкие тренировки)</item>
         <item name="medium_loads">1,55 (умеренные нагрузки 3-5 дней/нед., 60-70% максимальной частоты пульса 30-60 мин)</item>
         <item name="active_lifestyle">1,725 (активный образ жизни: нагрузки высокой интенсивности 70-85% максимальной частоты пульса 45-60 мин, 6-7 дней/нед.)</item>
         <item name="professional_sports">1,9 (для чрезвычайно активных людей, работников тяжелого физического труда, профессиональных спортсменов, нагрузка свыше 90 минут, 6-7 дней/нед.)</item>
+    </string-array>
+
+    <string-array name="formula_array">
+        <item name="harris_benedict">Харриса-Бенедикта</item>
+        <item name="mifflin_jeor">Миффлина-Джеора</item>
     </string-array>
 </resources>

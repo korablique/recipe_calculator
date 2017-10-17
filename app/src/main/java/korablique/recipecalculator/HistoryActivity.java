@@ -54,8 +54,14 @@ public class HistoryActivity extends MyActivity {
             startActivity(intent);
         }
 
+        Intent intent = getIntent();
+        int calories = Math.round(intent.getFloatExtra("calories", -1));
+        int protein = Math.round(intent.getFloatExtra("protein", -1));
+        int fats = Math.round(intent.getFloatExtra("fats", -1));
+        int carbs = Math.round(intent.getFloatExtra("carbs", -1));
+
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-        adapter = new HistoryAdapter(adapterObserver);
+        adapter = new HistoryAdapter(adapterObserver, calories, protein, fats, carbs);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(adapter);

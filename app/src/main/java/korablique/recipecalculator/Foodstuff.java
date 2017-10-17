@@ -100,10 +100,10 @@ public class Foodstuff implements Parcelable, Comparable<Foodstuff> {
      * @return true, if foodstuffs' nutritions are equal
      */
     public static boolean haveSameNutrition(Foodstuff lhs, Foodstuff rhs) {
-        if (Math.abs(lhs.getProtein() - rhs.getProtein()) < 0.0001
-                && Math.abs(lhs.getFats() - rhs.getFats()) < 0.0001
-                && Math.abs(lhs.getCarbs() - rhs.getCarbs()) < 0.0001
-                && Math.abs(lhs.getCalories() - rhs.getCalories()) < 0.0001) {
+        if (FloatUtils.areFloatsEquals(lhs.getProtein(), rhs.getProtein())
+                && FloatUtils.areFloatsEquals(lhs.getFats(), rhs.getFats())
+                && FloatUtils.areFloatsEquals(lhs.getCarbs(), rhs.getCarbs())
+                && FloatUtils.areFloatsEquals(lhs.getCalories(), rhs.getCalories())) {
             return true;
         } else {
             return false;

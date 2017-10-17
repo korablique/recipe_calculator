@@ -23,9 +23,17 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     public static final int ITEM_TYPE_FOODSTUFF = 1;
     public List<Data> data = new ArrayList<>();
     private Observer observer;
+    private int calorieRate;
+    private int proteinRate;
+    private int fatRate;
+    private int carbRate;
 
-    public HistoryAdapter(Observer observer) {
+    public HistoryAdapter(Observer observer, int calorieRate, int proteinRate, int fatRate, int carbRate) {
         this.observer = observer;
+        this.calorieRate = calorieRate;
+        this.proteinRate = proteinRate;
+        this.fatRate = fatRate;
+        this.carbRate = carbRate;
     }
 
     public interface Data {}
@@ -119,49 +127,49 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             ProgressBar proteinProgressBar = (ProgressBar) nutritionLayout.findViewById(R.id.protein_progress)
                     .findViewById(R.id.progress_bar);
             proteinProgressBar.setProgress((int) Math.round(ateProtein));
-            proteinProgressBar.setMax(94);
+            proteinProgressBar.setMax(proteinRate);
 
             Formatter proteinFormatter = new Formatter();
             proteinFormatter.format("%.1f", ateProtein);
             TextView proteinTextView = (TextView) nutritionLayout.findViewById(R.id.protein_progress)
                     .findViewById(R.id.progress_text_view);
-            proteinTextView.setText(proteinFormatter.toString() + "/" + 94);
+            proteinTextView.setText(proteinFormatter.toString() + "/" + proteinRate);
 
 
             ProgressBar fatsProgressBar = (ProgressBar) nutritionLayout.findViewById(R.id.fat_progress)
                     .findViewById(R.id.progress_bar);
             fatsProgressBar.setProgress((int) Math.round(ateFats));
-            fatsProgressBar.setMax(47);
+            fatsProgressBar.setMax(fatRate);
 
             Formatter fatsFormatter = new Formatter();
             fatsFormatter.format("%.1f", ateFats);
             TextView fatsTextView = (TextView) nutritionLayout.findViewById(R.id.fat_progress)
                     .findViewById(R.id.progress_text_view);
-            fatsTextView.setText(fatsFormatter.toString() + "/" + 47);
+            fatsTextView.setText(fatsFormatter.toString() + "/" + fatRate);
 
 
             ProgressBar carbsProgressBar = (ProgressBar) nutritionLayout.findViewById(R.id.carbs_progress)
                     .findViewById(R.id.progress_bar);
             carbsProgressBar.setProgress((int) Math.round(ateCarbs));
-            carbsProgressBar.setMax(238);
+            carbsProgressBar.setMax(carbRate);
 
             Formatter carbsFormatter = new Formatter();
             carbsFormatter.format("%.1f", ateCarbs);
             TextView carbsTextView = (TextView) nutritionLayout.findViewById(R.id.carbs_progress)
                     .findViewById(R.id.progress_text_view);
-            carbsTextView.setText(carbsFormatter.toString() + "/" + 238);
+            carbsTextView.setText(carbsFormatter.toString() + "/" + carbRate);
 
 
             ProgressBar caloriesProgressBar = (ProgressBar) nutritionLayout.findViewById(R.id.calories_progress)
                     .findViewById(R.id.progress_bar);
             caloriesProgressBar.setProgress((int) Math.round(ateCalories));
-            caloriesProgressBar.setMax(1771);
+            caloriesProgressBar.setMax(calorieRate);
 
             Formatter caloriesFormatter = new Formatter();
             caloriesFormatter.format("%.1f", ateCalories);
             TextView caloriesTextView = (TextView) nutritionLayout.findViewById(R.id.calories_progress)
                     .findViewById(R.id.progress_text_view);
-            caloriesTextView.setText(caloriesFormatter.toString() + "/" + 1771);
+            caloriesTextView.setText(caloriesFormatter.toString() + "/" + calorieRate);
         }
     }
 
