@@ -24,13 +24,20 @@ import static korablique.recipecalculator.HistoryContract.COLUMN_NAME_DATE;
 import static korablique.recipecalculator.HistoryContract.COLUMN_NAME_FOODSTUFF_ID;
 import static korablique.recipecalculator.HistoryContract.COLUMN_NAME_WEIGHT;
 import static korablique.recipecalculator.HistoryContract.HISTORY_TABLE_NAME;
+import static korablique.recipecalculator.UserParametersContract.COLUMN_NAME_AGE;
+import static korablique.recipecalculator.UserParametersContract.COLUMN_NAME_COEFFICIENT;
+import static korablique.recipecalculator.UserParametersContract.COLUMN_NAME_FORMULA;
+import static korablique.recipecalculator.UserParametersContract.COLUMN_NAME_GENDER;
+import static korablique.recipecalculator.UserParametersContract.COLUMN_NAME_GOAL;
+import static korablique.recipecalculator.UserParametersContract.COLUMN_NAME_HEIGHT;
+import static korablique.recipecalculator.UserParametersContract.COLUMN_NAME_USER_WEIGHT;
+import static korablique.recipecalculator.UserParametersContract.USER_PARAMETERS_TABLE_NAME;
 
 public class DatabaseWorker {
     private static DatabaseWorker databaseWorker;
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     public interface FoodstuffsRequestCallback {
-
         void onResult(ArrayList<Foodstuff> foodstuffs);
     }
     public interface SaveFoodstuffCallback {
@@ -45,6 +52,10 @@ public class DatabaseWorker {
     public interface AddHistoryEntryCallback {
         void onResult(long historyEntryId);
     }
+    public interface RequestCurrentUserParametersCallback {
+        void onResult(UserParameters userParameters);
+    }
+
     private DatabaseWorker() {}
 
     public static synchronized DatabaseWorker getInstance() {
@@ -251,5 +262,51 @@ public class DatabaseWorker {
                 database.delete(HISTORY_TABLE_NAME, HistoryContract.ID + " = ?", new String[]{String.valueOf(historyId)});
             }
         });
+    }
+
+    public void saveUserParameters(
+            final Context context, final UserParameters userParameters, final Runnable callback) {
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+                SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+                ContentValues values = new ContentValues();
+                values.put(COLUMN_NAME_GOAL, userParameters.getGoal());
+                values.put(COLUMN_NAME_GENDER, userParameters.getGender());
+                values.put(COLUMN_NAME_AGE, userParameters.getAge());
+                values.put(COLUMN_NAME_HEIGHT, userParameters.getHeight());
+                values.put(COLUMN_NAME_USER_WEIGHT, userParameters.getWeight());
+                values.put(COLUMN_NAME_COEFFICIENT, userParameters.getPhysicalActivityCoefficient());
+                values.put(COLUMN_NAME_FORMULA, userParameters.getFormula());
+                database.insert(USER_PARAMETERS_TABLE_NAME, null, values);
+                callback.run();
+            }
+        });
+    }
+
+    public void requestCurrentUserParameters(Context context, RequestCurrentUserParametersCallback callback) {
+        FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+        SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
+        Cursor cursor = database.rawQuery("SELECT * FROM " + USER_PARAMETERS_TABLE_NAME +
+                " ORDER BY " + UserParametersContract.ID + " DESC LIMIT 1", null);
+        String goal = null;
+        String gender = null;
+        String formula = null;
+        int age = -1;
+        int height = -1;
+        int weight = -1;
+        float coefficient = -1;
+        while (cursor.moveToNext()) {
+            goal = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_GOAL));
+            gender = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_GENDER));
+            age = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_AGE));
+            height = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_HEIGHT));
+            weight = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_USER_WEIGHT));
+            coefficient = cursor.getFloat(cursor.getColumnIndex(COLUMN_NAME_COEFFICIENT));
+            formula = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_FORMULA));
+        }
+        cursor.close();
+        callback.onResult(new UserParameters(goal, gender, age, height, weight, coefficient, formula));
     }
 }

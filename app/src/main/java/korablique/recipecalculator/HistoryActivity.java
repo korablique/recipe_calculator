@@ -52,16 +52,42 @@ public class HistoryActivity extends MyActivity {
             editor.apply();
             Intent intent = new Intent(this, UserGoalActivity.class);
             startActivity(intent);
+            finish();
+            return;
         }
 
-        Intent intent = getIntent();
-        int calories = Math.round(intent.getFloatExtra("calories", -1));
-        int protein = Math.round(intent.getFloatExtra("protein", -1));
-        int fats = Math.round(intent.getFloatExtra("fats", -1));
-        int carbs = Math.round(intent.getFloatExtra("carbs", -1));
+        // достать из БД параметры пользователя и посчитать нормы
+        DatabaseWorker.getInstance()
+                .requestCurrentUserParameters(HistoryActivity.this, new DatabaseWorker.RequestCurrentUserParametersCallback() {
+            @Override
+            public void onResult(final UserParameters userParameters) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        initializeActivity(userParameters);
+                    }
+                });
+            }
+        });
+    }
 
+    private void initializeActivity(UserParameters userParameters) {
+        final Rates rates = RateCalculator.calculate(
+                HistoryActivity.this,
+                userParameters.getGoal(),
+                userParameters.getGender(),
+                userParameters.getAge(),
+                userParameters.getHeight(),
+                userParameters.getWeight(),
+                userParameters.getPhysicalActivityCoefficient(),
+                userParameters.getFormula());
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-        adapter = new HistoryAdapter(adapterObserver, calories, protein, fats, carbs);
+        adapter = new HistoryAdapter(
+                adapterObserver,
+                Math.round(rates.getCalories()),
+                Math.round(rates.getProtein()),
+                Math.round(rates.getFats()),
+                Math.round(rates.getCarbs()));
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(adapter);

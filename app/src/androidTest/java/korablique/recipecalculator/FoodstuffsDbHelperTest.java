@@ -25,6 +25,7 @@ import static korablique.recipecalculator.FoodstuffsContract.COLUMN_NAME_PROTEIN
 import static korablique.recipecalculator.FoodstuffsContract.FOODSTUFFS_TABLE_NAME;
 import static korablique.recipecalculator.FoodstuffsDbHelper.TABLE_DATABASE_VERSION;
 import static korablique.recipecalculator.HistoryContract.HISTORY_TABLE_NAME;
+import static korablique.recipecalculator.UserParametersContract.USER_PARAMETERS_TABLE_NAME;
 
 @RunWith(AndroidJUnit4.class)
 @LargeTest
@@ -59,6 +60,7 @@ public class FoodstuffsDbHelperTest {
         Assert.assertTrue(DatabaseUtils.tableExists(database1, FOODSTUFFS_TABLE_NAME));
         Assert.assertFalse(DatabaseUtils.tableExists(database1, HISTORY_TABLE_NAME));
         Assert.assertFalse(DatabaseUtils.tableExists(database1, TABLE_DATABASE_VERSION));
+        Assert.assertFalse(DatabaseUtils.tableExists(database1, USER_PARAMETERS_TABLE_NAME));
         database1.close();
 
         // Создать FoodstuffsDbHelper и сделать open
@@ -70,6 +72,7 @@ public class FoodstuffsDbHelperTest {
         Assert.assertTrue(isColumnExist(database2, FOODSTUFFS_TABLE_NAME, COLUMN_NAME_IS_LISTED));
         Assert.assertTrue(DatabaseUtils.tableExists(database2, HISTORY_TABLE_NAME));
         Assert.assertTrue(DatabaseUtils.tableExists(database2, TABLE_DATABASE_VERSION));
+        Assert.assertTrue(DatabaseUtils.tableExists(database2, USER_PARAMETERS_TABLE_NAME));
     }
 
     public boolean isColumnExist(SQLiteDatabase database, String tableName, String columnName) {

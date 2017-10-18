@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 
@@ -53,17 +52,21 @@ public class UserGoalActivity extends MyActivity {
                 String coefficientString = physicalActivityString.substring(0, physicalActivityString.indexOf(" "))
                         .replace(',', '.');
                 float coefficient = Float.parseFloat(coefficientString);
-
-                Rates rates = RateCalculator.calculate(
-                        UserGoalActivity.this, selectedGoal, selectedGender, age, height, weight, coefficient, selectedFormula);
-                // TODO: 11.10.17 сохранить эти значения в БД
-
-                Intent intent = new Intent(UserGoalActivity.this, HistoryActivity.class);
-                intent.putExtra("calories", rates.getCalories());
-                intent.putExtra("protein", rates.getProtein());
-                intent.putExtra("fats", rates.getFats());
-                intent.putExtra("carbs", rates.getCarbs());
-                startActivity(intent);
+                UserParameters userParameters = new UserParameters(
+                        selectedGoal, selectedGender, age, height, weight, coefficient, selectedFormula);
+                DatabaseWorker.getInstance().saveUserParameters(
+                        UserGoalActivity.this, userParameters, new Runnable() {
+                            @Override
+                            public void run() {
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Intent intent = new Intent(UserGoalActivity.this, HistoryActivity.class);
+                                        startActivity(intent);
+                                    }
+                                });
+                            }
+                        });
             }
         });
     }

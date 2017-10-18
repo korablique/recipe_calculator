@@ -20,6 +20,14 @@ import static korablique.recipecalculator.HistoryContract.COLUMN_NAME_DATE;
 import static korablique.recipecalculator.HistoryContract.COLUMN_NAME_FOODSTUFF_ID;
 import static korablique.recipecalculator.HistoryContract.COLUMN_NAME_WEIGHT;
 import static korablique.recipecalculator.HistoryContract.HISTORY_TABLE_NAME;
+import static korablique.recipecalculator.UserParametersContract.COLUMN_NAME_AGE;
+import static korablique.recipecalculator.UserParametersContract.COLUMN_NAME_COEFFICIENT;
+import static korablique.recipecalculator.UserParametersContract.COLUMN_NAME_FORMULA;
+import static korablique.recipecalculator.UserParametersContract.COLUMN_NAME_GENDER;
+import static korablique.recipecalculator.UserParametersContract.COLUMN_NAME_GOAL;
+import static korablique.recipecalculator.UserParametersContract.COLUMN_NAME_HEIGHT;
+import static korablique.recipecalculator.UserParametersContract.COLUMN_NAME_USER_WEIGHT;
+import static korablique.recipecalculator.UserParametersContract.USER_PARAMETERS_TABLE_NAME;
 
 public class FoodstuffsDbHelper {
     private static final int DATABASE_VERSION = 2;
@@ -62,6 +70,7 @@ public class FoodstuffsDbHelper {
         SQLiteDatabase database = SQLiteDatabase.openDatabase(path.getPath(), null, SQLiteDatabase.OPEN_READWRITE);
         createTableHistory(database);
         createTableDatabaseVersion(database);
+        createTableUserParameters(database);
     }
 
     private void createTableHistory(SQLiteDatabase database) {
@@ -79,6 +88,19 @@ public class FoodstuffsDbHelper {
         database.execSQL("INSERT INTO " + TABLE_DATABASE_VERSION + " VALUES (" + DATABASE_VERSION + ")");
     }
 
+    private void createTableUserParameters(SQLiteDatabase database) {
+        database.execSQL("CREATE TABLE " + USER_PARAMETERS_TABLE_NAME + " (" +
+                UserParametersContract.ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_NAME_GOAL + " TEXT, " +
+                COLUMN_NAME_GENDER + " TEXT, " +
+                COLUMN_NAME_AGE + " INTEGER, " +
+                COLUMN_NAME_HEIGHT + " INTEGER, " +
+                COLUMN_NAME_USER_WEIGHT + " INTEGER, " +
+                COLUMN_NAME_COEFFICIENT + " REAL, " +
+                COLUMN_NAME_FORMULA + " TEXT)");
+        // TODO: 17.10.17 я тут сделала integer'ы, но что если юзер умудрится ввести нецелое число?
+    }
+
     private void tryToUpgradeDatabase() {
         File path = getDbFile(context);
         SQLiteDatabase database = SQLiteDatabase.openDatabase(path.getPath(), null, SQLiteDatabase.OPEN_READWRITE);
@@ -87,6 +109,7 @@ public class FoodstuffsDbHelper {
             createTableHistory(database);
             createTableDatabaseVersion(database);
             addColumnIsListed(database);
+            createTableUserParameters(database);
         }
     }
 
