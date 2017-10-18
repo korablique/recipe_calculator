@@ -44,27 +44,20 @@ public class HistoryActivity extends MyActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history);
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        boolean firstStart = prefs.getBoolean(getString(R.string.pref_first_start_of_history), true);
-        if (firstStart) {
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.putBoolean(getString(R.string.pref_first_start_of_history), false);
-            editor.apply();
-            Intent intent = new Intent(this, UserGoalActivity.class);
-            startActivity(intent);
-            finish();
-            return;
-        }
-
-        // достать из БД параметры пользователя и посчитать нормы
-        DatabaseWorker.getInstance()
-                .requestCurrentUserParameters(HistoryActivity.this, new DatabaseWorker.RequestCurrentUserParametersCallback() {
+        DatabaseWorker.getInstance().requestCurrentUserParameters(
+                HistoryActivity.this, new DatabaseWorker.RequestCurrentUserParametersCallback() {
             @Override
             public void onResult(final UserParameters userParameters) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        initializeActivity(userParameters);
+                        if (userParameters == null) {
+                            Intent intent = new Intent(HistoryActivity.this, UserGoalActivity.class);
+                            startActivity(intent);
+                            finish();
+                        } else {
+                            initializeActivity(userParameters);
+                        }
                     }
                 });
             }

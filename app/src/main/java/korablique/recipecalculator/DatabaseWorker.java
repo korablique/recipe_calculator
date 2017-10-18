@@ -290,23 +290,20 @@ public class DatabaseWorker {
         SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
         Cursor cursor = database.rawQuery("SELECT * FROM " + USER_PARAMETERS_TABLE_NAME +
                 " ORDER BY " + UserParametersContract.ID + " DESC LIMIT 1", null);
-        String goal = null;
-        String gender = null;
-        String formula = null;
-        int age = -1;
-        int height = -1;
-        int weight = -1;
-        float coefficient = -1;
-        while (cursor.moveToNext()) {
-            goal = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_GOAL));
-            gender = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_GENDER));
-            age = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_AGE));
-            height = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_HEIGHT));
-            weight = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_USER_WEIGHT));
-            coefficient = cursor.getFloat(cursor.getColumnIndex(COLUMN_NAME_COEFFICIENT));
-            formula = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_FORMULA));
+        UserParameters userParameters = null;
+        if (cursor.getCount() != 0) {
+            while (cursor.moveToNext()) {
+                String goal = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_GOAL));
+                String gender = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_GENDER));
+                int age = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_AGE));
+                int height = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_HEIGHT));
+                int weight = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_USER_WEIGHT));
+                float coefficient = cursor.getFloat(cursor.getColumnIndex(COLUMN_NAME_COEFFICIENT));
+                String formula = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_FORMULA));
+                userParameters = new UserParameters(goal, gender, age, height, weight, coefficient, formula);
+            }
         }
         cursor.close();
-        callback.onResult(new UserParameters(goal, gender, age, height, weight, coefficient, formula));
+        callback.onResult(userParameters);
     }
 }
