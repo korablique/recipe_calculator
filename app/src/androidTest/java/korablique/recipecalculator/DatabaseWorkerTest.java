@@ -156,12 +156,12 @@ public class DatabaseWorkerTest {
         databaseWorker.requestAllHistoryFromDb(mActivityRule.getActivity(), new DatabaseWorker.RequestHistoryCallback() {
             @Override
             public void onResult(ArrayList<HistoryEntry> historyEntries) {
-                mutex1.countDown();
                 historyList.addAll(historyEntries);
+                mutex1.countDown();
             }
         });
         mutex1.await();
-        Assert.assertTrue(historyList.size() == 1);
+        Assert.assertEquals(1, historyList.size());
         Assert.assertEquals(historyList.get(0).getFoodstuff().getId(), foodstuff.getId());
         Assert.assertEquals(historyList.get(0).getTime(), date);
     }
