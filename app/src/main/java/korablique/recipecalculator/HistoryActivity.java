@@ -9,6 +9,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.crashlytics.android.Crashlytics;
 import com.tapadoo.alerter.Alerter;
 
 import java.util.ArrayList;
@@ -305,6 +306,10 @@ public class HistoryActivity extends MyActivity {
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        getSupportActionBar().setTitle(R.string.history);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle(R.string.history);
+        } else {
+            Crashlytics.log("getSupportActionBar вернул null");
+        }
     }
 }

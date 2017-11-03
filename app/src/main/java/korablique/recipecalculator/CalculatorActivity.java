@@ -329,7 +329,11 @@ public class CalculatorActivity extends MyActivity {
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        getSupportActionBar().setTitle(R.string.calculator);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle(R.string.calculator);
+        } else {
+            Crashlytics.log("getSupportActionBar вернул null");
+        }
     }
 
     @Override

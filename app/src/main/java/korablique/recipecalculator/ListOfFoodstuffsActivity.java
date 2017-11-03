@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 
+import com.crashlytics.android.Crashlytics;
 import com.tapadoo.alerter.Alerter;
 
 import java.util.ArrayList;
@@ -191,7 +192,11 @@ public class ListOfFoodstuffsActivity extends MyActivity {
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        getSupportActionBar().setTitle(R.string.list_of_foodstuffs);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle(R.string.list_of_foodstuffs);
+        } else {
+            Crashlytics.log("getSupportActionBar вернул null");
+        }
     }
 
     //метод для тестов

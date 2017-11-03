@@ -7,6 +7,8 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 
+import com.crashlytics.android.Crashlytics;
+
 public class UserGoalActivity extends MyActivity {
 
     @Override
@@ -74,6 +76,10 @@ public class UserGoalActivity extends MyActivity {
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        getSupportActionBar().setTitle(R.string.set_goal);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle(R.string.set_goal);
+        } else {
+            Crashlytics.log("getSupportActionBar вернул null");
+        }
     }
 }
