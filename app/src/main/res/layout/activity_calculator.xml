@@ -52,7 +52,7 @@
                             android:layout_height="match_parent">
                             <ImageView
                                 android:layout_width="match_parent"
-                                android:layout_height="10dp"
+                                android:layout_height="5dp"
                                 android:src="@drawable/shadow_top"
                                 android:scaleType="fitXY"
                                 android:rotation="180"/>
@@ -64,7 +64,7 @@
                             <ImageView
                                 android:id="@+id/shadow_bottom"
                                 android:layout_width="match_parent"
-                                android:layout_height="10dp"
+                                android:layout_height="5dp"
                                 android:src="@drawable/shadow_top"
                                 android:scaleType="fitXY"
                                 android:layout_gravity="bottom"
@@ -119,7 +119,7 @@
 
             <ImageView
                 android:layout_width="match_parent"
-                android:layout_height="10dp"
+                android:layout_height="5dp"
                 android:src="@drawable/shadow_top"
                 android:scaleType="fitXY"
                 android:rotation="180"/>
