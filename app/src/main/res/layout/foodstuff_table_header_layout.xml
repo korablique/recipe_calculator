@@ -20,7 +20,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:textSize="12sp"
-                android:maxLines="1"
+                android:singleLine="true"
                 android:ellipsize="marquee"
                 android:text="@string/product_weight"
                 android:textStyle="bold"/>
@@ -30,7 +30,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:textSize="12sp"
-                android:maxLines="1"
+                android:singleLine="true"
                 android:ellipsize="marquee"
                 android:text="@string/protein"
                 android:textStyle="bold"/>
@@ -40,7 +40,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:textSize="12sp"
-                android:maxLines="1"
+                android:singleLine="true"
                 android:ellipsize="marquee"
                 android:text="@string/fats"
                 android:textStyle="bold"/>
@@ -50,7 +50,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:textSize="12sp"
-                android:maxLines="1"
+                android:singleLine="true"
                 android:ellipsize="marquee"
                 android:text="@string/carbs"
                 android:textStyle="bold"/>
@@ -60,7 +60,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:textSize="12sp"
-                android:maxLines="1"
+                android:singleLine="true"
                 android:ellipsize="marquee"
                 android:text="@string/calories"
                 android:textStyle="bold"/>
