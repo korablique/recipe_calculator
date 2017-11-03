@@ -188,6 +188,12 @@ public class ListOfFoodstuffsActivity extends MyActivity {
         }
     }
 
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        getSupportActionBar().setTitle(R.string.list_of_foodstuffs);
+    }
+
     //метод для тестов
     public void reload(final Runnable callback) {
         for (int index = recyclerViewAdapter.getItemCount() - 1; index >= 0; index--) {

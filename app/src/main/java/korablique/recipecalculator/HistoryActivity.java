@@ -301,4 +301,10 @@ public class HistoryActivity extends MyActivity {
             super.onBackPressed();
         }
     }
+
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        getSupportActionBar().setTitle(R.string.history);
+    }
 }

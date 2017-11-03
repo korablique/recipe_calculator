@@ -327,6 +327,12 @@ public class CalculatorActivity extends MyActivity {
     }
 
     @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        getSupportActionBar().setTitle(R.string.calculator);
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         updateBottomShadowState();

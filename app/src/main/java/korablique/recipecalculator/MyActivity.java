@@ -47,7 +47,7 @@ public abstract class MyActivity extends AppCompatActivity {
                 });
 
         IDrawerItem itemPrimary1 = new PrimaryDrawerItem()
-                .withName(R.string.drawer_item_home)
+                .withName(R.string.calculator)
                 .withSelectable(false)
                 .withIcon(R.drawable.calculator_icon)
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
@@ -59,7 +59,7 @@ public abstract class MyActivity extends AppCompatActivity {
                     }
                 });
         IDrawerItem itemPrimary2 = new PrimaryDrawerItem()
-                .withName(R.string.drawer_item_list)
+                .withName(R.string.list_of_foodstuffs)
                 .withSelectable(false)
                 .withIcon(R.drawable.list_of_foodstuffs_icon)
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
