@@ -1,9 +1,7 @@
 package korablique.recipecalculator;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.LinearLayoutManager;
@@ -74,7 +72,7 @@ public class HistoryActivity extends MyActivity {
                 userParameters.getWeight(),
                 userParameters.getPhysicalActivityCoefficient(),
                 userParameters.getFormula());
-        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        recyclerView = findViewById(R.id.recycler_view);
         adapter = new HistoryAdapter(
                 adapterObserver,
                 Math.round(rates.getCalories()),
@@ -99,10 +97,10 @@ public class HistoryActivity extends MyActivity {
             }
         });
 
-        ViewGroup parentLayout = (ViewGroup) findViewById(R.id.history_parent);
+        ViewGroup parentLayout = findViewById(R.id.history_parent);
         card = new Card(this, parentLayout);
 
-        FloatingActionButton historyFab = (FloatingActionButton) findViewById(R.id.history_fab);
+        FloatingActionButton historyFab = findViewById(R.id.history_fab);
         historyFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

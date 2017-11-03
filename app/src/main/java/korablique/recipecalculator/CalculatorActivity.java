@@ -58,7 +58,7 @@ public class CalculatorActivity extends MyActivity {
         setContentView(R.layout.activity_calculator);
 
         //инициализируем layout, который будет отображать введенные продукты:
-        ingredients = (RecyclerView) findViewById(R.id.ingredients);
+        ingredients = findViewById(R.id.ingredients);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         ingredients.setLayoutManager(layoutManager);
@@ -67,20 +67,15 @@ public class CalculatorActivity extends MyActivity {
             @Override
             public void onLayoutChange(View v, int left, int top, int right, int bottom,
                                        int oldLeft, int oldTop, int oldRight, int oldBottom) {
-                View shadowBottom = findViewById(R.id.shadow_bottom);
-                if (RecyclerViewUtils.isRecyclerScrollable(ingredients)) {
-                    shadowBottom.setVisibility(View.VISIBLE);
-                } else {
-                    shadowBottom.setVisibility(View.GONE);
-                }
+                updateBottomShadowState();
             }
         });
 
         //создаем карточку и прячем её под экран:
-        final ViewGroup parentLayout = (ViewGroup) findViewById(R.id.activity_calculator_frame_layout);
+        final ViewGroup parentLayout = findViewById(R.id.activity_calculator_frame_layout);
         card = new Card(this, parentLayout);
 
-        EditText resultWeightEditText = (EditText) findViewById(R.id.result_weight_edit_text);
+        EditText resultWeightEditText = findViewById(R.id.result_weight_edit_text);
         resultWeightEditText.clearFocus(); //не работает
         resultWeightEditText.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -89,7 +84,7 @@ public class CalculatorActivity extends MyActivity {
             }
         });
 
-        FloatingActionButton floatingActionButtonPlus = (FloatingActionButton) findViewById(R.id.fab_add_foodstuff);
+        FloatingActionButton floatingActionButtonPlus = findViewById(R.id.fab_add_foodstuff);
         floatingActionButtonPlus.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -178,13 +173,22 @@ public class CalculatorActivity extends MyActivity {
             }
         });
 
-        Button calculateButton = (Button) findViewById(R.id.calculate_button);
+        Button calculateButton = findViewById(R.id.calculate_button);
         calculateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onCalculateButtonClicked();
             }
         });
+    }
+
+    private void updateBottomShadowState() {
+        View shadowBottom = findViewById(R.id.shadow_bottom);
+        if (RecyclerViewUtils.isRecyclerScrollable(ingredients)) {
+            shadowBottom.setVisibility(View.VISIBLE);
+        } else {
+            shadowBottom.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -204,7 +208,8 @@ public class CalculatorActivity extends MyActivity {
         }
 
         double proteinPer100Gram, fatsPer100Gram, carbsPer100Gram, caloriesPer100Gram, productWeight;
-        //пройти циклом по всем фудстаффам и умножить Б, Ж, У и К (указанные в карточке на 100 г) на массу продукта
+        // пройти циклом по всем фудстаффам и умножить Б, Ж, У и К (указанные в карточке на 100 г)
+        // на массу продукта
         double allProtein = 0, allFats = 0, allCarbs = 0, allCalories = 0, totalWeight = 0;
         for (Foodstuff foodstuff : foodstuffs) {
             productWeight = foodstuff.getWeight();
@@ -319,5 +324,11 @@ public class CalculatorActivity extends MyActivity {
 
     public Card getCard() {
         return card;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateBottomShadowState();
     }
 }

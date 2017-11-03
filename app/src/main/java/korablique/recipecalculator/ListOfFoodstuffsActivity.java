@@ -118,7 +118,7 @@ public class ListOfFoodstuffsActivity extends MyActivity {
     }
 
     private void createRecyclerView(FoodstuffsAdapter.Observer observer) {
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        RecyclerView recyclerView = findViewById(R.id.recycler_view);
         recyclerView.setHasFixedSize(true);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -173,7 +173,7 @@ public class ListOfFoodstuffsActivity extends MyActivity {
             searchView.setQuery(searchName, false);
         }
 
-        EditText searchEditText = (EditText) searchView.findViewById(R.id.search_src_text);
+        EditText searchEditText = searchView.findViewById(R.id.search_src_text);
         searchEditText.setHintTextColor(getResources().getColor(R.color.colorPrimaryLight));
 
         return super.onCreateOptionsMenu(menu);
