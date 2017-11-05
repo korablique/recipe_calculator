@@ -23,12 +23,17 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     public static final int ITEM_TYPE_FOODSTUFF = 1;
     public List<Data> data = new ArrayList<>();
     private Observer observer;
-    private int calorieRate;
-    private int proteinRate;
-    private int fatRate;
-    private int carbRate;
+    private float calorieRate;
+    private float proteinRate;
+    private float fatRate;
+    private float carbRate;
 
-    public HistoryAdapter(Observer observer, int calorieRate, int proteinRate, int fatRate, int carbRate) {
+    public HistoryAdapter(
+            Observer observer,
+            float calorieRate,
+            float proteinRate,
+            float fatRate,
+            float carbRate) {
         this.observer = observer;
         this.calorieRate = calorieRate;
         this.proteinRate = proteinRate;
@@ -81,12 +86,13 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         if (itemType == ITEM_TYPE_FOODSTUFF) {
             LinearLayout item = ((FoodstuffViewHolder)holder).getItem();
             final Foodstuff foodstuff = ((FoodstuffData) getItem(position)).getHistoryEntry().getFoodstuff();
-            ((TextView) item.findViewById(R.id.name)).setText(foodstuff.getName());
-            ((TextView) item.findViewById(R.id.weight)).setText(String.valueOf(foodstuff.getWeight()));
-            ((TextView) item.findViewById(R.id.protein)).setText(String.valueOf(foodstuff.getProtein()));
-            ((TextView) item.findViewById(R.id.fats)).setText(String.valueOf(foodstuff.getFats()));
-            ((TextView) item.findViewById(R.id.carbs)).setText(String.valueOf(foodstuff.getCarbs()));
-            ((TextView) item.findViewById(R.id.calories)).setText(String.valueOf(foodstuff.getCalories()));
+            double weight = foodstuff.getWeight();
+            setTextViewText(item, R.id.name, foodstuff.getName());
+            setTextViewText(item, R.id.weight, foodstuff.getWeight());
+            setTextViewText(item, R.id.protein, foodstuff.getProtein() * weight * 0.01);
+            setTextViewText(item, R.id.fats, foodstuff.getFats() * weight * 0.01);
+            setTextViewText(item, R.id.carbs, foodstuff.getCarbs() * weight * 0.01);
+            setTextViewText(item, R.id.calories, foodstuff.getCalories() * weight * 0.01);
             item.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -98,7 +104,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             Date date = ((DateData) getItem(position)).getDate();
             DateFormat df = DateFormat.getDateInstance();
             String dateString = df.format(date);
-            ((TextView) item.findViewById(R.id.date)).setText(dateString);
+            setTextViewText(item, R.id.date, dateString);
 
             // пройтись по всем фудстаффам этого нутришена и пересчитать бжук
             // если после этой вьюшки нет фудстаффов, то в прогресс-барах её будут числа из превью
@@ -124,52 +130,10 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             }
             // изменить числа в прогресс барах
             LinearLayout nutritionLayout = ((ProgressViewHolder) holder).getItem();
-            ProgressBar proteinProgressBar = (ProgressBar) nutritionLayout.findViewById(R.id.protein_progress)
-                    .findViewById(R.id.progress_bar);
-            proteinProgressBar.setProgress((int) Math.round(ateProtein));
-            proteinProgressBar.setMax(proteinRate);
-
-            Formatter proteinFormatter = new Formatter();
-            proteinFormatter.format("%.1f", ateProtein);
-            TextView proteinTextView = (TextView) nutritionLayout.findViewById(R.id.protein_progress)
-                    .findViewById(R.id.progress_text_view);
-            proteinTextView.setText(proteinFormatter.toString() + "/" + proteinRate);
-
-
-            ProgressBar fatsProgressBar = (ProgressBar) nutritionLayout.findViewById(R.id.fat_progress)
-                    .findViewById(R.id.progress_bar);
-            fatsProgressBar.setProgress((int) Math.round(ateFats));
-            fatsProgressBar.setMax(fatRate);
-
-            Formatter fatsFormatter = new Formatter();
-            fatsFormatter.format("%.1f", ateFats);
-            TextView fatsTextView = (TextView) nutritionLayout.findViewById(R.id.fat_progress)
-                    .findViewById(R.id.progress_text_view);
-            fatsTextView.setText(fatsFormatter.toString() + "/" + fatRate);
-
-
-            ProgressBar carbsProgressBar = (ProgressBar) nutritionLayout.findViewById(R.id.carbs_progress)
-                    .findViewById(R.id.progress_bar);
-            carbsProgressBar.setProgress((int) Math.round(ateCarbs));
-            carbsProgressBar.setMax(carbRate);
-
-            Formatter carbsFormatter = new Formatter();
-            carbsFormatter.format("%.1f", ateCarbs);
-            TextView carbsTextView = (TextView) nutritionLayout.findViewById(R.id.carbs_progress)
-                    .findViewById(R.id.progress_text_view);
-            carbsTextView.setText(carbsFormatter.toString() + "/" + carbRate);
-
-
-            ProgressBar caloriesProgressBar = (ProgressBar) nutritionLayout.findViewById(R.id.calories_progress)
-                    .findViewById(R.id.progress_bar);
-            caloriesProgressBar.setProgress((int) Math.round(ateCalories));
-            caloriesProgressBar.setMax(calorieRate);
-
-            Formatter caloriesFormatter = new Formatter();
-            caloriesFormatter.format("%.1f", ateCalories);
-            TextView caloriesTextView = (TextView) nutritionLayout.findViewById(R.id.calories_progress)
-                    .findViewById(R.id.progress_text_view);
-            caloriesTextView.setText(caloriesFormatter.toString() + "/" + calorieRate);
+            setProgressBarValue(nutritionLayout.findViewById(R.id.protein_progress), ateProtein, proteinRate);
+            setProgressBarValue(nutritionLayout.findViewById(R.id.fat_progress), ateFats, fatRate);
+            setProgressBarValue(nutritionLayout.findViewById(R.id.carbs_progress), ateCarbs, carbRate);
+            setProgressBarValue(nutritionLayout.findViewById(R.id.calories_progress), ateCalories, calorieRate);
         }
     }
 
@@ -288,5 +252,20 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         notifyItemChanged(displayedPosition);
         // пересчитываем прогрессбары
         notifyItemChanged(displayedPosition - 1);
+    }
+
+    private <T> void setTextViewText(View parent, int viewId, T text) {
+        ((TextView) parent.findViewById(viewId)).setText(text.toString());
+    }
+
+    private void setProgressBarValue(View layout, double currentValue, double maxValue) {
+        ProgressBar progressBar = layout.findViewById(R.id.progress_bar);
+        progressBar.setProgress((int) Math.round(currentValue));
+        progressBar.setMax((int) Math.round(maxValue));
+
+        Formatter formatter = new Formatter();
+        formatter.format("%.1f/%.1f", currentValue, maxValue);
+        TextView textView = layout.findViewById(R.id.progress_text_view);
+        textView.setText(formatter.toString());
     }
 }
