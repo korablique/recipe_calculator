@@ -87,8 +87,9 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             LinearLayout item = ((FoodstuffViewHolder)holder).getItem();
             final Foodstuff foodstuff = ((FoodstuffData) getItem(position)).getHistoryEntry().getFoodstuff();
             double weight = foodstuff.getWeight();
-            setTextViewText(item, R.id.name, foodstuff.getName());
-            setTextViewText(item, R.id.weight, foodstuff.getWeight());
+            Formatter formatter = new Formatter();
+            formatter.format("%s, %.0fг", foodstuff.getName(), foodstuff.getWeight());
+            setTextViewText(item, R.id.name, formatter.toString());
             setTextViewText(item, R.id.protein, foodstuff.getProtein() * weight * 0.01);
             setTextViewText(item, R.id.fats, foodstuff.getFats() * weight * 0.01);
             setTextViewText(item, R.id.carbs, foodstuff.getCarbs() * weight * 0.01);
@@ -211,12 +212,6 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
 
     public void deleteItem(int displayedPosition) {
-        /*Foodstuff deleted = filteredFoodstuffs.get(displayedPosition);
-        int indexInAllFoodstuffs = allFoodstuffs.indexOf(deleted);
-        filteredFoodstuffs.remove(displayedPosition);
-        allFoodstuffs.remove(indexInAllFoodstuffs);
-        notifyItemRemoved(displayedPosition);
-        observer.onItemsCountChanged(allFoodstuffs.size());*/
         int requiredDateIndex = -1;
         // ищем дату, из которой нужно удалить продукт
         for (int index = displayedPosition - 1; index >= 0; index--) {

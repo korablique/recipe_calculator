@@ -114,8 +114,6 @@ public class ListOfFoodstuffsActivity extends MyActivity {
             });
             createRecyclerView(defaultObserver);
         }
-        recyclerViewAdapter.hideWeight();
-        findViewById(R.id.column_name_weight).setVisibility(View.GONE);
     }
 
     private void createRecyclerView(FoodstuffsAdapter.Observer observer) {

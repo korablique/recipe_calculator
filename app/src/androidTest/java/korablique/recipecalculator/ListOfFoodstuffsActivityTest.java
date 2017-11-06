@@ -66,11 +66,6 @@ public class ListOfFoodstuffsActivityTest {
     }
 
     @Test
-    public void weightIsHidden() {
-        onView(anyWithId(R.id.column_name_weight)).check(matches(not(isDisplayed())));
-    }
-
-    @Test
     public void itemIsEditable() {
         onView(withId(R.id.recycler_view)).perform(actionOnItemAtPosition(0, click()));
         String oldName = ((EditText) mActivityRule.getActivity().findViewById(R.id.name_edit_text)).getText().toString();

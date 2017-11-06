@@ -19,10 +19,6 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <View
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1" />
         <include
             android:id="@+id/protein_progress"
             layout="@layout/progress_bar_with_text"
