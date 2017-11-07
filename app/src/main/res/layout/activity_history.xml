@@ -5,7 +5,7 @@
     android:id="@+id/history_parent"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="korablique.recipecalculator.HistoryActivity">
+    tools:context=".ui.history.HistoryActivity">
 
     <RelativeLayout
         android:layout_width="match_parent"

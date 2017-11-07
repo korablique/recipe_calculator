@@ -11,7 +11,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".CalculatorActivity"
+            android:name=".ui.calculator.CalculatorActivity"
             android:windowSoftInputMode="adjustResize|stateHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -19,7 +19,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ListOfFoodstuffsActivity">
+        <activity android:name=".ui.foodstuffslist.ListOfFoodstuffsActivity">
             <meta-data
                 android:name="android.app.searchable"
                 android:resource="@xml/searchable" />
@@ -35,8 +35,8 @@
             android:name="io.fabric.ApiKey"
             android:value="f8e3ec4d634763d9b91038aef3b8cf9c8c0a65d9" />
 
-        <activity android:name=".HistoryActivity" />
-        <activity android:name=".UserGoalActivity"></activity>
+        <activity android:name=".ui.history.HistoryActivity" />
+        <activity android:name=".ui.usergoal.UserGoalActivity"></activity>
     </application>
 
 </manifest>
