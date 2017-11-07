@@ -6,7 +6,7 @@
     android:id="@+id/activity_calculator_frame_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="korablique.recipecalculator.CalculatorActivity">
+    tools:context=".ui.calculator.CalculatorActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -33,7 +33,7 @@
                     android:textSize="15sp"
                     android:gravity="center_vertical|center_horizontal"/>
 
-                <korablique.recipecalculator.ViewGroupWithMaxHeight
+                <korablique.recipecalculator.ui.ViewGroupWithMaxHeight
                     android:id="@+id/view_group_with_max_height"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -71,7 +71,7 @@
                                 android:visibility="gone"/>
                         </FrameLayout>
                     </LinearLayout>
-                </korablique.recipecalculator.ViewGroupWithMaxHeight>
+                </korablique.recipecalculator.ui.ViewGroupWithMaxHeight>
 
                 <LinearLayout
                     android:id="@+id/result_weight_linear_layout"
