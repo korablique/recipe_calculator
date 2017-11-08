@@ -13,8 +13,4 @@
         <item name="android:textColorSecondary">@android:color/white</item>
     </style>
 
-    <style name="NutritionProgressBar" parent="Theme.AppCompat.Light">
-        <item name="colorAccent">@color/colorAccent</item>
-    </style>
-
 </resources>
