@@ -5,8 +5,8 @@
 
     <ProgressBar
         android:id="@+id/progress_bar"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:theme="@style/NutritionProgressBar"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:progressDrawable="@drawable/progress_drawable"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:indeterminate="false"
