@@ -89,11 +89,9 @@ public class HistoryActivity extends MyActivity {
                 userParameters.getFormula());
         recyclerView = findViewById(R.id.recycler_view);
         adapter = new HistoryAdapter(
+                this,
                 adapterObserver,
-                rates.getCalories(),
-                rates.getProtein(),
-                rates.getFats(),
-                rates.getCarbs());
+                rates);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(adapter);

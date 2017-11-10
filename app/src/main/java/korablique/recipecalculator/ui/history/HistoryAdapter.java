@@ -1,5 +1,6 @@
 package korablique.recipecalculator.ui.history;
 
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,37 +14,30 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Formatter;
 import java.util.List;
+import java.util.Locale;
 
-import korablique.recipecalculator.model.Foodstuff;
-import korablique.recipecalculator.ui.FoodstuffViewHolder;
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.HistoryEntry;
+import korablique.recipecalculator.model.Rates;
+import korablique.recipecalculator.ui.FoodstuffViewHolder;
 
 
 public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public interface Observer {
         void onItemClicked(Foodstuff foodstuff, int displayedPosition);
     }
-    public static final int ITEM_TYPE_PROGRESS = 0;
-    public static final int ITEM_TYPE_FOODSTUFF = 1;
-    public List<Data> data = new ArrayList<>();
+    private static final int ITEM_TYPE_PROGRESS = 0;
+    private static final int ITEM_TYPE_FOODSTUFF = 1;
+    private Context context;
+    private List<Data> data = new ArrayList<>();
     private Observer observer;
-    private float calorieRate;
-    private float proteinRate;
-    private float fatRate;
-    private float carbRate;
+    private Rates rates;
 
-    public HistoryAdapter(
-            Observer observer,
-            float calorieRate,
-            float proteinRate,
-            float fatRate,
-            float carbRate) {
+    public HistoryAdapter(Context context, Observer observer, Rates rates) {
+        this.context = context;
         this.observer = observer;
-        this.calorieRate = calorieRate;
-        this.proteinRate = proteinRate;
-        this.fatRate = fatRate;
-        this.carbRate = carbRate;
+        this.rates = rates;
     }
 
     public interface Data {}
@@ -92,13 +86,16 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             LinearLayout item = ((FoodstuffViewHolder)holder).getItem();
             final Foodstuff foodstuff = ((FoodstuffData) getItem(position)).getHistoryEntry().getFoodstuff();
             double weight = foodstuff.getWeight();
-            Formatter formatter = new Formatter();
-            formatter.format("%s, %.0fг", foodstuff.getName(), foodstuff.getWeight());
-            setTextViewText(item, R.id.name, formatter.toString());
-            setTextViewText(item, R.id.protein, foodstuff.getProtein() * weight * 0.01);
-            setTextViewText(item, R.id.fats, foodstuff.getFats() * weight * 0.01);
-            setTextViewText(item, R.id.carbs, foodstuff.getCarbs() * weight * 0.01);
-            setTextViewText(item, R.id.calories, foodstuff.getCalories() * weight * 0.01);
+            setTextViewText(item, R.id.name, context.getString(
+                    R.string.foodstuff_name_and_weight, foodstuff.getName(), foodstuff.getWeight()));
+            setTextViewText(item, R.id.protein, context.getString(
+                    R.string.two_digits_precision_float, foodstuff.getProtein() * weight * 0.01));
+            setTextViewText(item, R.id.fats, context.getString(
+                    R.string.two_digits_precision_float, foodstuff.getFats() * weight * 0.01));
+            setTextViewText(item, R.id.carbs, context.getString(
+                    R.string.two_digits_precision_float, foodstuff.getCarbs() * weight * 0.01));
+            setTextViewText(item, R.id.calories, context.getString(
+                    R.string.two_digits_precision_float, foodstuff.getCalories() * weight * 0.01));
             item.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -122,7 +119,6 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                     break;
                 }
             }
-            // TODO: 05.08.17 сделать так, чтобы фудстафф отображал бжук на количество съеденного, а не на 100 г
             // умножить бжук на массу съеденного продукта
             // сложить с остальными
             double ateProtein = 0, ateFats = 0, ateCarbs = 0, ateCalories = 0;
@@ -136,10 +132,14 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             }
             // изменить числа в прогресс барах
             LinearLayout nutritionLayout = ((ProgressViewHolder) holder).getItem();
-            setProgressBarValue(nutritionLayout.findViewById(R.id.protein_progress), ateProtein, proteinRate);
-            setProgressBarValue(nutritionLayout.findViewById(R.id.fat_progress), ateFats, fatRate);
-            setProgressBarValue(nutritionLayout.findViewById(R.id.carbs_progress), ateCarbs, carbRate);
-            setProgressBarValue(nutritionLayout.findViewById(R.id.calories_progress), ateCalories, calorieRate);
+            setProgressBarValue(nutritionLayout.findViewById(R.id.protein_progress),
+                    ateProtein, rates.getProtein());
+            setProgressBarValue(nutritionLayout.findViewById(R.id.fat_progress),
+                    ateFats, rates.getFats());
+            setProgressBarValue(nutritionLayout.findViewById(R.id.carbs_progress),
+                    ateCarbs, rates.getCarbs());
+            setProgressBarValue(nutritionLayout.findViewById(R.id.calories_progress),
+                    ateCalories, rates.getCalories());
         }
     }
 

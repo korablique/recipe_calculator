@@ -22,7 +22,7 @@ public class FoodstuffsAdapterTest {
 
     @Before
     public void setUp() {
-        adapter = new FoodstuffsAdapter(new FoodstuffsAdapter.Observer() {
+        adapter = new FoodstuffsAdapter(RuntimeEnvironment.application, new FoodstuffsAdapter.Observer() {
             @Override
             public void onItemClicked(Foodstuff foodstuff, int position) {
             }
