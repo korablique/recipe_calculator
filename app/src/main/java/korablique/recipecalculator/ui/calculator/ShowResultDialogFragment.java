@@ -17,11 +17,9 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.util.Formatter;
-
+import korablique.recipecalculator.R;
 import korablique.recipecalculator.database.FoodstuffsDbHelper;
 import korablique.recipecalculator.ui.KeyboardHandler;
-import korablique.recipecalculator.R;
 
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_CALORIES;
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_CARBS;
@@ -41,18 +39,12 @@ public class ShowResultDialogFragment extends DialogFragment {
         final double fatsPer100Gram = getArguments().getDouble(CalculatorActivity.FATS);
         final double carbsPer100Gram = getArguments().getDouble(CalculatorActivity.CARBS);
         final double caloriesPer100Gram = getArguments().getDouble(CalculatorActivity.CALORIES);
-        Formatter formatter = new Formatter();
-        formatter.format("Масса готового продукта - %.1f грамм\n"
-                        + "Белки - %.2f\n"
-                        + "Жиры - %.2f\n"
-                        + "Углеводы - %.2f\n"
-                        + "Калорийность - %.2f\n",
+        String dialogText = getString(R.string.calc_result_dialog_text,
                 resultWeight,
                 proteinPer100Gram,
                 fatsPer100Gram,
                 carbsPer100Gram,
                 caloriesPer100Gram);
-
         ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -63,7 +55,7 @@ public class ShowResultDialogFragment extends DialogFragment {
         recipeName.setHint(R.string.recipe_name);
         layout.addView(recipeName);
         TextView result = new TextView(getContext());
-        result.setText(formatter.toString());
+        result.setText(dialogText);
         layout.addView(result);
 
         builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
@@ -76,16 +68,15 @@ public class ShowResultDialogFragment extends DialogFragment {
                 public void onClick(DialogInterface dialog, int which) {
                     ContentValues values = new ContentValues();
                     values.put(COLUMN_NAME_FOODSTUFF_NAME, recipeName.getText().toString());
-                    //заменяем запятую на точку, иначе не распарсится (будет NumberFormatException):
-                    values.put(COLUMN_NAME_PROTEIN, Double.parseDouble(String.format("%.2f", proteinPer100Gram).replace(',', '.')));
-                    values.put(COLUMN_NAME_FATS, Double.parseDouble(String.format("%.2f", fatsPer100Gram).replace(',', '.')));
-                    values.put(COLUMN_NAME_CARBS, Double.parseDouble(String.format("%.2f", carbsPer100Gram).replace(',', '.')));
-                    values.put(COLUMN_NAME_CALORIES, Double.parseDouble(String.format("%.2f", caloriesPer100Gram).replace(',', '.')));
+                    values.put(COLUMN_NAME_PROTEIN, proteinPer100Gram);
+                    values.put(COLUMN_NAME_FATS, fatsPer100Gram);
+                    values.put(COLUMN_NAME_CARBS, carbsPer100Gram);
+                    values.put(COLUMN_NAME_CALORIES, caloriesPer100Gram);
                     FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(getContext());
                     SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
                     database.insert(FOODSTUFFS_TABLE_NAME, null, values);
-                    Snackbar.make(getActivity().findViewById(android.R.id.content), "Продукт сохранён", Snackbar.LENGTH_SHORT)
-                            .show();
+                    Snackbar.make(getActivity().findViewById(android.R.id.content),
+                            "Продукт сохранён", Snackbar.LENGTH_SHORT).show();
                 }
             });
         builder.setView(layout);

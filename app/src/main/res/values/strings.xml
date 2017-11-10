@@ -29,6 +29,13 @@
     <string name="physical_activity">Коэффициент физической активности:</string>
     <string name="formula">Формула:</string>
     <string name="set_goal">Настройка цели</string>
+    <string name="calc_result_dialog_text">Масса готового продукта - %1$.1f грамм\n
+        Белки - %2$.2f\n
+        Жиры - %3$.2f\n
+        Углеводы - %4$.2f\n
+        Калорийность - %5$.2f\n</string>
+    <string name="foodstuff_name_and_weight">%1$s, %2$.0f г</string>
+    <string name="two_digits_precision_float">%1$.2f</string>
 
     <string-array name="goals_array">
         <item name="losing_weight">Похудение</item>

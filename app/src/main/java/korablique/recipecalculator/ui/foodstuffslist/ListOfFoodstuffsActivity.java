@@ -130,7 +130,7 @@ public class ListOfFoodstuffsActivity extends MyActivity {
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(layoutManager);
 
-        recyclerViewAdapter = new FoodstuffsAdapter(observer);
+        recyclerViewAdapter = new FoodstuffsAdapter(this, observer);
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(),
                 layoutManager.getOrientation());
         recyclerView.addItemDecoration(dividerItemDecoration);

@@ -60,7 +60,7 @@ public class CalculatorActivity extends MyActivity {
             }
         }
     };
-    private FoodstuffsAdapter foodstuffsAdapter = new FoodstuffsAdapter(adapterObserver);
+    private FoodstuffsAdapter foodstuffsAdapter = new FoodstuffsAdapter(this, adapterObserver);
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -237,7 +237,7 @@ public class CalculatorActivity extends MyActivity {
 
         double recipeProteinPer100Gram, recipeFatsPer100Gram, recipeCarbsPer100Gram, recipeCaloriesPer100Gram;
 
-        EditText resultWeightEditText = (EditText) findViewById(R.id.result_weight_edit_text);
+        EditText resultWeightEditText = findViewById(R.id.result_weight_edit_text);
         double resultWeight;
         if (!resultWeightEditText.getText().toString().isEmpty()) {
             resultWeight = Double.parseDouble(resultWeightEditText.getText().toString());

@@ -1,5 +1,6 @@
 package korablique.recipecalculator.ui;
 
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,12 +20,14 @@ public class FoodstuffsAdapter extends RecyclerView.Adapter<FoodstuffViewHolder>
         void onItemClicked(Foodstuff foodstuff, int displayedPosition);
         void onItemsCountChanged(int count);
     }
+    private Context context;
     private List<Foodstuff> allFoodstuffs = new ArrayList<>();
     private List<Foodstuff> filteredFoodstuffs = new ArrayList<>();
     private Observer observer;
     private String memorizedFilter = "";
 
-    public FoodstuffsAdapter(Observer observer) {
+    public FoodstuffsAdapter(Context context, Observer observer) {
+        this.context = context;
         this.observer = observer;
     }
 
@@ -40,9 +43,9 @@ public class FoodstuffsAdapter extends RecyclerView.Adapter<FoodstuffViewHolder>
         LinearLayout item = holder.getItem();
         final Foodstuff foodstuff = getItem(displayedPosition);
         if (foodstuff.getWeight() != -1) {
-            Formatter formatter = new Formatter();
-            formatter.format("%s, %.0fг", foodstuff.getName(), foodstuff.getWeight());
-            ((TextView) item.findViewById(R.id.name)).setText(formatter.toString());
+            String foodstuffNameAndWeight = context.getString(
+                    R.string.foodstuff_name_and_weight, foodstuff.getName(), foodstuff.getWeight());
+            ((TextView) item.findViewById(R.id.name)).setText(foodstuffNameAndWeight);
         } else {
             ((TextView) item.findViewById(R.id.name)).setText(foodstuff.getName());
         }
