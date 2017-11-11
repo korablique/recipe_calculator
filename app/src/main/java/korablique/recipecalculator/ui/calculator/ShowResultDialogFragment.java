@@ -107,6 +107,7 @@ public class ShowResultDialogFragment extends DialogFragment {
 
     @Override
     public void onDismiss(DialogInterface dialog) {
+        super.onDismiss(dialog);
         new KeyboardHandler(getActivity()).hideKeyBoard();
     }
 }
