@@ -69,8 +69,7 @@ public class UserGoalActivity extends BaseActivity {
                 int weight = Integer.parseInt(((EditText) findViewById(R.id.weight_edit_text)).getText().toString());
 
                 String physicalActivityString = (String) physicalActivitySpinner.getSelectedItem();
-                String coefficientString = physicalActivityString.substring(0, physicalActivityString.indexOf(" "))
-                        .replace(',', '.');
+                String coefficientString = physicalActivityString.replace(',', '.');
                 float coefficient = Float.parseFloat(coefficientString);
                 String defaultFormula = getResources().getStringArray(R.array.formula_array)[0];
                 UserParameters userParameters = new UserParameters(
