@@ -20,13 +20,13 @@
     <string name="per_100_g">(на 100 грамм)</string>
     <string name="history">История</string>
     <string name="pref_first_start_of_history">is it the first start of HistoryActivity</string>
-    <string name="welcome">Добро пожаловать! Для начала давайте рассчитаем вашу потребность в калориях и БЖУ исходя из ваших целей.</string>
+    <string name="welcome">Добро пожаловать! Для начала укажите информацию о себе для рассчёта нормы калорий и БЖУ.</string>
     <string name="goal">Цель:</string>
     <string name="gender">Пол:</string>
     <string name="age">Возраст:</string>
     <string name="height">Рост (см):</string>
     <string name="weight">Вес (кг):</string>
-    <string name="physical_activity">Коэффициент физической активности:</string>
+    <string name="physical_activity">Коэффициент физ. активности:</string>
     <string name="formula">Формула:</string>
     <string name="set_goal">Настройка цели</string>
     <string name="calc_result_dialog_text">Масса готового продукта - %1$.1f грамм\n
@@ -36,24 +36,33 @@
         Калорийность - %5$.2f\n</string>
     <string name="foodstuff_name_and_weight">%1$s, %2$.0f г</string>
     <string name="two_digits_precision_float">%1$.2f</string>
+    <string name="user_goal_finish_button_text">далее</string>
 
     <string-array name="goals_array">
         <item name="losing_weight">Похудение</item>
-        <item name="maintaining_current_weight">Поддержание текущего веса</item>
+        <item name="maintaining_current_weight">Поддержка</item>
         <item name="mass_gathering">Массонабор</item>
     </string-array>
 
     <string-array name="gender_array">
-        <item name="male">Мужской</item>
-        <item name="female">Женский</item>
+        <item name="male">М</item>
+        <item name="female">Ж</item>
     </string-array>
 
     <string-array name="physical_activity_array">
-        <item name="passive_lifestyle">1,2 (сидячий образ жизни)</item>
-        <item name="insignificant_activity">1,375 (незначительная активность: неторопливые прогулки 30-50 мин 3-4 раза/нед., домашние дела, легкие тренировки)</item>
-        <item name="medium_loads">1,55 (умеренные нагрузки 3-5 дней/нед., 60-70% максимальной частоты пульса 30-60 мин)</item>
-        <item name="active_lifestyle">1,725 (активный образ жизни: нагрузки высокой интенсивности 70-85% максимальной частоты пульса 45-60 мин, 6-7 дней/нед.)</item>
-        <item name="professional_sports">1,9 (для чрезвычайно активных людей, работников тяжелого физического труда, профессиональных спортсменов, нагрузка свыше 90 минут, 6-7 дней/нед.)</item>
+        <item name="passive_lifestyle">1,2</item>
+        <item name="insignificant_activity">1,375</item>
+        <item name="medium_loads">1,55</item>
+        <item name="active_lifestyle">1,725</item>
+        <item name="professional_sports">1,9</item>
+    </string-array>
+
+    <string-array name="physical_activity_description_array">
+        <item name="passive_lifestyle">Cидячий образ жизни</item>
+        <item name="insignificant_activity">Умеренная активность (легкие физические нагрузки либо занятия 1–3 раз в неделю)</item>
+        <item name="medium_loads">Средняя активность (занятия 3–5 раз в неделю)</item>
+        <item name="active_lifestyle">Высокая активность (интенсивные нагрузки, занятия 6–7 раз в неделю)</item>
+        <item name="professional_sports">Спортсмены и работники тяжелого физического труда</item>
     </string-array>
 
     <string-array name="formula_array">

@@ -3,9 +3,12 @@ package korablique.recipecalculator.ui.usergoal;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import com.crashlytics.android.Crashlytics;
 
@@ -36,17 +39,27 @@ public class UserGoalActivity extends MyActivity {
 
         final Spinner physicalActivitySpinner = findViewById(R.id.physical_activity_spinner);
         ArrayAdapter<CharSequence> physicalActivityAdapter = ArrayAdapter.createFromResource(this,
-                R.array.physical_activity_array, R.layout.long_spinner_item);
-        physicalActivityAdapter.setDropDownViewResource(R.layout.long_spinner_item);
+                R.array.physical_activity_array, android.R.layout.simple_spinner_item);
+        physicalActivityAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         physicalActivitySpinner.setAdapter(physicalActivityAdapter);
+        physicalActivitySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String description = getResources().getStringArray(
+                        R.array.physical_activity_description_array)[position];
+                ((TextView) findViewById(R.id.activity_coefficient_description)).setText(description);
+            }
 
-        final Spinner formulaSpinner = findViewById(R.id.formula_spinner);
-        ArrayAdapter<CharSequence> formulaAdapter = ArrayAdapter.createFromResource(this,
-                R.array.formula_array, android.R.layout.simple_spinner_item);
-        formulaAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        formulaSpinner.setAdapter(formulaAdapter);
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                ((TextView) findViewById(R.id.activity_coefficient_description)).setText("");
+            }
+        });
 
-        findViewById(R.id.calculate_nutrition_button).setOnClickListener(new View.OnClickListener() {
+        Button finishButton = findViewById(R.id.calculate_button);
+        finishButton.setText(R.string.user_goal_finish_button_text);
+
+        finishButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 String selectedGoal = (String) goalSpinner.getSelectedItem();
@@ -54,14 +67,14 @@ public class UserGoalActivity extends MyActivity {
                 int age = Integer.parseInt(((EditText) findViewById(R.id.age_edit_text)).getText().toString());
                 int height = Integer.parseInt(((EditText) findViewById(R.id.height_edit_text)).getText().toString());
                 int weight = Integer.parseInt(((EditText) findViewById(R.id.weight_edit_text)).getText().toString());
-                String selectedFormula = (String) formulaSpinner.getSelectedItem();
 
                 String physicalActivityString = (String) physicalActivitySpinner.getSelectedItem();
                 String coefficientString = physicalActivityString.substring(0, physicalActivityString.indexOf(" "))
                         .replace(',', '.');
                 float coefficient = Float.parseFloat(coefficientString);
+                String defaultFormula = getResources().getStringArray(R.array.formula_array)[0];
                 UserParameters userParameters = new UserParameters(
-                        selectedGoal, selectedGender, age, height, weight, coefficient, selectedFormula);
+                        selectedGoal, selectedGender, age, height, weight, coefficient, defaultFormula);
                 DatabaseWorker.getInstance().saveUserParameters(
                         UserGoalActivity.this, userParameters, new Runnable() {
                             @Override

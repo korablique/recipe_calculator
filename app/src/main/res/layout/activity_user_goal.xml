@@ -10,7 +10,8 @@
 
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:padding="16dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -20,153 +21,127 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
                 android:text="@string/welcome" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <!--возраст-->
+                <android.support.design.widget.TextInputLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+
+                    <EditText
+                        android:id="@+id/age_edit_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:hint="@string/age"
+                        android:inputType="number" />
+                </android.support.design.widget.TextInputLayout>
+
+                <!--рост-->
+                <android.support.design.widget.TextInputLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+
+                <EditText
+                    android:id="@+id/height_edit_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:hint="@string/height"
+                    android:inputType="number" />
+                </android.support.design.widget.TextInputLayout>
+
+                <!--вес-->
+                <android.support.design.widget.TextInputLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+
+                    <EditText
+                        android:id="@+id/weight_edit_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:hint="@string/weight"
+                        android:inputType="number" />
+                </android.support.design.widget.TextInputLayout>
+            </LinearLayout>
+
+            <!--пол-->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:text="@string/gender"/>
+                <Spinner
+                    android:id="@+id/gender_spinner"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceSmall" />
+            </LinearLayout>
 
             <!--цель-->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="8dp"
                 android:orientation="horizontal">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginRight="5dp"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
                     android:text="@string/goal" />
                 <Spinner
                     android:id="@+id/goal_spinner"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-            </LinearLayout>
-
-            <!--пол-->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginRight="5dp"
-                    android:text="@string/gender"/>
-                <Spinner
-                    android:id="@+id/gender_spinner"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-            </LinearLayout>
-
-            <!--возраст-->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginRight="5dp"
-                    android:text="@string/age"/>
-                <EditText
-                    android:id="@+id/age_edit_text"
-                    android:layout_width="50dp"
-                    android:layout_height="wrap_content"
-                    android:inputType="number"/>
-            </LinearLayout>
-
-            <!--рост-->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginRight="5dp"
-                    android:text="@string/height"/>
-                <EditText
-                    android:id="@+id/height_edit_text"
-                    android:layout_width="50dp"
-                    android:layout_height="wrap_content"
-                    android:inputType="number"/>
-            </LinearLayout>
-
-            <!--вес-->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginRight="5dp"
-                    android:text="@string/weight"/>
-                <EditText
-                    android:id="@+id/weight_edit_text"
-                    android:layout_width="50dp"
-                    android:layout_height="wrap_content"
-                    android:inputType="number"/>
+                    android:textAppearance="?android:attr/textAppearanceSmall" />
             </LinearLayout>
 
             <!--коэффициент физический активности-->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
                 android:orientation="horizontal">
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginRight="5dp"
-                    android:text="@string/physical_activity"/>
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:text="@string/physical_activity" />
 
                 <Spinner
                     android:id="@+id/physical_activity_spinner"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="2"
-                    android:layout_gravity="bottom"/>
+                    android:textAppearance="?android:attr/textAppearanceSmall" />
             </LinearLayout>
 
-            <!--формула-->
-            <LinearLayout
+            <TextView
+                android:id="@+id/activity_coefficient_description"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginRight="5dp"
-                    android:text="@string/formula"/>
-
-                <Spinner
-                    android:id="@+id/formula_spinner"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="2"
-                    android:layout_gravity="bottom"/>
-            </LinearLayout>
-
-            <Button
-                android:id="@+id/calculate_nutrition_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/count"/>
+                android:textColor="@color/colorDivider" />
         </LinearLayout>
-
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="5dp"
-            android:src="@drawable/shadow_top"
-            android:scaleType="fitXY"
-            android:rotation="180" />
     </FrameLayout>
+
+    <include
+        layout="@layout/calculate_button_layout" />
 </LinearLayout>
