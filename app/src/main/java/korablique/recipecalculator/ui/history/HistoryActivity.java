@@ -22,7 +22,7 @@ import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.ui.KeyboardHandler;
 import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
-import korablique.recipecalculator.ui.MyActivity;
+import korablique.recipecalculator.ui.BaseActivity;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.RateCalculator;
 import korablique.recipecalculator.model.Rates;
@@ -34,7 +34,7 @@ import static korablique.recipecalculator.IntentConstants.NAME;
 import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
 
 
-public class HistoryActivity extends MyActivity {
+public class HistoryActivity extends BaseActivity {
     private Card card;
     private int editedFoodstuffPosition;
     private CardDisplaySource cardDisplaySource;

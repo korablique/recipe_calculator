@@ -25,7 +25,7 @@ import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.ui.FoodstuffsAdapter;
 import korablique.recipecalculator.ui.KeyboardHandler;
 import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
-import korablique.recipecalculator.ui.MyActivity;
+import korablique.recipecalculator.ui.BaseActivity;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.ui.RecyclerViewUtils;
 
@@ -33,7 +33,7 @@ import static korablique.recipecalculator.IntentConstants.FIND_FOODSTUFF_REQUEST
 import static korablique.recipecalculator.IntentConstants.NAME;
 import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
 
-public class CalculatorActivity extends MyActivity {
+public class CalculatorActivity extends BaseActivity {
     public static final String WEIGHT = "WEIGHT";
     public static final String PROTEIN = "PROTEIN";
     public static final String FATS = "FATS";

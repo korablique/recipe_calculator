@@ -20,7 +20,7 @@ import korablique.recipecalculator.ui.calculator.CalculatorActivity;
 import korablique.recipecalculator.ui.history.HistoryActivity;
 import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
 
-public abstract class MyActivity extends AppCompatActivity {
+public abstract class BaseActivity extends AppCompatActivity {
     private Drawer drawer;
 
     @Override
@@ -46,7 +46,7 @@ public abstract class MyActivity extends AppCompatActivity {
                 .withOnDrawerNavigationListener(new Drawer.OnDrawerNavigationListener() {
                     @Override
                     public boolean onNavigationClickListener(View clickedView) {
-                        MyActivity.this.finish();
+                        BaseActivity.this.finish();
                         return true;
                     }
                 });
@@ -58,8 +58,8 @@ public abstract class MyActivity extends AppCompatActivity {
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
                     @Override
                     public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
-                        Intent intent = new Intent(MyActivity.this, CalculatorActivity.class);
-                        MyActivity.this.startActivity(intent);
+                        Intent intent = new Intent(BaseActivity.this, CalculatorActivity.class);
+                        BaseActivity.this.startActivity(intent);
                         return true;
                     }
                 });
@@ -70,8 +70,8 @@ public abstract class MyActivity extends AppCompatActivity {
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
                     @Override
                     public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
-                        Intent intent = new Intent(MyActivity.this, ListOfFoodstuffsActivity.class);
-                        MyActivity.this.startActivity(intent);
+                        Intent intent = new Intent(BaseActivity.this, ListOfFoodstuffsActivity.class);
+                        BaseActivity.this.startActivity(intent);
                         return false;
                     }
                 });
@@ -81,8 +81,8 @@ public abstract class MyActivity extends AppCompatActivity {
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
                     @Override
                     public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
-                        Intent intent = new Intent(MyActivity.this, HistoryActivity.class);
-                        MyActivity.this.startActivity(intent);
+                        Intent intent = new Intent(BaseActivity.this, HistoryActivity.class);
+                        BaseActivity.this.startActivity(intent);
                         return true;
                     }
                 });

@@ -13,12 +13,12 @@ import android.widget.TextView;
 import com.crashlytics.android.Crashlytics;
 
 import korablique.recipecalculator.database.DatabaseWorker;
-import korablique.recipecalculator.ui.MyActivity;
+import korablique.recipecalculator.ui.BaseActivity;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.ui.history.HistoryActivity;
 
-public class UserGoalActivity extends MyActivity {
+public class UserGoalActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

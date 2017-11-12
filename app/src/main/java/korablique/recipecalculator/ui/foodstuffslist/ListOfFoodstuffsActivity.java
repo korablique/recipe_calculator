@@ -25,13 +25,13 @@ import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.ui.FoodstuffsAdapter;
 import korablique.recipecalculator.ui.KeyboardHandler;
-import korablique.recipecalculator.ui.MyActivity;
+import korablique.recipecalculator.ui.BaseActivity;
 import korablique.recipecalculator.R;
 
 import static korablique.recipecalculator.IntentConstants.NAME;
 import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
 
-public class ListOfFoodstuffsActivity extends MyActivity {
+public class ListOfFoodstuffsActivity extends BaseActivity {
     private Card card;
     private FoodstuffsAdapter recyclerViewAdapter;
     private int editedFoodstuffPosition;
