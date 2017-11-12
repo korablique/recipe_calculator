@@ -78,6 +78,7 @@ public abstract class BaseActivity extends AppCompatActivity {
         IDrawerItem itemPrimary3 = new PrimaryDrawerItem()
                 .withName(R.string.history)
                 .withSelectable(false)
+                .withIcon(R.drawable.ic_history_24dp)
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
                     @Override
                     public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
