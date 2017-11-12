@@ -337,11 +337,14 @@ public class Card {
 
     private void setFocusable(EditText editText, boolean focusable) {
         if (!focusable) {
-            editText.setTag(editText.getKeyListener());
+            if (editText.getKeyListener() != null) {
+                editText.setTag(editText.getKeyListener());
+            }
             editText.setKeyListener(null);
         } else {
-            if (editText.getTag() != null)
+            if (editText.getTag() != null) {
                 editText.setKeyListener((KeyListener) editText.getTag());
+            }
         }
     }
 }
