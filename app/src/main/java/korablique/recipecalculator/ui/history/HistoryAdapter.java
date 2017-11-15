@@ -260,8 +260,8 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     private void setProgressBarValue(View layout, double currentValue, double maxValue) {
         ProgressBar progressBar = layout.findViewById(R.id.progress_bar);
-        progressBar.setProgress((int) Math.round(currentValue));
         progressBar.setMax((int) Math.round(maxValue));
+        progressBar.setProgress((int) Math.round(currentValue));
 
         Formatter formatter = new Formatter();
         formatter.format("%.1f/%.1f", currentValue, maxValue);
