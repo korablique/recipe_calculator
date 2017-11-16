@@ -244,6 +244,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         } else {
             data.remove(displayedPosition);
             notifyItemRemoved(displayedPosition);
+            notifyItemChanged(requiredDateIndex);
         }
     }
 
