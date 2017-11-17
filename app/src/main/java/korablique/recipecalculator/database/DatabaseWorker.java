@@ -263,7 +263,34 @@ public class DatabaseWorker {
             public void run() {
                 FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
                 SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-                database.delete(HISTORY_TABLE_NAME, HistoryContract.ID + " = ?", new String[]{String.valueOf(historyId)});
+                database.delete(
+                        HISTORY_TABLE_NAME,
+                        HistoryContract.ID + " = ?",
+                        new String[]{String.valueOf(historyId)});
+            }
+        });
+    }
+
+    public void editWeightInHistoryEntry(
+            final Context context,
+            final long historyId,
+            final double newWeight,
+            final Runnable callback) {
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+                SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+                ContentValues values = new ContentValues();
+                values.put(COLUMN_NAME_WEIGHT, newWeight);
+                database.update(
+                        HISTORY_TABLE_NAME,
+                        values,
+                        HistoryContract.ID + "=?",
+                        new String[]{String.valueOf(historyId)});
+                if (callback != null) {
+                    callback.run();
+                }
             }
         });
     }
