@@ -15,6 +15,7 @@ import com.tapadoo.alerter.Alerter;
 import java.util.ArrayList;
 import java.util.Date;
 
+import korablique.recipecalculator.FloatUtils;
 import korablique.recipecalculator.model.HistoryEntry;
 import korablique.recipecalculator.ui.Card;
 import korablique.recipecalculator.ui.CardDisplaySource;
@@ -47,8 +48,8 @@ public class HistoryActivity extends BaseActivity {
             cardDisplaySource = CardDisplaySource.FoodstuffClicked;
             card.displayForFoodstuff(foodstuff, foodstuff);
             card.setFocusableExceptWeight(false);
-            card.setFocusableWeight(false);
-            card.setButtonsVisible(false, Card.ButtonType.OK, Card.ButtonType.SAVE, Card.ButtonType.SEARCH);
+            card.setFocusableWeight(true);
+            card.setButtonsVisible(false, Card.ButtonType.SAVE, Card.ButtonType.SEARCH);
         }
     };
 
@@ -160,10 +161,21 @@ public class HistoryActivity extends BaseActivity {
                     }
                     recyclerView.smoothScrollToPosition(1); //т к новый продукт добавляется в текущую дату
                 } else {
-                    // TODO: 29.09.17 сделать возможным редактирование записи в истории
-                    //adapter.replaceItem(foodstuff, editedFoodstuffPosition);
+                    // значит, пользователь щёлкнул на уже добавленный продукт
+                    Foodstuff foodstuffFromDb = (Foodstuff) card.getCurrentCustomPayload();
+                    double weight = foodstuffFromDb.getWeight();
+                    double newWeight = foodstuff.getWeight();
+                    if (!FloatUtils.areFloatsEquals(weight, newWeight)) {
+                        HistoryEntry historyEntry =
+                                ((HistoryAdapter.FoodstuffData) adapter.getItem(editedFoodstuffPosition))
+                                .getHistoryEntry();
+                        HistoryEntry newEntry = new HistoryEntry(
+                                historyEntry.getHistoryId(), foodstuff, historyEntry.getTime());
+                        adapter.replaceItem(newEntry, editedFoodstuffPosition);
+                        DatabaseWorker.getInstance().editWeightInHistoryEntry(
+                                HistoryActivity.this, newEntry.getHistoryId(), newWeight, null);
+                    }
                     recyclerView.smoothScrollToPosition(editedFoodstuffPosition);
-                    throw new UnsupportedOperationException("Не редактируй!");
                 }
 
                 card.hide();
@@ -323,5 +335,9 @@ public class HistoryActivity extends BaseActivity {
         } else {
             Crashlytics.log("getSupportActionBar вернул null");
         }
+    }
+
+    public Card getCard() {
+        return card;
     }
 }

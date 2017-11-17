@@ -16,16 +16,15 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 
-import korablique.recipecalculator.ui.calculator.CalculatorActivity;
-import korablique.recipecalculator.database.DatabaseWorker;
-import korablique.recipecalculator.database.FoodstuffsDbHelper;
-import korablique.recipecalculator.model.HistoryEntry;
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.HistoryEntry;
+import korablique.recipecalculator.ui.calculator.CalculatorActivity;
 
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_IS_LISTED;
 import static korablique.recipecalculator.database.FoodstuffsContract.FOODSTUFFS_TABLE_NAME;
 import static korablique.recipecalculator.database.HistoryContract.COLUMN_NAME_DATE;
 import static korablique.recipecalculator.database.HistoryContract.COLUMN_NAME_FOODSTUFF_ID;
+import static korablique.recipecalculator.database.HistoryContract.COLUMN_NAME_WEIGHT;
 import static korablique.recipecalculator.database.HistoryContract.HISTORY_TABLE_NAME;
 
 @RunWith(AndroidJUnit4.class)
@@ -170,6 +169,50 @@ public class DatabaseWorkerTest {
         Assert.assertEquals(1, historyList.size());
         Assert.assertEquals(historyList.get(0).getFoodstuff().getId(), foodstuff.getId());
         Assert.assertEquals(historyList.get(0).getTime(), date);
+    }
+
+    @Test
+    public void updatesFoodstuffWeightInDb() throws InterruptedException {
+        FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(mActivityRule.getActivity());
+        SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+        database.delete(HISTORY_TABLE_NAME, null, null);
+        Cursor cursor = database.rawQuery("SELECT * FROM " + HISTORY_TABLE_NAME, null);
+        Assert.assertTrue(cursor.getCount() == 0);
+        cursor.close();
+
+        final CountDownLatch mutex = new CountDownLatch(1);
+        DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
+        Foodstuff foodstuff = getAnyFoodstuffFromDb();
+        double weight = 100;
+        Date date = new Date();
+        final long[] historyId = new long[1];
+        databaseWorker.saveFoodstuffToHistory(
+                mActivityRule.getActivity(), date, foodstuff.getId(), weight, new DatabaseWorker.AddHistoryEntryCallback() {
+                    @Override
+                    public void onResult(long historyEntryId) {
+                        historyId[0] = historyEntryId;
+                        mutex.countDown();
+                    }
+                });
+        mutex.await();
+
+        final CountDownLatch mutex2 = new CountDownLatch(1);
+        double newWeight = 200;
+        databaseWorker.editWeightInHistoryEntry(mActivityRule.getActivity(), historyId[0], 200, new Runnable() {
+            @Override
+            public void run() {
+                mutex2.countDown();
+            }
+        });
+        mutex2.await();
+
+        Cursor cursor2 = database.rawQuery("SELECT * FROM " + HISTORY_TABLE_NAME +
+                " WHERE " + HistoryContract.ID + "=" + historyId[0], null);
+        double updatedWeight = -1;
+        while (cursor2.moveToNext()) {
+            updatedWeight = cursor2.getDouble(cursor2.getColumnIndex(COLUMN_NAME_WEIGHT));
+        }
+        Assert.assertEquals(newWeight, updatedWeight);
     }
 
     public Foodstuff getAnyFoodstuffFromDb() throws InterruptedException {
