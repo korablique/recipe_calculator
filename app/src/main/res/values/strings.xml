@@ -30,12 +30,12 @@
     <string name="formula">Формула:</string>
     <string name="set_goal">Настройка цели</string>
     <string name="calc_result_dialog_text">Масса готового продукта - %1$.1f грамм\n
-        Белки - %2$.2f\n
-        Жиры - %3$.2f\n
-        Углеводы - %4$.2f\n
-        Калорийность - %5$.2f\n</string>
+        Белки - %2$.1f\n
+        Жиры - %3$.1f\n
+        Углеводы - %4$.1f\n
+        Калорийность - %5$.1f\n</string>
     <string name="foodstuff_name_and_weight">%1$s, %2$.0f г</string>
-    <string name="two_digits_precision_float">%1$.2f</string>
+    <string name="one_digit_precision_float">%1$.1f</string>
     <string name="user_goal_finish_button_text">далее</string>
 
     <string-array name="goals_array">

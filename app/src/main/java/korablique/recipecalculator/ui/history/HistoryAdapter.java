@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Formatter;
 import java.util.List;
-import java.util.Locale;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.Foodstuff;
@@ -89,13 +88,13 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             setTextViewText(item, R.id.name, context.getString(
                     R.string.foodstuff_name_and_weight, foodstuff.getName(), foodstuff.getWeight()));
             setTextViewText(item, R.id.protein, context.getString(
-                    R.string.two_digits_precision_float, foodstuff.getProtein() * weight * 0.01));
+                    R.string.one_digit_precision_float, foodstuff.getProtein() * weight * 0.01));
             setTextViewText(item, R.id.fats, context.getString(
-                    R.string.two_digits_precision_float, foodstuff.getFats() * weight * 0.01));
+                    R.string.one_digit_precision_float, foodstuff.getFats() * weight * 0.01));
             setTextViewText(item, R.id.carbs, context.getString(
-                    R.string.two_digits_precision_float, foodstuff.getCarbs() * weight * 0.01));
+                    R.string.one_digit_precision_float, foodstuff.getCarbs() * weight * 0.01));
             setTextViewText(item, R.id.calories, context.getString(
-                    R.string.two_digits_precision_float, foodstuff.getCalories() * weight * 0.01));
+                    R.string.one_digit_precision_float, foodstuff.getCalories() * weight * 0.01));
             item.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
