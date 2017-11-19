@@ -9,7 +9,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Formatter;
 import java.util.List;
 
 import korablique.recipecalculator.model.Foodstuff;
@@ -42,17 +41,25 @@ public class FoodstuffsAdapter extends RecyclerView.Adapter<FoodstuffViewHolder>
     public void onBindViewHolder(final FoodstuffViewHolder holder, int displayedPosition) {
         LinearLayout item = holder.getItem();
         final Foodstuff foodstuff = getItem(displayedPosition);
-        if (foodstuff.getWeight() != -1) {
-            String foodstuffNameAndWeight = context.getString(
-                    R.string.foodstuff_name_and_weight, foodstuff.getName(), foodstuff.getWeight());
-            ((TextView) item.findViewById(R.id.name)).setText(foodstuffNameAndWeight);
+        double weight = foodstuff.getWeight();
+        if (weight != -1) {
+            setTextViewText(item, R.id.name, context.getString(
+                    R.string.foodstuff_name_and_weight, foodstuff.getName(), foodstuff.getWeight()));
+            setNutritions(
+                    item,
+                    foodstuff.getProtein() * weight * 0.01,
+                    foodstuff.getFats() * weight * 0.01,
+                    foodstuff.getCarbs() * weight * 0.01,
+                    foodstuff.getCalories() * weight * 0.01);
         } else {
-            ((TextView) item.findViewById(R.id.name)).setText(foodstuff.getName());
+            setTextViewText(item, R.id.name, foodstuff.getName());
+            setNutritions(
+                    item,
+                    foodstuff.getProtein(),
+                    foodstuff.getFats(),
+                    foodstuff.getCarbs(),
+                    foodstuff.getCalories());
         }
-        ((TextView) item.findViewById(R.id.protein)).setText(String.valueOf(foodstuff.getProtein()));
-        ((TextView) item.findViewById(R.id.fats)).setText(String.valueOf(foodstuff.getFats()));
-        ((TextView) item.findViewById(R.id.carbs)).setText(String.valueOf(foodstuff.getCarbs()));
-        ((TextView) item.findViewById(R.id.calories)).setText(String.valueOf(foodstuff.getCalories()));
         item.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -103,5 +110,20 @@ public class FoodstuffsAdapter extends RecyclerView.Adapter<FoodstuffViewHolder>
             }
         }
         notifyDataSetChanged();
+    }
+
+    private void setNutritions(View foodstuffView, double protein, double fats, double carbs, double calories) {
+        setTextViewText(foodstuffView, R.id.protein, context.getString(
+                R.string.one_digit_precision_float, protein));
+        setTextViewText(foodstuffView, R.id.fats, context.getString(
+                R.string.one_digit_precision_float, fats));
+        setTextViewText(foodstuffView, R.id.carbs, context.getString(
+                R.string.one_digit_precision_float, carbs));
+        setTextViewText(foodstuffView, R.id.calories, context.getString(
+                R.string.one_digit_precision_float, calories));
+    }
+
+    private <T> void setTextViewText(View parent, int viewId, T text) {
+        ((TextView) parent.findViewById(viewId)).setText(text.toString());
     }
 }
