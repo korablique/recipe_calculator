@@ -2,6 +2,7 @@ package korablique.recipecalculator.ui;
 
 import android.animation.ValueAnimator;
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Rect;
 import android.text.method.KeyListener;
 import android.view.LayoutInflater;
@@ -193,10 +194,10 @@ public class Card {
         } else {
             weight = Double.parseDouble(getWeightEditText().getText().toString());
         }
-        double protein = Double.parseDouble(getProteinEditText().getText().toString());
-        double fats = Double.parseDouble(getFatsEditText().getText().toString());
-        double carbs = Double.parseDouble(getCarbsEditText().getText().toString());
-        double calories = Double.parseDouble(getCaloriesEditText().getText().toString());
+        double protein = Double.parseDouble(getProteinEditText().getText().toString().replace(',', '.'));
+        double fats = Double.parseDouble(getFatsEditText().getText().toString().replace(',', '.'));
+        double carbs = Double.parseDouble(getCarbsEditText().getText().toString().replace(',', '.'));
+        double calories = Double.parseDouble(getCaloriesEditText().getText().toString().replace(',', '.'));
         return new Foodstuff(productName, weight, protein, fats, carbs, calories);
     }
 
@@ -309,10 +310,15 @@ public class Card {
         } else {
             getWeightEditText().setText("");
         }
-        getProteinEditText().setText(String.valueOf(newFoodstuff.getProtein()));
-        getFatsEditText().setText(String.valueOf(newFoodstuff.getFats()));
-        getCarbsEditText().setText(String.valueOf(newFoodstuff.getCarbs()));
-        getCaloriesEditText().setText(String.valueOf(newFoodstuff.getCalories()));
+        Context context = cardLayout.getContext();
+        getProteinEditText().setText(context.getString(R.string.one_digit_precision_float,
+                newFoodstuff.getProtein()).replace(',', '.'));
+        getFatsEditText().setText(context.getString(R.string.one_digit_precision_float,
+                newFoodstuff.getFats()).replace(',', '.'));
+        getCarbsEditText().setText(context.getString(R.string.one_digit_precision_float,
+                newFoodstuff.getCarbs()).replace(',', '.'));
+        getCaloriesEditText().setText(context.getString(R.string.one_digit_precision_float,
+                newFoodstuff.getCalories()).replace(',', '.'));
     }
 
     public boolean isDisplayed() {
