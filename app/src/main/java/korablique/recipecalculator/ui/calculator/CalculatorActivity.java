@@ -159,7 +159,7 @@ public class CalculatorActivity extends BaseActivity {
                 DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
                 databaseWorker.saveFoodstuff(CalculatorActivity.this, savingFoodstuff, new DatabaseWorker.SaveFoodstuffCallback() {
                     @Override
-                    public void onResult(final boolean hasAlreadyContainsFoodstuff) {
+                    public void onResult(final boolean hasAlreadyContainsFoodstuff, long id) {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {

@@ -45,7 +45,7 @@ public class DatabaseWorker {
         void onResult(ArrayList<Foodstuff> foodstuffs);
     }
     public interface SaveFoodstuffCallback {
-        void onResult(boolean hasAlreadyContainsFoodstuff);
+        void onResult(boolean hasAlreadyContainsFoodstuff, long id);
     }
     public interface RequestHistoryCallback {
         void onResult(ArrayList<HistoryEntry> historyEntries);
@@ -83,6 +83,7 @@ public class DatabaseWorker {
                         + COLUMN_NAME_CALORIES + " = " + foodstuff.getCalories() + ";", null);
                 //если такого продукта нет в БД:
                 boolean hasAlreadyContainsFoodstuff = false;
+                long id = -1;
                 if (cursor.getCount() == 0) {
                     ContentValues values = new ContentValues();
                     values.put(COLUMN_NAME_FOODSTUFF_NAME, foodstuff.getName());
@@ -90,12 +91,12 @@ public class DatabaseWorker {
                     values.put(COLUMN_NAME_FATS, foodstuff.getFats());
                     values.put(COLUMN_NAME_CARBS, foodstuff.getCarbs());
                     values.put(COLUMN_NAME_CALORIES, foodstuff.getCalories());
-                    database.insert(FOODSTUFFS_TABLE_NAME, null, values);
+                    id = database.insert(FOODSTUFFS_TABLE_NAME, null, values);
                 } else {
                     hasAlreadyContainsFoodstuff = true;
                 }
                 cursor.close();
-                callback.onResult(hasAlreadyContainsFoodstuff);
+                callback.onResult(hasAlreadyContainsFoodstuff, id);
             }
         });
     }
@@ -283,6 +284,30 @@ public class DatabaseWorker {
                 SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
                 ContentValues values = new ContentValues();
                 values.put(COLUMN_NAME_WEIGHT, newWeight);
+                database.update(
+                        HISTORY_TABLE_NAME,
+                        values,
+                        HistoryContract.ID + "=?",
+                        new String[]{String.valueOf(historyId)});
+                if (callback != null) {
+                    callback.run();
+                }
+            }
+        });
+    }
+
+    public void updateFoodstuffIdInHistory(
+            final Context context,
+            final long historyId,
+            final long newFoodstuffId,
+            final Runnable callback) {
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+                SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+                ContentValues values = new ContentValues(1);
+                values.put(COLUMN_NAME_FOODSTUFF_ID, newFoodstuffId);
                 database.update(
                         HISTORY_TABLE_NAME,
                         values,
