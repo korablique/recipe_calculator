@@ -36,12 +36,7 @@ public class DatabaseWorkerTest {
 
     @Test
     public void requestListedFoodstuffsFromDbWorks() throws InterruptedException {
-        FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(mActivityRule.getActivity());
-        SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-        database.delete(FOODSTUFFS_TABLE_NAME, null, null);
-        Cursor cursor = database.rawQuery("SELECT * FROM " + FOODSTUFFS_TABLE_NAME, null);
-        Assert.assertTrue(cursor.getCount() == 0);
-        cursor.close();
+        clearTable(FOODSTUFFS_TABLE_NAME);
 
         final CountDownLatch mutex = new CountDownLatch(4);
         DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
@@ -51,13 +46,13 @@ public class DatabaseWorkerTest {
         Foodstuff foodstuff4 = new Foodstuff("продукт4", 1, 1, 1, 1, 1);
         databaseWorker.saveFoodstuff(mActivityRule.getActivity(), foodstuff1, new DatabaseWorker.SaveFoodstuffCallback() {
             @Override
-            public void onResult(boolean hasAlreadyContainsFoodstuff) {
+            public void onResult(boolean hasAlreadyContainsFoodstuff, long id) {
                 mutex.countDown();
             }
         });
         databaseWorker.saveFoodstuff(mActivityRule.getActivity(), foodstuff2, new DatabaseWorker.SaveFoodstuffCallback() {
             @Override
-            public void onResult(boolean hasAlreadyContainsFoodstuff) {
+            public void onResult(boolean hasAlreadyContainsFoodstuff, long id) {
                 mutex.countDown();
             }
         });
@@ -87,6 +82,8 @@ public class DatabaseWorkerTest {
         });
         mutex2.await();
 
+        FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(mActivityRule.getActivity());
+        SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
         Cursor unlistedFoodstuffs = database.rawQuery(
                 "SELECT * FROM " + FOODSTUFFS_TABLE_NAME + " WHERE " + COLUMN_NAME_IS_LISTED + "=0", null);
         int unlistedFoodstuffsCount = unlistedFoodstuffs.getCount();
@@ -135,12 +132,7 @@ public class DatabaseWorkerTest {
 
     @Test
     public void requestAllHistoryFromDbWorks() throws InterruptedException {
-        FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(mActivityRule.getActivity());
-        SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-        database.delete(HISTORY_TABLE_NAME, null, null);
-        Cursor cursor = database.rawQuery("SELECT * FROM " + HISTORY_TABLE_NAME, null);
-        Assert.assertTrue(cursor.getCount() == 0);
-        cursor.close();
+        clearTable(HISTORY_TABLE_NAME);
 
         final CountDownLatch mutex = new CountDownLatch(1);
         DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
@@ -173,12 +165,7 @@ public class DatabaseWorkerTest {
 
     @Test
     public void updatesFoodstuffWeightInDb() throws InterruptedException {
-        FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(mActivityRule.getActivity());
-        SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-        database.delete(HISTORY_TABLE_NAME, null, null);
-        Cursor cursor = database.rawQuery("SELECT * FROM " + HISTORY_TABLE_NAME, null);
-        Assert.assertTrue(cursor.getCount() == 0);
-        cursor.close();
+        clearTable(HISTORY_TABLE_NAME);
 
         final CountDownLatch mutex = new CountDownLatch(1);
         DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
@@ -206,6 +193,8 @@ public class DatabaseWorkerTest {
         });
         mutex2.await();
 
+        FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(mActivityRule.getActivity());
+        SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
         Cursor cursor2 = database.rawQuery("SELECT * FROM " + HISTORY_TABLE_NAME +
                 " WHERE " + HistoryContract.ID + "=" + historyId[0], null);
         double updatedWeight = -1;
@@ -213,6 +202,80 @@ public class DatabaseWorkerTest {
             updatedWeight = cursor2.getDouble(cursor2.getColumnIndex(COLUMN_NAME_WEIGHT));
         }
         Assert.assertEquals(newWeight, updatedWeight);
+    }
+
+    @Test
+    public void updatesFoodstuffIdInHistory() throws InterruptedException {
+        clearTable(HISTORY_TABLE_NAME);
+        clearTable(FOODSTUFFS_TABLE_NAME);
+
+        // вставить в таблицу foodstuffs 2 фудстаффа
+        final CountDownLatch mutex1 = new CountDownLatch(2);
+        DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
+        final Foodstuff foodstuff1 = new Foodstuff("продукт1", 1, 1, 1, 1, 1);
+        Foodstuff foodstuff2 = new Foodstuff("продукт2", 1, 1, 1, 1, 1);
+        final long[] foodstuff1Id = {-1};
+        final long[] foodstuff2Id = {-1};
+        databaseWorker.saveFoodstuff(mActivityRule.getActivity(), foodstuff1, new DatabaseWorker.SaveFoodstuffCallback() {
+            @Override
+            public void onResult(boolean hasAlreadyContainsFoodstuff, long id) {
+                foodstuff1Id[0] = id;
+                mutex1.countDown();
+            }
+        });
+        databaseWorker.saveFoodstuff(mActivityRule.getActivity(), foodstuff2, new DatabaseWorker.SaveFoodstuffCallback() {
+            @Override
+            public void onResult(boolean hasAlreadyContainsFoodstuff, long id) {
+                foodstuff2Id[0] = id;
+                mutex1.countDown();
+            }
+        });
+        mutex1.await();
+
+        // добавить в историю первый продукт
+        final CountDownLatch mutex2 = new CountDownLatch(1);
+        double weight = 100;
+        Date date = new Date();
+        final long[] historyId = new long[1];
+        databaseWorker.saveFoodstuffToHistory(
+                mActivityRule.getActivity(), date, foodstuff1Id[0], weight, new DatabaseWorker.AddHistoryEntryCallback() {
+                    @Override
+                    public void onResult(long historyEntryId) {
+                        historyId[0] = historyEntryId;
+                        mutex2.countDown();
+                    }
+                });
+        mutex2.await();
+
+        // заменить foodstuff_id в записи истории с 1 на 2
+        final CountDownLatch mutex3 = new CountDownLatch(1);
+        databaseWorker.updateFoodstuffIdInHistory(
+                mActivityRule.getActivity(), historyId[0], foodstuff2Id[0], new Runnable() {
+            @Override
+            public void run() {
+                mutex3.countDown();
+            }
+        });
+        mutex3.await();
+
+        FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(mActivityRule.getActivity());
+        SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
+        Cursor cursor = database.rawQuery("SELECT * FROM " + HISTORY_TABLE_NAME +
+                " WHERE " + HistoryContract.ID + "=" + historyId[0], null);
+        long updatedId = -1;
+        while (cursor.moveToNext()) {
+            updatedId = cursor.getLong(cursor.getColumnIndex(COLUMN_NAME_FOODSTUFF_ID));
+        }
+        Assert.assertEquals(foodstuff2Id[0], updatedId);
+    }
+
+    private void clearTable(String tableName) {
+        FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(mActivityRule.getActivity());
+        SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+        database.delete(tableName, null, null);
+        Cursor cursor = database.rawQuery("SELECT * FROM " + tableName, null);
+        Assert.assertTrue(cursor.getCount() == 0);
+        cursor.close();
     }
 
     public Foodstuff getAnyFoodstuffFromDb() throws InterruptedException {

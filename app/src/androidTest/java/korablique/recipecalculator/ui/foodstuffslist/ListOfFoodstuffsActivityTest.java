@@ -47,7 +47,7 @@ public class ListOfFoodstuffsActivityTest {
         final CountDownLatch mutex = new CountDownLatch(1);
         databaseWorker.saveFoodstuff(mActivityRule.getActivity(), foodstuff1, new DatabaseWorker.SaveFoodstuffCallback() {
             @Override
-            public void onResult(boolean hasAlreadyContainsFoodstuff) {
+            public void onResult(boolean hasAlreadyContainsFoodstuff, long id) {
                 mutex.countDown();
             }
         });

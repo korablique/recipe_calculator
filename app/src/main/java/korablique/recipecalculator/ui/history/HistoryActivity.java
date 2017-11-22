@@ -225,7 +225,7 @@ public class HistoryActivity extends BaseActivity {
                 DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
                 databaseWorker.saveFoodstuff(HistoryActivity.this, savingFoodstuff, new DatabaseWorker.SaveFoodstuffCallback() {
                     @Override
-                    public void onResult(final boolean hasAlreadyContainsFoodstuff) {
+                    public void onResult(final boolean hasAlreadyContainsFoodstuff, long id) {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
