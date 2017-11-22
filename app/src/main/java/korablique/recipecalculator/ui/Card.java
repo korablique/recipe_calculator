@@ -2,6 +2,7 @@ package korablique.recipecalculator.ui;
 
 import android.animation.ValueAnimator;
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Rect;
 import android.text.method.KeyListener;
 import android.view.LayoutInflater;
@@ -309,10 +310,16 @@ public class Card {
         } else {
             getWeightEditText().setText("");
         }
-        getProteinEditText().setText(String.valueOf(newFoodstuff.getProtein()));
-        getFatsEditText().setText(String.valueOf(newFoodstuff.getFats()));
-        getCarbsEditText().setText(String.valueOf(newFoodstuff.getCarbs()));
-        getCaloriesEditText().setText(String.valueOf(newFoodstuff.getCalories()));
+        Context context = cardLayout.getContext();
+        // заменяем запятые на точки, т.к. context.getString() возвращает строку с запятыми
+        getProteinEditText().setText(context.getString(R.string.one_digit_precision_float,
+                newFoodstuff.getProtein()).replace(',', '.'));
+        getFatsEditText().setText(context.getString(R.string.one_digit_precision_float,
+                newFoodstuff.getFats()).replace(',', '.'));
+        getCarbsEditText().setText(context.getString(R.string.one_digit_precision_float,
+                newFoodstuff.getCarbs()).replace(',', '.'));
+        getCaloriesEditText().setText(context.getString(R.string.one_digit_precision_float,
+                newFoodstuff.getCalories()).replace(',', '.'));
     }
 
     public boolean isDisplayed() {
