@@ -12,6 +12,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.widget.EditText;
 
@@ -173,14 +174,17 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
                 return true;
             }
         });
-        if (getString(R.string.find_foodstuff_action).equals(getIntent().getAction())) {
-            final String searchName = getIntent().getStringExtra(NAME);
-            MenuItemCompat.expandActionView(menu.findItem(R.id.search));
-            searchView.setQuery(searchName, false);
-        }
 
+        // NOTE: setHintColor() всегда нужно вызывать перед setQuery(),
+        // иначе setHintColor() не отрабатывает на андроидах < 21
         EditText searchEditText = searchView.findViewById(R.id.search_src_text);
         searchEditText.setHintTextColor(getResources().getColor(R.color.colorPrimaryLight));
+
+        if (getString(R.string.find_foodstuff_action).equals(getIntent().getAction())) {
+            final String searchName = getIntent().getStringExtra(NAME);
+            menu.findItem(R.id.search).expandActionView();
+            searchView.setQuery(searchName, false);
+        }
 
         return super.onCreateOptionsMenu(menu);
     }
