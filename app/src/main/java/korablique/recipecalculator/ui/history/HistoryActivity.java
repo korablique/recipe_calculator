@@ -47,7 +47,7 @@ public class HistoryActivity extends BaseActivity {
             editedFoodstuffPosition = position;
             cardDisplaySource = CardDisplaySource.FoodstuffClicked;
             card.displayForFoodstuff(foodstuff, foodstuff);
-            card.setFocusableExceptWeight(false);
+            card.setFocusableExceptWeight(true);
             card.setFocusableWeight(true);
             card.setButtonsVisible(false, Card.ButtonType.SAVE, Card.ButtonType.SEARCH);
         }
@@ -57,6 +57,9 @@ public class HistoryActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history);
+
+        ViewGroup parentLayout = findViewById(R.id.history_parent);
+        card = new Card(this, parentLayout);
 
         DatabaseWorker.getInstance().requestCurrentUserParameters(
                 HistoryActivity.this, new DatabaseWorker.RequestCurrentUserParametersCallback() {
@@ -111,9 +114,6 @@ public class HistoryActivity extends BaseActivity {
             }
         });
 
-        ViewGroup parentLayout = findViewById(R.id.history_parent);
-        card = new Card(this, parentLayout);
-
         FloatingActionButton historyFab = findViewById(R.id.history_fab);
         historyFab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -165,6 +165,27 @@ public class HistoryActivity extends BaseActivity {
                     Foodstuff foodstuffFromDb = (Foodstuff) card.getCurrentCustomPayload();
                     double weight = foodstuffFromDb.getWeight();
                     double newWeight = foodstuff.getWeight();
+                    double protein = foodstuffFromDb.getProtein();
+                    double newProtein = foodstuff.getProtein();
+                    double fats = foodstuffFromDb.getFats();
+                    double newFats = foodstuff.getFats();
+                    double carbs = foodstuffFromDb.getCarbs();
+                    double newCarbs = foodstuff.getCarbs();
+                    double calories = foodstuffFromDb.getCalories();
+                    double newCalories = foodstuff.getCalories();
+                    // проверить, были ли отредактированы Б, Ж, У или К
+                    if (!FloatUtils.areFloatsEquals(protein, newProtein)
+                            || !FloatUtils.areFloatsEquals(fats, newFats)
+                            || !FloatUtils.areFloatsEquals(carbs, newCarbs)
+                            || !FloatUtils.areFloatsEquals(calories, newCalories)
+                            || !foodstuff.getName().equals(foodstuffFromDb.getName())) {
+                        HistoryEntry historyEntry =
+                                ((HistoryAdapter.FoodstuffData) adapter.getItem(editedFoodstuffPosition))
+                                        .getHistoryEntry();
+                        HistoryEntry newEntry = new HistoryEntry(
+                                historyEntry.getHistoryId(), foodstuff, historyEntry.getTime());
+                        adapter.replaceItem(newEntry, editedFoodstuffPosition);
+                    }
                     if (!FloatUtils.areFloatsEquals(weight, newWeight)) {
                         HistoryEntry historyEntry =
                                 ((HistoryAdapter.FoodstuffData) adapter.getItem(editedFoodstuffPosition))
