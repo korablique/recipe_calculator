@@ -64,7 +64,6 @@ public class CalculatorActivity extends BaseActivity {
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_calculator);
 
         //инициализируем layout, который будет отображать введенные продукты:
