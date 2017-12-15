@@ -75,12 +75,23 @@ public class DatabaseWorker {
             public void run() {
                 FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
                 SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-                Cursor cursor = database.rawQuery("SELECT * FROM " + FOODSTUFFS_TABLE_NAME
-                        + " WHERE " + COLUMN_NAME_FOODSTUFF_NAME + " = '" + foodstuff.getName() + "' AND "
-                        + COLUMN_NAME_PROTEIN + " = " + foodstuff.getProtein() + " AND "
-                        + COLUMN_NAME_FATS + " = " + foodstuff.getFats() + " AND "
-                        + COLUMN_NAME_CARBS + " = " + foodstuff.getCarbs() + " AND "
-                        + COLUMN_NAME_CALORIES + " = " + foodstuff.getCalories() + ";", null);
+                String whereClause = COLUMN_NAME_FOODSTUFF_NAME + "=? AND " +
+                        COLUMN_NAME_PROTEIN + "=? AND " +
+                        COLUMN_NAME_FATS + "=? AND " +
+                        COLUMN_NAME_CARBS + "=? AND " +
+                        COLUMN_NAME_CALORIES + "=?";
+                String[] selectionArgs = new String[] {
+                        String.valueOf(foodstuff.getName()),
+                        String.valueOf(foodstuff.getProtein()),
+                        String.valueOf(foodstuff.getFats()),
+                        String.valueOf(foodstuff.getCarbs()),
+                        String.valueOf(foodstuff.getCalories()) };
+                Cursor cursor = database.query(
+                        FOODSTUFFS_TABLE_NAME,
+                        null,
+                        whereClause,
+                        selectionArgs,
+                        null, null, null);
                 //если такого продукта нет в БД:
                 boolean hasAlreadyContainsFoodstuff = false;
                 long id = -1;
@@ -153,7 +164,7 @@ public class DatabaseWorker {
                 SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
                 database.delete(
                         FOODSTUFFS_TABLE_NAME,
-                        FoodstuffsContract.ID + " = ?",
+                        FoodstuffsContract.ID + "=?",
                         new String[]{String.valueOf(foodstuffsId)});
             }
         });
@@ -182,8 +193,12 @@ public class DatabaseWorker {
             public void run() {
                 FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
                 SQLiteDatabase db = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
-                Cursor cursor = db.rawQuery(
-                        "SELECT * FROM " + FOODSTUFFS_TABLE_NAME + " WHERE " + COLUMN_NAME_IS_LISTED + "=1", null);
+                Cursor cursor = db.query(
+                        FOODSTUFFS_TABLE_NAME,
+                        null,
+                        COLUMN_NAME_IS_LISTED + "=?",
+                        new String[]{ String.valueOf(1) },
+                        null, null, null);
                 ArrayList<Foodstuff> allFoodstuffsFromDb = new ArrayList<>();
                 while (cursor.moveToNext()) {
                     Foodstuff foodstuff = new Foodstuff(
@@ -209,9 +224,13 @@ public class DatabaseWorker {
             public void run() {
                 FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
                 SQLiteDatabase db = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
-                Cursor cursor = db.rawQuery("SELECT * FROM " + HISTORY_TABLE_NAME + " JOIN " + FOODSTUFFS_TABLE_NAME
-                        + " ON " + HISTORY_TABLE_NAME + "." + COLUMN_NAME_FOODSTUFF_ID
-                        + "=" + FOODSTUFFS_TABLE_NAME + "." + FoodstuffsContract.ID, null);
+
+                String joinTablesArg = HISTORY_TABLE_NAME + " LEFT OUTER" +
+                        " JOIN " + FOODSTUFFS_TABLE_NAME +
+                        " ON " + HISTORY_TABLE_NAME + "." + COLUMN_NAME_FOODSTUFF_ID
+                        + "=" + FOODSTUFFS_TABLE_NAME + "." + FoodstuffsContract.ID;
+                Cursor cursor = db.query(joinTablesArg, null, null, null, null, null, null);
+
                 ArrayList<HistoryEntry> historyEntries = new ArrayList<>();
                 while (cursor.moveToNext()) {
                     long foodstuffId = cursor.getLong(
@@ -344,8 +363,15 @@ public class DatabaseWorker {
     public void requestCurrentUserParameters(Context context, RequestCurrentUserParametersCallback callback) {
         FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
         SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
-        Cursor cursor = database.rawQuery("SELECT * FROM " + USER_PARAMETERS_TABLE_NAME +
-                " ORDER BY " + UserParametersContract.ID + " DESC LIMIT 1", null);
+        Cursor cursor = database.query(
+                USER_PARAMETERS_TABLE_NAME,
+                null,
+                null,
+                null,
+                null,
+                null,
+                UserParametersContract.ID + " DESC",
+                String.valueOf(1));
         UserParameters userParameters = null;
         if (cursor.getCount() != 0) {
             while (cursor.moveToNext()) {
