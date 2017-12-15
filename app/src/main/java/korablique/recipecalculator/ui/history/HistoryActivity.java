@@ -179,12 +179,26 @@ public class HistoryActivity extends BaseActivity {
                             || !FloatUtils.areFloatsEquals(carbs, newCarbs)
                             || !FloatUtils.areFloatsEquals(calories, newCalories)
                             || !foodstuff.getName().equals(foodstuffFromDb.getName())) {
-                        HistoryEntry historyEntry =
+                        final HistoryEntry historyEntry =
                                 ((HistoryAdapter.FoodstuffData) adapter.getItem(editedFoodstuffPosition))
                                         .getHistoryEntry();
                         HistoryEntry newEntry = new HistoryEntry(
                                 historyEntry.getHistoryId(), foodstuff, historyEntry.getTime());
                         adapter.replaceItem(newEntry, editedFoodstuffPosition);
+                        final DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
+                        databaseWorker.saveUnlistedFoodstuff(
+                                HistoryActivity.this,
+                                foodstuff,
+                                new DatabaseWorker.SaveUnlistedFoodstuffCallback() {
+                                    @Override
+                                    public void onResult(long foodstuffId) {
+                                        databaseWorker.updateFoodstuffIdInHistory(
+                                                HistoryActivity.this,
+                                                historyEntry.getHistoryId(),
+                                                foodstuffId,
+                                                null);
+                                    }
+                                });
                     }
                     if (!FloatUtils.areFloatsEquals(weight, newWeight)) {
                         HistoryEntry historyEntry =

@@ -92,6 +92,34 @@ public class HistoryActivityTest {
     }
 
     @Test
+    public void nutritionAndNameModificationWorksAfterActivityRestart() {
+        addItem();
+        onView(withId(R.id.recycler_view)).perform(actionOnItemAtPosition(1, click()));
+
+        onView(withId(R.id.name_edit_text)).perform(replaceText("new name"));
+        onView(withId(R.id.protein_edit_text)).perform(replaceText("10"));
+        onView(withId(R.id.fats_edit_text)).perform(replaceText("10"));
+        onView(withId(R.id.carbs_edit_text)).perform(replaceText("10"));
+        onView(withId(R.id.calories_edit_text)).perform(replaceText("100"));
+        onView(withId(R.id.button_ok)).perform(click());
+
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        instrumentation.runOnMainSync(new Runnable() {
+            @Override
+            public void run() {
+                mActivityRule.getActivity().recreate();
+            }
+        });
+
+        onView(withId(R.id.recycler_view)).perform(actionOnItemAtPosition(1, click()));
+        onView(withId(R.id.name_edit_text)).check(matches(withText("new name")));
+        onView(withId(R.id.protein_edit_text)).check(matches(withText("10.0")));
+        onView(withId(R.id.fats_edit_text)).check(matches(withText("10.0")));
+        onView(withId(R.id.carbs_edit_text)).check(matches(withText("10.0")));
+        onView(withId(R.id.calories_edit_text)).check(matches(withText("100.0")));
+    }
+
+    @Test
     public void canModifyNutritionAndName() {
         addItem();
         onView(withId(R.id.recycler_view)).perform(actionOnItemAtPosition(1, click()));
