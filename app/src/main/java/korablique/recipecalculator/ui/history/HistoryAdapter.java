@@ -250,8 +250,14 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     public void replaceItem(HistoryEntry newHistoryEntry, int displayedPosition) {
         data.set(displayedPosition, new FoodstuffData(newHistoryEntry));
         notifyItemChanged(displayedPosition);
+
         // пересчитываем прогрессбары
-        notifyItemChanged(displayedPosition - 1);
+        for (int index = displayedPosition; index >= 0; --index) {
+            if (data.get(index) instanceof DateData) {
+                notifyItemChanged(index);
+                return;
+            }
+        }
     }
 
     private <T> void setTextViewText(View parent, int viewId, T text) {
