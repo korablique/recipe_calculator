@@ -45,10 +45,17 @@ public class ListOfFoodstuffsActivityTest {
         DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
         Foodstuff foodstuff1 = new Foodstuff("product1", -1, 10, 10, 10, 10);
         final CountDownLatch mutex = new CountDownLatch(1);
-        databaseWorker.saveFoodstuff(mActivityRule.getActivity(), foodstuff1, new DatabaseWorker.SaveFoodstuffCallback() {
+        databaseWorker.saveFoodstuff(
+                mActivityRule.getActivity(),
+                foodstuff1,
+                new DatabaseWorker.SaveFoodstuffCallback() {
             @Override
-            public void onResult(boolean hasAlreadyContainsFoodstuff, long id) {
+            public void onResult(long id) {
                 mutex.countDown();
+            }
+            @Override
+            public void onDuplication() {
+                throw new RuntimeException("Видимо, продукт уже существует");
             }
         });
         mutex.await();

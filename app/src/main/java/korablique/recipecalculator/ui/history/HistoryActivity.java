@@ -258,27 +258,33 @@ public class HistoryActivity extends BaseActivity {
                 }
 
                 DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
-                databaseWorker.saveFoodstuff(HistoryActivity.this, savingFoodstuff, new DatabaseWorker.SaveFoodstuffCallback() {
+                databaseWorker.saveFoodstuff(
+                        HistoryActivity.this,
+                        savingFoodstuff,
+                        new DatabaseWorker.SaveFoodstuffCallback() {
                     @Override
-                    public void onResult(final boolean hasAlreadyContainsFoodstuff, long id) {
+                    public void onResult(long id) {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                if (hasAlreadyContainsFoodstuff) {
-                                    Alerter.create(HistoryActivity.this)
-                                            .setTitle("Опаньки...")
-                                            .setText("Продукт уже существует")
-                                            .setDuration(2000)
-                                            .setBackgroundColorRes(R.color.colorAccent)
-                                            .enableSwipeToDismiss()
-                                            .show();
-                                } else {
-                                    new KeyboardHandler(HistoryActivity.this).hideKeyBoard();
-                                    Snackbar.make(findViewById(android.R.id.content), "Продукт сохранён", Snackbar.LENGTH_SHORT)
-                                            .show();
-                                }
+                                new KeyboardHandler(HistoryActivity.this).hideKeyBoard();
+                                Snackbar.make(
+                                        findViewById(android.R.id.content),
+                                        "Продукт сохранён",
+                                        Snackbar.LENGTH_SHORT)
+                                        .show();
                             }
                         });
+                    }
+                    @Override
+                    public void onDuplication() {
+                        Alerter.create(HistoryActivity.this)
+                                .setTitle("Опаньки...")
+                                .setText("Продукт уже существует")
+                                .setDuration(2000)
+                                .setBackgroundColorRes(R.color.colorAccent)
+                                .enableSwipeToDismiss()
+                                .show();
                     }
                 });
             }

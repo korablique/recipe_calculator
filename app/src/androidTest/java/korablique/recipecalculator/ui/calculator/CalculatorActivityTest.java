@@ -18,7 +18,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import korablique.recipecalculator.R;
-import korablique.recipecalculator.ui.calculator.CalculatorActivity;
 import korablique.recipecalculator.ui.Card;
 
 import static android.support.test.espresso.Espresso.onView;
