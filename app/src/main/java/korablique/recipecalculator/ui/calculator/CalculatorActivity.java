@@ -156,27 +156,29 @@ public class CalculatorActivity extends BaseActivity {
                 }
 
                 DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
-                databaseWorker.saveFoodstuff(CalculatorActivity.this, savingFoodstuff, new DatabaseWorker.SaveFoodstuffCallback() {
+                databaseWorker.saveFoodstuff(
+                        CalculatorActivity.this,
+                        savingFoodstuff,
+                        new DatabaseWorker.SaveFoodstuffCallback() {
                     @Override
-                    public void onResult(final boolean hasAlreadyContainsFoodstuff, long id) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (hasAlreadyContainsFoodstuff) {
-                                    Alerter.create(CalculatorActivity.this)
-                                            .setBackgroundColorRes(R.color.colorAccent)
-                                            .setTitle("Опаньки...")
-                                            .setText("Продукт уже существует")
-                                            .setDuration(2000)
-                                            .enableSwipeToDismiss()
-                                            .show();
-                                } else {
-                                    new KeyboardHandler(CalculatorActivity.this).hideKeyBoard();
-                                    Snackbar.make(findViewById(android.R.id.content), "Продукт сохранён", Snackbar.LENGTH_SHORT)
-                                            .show();
-                                }
-                            }
-                        });
+                    public void onResult(long id) {
+                        new KeyboardHandler(CalculatorActivity.this).hideKeyBoard();
+                        Snackbar.make(
+                                findViewById(android.R.id.content),
+                                "Продукт сохранён",
+                                Snackbar.LENGTH_SHORT)
+                                .show();
+                    }
+
+                    @Override
+                    public void onDuplication() {
+                        Alerter.create(CalculatorActivity.this)
+                                .setBackgroundColorRes(R.color.colorAccent)
+                                .setTitle("Опаньки...")
+                                .setText("Продукт уже существует")
+                                .setDuration(2000)
+                                .enableSwipeToDismiss()
+                                .show();
                     }
                 });
             }

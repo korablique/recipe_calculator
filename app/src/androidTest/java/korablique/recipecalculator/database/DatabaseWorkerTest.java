@@ -44,16 +44,28 @@ public class DatabaseWorkerTest {
         Foodstuff foodstuff2 = new Foodstuff("продукт2", 1, 1, 1, 1, 1);
         Foodstuff foodstuff3 = new Foodstuff("продукт3", 1, 1, 1, 1, 1);
         Foodstuff foodstuff4 = new Foodstuff("продукт4", 1, 1, 1, 1, 1);
-        databaseWorker.saveFoodstuff(mActivityRule.getActivity(), foodstuff1, new DatabaseWorker.SaveFoodstuffCallback() {
+        databaseWorker.saveFoodstuff(
+                mActivityRule.getActivity(),
+                foodstuff1,
+                new DatabaseWorker.SaveFoodstuffCallback() {
             @Override
-            public void onResult(boolean hasAlreadyContainsFoodstuff, long id) {
+            public void onResult(long id) {
                 mutex.countDown();
+            }
+            @Override
+            public void onDuplication() {
+                throw new RuntimeException("Видимо, продукт уже существует");
             }
         });
         databaseWorker.saveFoodstuff(mActivityRule.getActivity(), foodstuff2, new DatabaseWorker.SaveFoodstuffCallback() {
             @Override
-            public void onResult(boolean hasAlreadyContainsFoodstuff, long id) {
+            public void onResult(long id) {
                 mutex.countDown();
+            }
+
+            @Override
+            public void onDuplication() {
+                throw new RuntimeException("Видимо, продукт уже существует");
             }
         });
         //сохраняем два unlisted foodstuff'а
@@ -218,16 +230,28 @@ public class DatabaseWorkerTest {
         final long[] foodstuff2Id = {-1};
         databaseWorker.saveFoodstuff(mActivityRule.getActivity(), foodstuff1, new DatabaseWorker.SaveFoodstuffCallback() {
             @Override
-            public void onResult(boolean hasAlreadyContainsFoodstuff, long id) {
+            public void onResult(long id) {
                 foodstuff1Id[0] = id;
                 mutex1.countDown();
             }
-        });
-        databaseWorker.saveFoodstuff(mActivityRule.getActivity(), foodstuff2, new DatabaseWorker.SaveFoodstuffCallback() {
             @Override
-            public void onResult(boolean hasAlreadyContainsFoodstuff, long id) {
+            public void onDuplication() {
+                throw new RuntimeException("Видимо, продукт уже существует");
+            }
+        });
+        databaseWorker.saveFoodstuff(
+                mActivityRule.getActivity(),
+                foodstuff2,
+                new DatabaseWorker.SaveFoodstuffCallback() {
+            @Override
+            public void onResult(long id) {
                 foodstuff2Id[0] = id;
                 mutex1.countDown();
+            }
+
+            @Override
+            public void onDuplication() {
+                throw new RuntimeException("Видимо, продукт уже существует");
             }
         });
         mutex1.await();
@@ -267,6 +291,54 @@ public class DatabaseWorkerTest {
             updatedId = cursor.getLong(cursor.getColumnIndex(COLUMN_NAME_FOODSTUFF_ID));
         }
         Assert.assertEquals(foodstuff2Id[0], updatedId);
+    }
+
+    @Test
+    public void canSaveListedProductSameAsUnlisted() throws InterruptedException {
+        DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
+        Foodstuff foodstuff = new Foodstuff("falafel", -1, 10, 10, 10, 100);
+        final long[] id = {-1};
+        final CountDownLatch mutex1 = new CountDownLatch(1);
+        databaseWorker.saveUnlistedFoodstuff(
+                mActivityRule.getActivity(),
+                foodstuff,
+                new DatabaseWorker.SaveUnlistedFoodstuffCallback() {
+            @Override
+            public void onResult(long foodstuffId) {
+                id[0] = foodstuffId;
+                mutex1.countDown();
+            }
+        });
+        mutex1.await();
+
+        final CountDownLatch mutex2 = new CountDownLatch(1);
+        databaseWorker.makeFoodstuffUnlisted(mActivityRule.getActivity(), id[0], new Runnable() {
+            @Override
+            public void run() {
+                mutex2.countDown();
+            }
+        });
+        mutex2.await();
+
+        final CountDownLatch mutex3 = new CountDownLatch(1);
+        final boolean[] containsListedFoodstuff = new boolean[1];
+        databaseWorker.saveFoodstuff(
+                mActivityRule.getActivity(),
+                foodstuff,
+                new DatabaseWorker.SaveFoodstuffCallback() {
+            @Override
+            public void onResult(long id) {
+                containsListedFoodstuff[0] = false;
+                mutex3.countDown();
+            }
+            @Override
+            public void onDuplication() {
+                containsListedFoodstuff[0] = true;
+                mutex3.countDown();
+            }
+        });
+        mutex3.await();
+        Assert.assertEquals(false, containsListedFoodstuff[0]);
     }
 
     private void clearTable(String tableName) {

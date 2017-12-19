@@ -113,7 +113,7 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
                 @Override
                 public void run() {
                     DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
-                    databaseWorker.makeFoodstuffUnlisted(ListOfFoodstuffsActivity.this, editedFoodstuffId);
+                    databaseWorker.makeFoodstuffUnlisted(ListOfFoodstuffsActivity.this, editedFoodstuffId, null);
                     recyclerViewAdapter.deleteItem(editedFoodstuffPosition);
                     new KeyboardHandler(ListOfFoodstuffsActivity.this).hideKeyBoard();
                     card.hide();

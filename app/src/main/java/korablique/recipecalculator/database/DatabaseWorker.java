@@ -45,7 +45,8 @@ public class DatabaseWorker {
         void onResult(ArrayList<Foodstuff> foodstuffs);
     }
     public interface SaveFoodstuffCallback {
-        void onResult(boolean hasAlreadyContainsFoodstuff, long id);
+        void onResult(long id);
+        void onDuplication();
     }
     public interface RequestHistoryCallback {
         void onResult(ArrayList<HistoryEntry> historyEntries);
@@ -79,13 +80,15 @@ public class DatabaseWorker {
                         COLUMN_NAME_PROTEIN + "=? AND " +
                         COLUMN_NAME_FATS + "=? AND " +
                         COLUMN_NAME_CARBS + "=? AND " +
-                        COLUMN_NAME_CALORIES + "=?";
+                        COLUMN_NAME_CALORIES + "=? AND " +
+                        COLUMN_NAME_IS_LISTED + "=?";
                 String[] selectionArgs = new String[] {
                         String.valueOf(foodstuff.getName()),
                         String.valueOf(foodstuff.getProtein()),
                         String.valueOf(foodstuff.getFats()),
                         String.valueOf(foodstuff.getCarbs()),
-                        String.valueOf(foodstuff.getCalories()) };
+                        String.valueOf(foodstuff.getCalories()),
+                        String.valueOf(1)}; // listed
                 Cursor cursor = database.query(
                         FOODSTUFFS_TABLE_NAME,
                         null,
@@ -93,7 +96,7 @@ public class DatabaseWorker {
                         selectionArgs,
                         null, null, null);
                 //если такого продукта нет в БД:
-                boolean hasAlreadyContainsFoodstuff = false;
+                boolean alreadyContainsListedFoodstuff = false;
                 long id = -1;
                 if (cursor.getCount() == 0) {
                     ContentValues values = new ContentValues();
@@ -104,10 +107,14 @@ public class DatabaseWorker {
                     values.put(COLUMN_NAME_CALORIES, foodstuff.getCalories());
                     id = database.insert(FOODSTUFFS_TABLE_NAME, null, values);
                 } else {
-                    hasAlreadyContainsFoodstuff = true;
+                    alreadyContainsListedFoodstuff = true;
                 }
                 cursor.close();
-                callback.onResult(hasAlreadyContainsFoodstuff, id);
+                if (alreadyContainsListedFoodstuff) {
+                    callback.onDuplication();
+                } else {
+                    callback.onResult(id);
+                }
             }
         });
     }
@@ -170,7 +177,7 @@ public class DatabaseWorker {
         });
     }
 
-    public void makeFoodstuffUnlisted(final Context context, final long foodstuffId) {
+    public void makeFoodstuffUnlisted(final Context context, final long foodstuffId, final Runnable callback) {
         executorService.execute(new Runnable() {
             @Override
             public void run() {
@@ -183,6 +190,9 @@ public class DatabaseWorker {
                         values,
                         FoodstuffsContract.ID + "=?",
                         new String[]{String.valueOf(foodstuffId)});
+                if (callback != null) {
+                    callback.run();
+                }
             }
         });
     }
