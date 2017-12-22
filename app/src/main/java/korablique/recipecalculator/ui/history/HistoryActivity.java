@@ -306,43 +306,49 @@ public class HistoryActivity extends BaseActivity {
         final Date date = new Date();
         DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
         databaseWorker.saveFoodstuffToHistory(
-                HistoryActivity.this, date, foodstuffId, foodstuff.getWeight(), new DatabaseWorker.AddHistoryEntryCallback() {
+                HistoryActivity.this,
+                date,
+                foodstuffId,
+                foodstuff.getWeight(), new DatabaseWorker.AddHistoryEntriesCallback() {
+            @Override
+            public void onResult(final ArrayList<Long> historyEntriesIds) {
+                runOnUiThread(new Runnable() {
                     @Override
-                    public void onResult(final long historyEntryId) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                adapter.addItem(new HistoryEntry(historyEntryId, foodstuff, date));
-                            }
-                        });
+                    public void run() {
+                        adapter.addItem(new HistoryEntry(historyEntriesIds.get(0), foodstuff, date));
                     }
                 });
+            }
+        });
     }
 
     private void addUnlistedFoodstuffToHistory(final Foodstuff foodstuff) {
         final Date date = new Date();
         final DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
         databaseWorker.saveUnlistedFoodstuff(
-                HistoryActivity.this, foodstuff, new DatabaseWorker.SaveUnlistedFoodstuffCallback() {
+                HistoryActivity.this,
+                foodstuff,
+                new DatabaseWorker.SaveUnlistedFoodstuffCallback() {
+            @Override
+            public void onResult(long foodstuffId) {
+                databaseWorker.saveFoodstuffToHistory(
+                        HistoryActivity.this,
+                        date,
+                        foodstuffId,
+                        foodstuff.getWeight(), new DatabaseWorker.AddHistoryEntriesCallback() {
                     @Override
-                    public void onResult(long foodstuffId) {
-                        databaseWorker.saveFoodstuffToHistory(
-                                HistoryActivity.this,
-                                date,
-                                foodstuffId,
-                                foodstuff.getWeight(), new DatabaseWorker.AddHistoryEntryCallback() {
-                                    @Override
-                                    public void onResult(final long historyEntryId) {
-                                        runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                adapter.addItem(new HistoryEntry(historyEntryId, foodstuff, date));
-                                            }
-                                        });
-                                    }
-                                });
+                    public void onResult(final ArrayList<Long> historyEntriesIds) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                adapter.addItem(new HistoryEntry(
+                                        historyEntriesIds.get(0), foodstuff, date));
+                            }
+                        });
                     }
                 });
+            }
+        });
     }
 
     @Override

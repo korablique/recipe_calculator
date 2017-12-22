@@ -18,6 +18,7 @@ import java.util.concurrent.CountDownLatch;
 
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.HistoryEntry;
+import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.ui.calculator.CalculatorActivity;
 
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_IS_LISTED;
@@ -122,9 +123,13 @@ public class DatabaseWorkerTest {
         DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
         Date date = new Date();
         databaseWorker.saveFoodstuffToHistory(
-                mActivityRule.getActivity(), date, foodstuff.getId(), 100, new DatabaseWorker.AddHistoryEntryCallback() {
+                mActivityRule.getActivity(),
+                date,
+                foodstuff.getId(),
+                100,
+                new DatabaseWorker.AddHistoryEntriesCallback() {
             @Override
-            public void onResult(long historyEntryId) {
+            public void onResult(ArrayList<Long> historyEntriesIds) {
                 mutex.countDown();
             }
         });
@@ -152,9 +157,13 @@ public class DatabaseWorkerTest {
         double weight = 100;
         Date date = new Date();
         databaseWorker.saveFoodstuffToHistory(
-                mActivityRule.getActivity(), date, foodstuff.getId(), weight, new DatabaseWorker.AddHistoryEntryCallback() {
+                mActivityRule.getActivity(),
+                date,
+                foodstuff.getId(),
+                weight,
+                new DatabaseWorker.AddHistoryEntriesCallback() {
                     @Override
-                    public void onResult(long historyEntryId) {
+                    public void onResult(ArrayList<Long> historyEntriesIds) {
                         mutex.countDown();
                     }
                 });
@@ -186,10 +195,14 @@ public class DatabaseWorkerTest {
         Date date = new Date();
         final long[] historyId = new long[1];
         databaseWorker.saveFoodstuffToHistory(
-                mActivityRule.getActivity(), date, foodstuff.getId(), weight, new DatabaseWorker.AddHistoryEntryCallback() {
+                mActivityRule.getActivity(),
+                date,
+                foodstuff.getId(),
+                weight,
+                new DatabaseWorker.AddHistoryEntriesCallback() {
                     @Override
-                    public void onResult(long historyEntryId) {
-                        historyId[0] = historyEntryId;
+                    public void onResult(ArrayList<Long> historyEntriesIds) {
+                        historyId[0] = historyEntriesIds.get(0);
                         mutex.countDown();
                     }
                 });
@@ -262,10 +275,14 @@ public class DatabaseWorkerTest {
         Date date = new Date();
         final long[] historyId = new long[1];
         databaseWorker.saveFoodstuffToHistory(
-                mActivityRule.getActivity(), date, foodstuff1Id[0], weight, new DatabaseWorker.AddHistoryEntryCallback() {
+                mActivityRule.getActivity(),
+                date,
+                foodstuff1Id[0],
+                weight,
+                new DatabaseWorker.AddHistoryEntriesCallback() {
                     @Override
-                    public void onResult(long historyEntryId) {
-                        historyId[0] = historyEntryId;
+                    public void onResult(ArrayList<Long> historyEntriesIds) {
+                        historyId[0] = historyEntriesIds.get(0);
                         mutex2.countDown();
                     }
                 });
@@ -331,6 +348,7 @@ public class DatabaseWorkerTest {
                 containsListedFoodstuff[0] = false;
                 mutex3.countDown();
             }
+
             @Override
             public void onDuplication() {
                 containsListedFoodstuff[0] = true;
@@ -339,6 +357,79 @@ public class DatabaseWorkerTest {
         });
         mutex3.await();
         Assert.assertEquals(false, containsListedFoodstuff[0]);
+    }
+
+    @Test
+    public void requestFoodstuffsIdsFromHistoryForPeriodWorks() throws InterruptedException {
+        clearTable(HISTORY_TABLE_NAME);
+        clearTable(FOODSTUFFS_TABLE_NAME);
+
+        final DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
+        // создаем 20 продуктов
+        final Foodstuff[] foodstuffs = new Foodstuff[20];
+        for (int index = 0; index < 20; index++) {
+            foodstuffs[index] = new Foodstuff("foodstuff" + index, -1, 5, 5, 5, 5);
+        }
+
+        // сохраняем продукты в список
+        final ArrayList<Long> foodstuffsIds = new ArrayList<>();
+        final CountDownLatch savingFoodstuffsMutex = new CountDownLatch(1);
+        databaseWorker.saveGroupOfFoodstuffs(
+                mActivityRule.getActivity(),
+                foodstuffs,
+                new DatabaseWorker.SaveGroupOfFoodstuffsCallback() {
+            @Override
+            public void onResult(ArrayList<Long> ids) {
+                foodstuffsIds.addAll(ids);
+                savingFoodstuffsMutex.countDown();
+            }
+        });
+        savingFoodstuffsMutex.await();
+        Assert.assertEquals(20, foodstuffsIds.size());
+
+        // сохраняем продукты в историю
+        NewHistoryEntry[] newEntries = new NewHistoryEntry[foodstuffsIds.size()];
+        for (int index = 0; index < foodstuffsIds.size(); index++) {
+            double weight = 100;
+            newEntries[index] = new NewHistoryEntry(
+                    foodstuffsIds.get(index), weight, new Date(117, 0, index + 1));
+        }
+
+        final ArrayList<Long> historyIds = new ArrayList<>();
+        final CountDownLatch savingToHistoryMutex = new CountDownLatch(1);
+        databaseWorker.saveGroupOfFoodstuffsToHistory(
+                mActivityRule.getActivity(),
+                newEntries,
+                new DatabaseWorker.AddHistoryEntriesCallback() {
+                    @Override
+                    public void onResult(ArrayList<Long> historyEntriesIds) {
+                        historyIds.addAll(historyEntriesIds);
+                        savingToHistoryMutex.countDown();
+                    }
+                }
+        );
+        savingToHistoryMutex.await();
+        Assert.assertEquals(20, historyIds.size());
+
+        // запрашиваем продукты с 3 по 5 января (д.б. три продукта - 3, 4, 5)
+        final CountDownLatch requestFoodstuffsForPeriodMutex = new CountDownLatch(1);
+        final ArrayList<Long> foodstuffsForPeriodIds = new ArrayList<>();
+        databaseWorker.requestFoodstuffsIdsFromHistoryForPeriod(
+                new Date(117, 0, 3).getTime(),
+                new Date(117, 0, 5).getTime(),
+                mActivityRule.getActivity(),
+                new DatabaseWorker.RequestFoodstuffsIdsFromHistoryCallback() {
+            @Override
+            public void onResult(ArrayList<Long> ids) {
+                foodstuffsForPeriodIds.addAll(ids);
+                requestFoodstuffsForPeriodMutex.countDown();
+            }
+        });
+        requestFoodstuffsForPeriodMutex.await();
+        Assert.assertEquals(3, foodstuffsForPeriodIds.size());
+        Assert.assertTrue(foodstuffsForPeriodIds.contains(foodstuffsIds.get(2)));
+        Assert.assertTrue(foodstuffsForPeriodIds.contains(foodstuffsIds.get(3)));
+        Assert.assertTrue(foodstuffsForPeriodIds.contains(foodstuffsIds.get(4)));
     }
 
     private void clearTable(String tableName) {
