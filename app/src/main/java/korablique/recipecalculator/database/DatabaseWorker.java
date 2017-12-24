@@ -13,6 +13,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.model.HistoryEntry;
 
@@ -48,17 +49,23 @@ public class DatabaseWorker {
         void onResult(long id);
         void onDuplication();
     }
+    public interface SaveGroupOfFoodstuffsCallback {
+        void onResult(ArrayList<Long> ids);
+    }
     public interface RequestHistoryCallback {
         void onResult(ArrayList<HistoryEntry> historyEntries);
     }
     public interface SaveUnlistedFoodstuffCallback {
         void onResult(long foodstuffId);
     }
-    public interface AddHistoryEntryCallback {
-        void onResult(long historyEntryId);
+    public interface AddHistoryEntriesCallback {
+        void onResult(ArrayList<Long> historyEntriesIds);
     }
     public interface RequestCurrentUserParametersCallback {
         void onResult(UserParameters userParameters);
+    }
+    public interface RequestFoodstuffsIdsFromHistoryCallback {
+        void onResult(ArrayList<Long> ids);
     }
 
     private DatabaseWorker() {}
@@ -70,7 +77,10 @@ public class DatabaseWorker {
         return databaseWorker;
     }
 
-    public void saveFoodstuff(final Context context, final Foodstuff foodstuff, @NonNull final SaveFoodstuffCallback callback) {
+    public void saveFoodstuff(
+            final Context context,
+            final Foodstuff foodstuff,
+            @NonNull final SaveFoodstuffCallback callback) {
         executorService.execute(new Runnable() {
             @Override
             public void run() {
@@ -115,6 +125,38 @@ public class DatabaseWorker {
                 } else {
                     callback.onResult(id);
                 }
+            }
+        });
+    }
+
+    public void saveGroupOfFoodstuffs(
+            final Context context,
+            final Foodstuff[] foodstuffs,
+            @NonNull final SaveGroupOfFoodstuffsCallback callback) {
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+                SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+                final ArrayList<Long> ids = new ArrayList<>();
+
+                database.beginTransaction();
+                try {
+                    for (Foodstuff foodstuff : foodstuffs) {
+                        ContentValues values = new ContentValues();
+                        values.put(COLUMN_NAME_FOODSTUFF_NAME, foodstuff.getName());
+                        values.put(COLUMN_NAME_PROTEIN, foodstuff.getProtein());
+                        values.put(COLUMN_NAME_FATS, foodstuff.getFats());
+                        values.put(COLUMN_NAME_CARBS, foodstuff.getCarbs());
+                        values.put(COLUMN_NAME_CALORIES, foodstuff.getCalories());
+                        long id = database.insert(FOODSTUFFS_TABLE_NAME, null, values);
+                        ids.add(id);
+                    }
+                    database.setTransactionSuccessful();
+                } finally {
+                    database.endTransaction();
+                }
+                callback.onResult(ids);
             }
         });
     }
@@ -197,7 +239,8 @@ public class DatabaseWorker {
         });
     }
 
-    public void requestListedFoodstuffsFromDb(final Context context, @NonNull final FoodstuffsRequestCallback callback) {
+    public void requestListedFoodstuffsFromDb(
+            final Context context, @NonNull final FoodstuffsRequestCallback callback) {
         executorService.execute(new Runnable() {
             @Override
             public void run() {
@@ -228,7 +271,8 @@ public class DatabaseWorker {
         });
     }
 
-    public void requestAllHistoryFromDb(final Context context, @NonNull final RequestHistoryCallback callback) {
+    public void requestAllHistoryFromDb(
+            final Context context, @NonNull final RequestHistoryCallback callback) {
         executorService.execute(new Runnable() {
             @Override
             public void run() {
@@ -269,19 +313,45 @@ public class DatabaseWorker {
             final Date date,
             final long foodstuffId,
             final double foodstuffWeight,
-            final AddHistoryEntryCallback callback) {
+            final AddHistoryEntriesCallback callback) {
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                saveGroupOfFoodstuffsToHistory(
+                        context,
+                        new NewHistoryEntry[]{new NewHistoryEntry(foodstuffId, foodstuffWeight, date)},
+                        callback);
+            }
+        });
+    }
+
+    public void saveGroupOfFoodstuffsToHistory(
+            final Context context,
+            final NewHistoryEntry[] newEntries,
+            final AddHistoryEntriesCallback callback) {
         executorService.execute(new Runnable() {
             @Override
             public void run() {
                 FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
                 SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-                ContentValues values = new ContentValues();
-                values.put(COLUMN_NAME_DATE, date.getTime());
-                values.put(COLUMN_NAME_FOODSTUFF_ID, foodstuffId);
-                values.put(COLUMN_NAME_WEIGHT, foodstuffWeight);
-                long historyEntryId = database.insert(HISTORY_TABLE_NAME, null, values);
+
+                final ArrayList<Long> ids = new ArrayList<>();
+                database.beginTransaction();
+                try {
+                    for (NewHistoryEntry newEntry : newEntries) {
+                        ContentValues values = new ContentValues();
+                        values.put(COLUMN_NAME_DATE, newEntry.getDate().getTime());
+                        values.put(COLUMN_NAME_FOODSTUFF_ID, newEntry.getFoodstuffId());
+                        values.put(COLUMN_NAME_WEIGHT, newEntry.getFoodstuffWeight());
+                        long historyEntryId = database.insert(HISTORY_TABLE_NAME, null, values);
+                        ids.add(historyEntryId);
+                    }
+                    database.setTransactionSuccessful();
+                } finally {
+                    database.endTransaction();
+                }
                 if (callback != null) {
-                    callback.onResult(historyEntryId);
+                    callback.onResult(ids);
                 }
             }
         });
@@ -370,32 +440,69 @@ public class DatabaseWorker {
         });
     }
 
-    public void requestCurrentUserParameters(Context context, RequestCurrentUserParametersCallback callback) {
-        FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
-        SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
-        Cursor cursor = database.query(
-                USER_PARAMETERS_TABLE_NAME,
-                null,
-                null,
-                null,
-                null,
-                null,
-                UserParametersContract.ID + " DESC",
-                String.valueOf(1));
-        UserParameters userParameters = null;
-        if (cursor.getCount() != 0) {
-            while (cursor.moveToNext()) {
-                String goal = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_GOAL));
-                String gender = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_GENDER));
-                int age = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_AGE));
-                int height = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_HEIGHT));
-                int weight = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_USER_WEIGHT));
-                float coefficient = cursor.getFloat(cursor.getColumnIndex(COLUMN_NAME_COEFFICIENT));
-                String formula = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_FORMULA));
-                userParameters = new UserParameters(goal, gender, age, height, weight, coefficient, formula);
+    public void requestCurrentUserParameters(
+            final Context context,
+            final RequestCurrentUserParametersCallback callback) {
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+                SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
+                Cursor cursor = database.query(
+                        USER_PARAMETERS_TABLE_NAME,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        UserParametersContract.ID + " DESC",
+                        String.valueOf(1));
+                UserParameters userParameters = null;
+                if (cursor.getCount() != 0) {
+                    while (cursor.moveToNext()) {
+                        String goal = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_GOAL));
+                        String gender = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_GENDER));
+                        int age = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_AGE));
+                        int height = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_HEIGHT));
+                        int weight = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_USER_WEIGHT));
+                        float coefficient = cursor.getFloat(cursor.getColumnIndex(COLUMN_NAME_COEFFICIENT));
+                        String formula = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_FORMULA));
+                        userParameters = new UserParameters(goal, gender, age, height, weight, coefficient, formula);
+                    }
+                }
+                cursor.close();
+                callback.onResult(userParameters);
             }
-        }
-        cursor.close();
-        callback.onResult(userParameters);
+        });
+    }
+
+    public void requestFoodstuffsIdsFromHistoryForPeriod(
+            final long from,
+            final long to,
+            final Context context,
+            @NonNull final RequestFoodstuffsIdsFromHistoryCallback callback) {
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+                SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
+                Cursor cursor = database.query(
+                        HISTORY_TABLE_NAME,
+                        new String[]{ COLUMN_NAME_FOODSTUFF_ID },
+                        COLUMN_NAME_DATE + " >= ? AND " + COLUMN_NAME_DATE + " <= ?",
+                        new String[]{ String.valueOf(from), String.valueOf(to) },
+                        null,
+                        null,
+                        COLUMN_NAME_DATE + " ASC");
+
+                ArrayList<Long> ids = new ArrayList<>();
+                while (cursor.moveToNext()) {
+                    long id = cursor.getLong(cursor.getColumnIndex(COLUMN_NAME_FOODSTUFF_ID));
+                    ids.add(id);
+                }
+                cursor.close();
+                callback.onResult(ids);
+            }
+        });
     }
 }
