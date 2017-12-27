@@ -5,12 +5,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.widget.EditText;
 
@@ -74,7 +76,7 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
                 && receivedIntent.getAction().equals(getString(R.string.find_foodstuff_action))) {
             createRecyclerView(findFoodstuffObserver);
         } else {
-            card = new Card(this, (ViewGroup) findViewById(R.id.list_of_recipes_parent));
+            card = new Card(this, findViewById(R.id.list_of_recipes_parent));
             card.setButtonsVisible(false, Card.ButtonType.OK, Card.ButtonType.SEARCH);
             card.hideWeight();
             card.setOnButtonSaveClickedRunnable(new Runnable() {
@@ -138,13 +140,18 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
         recyclerView.addItemDecoration(dividerItemDecoration);
         recyclerView.setAdapter(recyclerViewAdapter);
 
-        databaseWorker.requestListedFoodstuffsFromDb(this, new DatabaseWorker.FoodstuffsRequestCallback() {
+        int batchSize = 100;
+        databaseWorker.requestListedFoodstuffsFromDb(
+                this,
+                batchSize,
+                new DatabaseWorker.FoodstuffsRequestCallback() {
             @Override
             public void onResult(final ArrayList<Foodstuff> foodstuffs) {
-                for (Foodstuff foodstuff : foodstuffs) {
-                    recyclerViewAdapter.addItem(foodstuff);
-                }
+                recyclerViewAdapter.addItems(foodstuffs);
             }
+
+            @Override
+            public void finished() {}
         });
     }
 

@@ -9,6 +9,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import korablique.recipecalculator.model.Foodstuff;
@@ -23,7 +24,7 @@ public class FoodstuffsAdapter extends RecyclerView.Adapter<FoodstuffViewHolder>
     private List<Foodstuff> allFoodstuffs = new ArrayList<>();
     private List<Foodstuff> filteredFoodstuffs = new ArrayList<>();
     private Observer observer;
-    private String memorizedFilter = "";
+    private String memorizedFilter;
 
     public FoodstuffsAdapter(Context context, Observer observer) {
         this.context = context;
@@ -73,11 +74,18 @@ public class FoodstuffsAdapter extends RecyclerView.Adapter<FoodstuffViewHolder>
         return filteredFoodstuffs.size();
     }
 
-    public void addItem(Foodstuff foodstuff) {
-        allFoodstuffs.add(foodstuff);
-        notifyItemInserted(allFoodstuffs.size() - 1);
+    public void addItems(List<Foodstuff> foodstuffs) {
+        int allFoodstuffsSizeBefore = allFoodstuffs.size();
+        allFoodstuffs.addAll(foodstuffs);
+        for (int index = 1; index <= foodstuffs.size(); index++) {
+            notifyItemInserted(allFoodstuffsSizeBefore + index);
+        }
         observer.onItemsCountChanged(allFoodstuffs.size());
         setNameFilter(memorizedFilter);
+    }
+
+    public void addItem(Foodstuff foodstuff) {
+        addItems(Collections.singletonList(foodstuff));
     }
 
     public void deleteItem(int displayedPosition) {
@@ -102,6 +110,12 @@ public class FoodstuffsAdapter extends RecyclerView.Adapter<FoodstuffViewHolder>
     }
 
     public void setNameFilter(String name) {
+        if (memorizedFilter == null && name == null) {
+            // Чтобы в случае отсутствия фильтра эта операция заканчивалась очень быстро, без итерирования
+            filteredFoodstuffs.clear();
+            filteredFoodstuffs.addAll(allFoodstuffs);
+            return;
+        }
         memorizedFilter = name;
         filteredFoodstuffs.clear();
         for (Foodstuff foodstuff : allFoodstuffs) {
