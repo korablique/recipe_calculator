@@ -35,6 +35,8 @@ import static org.hamcrest.Matchers.not;
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class HistoryActivityTest {
+    private DatabaseWorker databaseWorker;
+
     @Rule
     public ActivityTestRule<HistoryActivity> mActivityRule =
             new ActivityTestRule<>(HistoryActivity.class);
@@ -42,6 +44,7 @@ public class HistoryActivityTest {
     @Before
     public void setUp() throws InterruptedException {
         Card.setAnimationDuration(0);
+        databaseWorker = new DatabaseWorker();
         Resources resources = mActivityRule.getActivity().getResources();
         String goal = resources.getStringArray(R.array.goals_array)[0];
         String gender = resources.getStringArray(R.array.gender_array)[0];
@@ -51,7 +54,7 @@ public class HistoryActivityTest {
         UserParameters userParameters = new UserParameters(
                 goal, gender, age, height, weight, coefficient, defaultFormula);
         final CountDownLatch mutex = new CountDownLatch(1);
-        DatabaseWorker.getInstance().saveUserParameters(
+        databaseWorker.saveUserParameters(
                 mActivityRule.getActivity(), userParameters, new Runnable() {
                     @Override
                     public void run() {

@@ -21,6 +21,8 @@ import com.tapadoo.alerter.Alerter;
 
 import java.util.ArrayList;
 
+import javax.inject.Inject;
+
 import korablique.recipecalculator.ui.Card;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.model.Foodstuff;
@@ -33,6 +35,9 @@ import static korablique.recipecalculator.IntentConstants.NAME;
 import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
 
 public class ListOfFoodstuffsActivity extends BaseActivity {
+    @Inject
+    DatabaseWorker databaseWorker;
+
     private Card card;
     private FoodstuffsAdapter recyclerViewAdapter;
     private int editedFoodstuffPosition;
@@ -99,7 +104,6 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
                         return;
                     }
                     //сохраняем новые значения в базу данных
-                    DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
                     databaseWorker.editFoodstuff(ListOfFoodstuffsActivity.this, editedFoodstuffId, newFoodstuff);
                     recyclerViewAdapter.replaceItem(newFoodstuff, editedFoodstuffPosition);
                     KeyboardHandler keyboardHandler = new KeyboardHandler(ListOfFoodstuffsActivity.this);
@@ -112,7 +116,6 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
             card.setOnButtonDeleteClickedRunnable(new Runnable() {
                 @Override
                 public void run() {
-                    DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
                     databaseWorker.makeFoodstuffUnlisted(ListOfFoodstuffsActivity.this, editedFoodstuffId, null);
                     recyclerViewAdapter.deleteItem(editedFoodstuffPosition);
                     new KeyboardHandler(ListOfFoodstuffsActivity.this).hideKeyBoard();
@@ -137,7 +140,6 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
         recyclerView.addItemDecoration(dividerItemDecoration);
         recyclerView.setAdapter(recyclerViewAdapter);
 
-        DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
         databaseWorker.requestListedFoodstuffsFromDb(this, new DatabaseWorker.FoodstuffsRequestCallback() {
             @Override
             public void onResult(final ArrayList<Foodstuff> foodstuffs) {
@@ -213,7 +215,6 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
         for (int index = recyclerViewAdapter.getItemCount() - 1; index >= 0; index--) {
             recyclerViewAdapter.deleteItem(index);
         }
-        DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
         databaseWorker.requestListedFoodstuffsFromDb(this, new DatabaseWorker.FoodstuffsRequestCallback() {
             @Override
             public void onResult(final ArrayList<Foodstuff> foodstuffs) {
