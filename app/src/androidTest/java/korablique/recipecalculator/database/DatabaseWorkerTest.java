@@ -8,6 +8,7 @@ import android.support.test.runner.AndroidJUnit4;
 
 import junit.framework.Assert;
 
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,16 +32,22 @@ import static korablique.recipecalculator.database.HistoryContract.HISTORY_TABLE
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class DatabaseWorkerTest {
+    private DatabaseWorker databaseWorker;
+
     @Rule
     public ActivityTestRule<CalculatorActivity> mActivityRule =
             new ActivityTestRule<>(CalculatorActivity.class);
+
+    @Before
+    public void setUp() {
+        databaseWorker = new DatabaseWorker();
+    }
 
     @Test
     public void requestListedFoodstuffsFromDbWorks() throws InterruptedException {
         clearTable(FOODSTUFFS_TABLE_NAME);
 
         final CountDownLatch mutex = new CountDownLatch(4);
-        DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
         Foodstuff foodstuff1 = new Foodstuff("продукт1", 1, 1, 1, 1, 1);
         Foodstuff foodstuff2 = new Foodstuff("продукт2", 1, 1, 1, 1, 1);
         Foodstuff foodstuff3 = new Foodstuff("продукт3", 1, 1, 1, 1, 1);
@@ -120,7 +127,6 @@ public class DatabaseWorkerTest {
         Foodstuff foodstuff = getAnyFoodstuffFromDb();
 
         final CountDownLatch mutex = new CountDownLatch(1);
-        DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
         Date date = new Date();
         databaseWorker.saveFoodstuffToHistory(
                 mActivityRule.getActivity(),
@@ -152,7 +158,6 @@ public class DatabaseWorkerTest {
         clearTable(HISTORY_TABLE_NAME);
 
         final CountDownLatch mutex = new CountDownLatch(1);
-        DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
         Foodstuff foodstuff = getAnyFoodstuffFromDb();
         double weight = 100;
         Date date = new Date();
@@ -189,7 +194,6 @@ public class DatabaseWorkerTest {
         clearTable(HISTORY_TABLE_NAME);
 
         final CountDownLatch mutex = new CountDownLatch(1);
-        DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
         Foodstuff foodstuff = getAnyFoodstuffFromDb();
         double weight = 100;
         Date date = new Date();
@@ -236,7 +240,6 @@ public class DatabaseWorkerTest {
 
         // вставить в таблицу foodstuffs 2 фудстаффа
         final CountDownLatch mutex1 = new CountDownLatch(2);
-        DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
         final Foodstuff foodstuff1 = new Foodstuff("продукт1", 1, 1, 1, 1, 1);
         Foodstuff foodstuff2 = new Foodstuff("продукт2", 1, 1, 1, 1, 1);
         final long[] foodstuff1Id = {-1};
@@ -312,7 +315,6 @@ public class DatabaseWorkerTest {
 
     @Test
     public void canSaveListedProductSameAsUnlisted() throws InterruptedException {
-        DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
         Foodstuff foodstuff = new Foodstuff("falafel", -1, 10, 10, 10, 100);
         final long[] id = {-1};
         final CountDownLatch mutex1 = new CountDownLatch(1);
@@ -364,7 +366,6 @@ public class DatabaseWorkerTest {
         clearTable(HISTORY_TABLE_NAME);
         clearTable(FOODSTUFFS_TABLE_NAME);
 
-        final DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
         // создаем 20 продуктов
         final Foodstuff[] foodstuffs = new Foodstuff[20];
         for (int index = 0; index < 20; index++) {
@@ -443,7 +444,6 @@ public class DatabaseWorkerTest {
 
     public Foodstuff getAnyFoodstuffFromDb() throws InterruptedException {
         final CountDownLatch mutex = new CountDownLatch(1);
-        DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
         final ArrayList<Foodstuff> foodstuffArrayList = new ArrayList<>();
         databaseWorker.requestListedFoodstuffsFromDb(mActivityRule.getActivity(), new DatabaseWorker.FoodstuffsRequestCallback() {
             @Override

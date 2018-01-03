@@ -17,6 +17,8 @@ import com.tapadoo.alerter.Alerter;
 
 import java.util.ArrayList;
 
+import javax.inject.Inject;
+
 import io.fabric.sdk.android.Fabric;
 import korablique.recipecalculator.ui.Card;
 import korablique.recipecalculator.ui.CardDisplaySource;
@@ -39,6 +41,10 @@ public class CalculatorActivity extends BaseActivity {
     public static final String FATS = "FATS";
     public static final String CARBS = "CARBS";
     public static final String CALORIES = "CALORIES";
+
+    @Inject
+    DatabaseWorker databaseWorker;
+
     private RecyclerView ingredients;
     private Card card;
     private int editedFoodstuffPosition;
@@ -155,7 +161,6 @@ public class CalculatorActivity extends BaseActivity {
                     return;
                 }
 
-                DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
                 databaseWorker.saveFoodstuff(
                         CalculatorActivity.this,
                         savingFoodstuff,

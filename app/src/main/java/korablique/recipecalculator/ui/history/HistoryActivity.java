@@ -15,6 +15,8 @@ import com.tapadoo.alerter.Alerter;
 import java.util.ArrayList;
 import java.util.Date;
 
+import javax.inject.Inject;
+
 import korablique.recipecalculator.FloatUtils;
 import korablique.recipecalculator.model.HistoryEntry;
 import korablique.recipecalculator.ui.Card;
@@ -36,6 +38,9 @@ import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
 
 
 public class HistoryActivity extends BaseActivity {
+    @Inject
+    DatabaseWorker databaseWorker;
+
     private Card card;
     private int editedFoodstuffPosition;
     private CardDisplaySource cardDisplaySource;
@@ -61,7 +66,7 @@ public class HistoryActivity extends BaseActivity {
         ViewGroup parentLayout = findViewById(R.id.history_parent);
         card = new Card(this, parentLayout);
 
-        DatabaseWorker.getInstance().requestCurrentUserParameters(
+        databaseWorker.requestCurrentUserParameters(
                 HistoryActivity.this, new DatabaseWorker.RequestCurrentUserParametersCallback() {
             @Override
             public void onResult(final UserParameters userParameters) {
@@ -100,7 +105,7 @@ public class HistoryActivity extends BaseActivity {
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(adapter);
 
-        DatabaseWorker.getInstance().requestAllHistoryFromDb(this, new DatabaseWorker.RequestHistoryCallback() {
+        databaseWorker.requestAllHistoryFromDb(this, new DatabaseWorker.RequestHistoryCallback() {
             @Override
             public void onResult(final ArrayList<HistoryEntry> historyEntries) {
                 runOnUiThread(new Runnable() {
@@ -185,7 +190,6 @@ public class HistoryActivity extends BaseActivity {
                         HistoryEntry newEntry = new HistoryEntry(
                                 historyEntry.getHistoryId(), foodstuff, historyEntry.getTime());
                         adapter.replaceItem(newEntry, editedFoodstuffPosition);
-                        final DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
                         databaseWorker.saveUnlistedFoodstuff(
                                 HistoryActivity.this,
                                 foodstuff,
@@ -207,7 +211,7 @@ public class HistoryActivity extends BaseActivity {
                         HistoryEntry newEntry = new HistoryEntry(
                                 historyEntry.getHistoryId(), foodstuff, historyEntry.getTime());
                         adapter.replaceItem(newEntry, editedFoodstuffPosition);
-                        DatabaseWorker.getInstance().editWeightInHistoryEntry(
+                        databaseWorker.editWeightInHistoryEntry(
                                 HistoryActivity.this, newEntry.getHistoryId(), newWeight, null);
                     }
                     recyclerView.smoothScrollToPosition(editedFoodstuffPosition);
@@ -225,7 +229,7 @@ public class HistoryActivity extends BaseActivity {
                 long historyId = ((HistoryAdapter.FoodstuffData) adapter.getItem(editedFoodstuffPosition))
                         .getHistoryEntry().getHistoryId();
                 adapter.deleteItem(editedFoodstuffPosition);
-                DatabaseWorker.getInstance().deleteEntryFromHistory(HistoryActivity.this, historyId);
+                databaseWorker.deleteEntryFromHistory(HistoryActivity.this, historyId);
                 card.hide();
             }
         });
@@ -257,7 +261,6 @@ public class HistoryActivity extends BaseActivity {
                     return;
                 }
 
-                DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
                 databaseWorker.saveFoodstuff(
                         HistoryActivity.this,
                         savingFoodstuff,
@@ -304,7 +307,6 @@ public class HistoryActivity extends BaseActivity {
 
     private void addListedFoodstuffToHistory(final Foodstuff foodstuff, long foodstuffId) {
         final Date date = new Date();
-        DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
         databaseWorker.saveFoodstuffToHistory(
                 HistoryActivity.this,
                 date,
@@ -324,7 +326,6 @@ public class HistoryActivity extends BaseActivity {
 
     private void addUnlistedFoodstuffToHistory(final Foodstuff foodstuff) {
         final Date date = new Date();
-        final DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
         databaseWorker.saveUnlistedFoodstuff(
                 HistoryActivity.this,
                 foodstuff,

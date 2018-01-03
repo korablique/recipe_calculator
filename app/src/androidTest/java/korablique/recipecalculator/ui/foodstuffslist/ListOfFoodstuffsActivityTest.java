@@ -35,14 +35,16 @@ import static org.hamcrest.Matchers.not;
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class ListOfFoodstuffsActivityTest {
+    private DatabaseWorker databaseWorker;
+
     @Rule
     public ActivityTestRule<ListOfFoodstuffsActivity> mActivityRule =
             new ActivityTestRule<>(ListOfFoodstuffsActivity.class);
 
     @Before
     public void setUp() throws InterruptedException {
+        databaseWorker = new DatabaseWorker();
         Card.setAnimationDuration(0);
-        DatabaseWorker databaseWorker = DatabaseWorker.getInstance();
         Foodstuff foodstuff1 = new Foodstuff("product1", -1, 10, 10, 10, 10);
         final CountDownLatch mutex = new CountDownLatch(1);
         databaseWorker.saveFoodstuff(

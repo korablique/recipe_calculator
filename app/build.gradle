@@ -68,6 +68,13 @@ dependencies {
     compile 'com.android.support:recyclerview-v7:27.0.2'
     compile 'com.android.support:design:27.0.2'
     compile 'com.tapadoo.android:alerter:2.0.1'
+
+    compile 'com.google.dagger:dagger:2.11'
+    annotationProcessor 'com.google.dagger:dagger-compiler:2.11'
+    compile 'com.google.dagger:dagger-android:2.11'
+    compile 'com.google.dagger:dagger-android-support:2.11'
+    annotationProcessor 'com.google.dagger:dagger-android-processor:2.11'
+
     testCompile 'junit:junit:4.12'
     testCompile 'org.robolectric:robolectric:3.3.2'
 }

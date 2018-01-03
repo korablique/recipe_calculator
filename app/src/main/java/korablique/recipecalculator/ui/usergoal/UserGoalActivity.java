@@ -12,6 +12,8 @@ import android.widget.TextView;
 
 import com.crashlytics.android.Crashlytics;
 
+import javax.inject.Inject;
+
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.ui.BaseActivity;
 import korablique.recipecalculator.R;
@@ -19,6 +21,8 @@ import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.ui.history.HistoryActivity;
 
 public class UserGoalActivity extends BaseActivity {
+    @Inject
+    DatabaseWorker databaseWorker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,7 +78,7 @@ public class UserGoalActivity extends BaseActivity {
                 String defaultFormula = getResources().getStringArray(R.array.formula_array)[0];
                 UserParameters userParameters = new UserParameters(
                         selectedGoal, selectedGender, age, height, weight, coefficient, defaultFormula);
-                DatabaseWorker.getInstance().saveUserParameters(
+                databaseWorker.saveUserParameters(
                         UserGoalActivity.this, userParameters, new Runnable() {
                             @Override
                             public void run() {

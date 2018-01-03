@@ -39,7 +39,6 @@ import static korablique.recipecalculator.database.UserParametersContract.COLUMN
 import static korablique.recipecalculator.database.UserParametersContract.USER_PARAMETERS_TABLE_NAME;
 
 public class DatabaseWorker {
-    private static DatabaseWorker databaseWorker;
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     public interface FoodstuffsRequestCallback {
@@ -66,15 +65,6 @@ public class DatabaseWorker {
     }
     public interface RequestFoodstuffsIdsFromHistoryCallback {
         void onResult(ArrayList<Long> ids);
-    }
-
-    private DatabaseWorker() {}
-
-    public static synchronized DatabaseWorker getInstance() {
-        if (databaseWorker == null) {
-            databaseWorker = new DatabaseWorker();
-        }
-        return databaseWorker;
     }
 
     public void saveFoodstuff(
