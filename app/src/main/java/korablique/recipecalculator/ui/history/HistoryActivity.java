@@ -70,18 +70,13 @@ public class HistoryActivity extends BaseActivity {
                 HistoryActivity.this, new DatabaseWorker.RequestCurrentUserParametersCallback() {
             @Override
             public void onResult(final UserParameters userParameters) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (userParameters == null) {
-                            Intent intent = new Intent(HistoryActivity.this, UserGoalActivity.class);
-                            startActivity(intent);
-                            finish();
-                        } else {
-                            initializeActivity(userParameters);
-                        }
-                    }
-                });
+                if (userParameters == null) {
+                    Intent intent = new Intent(HistoryActivity.this, UserGoalActivity.class);
+                    startActivity(intent);
+                    finish();
+                } else {
+                    initializeActivity(userParameters);
+                }
             }
         });
     }
@@ -108,14 +103,9 @@ public class HistoryActivity extends BaseActivity {
         databaseWorker.requestAllHistoryFromDb(this, new DatabaseWorker.RequestHistoryCallback() {
             @Override
             public void onResult(final ArrayList<HistoryEntry> historyEntries) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        for (HistoryEntry historyEntry : historyEntries) {
-                            adapter.addItem(historyEntry);
-                        }
-                    }
-                });
+                for (HistoryEntry historyEntry : historyEntries) {
+                    adapter.addItem(historyEntry);
+                }
             }
         });
 
@@ -314,12 +304,7 @@ public class HistoryActivity extends BaseActivity {
                 foodstuff.getWeight(), new DatabaseWorker.AddHistoryEntriesCallback() {
             @Override
             public void onResult(final ArrayList<Long> historyEntriesIds) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        adapter.addItem(new HistoryEntry(historyEntriesIds.get(0), foodstuff, date));
-                    }
-                });
+                adapter.addItem(new HistoryEntry(historyEntriesIds.get(0), foodstuff, date));
             }
         });
     }
@@ -339,13 +324,8 @@ public class HistoryActivity extends BaseActivity {
                         foodstuff.getWeight(), new DatabaseWorker.AddHistoryEntriesCallback() {
                     @Override
                     public void onResult(final ArrayList<Long> historyEntriesIds) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                adapter.addItem(new HistoryEntry(
-                                        historyEntriesIds.get(0), foodstuff, date));
-                            }
-                        });
+                        adapter.addItem(new HistoryEntry(
+                                historyEntriesIds.get(0), foodstuff, date));
                     }
                 });
             }

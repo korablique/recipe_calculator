@@ -14,12 +14,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.concurrent.CountDownLatch;
-
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.ui.Card;
+import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
+import korablique.recipecalculator.util.InstantMainThreadExecutor;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
@@ -44,7 +44,9 @@ public class HistoryActivityTest {
     @Before
     public void setUp() throws InterruptedException {
         Card.setAnimationDuration(0);
-        databaseWorker = new DatabaseWorker();
+        databaseWorker = new DatabaseWorker(new InstantMainThreadExecutor(), new InstantDatabaseThreadExecutor());
+        mActivityRule.getActivity().databaseWorker = databaseWorker;
+
         Resources resources = mActivityRule.getActivity().getResources();
         String goal = resources.getStringArray(R.array.goals_array)[0];
         String gender = resources.getStringArray(R.array.gender_array)[0];
@@ -53,15 +55,8 @@ public class HistoryActivityTest {
         String defaultFormula = resources.getStringArray(R.array.formula_array)[0];
         UserParameters userParameters = new UserParameters(
                 goal, gender, age, height, weight, coefficient, defaultFormula);
-        final CountDownLatch mutex = new CountDownLatch(1);
         databaseWorker.saveUserParameters(
-                mActivityRule.getActivity(), userParameters, new Runnable() {
-                    @Override
-                    public void run() {
-                        mutex.countDown();
-                    }
-                });
-        mutex.await();
+                mActivityRule.getActivity(), userParameters, null);
     }
 
     @After

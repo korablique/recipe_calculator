@@ -9,9 +9,8 @@ import android.support.annotation.NonNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
+import korablique.recipecalculator.base.MainThreadExecutor;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.UserParameters;
@@ -39,7 +38,8 @@ import static korablique.recipecalculator.database.UserParametersContract.COLUMN
 import static korablique.recipecalculator.database.UserParametersContract.USER_PARAMETERS_TABLE_NAME;
 
 public class DatabaseWorker {
-    private ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private DatabaseThreadExecutor databaseThreadExecutor;
+    private MainThreadExecutor mainThreadExecutor;
 
     public interface FoodstuffsRequestCallback {
         void onResult(ArrayList<Foodstuff> foodstuffs);
@@ -66,55 +66,58 @@ public class DatabaseWorker {
     public interface RequestFoodstuffsIdsFromHistoryCallback {
         void onResult(ArrayList<Long> ids);
     }
+    
+    public DatabaseWorker(MainThreadExecutor mainThreadExecutor, DatabaseThreadExecutor databaseThreadExecutor) {
+        this.mainThreadExecutor = mainThreadExecutor;
+        this.databaseThreadExecutor = databaseThreadExecutor;
+    }
 
     public void saveFoodstuff(
             final Context context,
             final Foodstuff foodstuff,
             @NonNull final SaveFoodstuffCallback callback) {
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
-                SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-                String whereClause = COLUMN_NAME_FOODSTUFF_NAME + "=? AND " +
-                        COLUMN_NAME_PROTEIN + "=? AND " +
-                        COLUMN_NAME_FATS + "=? AND " +
-                        COLUMN_NAME_CARBS + "=? AND " +
-                        COLUMN_NAME_CALORIES + "=? AND " +
-                        COLUMN_NAME_IS_LISTED + "=?";
-                String[] selectionArgs = new String[] {
-                        String.valueOf(foodstuff.getName()),
-                        String.valueOf(foodstuff.getProtein()),
-                        String.valueOf(foodstuff.getFats()),
-                        String.valueOf(foodstuff.getCarbs()),
-                        String.valueOf(foodstuff.getCalories()),
-                        String.valueOf(1)}; // listed
-                Cursor cursor = database.query(
-                        FOODSTUFFS_TABLE_NAME,
-                        null,
-                        whereClause,
-                        selectionArgs,
-                        null, null, null);
-                //если такого продукта нет в БД:
-                boolean alreadyContainsListedFoodstuff = false;
-                long id = -1;
-                if (cursor.getCount() == 0) {
-                    ContentValues values = new ContentValues();
-                    values.put(COLUMN_NAME_FOODSTUFF_NAME, foodstuff.getName());
-                    values.put(COLUMN_NAME_PROTEIN, foodstuff.getProtein());
-                    values.put(COLUMN_NAME_FATS, foodstuff.getFats());
-                    values.put(COLUMN_NAME_CARBS, foodstuff.getCarbs());
-                    values.put(COLUMN_NAME_CALORIES, foodstuff.getCalories());
-                    id = database.insert(FOODSTUFFS_TABLE_NAME, null, values);
-                } else {
-                    alreadyContainsListedFoodstuff = true;
-                }
-                cursor.close();
-                if (alreadyContainsListedFoodstuff) {
-                    callback.onDuplication();
-                } else {
-                    callback.onResult(id);
-                }
+        databaseThreadExecutor.execute(() -> {
+            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+            String whereClause = COLUMN_NAME_FOODSTUFF_NAME + "=? AND " +
+                    COLUMN_NAME_PROTEIN + "=? AND " +
+                    COLUMN_NAME_FATS + "=? AND " +
+                    COLUMN_NAME_CARBS + "=? AND " +
+                    COLUMN_NAME_CALORIES + "=? AND " +
+                    COLUMN_NAME_IS_LISTED + "=?";
+            String[] selectionArgs = new String[] {
+                    String.valueOf(foodstuff.getName()),
+                    String.valueOf(foodstuff.getProtein()),
+                    String.valueOf(foodstuff.getFats()),
+                    String.valueOf(foodstuff.getCarbs()),
+                    String.valueOf(foodstuff.getCalories()),
+                    String.valueOf(1)}; // listed
+            Cursor cursor = database.query(
+                    FOODSTUFFS_TABLE_NAME,
+                    null,
+                    whereClause,
+                    selectionArgs,
+                    null, null, null);
+            //если такого продукта нет в БД:
+            boolean alreadyContainsListedFoodstuff = false;
+            long id = -1;
+            if (cursor.getCount() == 0) {
+                ContentValues values = new ContentValues();
+                values.put(COLUMN_NAME_FOODSTUFF_NAME, foodstuff.getName());
+                values.put(COLUMN_NAME_PROTEIN, foodstuff.getProtein());
+                values.put(COLUMN_NAME_FATS, foodstuff.getFats());
+                values.put(COLUMN_NAME_CARBS, foodstuff.getCarbs());
+                values.put(COLUMN_NAME_CALORIES, foodstuff.getCalories());
+                id = database.insert(FOODSTUFFS_TABLE_NAME, null, values);
+            } else {
+                alreadyContainsListedFoodstuff = true;
+            }
+            cursor.close();
+            if (alreadyContainsListedFoodstuff) {
+                mainThreadExecutor.execute(() -> callback.onDuplication());
+            } else {
+                long finalId = id;
+                mainThreadExecutor.execute(() -> callback.onResult(finalId));
             }
         });
     }
@@ -123,178 +126,160 @@ public class DatabaseWorker {
             final Context context,
             final Foodstuff[] foodstuffs,
             @NonNull final SaveGroupOfFoodstuffsCallback callback) {
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
-                SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-                final ArrayList<Long> ids = new ArrayList<>();
+        databaseThreadExecutor.execute(() -> {
+            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+            final ArrayList<Long> ids = new ArrayList<>();
 
-                database.beginTransaction();
-                try {
-                    for (Foodstuff foodstuff : foodstuffs) {
-                        ContentValues values = new ContentValues();
-                        values.put(COLUMN_NAME_FOODSTUFF_NAME, foodstuff.getName());
-                        values.put(COLUMN_NAME_PROTEIN, foodstuff.getProtein());
-                        values.put(COLUMN_NAME_FATS, foodstuff.getFats());
-                        values.put(COLUMN_NAME_CARBS, foodstuff.getCarbs());
-                        values.put(COLUMN_NAME_CALORIES, foodstuff.getCalories());
-                        long id = database.insert(FOODSTUFFS_TABLE_NAME, null, values);
-                        ids.add(id);
-                    }
-                    database.setTransactionSuccessful();
-                } finally {
-                    database.endTransaction();
+            database.beginTransaction();
+            try {
+                for (Foodstuff foodstuff : foodstuffs) {
+                    ContentValues values = new ContentValues();
+                    values.put(COLUMN_NAME_FOODSTUFF_NAME, foodstuff.getName());
+                    values.put(COLUMN_NAME_PROTEIN, foodstuff.getProtein());
+                    values.put(COLUMN_NAME_FATS, foodstuff.getFats());
+                    values.put(COLUMN_NAME_CARBS, foodstuff.getCarbs());
+                    values.put(COLUMN_NAME_CALORIES, foodstuff.getCalories());
+                    long id = database.insert(FOODSTUFFS_TABLE_NAME, null, values);
+                    ids.add(id);
                 }
-                callback.onResult(ids);
+                database.setTransactionSuccessful();
+            } finally {
+                database.endTransaction();
             }
+            mainThreadExecutor.execute(() -> callback.onResult(ids));
         });
     }
 
     public void saveUnlistedFoodstuff(
             final Context context,
             final Foodstuff foodstuff,
-            @NonNull final SaveUnlistedFoodstuffCallback callback) {
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
-                SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-                ContentValues values = new ContentValues();
-                values.put(COLUMN_NAME_FOODSTUFF_NAME, foodstuff.getName());
-                values.put(COLUMN_NAME_PROTEIN, foodstuff.getProtein());
-                values.put(COLUMN_NAME_FATS, foodstuff.getFats());
-                values.put(COLUMN_NAME_CARBS, foodstuff.getCarbs());
-                values.put(COLUMN_NAME_CALORIES, foodstuff.getCalories());
-                values.put(COLUMN_NAME_IS_LISTED, 0);
-                long foodstuffId = database.insert(FOODSTUFFS_TABLE_NAME, null, values);
-                callback.onResult(foodstuffId);
+            final SaveUnlistedFoodstuffCallback callback) {
+        databaseThreadExecutor.execute(() -> {
+            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_NAME_FOODSTUFF_NAME, foodstuff.getName());
+            values.put(COLUMN_NAME_PROTEIN, foodstuff.getProtein());
+            values.put(COLUMN_NAME_FATS, foodstuff.getFats());
+            values.put(COLUMN_NAME_CARBS, foodstuff.getCarbs());
+            values.put(COLUMN_NAME_CALORIES, foodstuff.getCalories());
+            values.put(COLUMN_NAME_IS_LISTED, 0);
+            long foodstuffId = database.insert(FOODSTUFFS_TABLE_NAME, null, values);
+            if (callback != null) {
+                mainThreadExecutor.execute(() -> callback.onResult(foodstuffId));
             }
         });
     }
 
     public void editFoodstuff(final Context context, final long editedFoodstuffId, final Foodstuff newFoodstuff) {
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
-                SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+        databaseThreadExecutor.execute(() -> {
+            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
 
-                ContentValues contentValues = new ContentValues();
-                contentValues.put(COLUMN_NAME_FOODSTUFF_NAME, newFoodstuff.getName());
-                contentValues.put(COLUMN_NAME_PROTEIN, newFoodstuff.getProtein());
-                contentValues.put(COLUMN_NAME_FATS, newFoodstuff.getFats());
-                contentValues.put(COLUMN_NAME_CARBS, newFoodstuff.getCarbs());
-                contentValues.put(COLUMN_NAME_CALORIES, newFoodstuff.getCalories());
-                database.update(
-                        FOODSTUFFS_TABLE_NAME,
-                        contentValues,
-                        FoodstuffsContract.ID + " = ?",
-                        new String[]{String.valueOf(editedFoodstuffId)});
-            }
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(COLUMN_NAME_FOODSTUFF_NAME, newFoodstuff.getName());
+            contentValues.put(COLUMN_NAME_PROTEIN, newFoodstuff.getProtein());
+            contentValues.put(COLUMN_NAME_FATS, newFoodstuff.getFats());
+            contentValues.put(COLUMN_NAME_CARBS, newFoodstuff.getCarbs());
+            contentValues.put(COLUMN_NAME_CALORIES, newFoodstuff.getCalories());
+            database.update(
+                    FOODSTUFFS_TABLE_NAME,
+                    contentValues,
+                    FoodstuffsContract.ID + " = ?",
+                    new String[]{String.valueOf(editedFoodstuffId)});
         });
     }
 
     public void deleteFoodstuff(final Context context, final long foodstuffsId) {
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
-                SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-                database.delete(
-                        FOODSTUFFS_TABLE_NAME,
-                        FoodstuffsContract.ID + "=?",
-                        new String[]{String.valueOf(foodstuffsId)});
-            }
+        databaseThreadExecutor.execute(() -> {
+            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+            database.delete(
+                    FOODSTUFFS_TABLE_NAME,
+                    FoodstuffsContract.ID + "=?",
+                    new String[]{String.valueOf(foodstuffsId)});
         });
     }
 
     public void makeFoodstuffUnlisted(final Context context, final long foodstuffId, final Runnable callback) {
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
-                SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-                ContentValues values = new ContentValues();
-                values.put(COLUMN_NAME_IS_LISTED, 0);
-                database.update(
-                        FOODSTUFFS_TABLE_NAME,
-                        values,
-                        FoodstuffsContract.ID + "=?",
-                        new String[]{String.valueOf(foodstuffId)});
-                if (callback != null) {
-                    callback.run();
-                }
+        databaseThreadExecutor.execute(() -> {
+            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_NAME_IS_LISTED, 0);
+            database.update(
+                    FOODSTUFFS_TABLE_NAME,
+                    values,
+                    FoodstuffsContract.ID + "=?",
+                    new String[]{String.valueOf(foodstuffId)});
+            if (callback != null) {
+                mainThreadExecutor.execute(callback);
             }
         });
     }
 
     public void requestListedFoodstuffsFromDb(
             final Context context, @NonNull final FoodstuffsRequestCallback callback) {
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
-                SQLiteDatabase db = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
-                Cursor cursor = db.query(
-                        FOODSTUFFS_TABLE_NAME,
-                        null,
-                        COLUMN_NAME_IS_LISTED + "=?",
-                        new String[]{ String.valueOf(1) },
-                        null, null, null);
-                ArrayList<Foodstuff> allFoodstuffsFromDb = new ArrayList<>();
-                while (cursor.moveToNext()) {
-                    Foodstuff foodstuff = new Foodstuff(
-                            cursor.getLong(cursor.getColumnIndex(ID)),
-                            cursor.getString(cursor.getColumnIndex(COLUMN_NAME_FOODSTUFF_NAME)),
-                            -1,
-                            cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_PROTEIN)),
-                            cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_FATS)),
-                            cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CARBS)),
-                            cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CALORIES)));
-                    allFoodstuffsFromDb.add(foodstuff);
-                }
-                cursor.close();
-                Collections.sort(allFoodstuffsFromDb);
-                callback.onResult(allFoodstuffsFromDb);
+        databaseThreadExecutor.execute(() -> {
+            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+            SQLiteDatabase db = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
+            Cursor cursor = db.query(
+                    FOODSTUFFS_TABLE_NAME,
+                    null,
+                    COLUMN_NAME_IS_LISTED + "=?",
+                    new String[]{ String.valueOf(1) },
+                    null, null, null);
+            ArrayList<Foodstuff> allFoodstuffsFromDb = new ArrayList<>();
+            while (cursor.moveToNext()) {
+                Foodstuff foodstuff = new Foodstuff(
+                        cursor.getLong(cursor.getColumnIndex(ID)),
+                        cursor.getString(cursor.getColumnIndex(COLUMN_NAME_FOODSTUFF_NAME)),
+                        -1,
+                        cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_PROTEIN)),
+                        cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_FATS)),
+                        cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CARBS)),
+                        cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CALORIES)));
+                allFoodstuffsFromDb.add(foodstuff);
             }
+            cursor.close();
+            Collections.sort(allFoodstuffsFromDb);
+            mainThreadExecutor.execute(() -> callback.onResult(allFoodstuffsFromDb));
         });
     }
 
     public void requestAllHistoryFromDb(
             final Context context, @NonNull final RequestHistoryCallback callback) {
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
-                SQLiteDatabase db = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
+        databaseThreadExecutor.execute(() -> {
+            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+            SQLiteDatabase db = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
 
-                String joinTablesArg = HISTORY_TABLE_NAME + " LEFT OUTER" +
-                        " JOIN " + FOODSTUFFS_TABLE_NAME +
-                        " ON " + HISTORY_TABLE_NAME + "." + COLUMN_NAME_FOODSTUFF_ID
-                        + "=" + FOODSTUFFS_TABLE_NAME + "." + FoodstuffsContract.ID;
-                Cursor cursor = db.query(joinTablesArg, null, null, null, null, null, null);
+            String joinTablesArg = HISTORY_TABLE_NAME + " LEFT OUTER" +
+                    " JOIN " + FOODSTUFFS_TABLE_NAME +
+                    " ON " + HISTORY_TABLE_NAME + "." + COLUMN_NAME_FOODSTUFF_ID
+                    + "=" + FOODSTUFFS_TABLE_NAME + "." + FoodstuffsContract.ID;
+            Cursor cursor = db.query(joinTablesArg, null, null, null, null, null, null);
 
-                ArrayList<HistoryEntry> historyEntries = new ArrayList<>();
-                while (cursor.moveToNext()) {
-                    long foodstuffId = cursor.getLong(
-                            cursor.getColumnIndex(HISTORY_TABLE_NAME + "." + COLUMN_NAME_FOODSTUFF_ID));
-                    double weight = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_WEIGHT));
-                    String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_FOODSTUFF_NAME));
-                    double protein = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_PROTEIN));
-                    double fats = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_FATS));
-                    double carbs = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CARBS));
-                    double calories = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CALORIES));
-                    Foodstuff foodstuff = new Foodstuff(foodstuffId, name, weight, protein, fats, carbs, calories);
+            ArrayList<HistoryEntry> historyEntries = new ArrayList<>();
+            while (cursor.moveToNext()) {
+                long foodstuffId = cursor.getLong(
+                        cursor.getColumnIndex(HISTORY_TABLE_NAME + "." + COLUMN_NAME_FOODSTUFF_ID));
+                double weight = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_WEIGHT));
+                String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_FOODSTUFF_NAME));
+                double protein = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_PROTEIN));
+                double fats = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_FATS));
+                double carbs = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CARBS));
+                double calories = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CALORIES));
+                Foodstuff foodstuff = new Foodstuff(foodstuffId, name, weight, protein, fats, carbs, calories);
 
-                    long time = cursor.getLong(cursor.getColumnIndex(COLUMN_NAME_DATE));
-                    long historyId = cursor.getLong(cursor.getColumnIndex(HISTORY_TABLE_NAME + "." + HistoryContract.ID));
-                    HistoryEntry historyEntry = new HistoryEntry(historyId, foodstuff, new Date(time));
-                    historyEntries.add(historyEntry);
-                }
-                cursor.close();
-                callback.onResult(historyEntries);
+                long time = cursor.getLong(cursor.getColumnIndex(COLUMN_NAME_DATE));
+                long historyId = cursor.getLong(
+                        cursor.getColumnIndex(HISTORY_TABLE_NAME + "." + HistoryContract.ID));
+                HistoryEntry historyEntry = new HistoryEntry(historyId, foodstuff, new Date(time));
+                historyEntries.add(historyEntry);
             }
+            cursor.close();
+            mainThreadExecutor.execute(() -> callback.onResult(historyEntries));
         });
     }
 
@@ -304,60 +289,49 @@ public class DatabaseWorker {
             final long foodstuffId,
             final double foodstuffWeight,
             final AddHistoryEntriesCallback callback) {
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                saveGroupOfFoodstuffsToHistory(
-                        context,
-                        new NewHistoryEntry[]{new NewHistoryEntry(foodstuffId, foodstuffWeight, date)},
-                        callback);
-            }
-        });
+        saveGroupOfFoodstuffsToHistory(
+                context,
+                new NewHistoryEntry[]{new NewHistoryEntry(foodstuffId, foodstuffWeight, date)},
+                callback);
     }
 
     public void saveGroupOfFoodstuffsToHistory(
             final Context context,
             final NewHistoryEntry[] newEntries,
             final AddHistoryEntriesCallback callback) {
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
-                SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+        databaseThreadExecutor.execute(() -> {
+            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
 
-                final ArrayList<Long> ids = new ArrayList<>();
-                database.beginTransaction();
-                try {
-                    for (NewHistoryEntry newEntry : newEntries) {
-                        ContentValues values = new ContentValues();
-                        values.put(COLUMN_NAME_DATE, newEntry.getDate().getTime());
-                        values.put(COLUMN_NAME_FOODSTUFF_ID, newEntry.getFoodstuffId());
-                        values.put(COLUMN_NAME_WEIGHT, newEntry.getFoodstuffWeight());
-                        long historyEntryId = database.insert(HISTORY_TABLE_NAME, null, values);
-                        ids.add(historyEntryId);
-                    }
-                    database.setTransactionSuccessful();
-                } finally {
-                    database.endTransaction();
+            final ArrayList<Long> ids = new ArrayList<>();
+            database.beginTransaction();
+            try {
+                for (NewHistoryEntry newEntry : newEntries) {
+                    ContentValues values = new ContentValues();
+                    values.put(COLUMN_NAME_DATE, newEntry.getDate().getTime());
+                    values.put(COLUMN_NAME_FOODSTUFF_ID, newEntry.getFoodstuffId());
+                    values.put(COLUMN_NAME_WEIGHT, newEntry.getFoodstuffWeight());
+                    long historyEntryId = database.insert(HISTORY_TABLE_NAME, null, values);
+                    ids.add(historyEntryId);
                 }
-                if (callback != null) {
-                    callback.onResult(ids);
-                }
+                database.setTransactionSuccessful();
+            } finally {
+                database.endTransaction();
+            }
+            if (callback != null) {
+                mainThreadExecutor.execute(() -> callback.onResult(ids));
             }
         });
     }
 
     public void deleteEntryFromHistory(final Context context, final long historyId) {
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
-                SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-                database.delete(
-                        HISTORY_TABLE_NAME,
-                        HistoryContract.ID + " = ?",
-                        new String[]{String.valueOf(historyId)});
-            }
+        databaseThreadExecutor.execute(() -> {
+            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+            database.delete(
+                    HISTORY_TABLE_NAME,
+                    HistoryContract.ID + " = ?",
+                    new String[]{String.valueOf(historyId)});
         });
     }
 
@@ -366,21 +340,18 @@ public class DatabaseWorker {
             final long historyId,
             final double newWeight,
             final Runnable callback) {
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
-                SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-                ContentValues values = new ContentValues();
-                values.put(COLUMN_NAME_WEIGHT, newWeight);
-                database.update(
-                        HISTORY_TABLE_NAME,
-                        values,
-                        HistoryContract.ID + "=?",
-                        new String[]{String.valueOf(historyId)});
-                if (callback != null) {
-                    callback.run();
-                }
+        databaseThreadExecutor.execute(() -> {
+            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_NAME_WEIGHT, newWeight);
+            database.update(
+                    HISTORY_TABLE_NAME,
+                    values,
+                    HistoryContract.ID + "=?",
+                    new String[]{String.valueOf(historyId)});
+            if (callback != null) {
+                mainThreadExecutor.execute(callback);
             }
         });
     }
@@ -390,42 +361,38 @@ public class DatabaseWorker {
             final long historyId,
             final long newFoodstuffId,
             final Runnable callback) {
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
-                SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-                ContentValues values = new ContentValues(1);
-                values.put(COLUMN_NAME_FOODSTUFF_ID, newFoodstuffId);
-                database.update(
-                        HISTORY_TABLE_NAME,
-                        values,
-                        HistoryContract.ID + "=?",
-                        new String[]{String.valueOf(historyId)});
-                if (callback != null) {
-                    callback.run();
-                }
+        databaseThreadExecutor.execute(() -> {
+            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+            ContentValues values = new ContentValues(1);
+            values.put(COLUMN_NAME_FOODSTUFF_ID, newFoodstuffId);
+            database.update(
+                    HISTORY_TABLE_NAME,
+                    values,
+                    HistoryContract.ID + "=?",
+                    new String[]{String.valueOf(historyId)});
+            if (callback != null) {
+                mainThreadExecutor.execute(callback);
             }
         });
     }
 
     public void saveUserParameters(
             final Context context, final UserParameters userParameters, final Runnable callback) {
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
-                SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-                ContentValues values = new ContentValues();
-                values.put(COLUMN_NAME_GOAL, userParameters.getGoal());
-                values.put(COLUMN_NAME_GENDER, userParameters.getGender());
-                values.put(COLUMN_NAME_AGE, userParameters.getAge());
-                values.put(COLUMN_NAME_HEIGHT, userParameters.getHeight());
-                values.put(COLUMN_NAME_USER_WEIGHT, userParameters.getWeight());
-                values.put(COLUMN_NAME_COEFFICIENT, userParameters.getPhysicalActivityCoefficient());
-                values.put(COLUMN_NAME_FORMULA, userParameters.getFormula());
-                database.insert(USER_PARAMETERS_TABLE_NAME, null, values);
-                callback.run();
+        databaseThreadExecutor.execute(() -> {
+            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_NAME_GOAL, userParameters.getGoal());
+            values.put(COLUMN_NAME_GENDER, userParameters.getGender());
+            values.put(COLUMN_NAME_AGE, userParameters.getAge());
+            values.put(COLUMN_NAME_HEIGHT, userParameters.getHeight());
+            values.put(COLUMN_NAME_USER_WEIGHT, userParameters.getWeight());
+            values.put(COLUMN_NAME_COEFFICIENT, userParameters.getPhysicalActivityCoefficient());
+            values.put(COLUMN_NAME_FORMULA, userParameters.getFormula());
+            database.insert(USER_PARAMETERS_TABLE_NAME, null, values);
+            if (callback != null) {
+                mainThreadExecutor.execute(callback);
             }
         });
     }
@@ -433,36 +400,34 @@ public class DatabaseWorker {
     public void requestCurrentUserParameters(
             final Context context,
             final RequestCurrentUserParametersCallback callback) {
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
-                SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
-                Cursor cursor = database.query(
-                        USER_PARAMETERS_TABLE_NAME,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        UserParametersContract.ID + " DESC",
-                        String.valueOf(1));
-                UserParameters userParameters = null;
-                if (cursor.getCount() != 0) {
-                    while (cursor.moveToNext()) {
-                        String goal = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_GOAL));
-                        String gender = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_GENDER));
-                        int age = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_AGE));
-                        int height = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_HEIGHT));
-                        int weight = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_USER_WEIGHT));
-                        float coefficient = cursor.getFloat(cursor.getColumnIndex(COLUMN_NAME_COEFFICIENT));
-                        String formula = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_FORMULA));
-                        userParameters = new UserParameters(goal, gender, age, height, weight, coefficient, formula);
-                    }
+        databaseThreadExecutor.execute(() -> {
+            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
+            Cursor cursor = database.query(
+                    USER_PARAMETERS_TABLE_NAME,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    UserParametersContract.ID + " DESC",
+                    String.valueOf(1));
+            UserParameters userParameters = null;
+            if (cursor.getCount() != 0) {
+                while (cursor.moveToNext()) {
+                    String goal = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_GOAL));
+                    String gender = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_GENDER));
+                    int age = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_AGE));
+                    int height = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_HEIGHT));
+                    int weight = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_USER_WEIGHT));
+                    float coefficient = cursor.getFloat(cursor.getColumnIndex(COLUMN_NAME_COEFFICIENT));
+                    String formula = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_FORMULA));
+                    userParameters = new UserParameters(goal, gender, age, height, weight, coefficient, formula);
                 }
-                cursor.close();
-                callback.onResult(userParameters);
             }
+            cursor.close();
+            UserParameters finalUserParameters = userParameters;
+            mainThreadExecutor.execute(() -> callback.onResult(finalUserParameters));
         });
     }
 
@@ -471,28 +436,25 @@ public class DatabaseWorker {
             final long to,
             final Context context,
             @NonNull final RequestFoodstuffsIdsFromHistoryCallback callback) {
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
-                SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
-                Cursor cursor = database.query(
-                        HISTORY_TABLE_NAME,
-                        new String[]{ COLUMN_NAME_FOODSTUFF_ID },
-                        COLUMN_NAME_DATE + " >= ? AND " + COLUMN_NAME_DATE + " <= ?",
-                        new String[]{ String.valueOf(from), String.valueOf(to) },
-                        null,
-                        null,
-                        COLUMN_NAME_DATE + " ASC");
+        databaseThreadExecutor.execute(() -> {
+            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
+            Cursor cursor = database.query(
+                    HISTORY_TABLE_NAME,
+                    new String[]{ COLUMN_NAME_FOODSTUFF_ID },
+                    COLUMN_NAME_DATE + " >= ? AND " + COLUMN_NAME_DATE + " <= ?",
+                    new String[]{ String.valueOf(from), String.valueOf(to) },
+                    null,
+                    null,
+                    COLUMN_NAME_DATE + " ASC");
 
-                ArrayList<Long> ids = new ArrayList<>();
-                while (cursor.moveToNext()) {
-                    long id = cursor.getLong(cursor.getColumnIndex(COLUMN_NAME_FOODSTUFF_ID));
-                    ids.add(id);
-                }
-                cursor.close();
-                callback.onResult(ids);
+            ArrayList<Long> ids = new ArrayList<>();
+            while (cursor.moveToNext()) {
+                long id = cursor.getLong(cursor.getColumnIndex(COLUMN_NAME_FOODSTUFF_ID));
+                ids.add(id);
             }
+            cursor.close();
+            mainThreadExecutor.execute(() -> callback.onResult(ids));
         });
     }
 }

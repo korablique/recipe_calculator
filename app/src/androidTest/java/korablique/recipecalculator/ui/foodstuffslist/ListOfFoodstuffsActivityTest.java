@@ -15,13 +15,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.concurrent.CountDownLatch;
-
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
-import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.ui.Card;
+import korablique.recipecalculator.util.InstantMainThreadExecutor;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
@@ -43,33 +42,24 @@ public class ListOfFoodstuffsActivityTest {
 
     @Before
     public void setUp() throws InterruptedException {
-        databaseWorker = new DatabaseWorker();
+        databaseWorker = new DatabaseWorker(new InstantMainThreadExecutor(), new DatabaseThreadExecutor());
+        mActivityRule.getActivity().databaseWorker = databaseWorker;
+
         Card.setAnimationDuration(0);
         Foodstuff foodstuff1 = new Foodstuff("product1", -1, 10, 10, 10, 10);
-        final CountDownLatch mutex = new CountDownLatch(1);
         databaseWorker.saveFoodstuff(
                 mActivityRule.getActivity(),
                 foodstuff1,
                 new DatabaseWorker.SaveFoodstuffCallback() {
             @Override
-            public void onResult(long id) {
-                mutex.countDown();
-            }
+            public void onResult(long id) {}
             @Override
             public void onDuplication() {
                 throw new RuntimeException("Видимо, продукт уже существует");
             }
         });
-        mutex.await();
 
-        final CountDownLatch mutex2 = new CountDownLatch(1);
-        mActivityRule.getActivity().reload(new Runnable() {
-            @Override
-            public void run() {
-                mutex2.countDown();
-            }
-        });
-        mutex2.await();
+        mActivityRule.getActivity().reload();
     }
 
     @Test

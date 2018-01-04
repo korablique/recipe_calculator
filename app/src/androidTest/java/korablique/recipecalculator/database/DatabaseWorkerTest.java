@@ -15,12 +15,13 @@ import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.concurrent.CountDownLatch;
 
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.HistoryEntry;
 import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.ui.calculator.CalculatorActivity;
+import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
+import korablique.recipecalculator.util.InstantMainThreadExecutor;
 
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_IS_LISTED;
 import static korablique.recipecalculator.database.FoodstuffsContract.FOODSTUFFS_TABLE_NAME;
@@ -40,14 +41,13 @@ public class DatabaseWorkerTest {
 
     @Before
     public void setUp() {
-        databaseWorker = new DatabaseWorker();
+        databaseWorker = new DatabaseWorker(new InstantMainThreadExecutor(), new InstantDatabaseThreadExecutor());
     }
 
     @Test
     public void requestListedFoodstuffsFromDbWorks() throws InterruptedException {
         clearTable(FOODSTUFFS_TABLE_NAME);
 
-        final CountDownLatch mutex = new CountDownLatch(4);
         Foodstuff foodstuff1 = new Foodstuff("продукт1", 1, 1, 1, 1, 1);
         Foodstuff foodstuff2 = new Foodstuff("продукт2", 1, 1, 1, 1, 1);
         Foodstuff foodstuff3 = new Foodstuff("продукт3", 1, 1, 1, 1, 1);
@@ -57,9 +57,7 @@ public class DatabaseWorkerTest {
                 foodstuff1,
                 new DatabaseWorker.SaveFoodstuffCallback() {
             @Override
-            public void onResult(long id) {
-                mutex.countDown();
-            }
+            public void onResult(long id) {}
             @Override
             public void onDuplication() {
                 throw new RuntimeException("Видимо, продукт уже существует");
@@ -67,9 +65,7 @@ public class DatabaseWorkerTest {
         });
         databaseWorker.saveFoodstuff(mActivityRule.getActivity(), foodstuff2, new DatabaseWorker.SaveFoodstuffCallback() {
             @Override
-            public void onResult(long id) {
-                mutex.countDown();
-            }
+            public void onResult(long id) {}
 
             @Override
             public void onDuplication() {
@@ -77,30 +73,16 @@ public class DatabaseWorkerTest {
             }
         });
         //сохраняем два unlisted foodstuff'а
-        databaseWorker.saveUnlistedFoodstuff(mActivityRule.getActivity(), foodstuff3, new DatabaseWorker.SaveUnlistedFoodstuffCallback() {
-            @Override
-            public void onResult(long foodstuffId) {
-                mutex.countDown();
-            }
-        });
-        databaseWorker.saveUnlistedFoodstuff(mActivityRule.getActivity(), foodstuff4, new DatabaseWorker.SaveUnlistedFoodstuffCallback() {
-            @Override
-            public void onResult(long foodstuffId) {
-                mutex.countDown();
-            }
-        });
-        mutex.await();
+        databaseWorker.saveUnlistedFoodstuff(mActivityRule.getActivity(), foodstuff3, null);
+        databaseWorker.saveUnlistedFoodstuff(mActivityRule.getActivity(), foodstuff4, null);
 
-        final CountDownLatch mutex2 = new CountDownLatch(1);
         final int[] listedFoodstuffsCount = new int[1];
         databaseWorker.requestListedFoodstuffsFromDb(mActivityRule.getActivity(), new DatabaseWorker.FoodstuffsRequestCallback() {
             @Override
             public void onResult(ArrayList<Foodstuff> foodstuffs) {
                 listedFoodstuffsCount[0] = foodstuffs.size();
-                mutex2.countDown();
             }
         });
-        mutex2.await();
 
         FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(mActivityRule.getActivity());
         SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
@@ -126,20 +108,14 @@ public class DatabaseWorkerTest {
 
         Foodstuff foodstuff = getAnyFoodstuffFromDb();
 
-        final CountDownLatch mutex = new CountDownLatch(1);
         Date date = new Date();
         databaseWorker.saveFoodstuffToHistory(
                 mActivityRule.getActivity(),
                 date,
                 foodstuff.getId(),
                 100,
-                new DatabaseWorker.AddHistoryEntriesCallback() {
-            @Override
-            public void onResult(ArrayList<Long> historyEntriesIds) {
-                mutex.countDown();
-            }
-        });
-        mutex.await();
+                null);
+
         Cursor cursorAfterSaving = database.rawQuery("SELECT * FROM " + HISTORY_TABLE_NAME, null);
         long dateInt = -1, foodstuffId = -1;
         while (cursorAfterSaving.moveToNext()) {
@@ -157,7 +133,6 @@ public class DatabaseWorkerTest {
     public void requestAllHistoryFromDbWorks() throws InterruptedException {
         clearTable(HISTORY_TABLE_NAME);
 
-        final CountDownLatch mutex = new CountDownLatch(1);
         Foodstuff foodstuff = getAnyFoodstuffFromDb();
         double weight = 100;
         Date date = new Date();
@@ -166,24 +141,15 @@ public class DatabaseWorkerTest {
                 date,
                 foodstuff.getId(),
                 weight,
-                new DatabaseWorker.AddHistoryEntriesCallback() {
-                    @Override
-                    public void onResult(ArrayList<Long> historyEntriesIds) {
-                        mutex.countDown();
-                    }
-                });
-        mutex.await();
+                null);
 
-        final CountDownLatch mutex1 = new CountDownLatch(1);
         final ArrayList<HistoryEntry> historyList = new ArrayList<>();
         databaseWorker.requestAllHistoryFromDb(mActivityRule.getActivity(), new DatabaseWorker.RequestHistoryCallback() {
             @Override
             public void onResult(ArrayList<HistoryEntry> historyEntries) {
                 historyList.addAll(historyEntries);
-                mutex1.countDown();
             }
         });
-        mutex1.await();
         Assert.assertEquals(1, historyList.size());
         Assert.assertEquals(historyList.get(0).getFoodstuff().getId(), foodstuff.getId());
         Assert.assertEquals(historyList.get(0).getTime(), date);
@@ -193,7 +159,6 @@ public class DatabaseWorkerTest {
     public void updatesFoodstuffWeightInDb() throws InterruptedException {
         clearTable(HISTORY_TABLE_NAME);
 
-        final CountDownLatch mutex = new CountDownLatch(1);
         Foodstuff foodstuff = getAnyFoodstuffFromDb();
         double weight = 100;
         Date date = new Date();
@@ -207,20 +172,11 @@ public class DatabaseWorkerTest {
                     @Override
                     public void onResult(ArrayList<Long> historyEntriesIds) {
                         historyId[0] = historyEntriesIds.get(0);
-                        mutex.countDown();
                     }
                 });
-        mutex.await();
 
-        final CountDownLatch mutex2 = new CountDownLatch(1);
         double newWeight = 200;
-        databaseWorker.editWeightInHistoryEntry(mActivityRule.getActivity(), historyId[0], 200, new Runnable() {
-            @Override
-            public void run() {
-                mutex2.countDown();
-            }
-        });
-        mutex2.await();
+        databaseWorker.editWeightInHistoryEntry(mActivityRule.getActivity(), historyId[0], 200, null);
 
         FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(mActivityRule.getActivity());
         SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
@@ -239,7 +195,6 @@ public class DatabaseWorkerTest {
         clearTable(FOODSTUFFS_TABLE_NAME);
 
         // вставить в таблицу foodstuffs 2 фудстаффа
-        final CountDownLatch mutex1 = new CountDownLatch(2);
         final Foodstuff foodstuff1 = new Foodstuff("продукт1", 1, 1, 1, 1, 1);
         Foodstuff foodstuff2 = new Foodstuff("продукт2", 1, 1, 1, 1, 1);
         final long[] foodstuff1Id = {-1};
@@ -248,7 +203,6 @@ public class DatabaseWorkerTest {
             @Override
             public void onResult(long id) {
                 foodstuff1Id[0] = id;
-                mutex1.countDown();
             }
             @Override
             public void onDuplication() {
@@ -262,7 +216,6 @@ public class DatabaseWorkerTest {
             @Override
             public void onResult(long id) {
                 foodstuff2Id[0] = id;
-                mutex1.countDown();
             }
 
             @Override
@@ -270,10 +223,8 @@ public class DatabaseWorkerTest {
                 throw new RuntimeException("Видимо, продукт уже существует");
             }
         });
-        mutex1.await();
 
         // добавить в историю первый продукт
-        final CountDownLatch mutex2 = new CountDownLatch(1);
         double weight = 100;
         Date date = new Date();
         final long[] historyId = new long[1];
@@ -286,21 +237,12 @@ public class DatabaseWorkerTest {
                     @Override
                     public void onResult(ArrayList<Long> historyEntriesIds) {
                         historyId[0] = historyEntriesIds.get(0);
-                        mutex2.countDown();
                     }
                 });
-        mutex2.await();
 
         // заменить foodstuff_id в записи истории с 1 на 2
-        final CountDownLatch mutex3 = new CountDownLatch(1);
         databaseWorker.updateFoodstuffIdInHistory(
-                mActivityRule.getActivity(), historyId[0], foodstuff2Id[0], new Runnable() {
-            @Override
-            public void run() {
-                mutex3.countDown();
-            }
-        });
-        mutex3.await();
+                mActivityRule.getActivity(), historyId[0], foodstuff2Id[0], null);
 
         FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(mActivityRule.getActivity());
         SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
@@ -317,7 +259,6 @@ public class DatabaseWorkerTest {
     public void canSaveListedProductSameAsUnlisted() throws InterruptedException {
         Foodstuff foodstuff = new Foodstuff("falafel", -1, 10, 10, 10, 100);
         final long[] id = {-1};
-        final CountDownLatch mutex1 = new CountDownLatch(1);
         databaseWorker.saveUnlistedFoodstuff(
                 mActivityRule.getActivity(),
                 foodstuff,
@@ -325,21 +266,11 @@ public class DatabaseWorkerTest {
             @Override
             public void onResult(long foodstuffId) {
                 id[0] = foodstuffId;
-                mutex1.countDown();
             }
         });
-        mutex1.await();
 
-        final CountDownLatch mutex2 = new CountDownLatch(1);
-        databaseWorker.makeFoodstuffUnlisted(mActivityRule.getActivity(), id[0], new Runnable() {
-            @Override
-            public void run() {
-                mutex2.countDown();
-            }
-        });
-        mutex2.await();
+        databaseWorker.makeFoodstuffUnlisted(mActivityRule.getActivity(), id[0], null);
 
-        final CountDownLatch mutex3 = new CountDownLatch(1);
         final boolean[] containsListedFoodstuff = new boolean[1];
         databaseWorker.saveFoodstuff(
                 mActivityRule.getActivity(),
@@ -348,16 +279,13 @@ public class DatabaseWorkerTest {
             @Override
             public void onResult(long id) {
                 containsListedFoodstuff[0] = false;
-                mutex3.countDown();
             }
 
             @Override
             public void onDuplication() {
                 containsListedFoodstuff[0] = true;
-                mutex3.countDown();
             }
         });
-        mutex3.await();
         Assert.assertEquals(false, containsListedFoodstuff[0]);
     }
 
@@ -374,7 +302,6 @@ public class DatabaseWorkerTest {
 
         // сохраняем продукты в список
         final ArrayList<Long> foodstuffsIds = new ArrayList<>();
-        final CountDownLatch savingFoodstuffsMutex = new CountDownLatch(1);
         databaseWorker.saveGroupOfFoodstuffs(
                 mActivityRule.getActivity(),
                 foodstuffs,
@@ -382,10 +309,8 @@ public class DatabaseWorkerTest {
             @Override
             public void onResult(ArrayList<Long> ids) {
                 foodstuffsIds.addAll(ids);
-                savingFoodstuffsMutex.countDown();
             }
         });
-        savingFoodstuffsMutex.await();
         Assert.assertEquals(20, foodstuffsIds.size());
 
         // сохраняем продукты в историю
@@ -397,7 +322,6 @@ public class DatabaseWorkerTest {
         }
 
         final ArrayList<Long> historyIds = new ArrayList<>();
-        final CountDownLatch savingToHistoryMutex = new CountDownLatch(1);
         databaseWorker.saveGroupOfFoodstuffsToHistory(
                 mActivityRule.getActivity(),
                 newEntries,
@@ -405,15 +329,12 @@ public class DatabaseWorkerTest {
                     @Override
                     public void onResult(ArrayList<Long> historyEntriesIds) {
                         historyIds.addAll(historyEntriesIds);
-                        savingToHistoryMutex.countDown();
                     }
                 }
         );
-        savingToHistoryMutex.await();
         Assert.assertEquals(20, historyIds.size());
 
         // запрашиваем продукты с 3 по 5 января (д.б. три продукта - 3, 4, 5)
-        final CountDownLatch requestFoodstuffsForPeriodMutex = new CountDownLatch(1);
         final ArrayList<Long> foodstuffsForPeriodIds = new ArrayList<>();
         databaseWorker.requestFoodstuffsIdsFromHistoryForPeriod(
                 new Date(117, 0, 3).getTime(),
@@ -423,10 +344,8 @@ public class DatabaseWorkerTest {
             @Override
             public void onResult(ArrayList<Long> ids) {
                 foodstuffsForPeriodIds.addAll(ids);
-                requestFoodstuffsForPeriodMutex.countDown();
             }
         });
-        requestFoodstuffsForPeriodMutex.await();
         Assert.assertEquals(3, foodstuffsForPeriodIds.size());
         Assert.assertTrue(foodstuffsForPeriodIds.contains(foodstuffsIds.get(2)));
         Assert.assertTrue(foodstuffsForPeriodIds.contains(foodstuffsIds.get(3)));
@@ -443,16 +362,13 @@ public class DatabaseWorkerTest {
     }
 
     public Foodstuff getAnyFoodstuffFromDb() throws InterruptedException {
-        final CountDownLatch mutex = new CountDownLatch(1);
         final ArrayList<Foodstuff> foodstuffArrayList = new ArrayList<>();
         databaseWorker.requestListedFoodstuffsFromDb(mActivityRule.getActivity(), new DatabaseWorker.FoodstuffsRequestCallback() {
             @Override
             public void onResult(ArrayList<Foodstuff> foodstuffs) {
                 foodstuffArrayList.addAll(foodstuffs);
-                mutex.countDown();
             }
         });
-        mutex.await();
         return foodstuffArrayList.get(0);
     }
 }

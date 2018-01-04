@@ -143,14 +143,9 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
         databaseWorker.requestListedFoodstuffsFromDb(this, new DatabaseWorker.FoodstuffsRequestCallback() {
             @Override
             public void onResult(final ArrayList<Foodstuff> foodstuffs) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        for (Foodstuff foodstuff : foodstuffs) {
-                            recyclerViewAdapter.addItem(foodstuff);
-                        }
-                    }
-                });
+                for (Foodstuff foodstuff : foodstuffs) {
+                    recyclerViewAdapter.addItem(foodstuff);
+                }
             }
         });
     }
@@ -211,22 +206,16 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
     }
 
     //метод для тестов
-    public void reload(final Runnable callback) {
+    public void reload() {
         for (int index = recyclerViewAdapter.getItemCount() - 1; index >= 0; index--) {
             recyclerViewAdapter.deleteItem(index);
         }
         databaseWorker.requestListedFoodstuffsFromDb(this, new DatabaseWorker.FoodstuffsRequestCallback() {
             @Override
             public void onResult(final ArrayList<Foodstuff> foodstuffs) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        for (Foodstuff foodstuff : foodstuffs) {
-                            recyclerViewAdapter.addItem(foodstuff);
-                        }
-                        callback.run();
-                    }
-                });
+                for (Foodstuff foodstuff : foodstuffs) {
+                    recyclerViewAdapter.addItem(foodstuff);
+                }
             }
         });
     }
