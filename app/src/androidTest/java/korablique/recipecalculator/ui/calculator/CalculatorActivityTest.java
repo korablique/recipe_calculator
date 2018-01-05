@@ -1,5 +1,7 @@
 package korablique.recipecalculator.ui.calculator;
 
+import android.app.Instrumentation;
+import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.Espresso;
 import android.support.test.espresso.matcher.ViewMatchers;
 import android.support.test.filters.LargeTest;
@@ -17,8 +19,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.concurrent.CountDownLatch;
+
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.ui.Card;
+import korablique.recipecalculator.util.InjectableActivityTestRule;
+import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
+import korablique.recipecalculator.util.SyncMainThreadExecutor;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
@@ -35,7 +43,13 @@ import static org.hamcrest.Matchers.not;
 public class CalculatorActivityTest {
     @Rule
     public ActivityTestRule<CalculatorActivity> mActivityRule =
-            new ActivityTestRule<>(CalculatorActivity.class);
+            InjectableActivityTestRule.forActivity(CalculatorActivity.class)
+                    .withInjector((CalculatorActivity activity) -> {
+                        activity.databaseWorker =
+                                new DatabaseWorker(
+                                        new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
+                    })
+                    .build();
 
     @Before
     public void setUp() {
@@ -43,12 +57,12 @@ public class CalculatorActivityTest {
     }
 
     @After
-    public void tearDown() {
-        mActivityRule.getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mActivityRule.getActivity().getCard().hide();
-            }
+    public void tearDown() throws InterruptedException {
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        instrumentation.runOnMainSync(() -> {
+            mActivityRule
+                    .getActivity()
+                    .getCard().hide();
         });
     }
 

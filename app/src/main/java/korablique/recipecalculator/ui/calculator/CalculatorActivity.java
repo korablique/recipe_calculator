@@ -19,7 +19,6 @@ import java.util.ArrayList;
 
 import javax.inject.Inject;
 
-import io.fabric.sdk.android.Fabric;
 import korablique.recipecalculator.ui.Card;
 import korablique.recipecalculator.ui.CardDisplaySource;
 import korablique.recipecalculator.database.DatabaseWorker;
@@ -27,7 +26,7 @@ import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.ui.FoodstuffsAdapter;
 import korablique.recipecalculator.ui.KeyboardHandler;
 import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
-import korablique.recipecalculator.ui.BaseActivity;
+import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.ui.RecyclerViewUtils;
 

@@ -1,5 +1,7 @@
 package korablique.recipecalculator.ui.foodstuffslist;
 
+import android.content.Context;
+import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.matcher.ViewMatchers;
 import android.support.test.filters.LargeTest;
 import android.support.test.rule.ActivityTestRule;
@@ -9,6 +11,7 @@ import android.widget.EditText;
 
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -16,11 +19,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import korablique.recipecalculator.R;
-import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.ui.Card;
-import korablique.recipecalculator.util.InstantMainThreadExecutor;
+import korablique.recipecalculator.util.InjectableActivityTestRule;
+import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
+import korablique.recipecalculator.util.SyncMainThreadExecutor;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
@@ -34,32 +38,46 @@ import static org.hamcrest.Matchers.not;
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class ListOfFoodstuffsActivityTest {
-    private DatabaseWorker databaseWorker;
+    private DatabaseWorker databaseWorker =
+            new DatabaseWorker(new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
+    private Long savedFoodstuffId;
 
     @Rule
     public ActivityTestRule<ListOfFoodstuffsActivity> mActivityRule =
-            new ActivityTestRule<>(ListOfFoodstuffsActivity.class);
+            InjectableActivityTestRule.forActivity(ListOfFoodstuffsActivity.class)
+                    .withInjector((ListOfFoodstuffsActivity activity) -> {
+                        activity.databaseWorker = databaseWorker;
+                    })
+                    .withManualStart() // Сначала добавим контент, затем будем стартовать.
+                    .build();
 
     @Before
     public void setUp() throws InterruptedException {
-        databaseWorker = new DatabaseWorker(new InstantMainThreadExecutor(), new DatabaseThreadExecutor());
-        mActivityRule.getActivity().databaseWorker = databaseWorker;
-
         Card.setAnimationDuration(0);
+
+        Context context = InstrumentationRegistry.getTargetContext();
         Foodstuff foodstuff1 = new Foodstuff("product1", -1, 10, 10, 10, 10);
         databaseWorker.saveFoodstuff(
-                mActivityRule.getActivity(),
+                context,
                 foodstuff1,
                 new DatabaseWorker.SaveFoodstuffCallback() {
             @Override
-            public void onResult(long id) {}
+            public void onResult(long id) {
+                savedFoodstuffId = id;
+            }
             @Override
             public void onDuplication() {
                 throw new RuntimeException("Видимо, продукт уже существует");
             }
         });
 
-        mActivityRule.getActivity().reload();
+        mActivityRule.launchActivity(null);
+    }
+
+    @After
+    public void tearDown() {
+        databaseWorker.deleteFoodstuff(mActivityRule.getActivity(), savedFoodstuffId);
+        savedFoodstuffId = null;
     }
 
     @Test

@@ -15,7 +15,7 @@ import com.crashlytics.android.Crashlytics;
 import javax.inject.Inject;
 
 import korablique.recipecalculator.database.DatabaseWorker;
-import korablique.recipecalculator.ui.BaseActivity;
+import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.ui.history.HistoryActivity;
