@@ -5,14 +5,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.widget.EditText;
 
@@ -28,7 +26,7 @@ import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.ui.FoodstuffsAdapter;
 import korablique.recipecalculator.ui.KeyboardHandler;
-import korablique.recipecalculator.ui.BaseActivity;
+import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.R;
 
 import static korablique.recipecalculator.IntentConstants.NAME;
@@ -143,14 +141,9 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
         databaseWorker.requestListedFoodstuffsFromDb(this, new DatabaseWorker.FoodstuffsRequestCallback() {
             @Override
             public void onResult(final ArrayList<Foodstuff> foodstuffs) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        for (Foodstuff foodstuff : foodstuffs) {
-                            recyclerViewAdapter.addItem(foodstuff);
-                        }
-                    }
-                });
+                for (Foodstuff foodstuff : foodstuffs) {
+                    recyclerViewAdapter.addItem(foodstuff);
+                }
             }
         });
     }
@@ -208,26 +201,5 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
         } else {
             Crashlytics.log("getSupportActionBar вернул null");
         }
-    }
-
-    //метод для тестов
-    public void reload(final Runnable callback) {
-        for (int index = recyclerViewAdapter.getItemCount() - 1; index >= 0; index--) {
-            recyclerViewAdapter.deleteItem(index);
-        }
-        databaseWorker.requestListedFoodstuffsFromDb(this, new DatabaseWorker.FoodstuffsRequestCallback() {
-            @Override
-            public void onResult(final ArrayList<Foodstuff> foodstuffs) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        for (Foodstuff foodstuff : foodstuffs) {
-                            recyclerViewAdapter.addItem(foodstuff);
-                        }
-                        callback.run();
-                    }
-                });
-            }
-        });
     }
 }
