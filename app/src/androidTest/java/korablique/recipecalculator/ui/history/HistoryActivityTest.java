@@ -1,6 +1,7 @@
 package korablique.recipecalculator.ui.history;
 
 import android.app.Instrumentation;
+import android.content.Context;
 import android.content.res.Resources;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.matcher.ViewMatchers;
@@ -18,8 +19,9 @@ import korablique.recipecalculator.R;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.ui.Card;
+import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
-import korablique.recipecalculator.util.InstantMainThreadExecutor;
+import korablique.recipecalculator.util.SyncMainThreadExecutor;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
@@ -35,19 +37,25 @@ import static org.hamcrest.Matchers.not;
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class HistoryActivityTest {
-    private DatabaseWorker databaseWorker;
+    private DatabaseWorker databaseWorker =
+            new DatabaseWorker(new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
 
     @Rule
     public ActivityTestRule<HistoryActivity> mActivityRule =
-            new ActivityTestRule<>(HistoryActivity.class);
+            InjectableActivityTestRule.forActivity(HistoryActivity.class)
+                .withInjector((HistoryActivity activity) -> {
+                    activity.databaseWorker = databaseWorker;
+                })
+                .withManualStart() // Нужно предотвратить старт UserGoalActivity.
+                .build();
 
     @Before
     public void setUp() throws InterruptedException {
         Card.setAnimationDuration(0);
-        databaseWorker = new DatabaseWorker(new InstantMainThreadExecutor(), new InstantDatabaseThreadExecutor());
-        mActivityRule.getActivity().databaseWorker = databaseWorker;
 
-        Resources resources = mActivityRule.getActivity().getResources();
+        Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        Resources resources = context.getResources();
+
         String goal = resources.getStringArray(R.array.goals_array)[0];
         String gender = resources.getStringArray(R.array.gender_array)[0];
         int age = 24, height = 165, weight = 63;
@@ -55,19 +63,16 @@ public class HistoryActivityTest {
         String defaultFormula = resources.getStringArray(R.array.formula_array)[0];
         UserParameters userParameters = new UserParameters(
                 goal, gender, age, height, weight, coefficient, defaultFormula);
-        databaseWorker.saveUserParameters(
-                mActivityRule.getActivity(), userParameters, null);
+        databaseWorker.saveUserParameters(context, userParameters, null);
+
+        mActivityRule.launchActivity(null);
     }
 
     @After
-    public void tearDown() {
-        mActivityRule.getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mActivityRule
-                        .getActivity()
-                        .getCard().hide();
-            }
+    public void tearDown() throws InterruptedException {
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        instrumentation.runOnMainSync(() -> {
+            mActivityRule.getActivity().getCard().hide();
         });
     }
 
