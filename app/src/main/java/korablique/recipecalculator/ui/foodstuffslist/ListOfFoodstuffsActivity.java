@@ -149,9 +149,6 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
             public void onResult(final ArrayList<Foodstuff> foodstuffs) {
                 recyclerViewAdapter.addItems(foodstuffs);
             }
-
-            @Override
-            public void finished() {}
         });
     }
 

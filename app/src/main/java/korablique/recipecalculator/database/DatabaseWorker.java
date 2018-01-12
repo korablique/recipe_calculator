@@ -43,7 +43,6 @@ public class DatabaseWorker {
 
     public interface FoodstuffsRequestCallback {
         void onResult(ArrayList<Foodstuff> foodstuffs);
-        void finished();
     }
     public interface SaveFoodstuffCallback {
         void onResult(long id);
@@ -271,25 +270,26 @@ public class DatabaseWorker {
                 if (batchOfFoodstuffs.size() > 0) {
                     mainThreadExecutor.execute(() -> callback.onResult(batchOfFoodstuffs));
                 }
-                mainThreadExecutor.execute(() -> callback.finished());
                 cursor.close();
             }
         });
     }
 
     public void requestAllHistoryFromDb(
-            final Context context, @NonNull final RequestHistoryCallback callback) {
+            final Context context,
+            int batchSize,
+            @NonNull final RequestHistoryCallback callback) {
         databaseThreadExecutor.execute(() -> {
             FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
             SQLiteDatabase db = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
-
             String joinTablesArg = HISTORY_TABLE_NAME + " LEFT OUTER" +
                     " JOIN " + FOODSTUFFS_TABLE_NAME +
                     " ON " + HISTORY_TABLE_NAME + "." + COLUMN_NAME_FOODSTUFF_ID
                     + "=" + FOODSTUFFS_TABLE_NAME + "." + FoodstuffsContract.ID;
             Cursor cursor = db.query(joinTablesArg, null, null, null, null, null, null);
 
-            ArrayList<HistoryEntry> historyEntries = new ArrayList<>();
+            ArrayList<HistoryEntry> historyBatch = new ArrayList<>();
+            int index = 0;
             while (cursor.moveToNext()) {
                 long foodstuffId = cursor.getLong(
                         cursor.getColumnIndex(HISTORY_TABLE_NAME + "." + COLUMN_NAME_FOODSTUFF_ID));
@@ -305,10 +305,18 @@ public class DatabaseWorker {
                 long historyId = cursor.getLong(
                         cursor.getColumnIndex(HISTORY_TABLE_NAME + "." + HistoryContract.ID));
                 HistoryEntry historyEntry = new HistoryEntry(historyId, foodstuff, new Date(time));
-                historyEntries.add(historyEntry);
+                historyBatch.add(historyEntry);
+                ++index;
+                if (index >= batchSize) {
+                    mainThreadExecutor.execute(() -> callback.onResult(new ArrayList<>(historyBatch)));
+                    historyBatch.clear();
+                    index = 0;
+                }
+            }
+            if (historyBatch.size() > 0) {
+                mainThreadExecutor.execute(() -> callback.onResult(historyBatch));
             }
             cursor.close();
-            mainThreadExecutor.execute(() -> callback.onResult(historyEntries));
         });
     }
 

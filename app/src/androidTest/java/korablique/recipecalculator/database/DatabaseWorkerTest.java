@@ -88,10 +88,6 @@ public class DatabaseWorkerTest {
             public void onResult(ArrayList<Foodstuff> foodstuffs) {
                 listedFoodstuffsCount[0] = foodstuffs.size();
             }
-
-            @Override
-            public void finished() {
-            }
         });
 
         FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(mActivityRule.getActivity());
@@ -110,7 +106,6 @@ public class DatabaseWorkerTest {
         FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(mActivityRule.getActivity());
         SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
 
-        database.delete(HISTORY_TABLE_NAME, null, null);
         Cursor cursorBeforeSaving = database.rawQuery("SELECT * FROM " + HISTORY_TABLE_NAME, null);
         int entriesCountBeforeSaving = cursorBeforeSaving.getCount();
         Assert.assertTrue(cursorBeforeSaving.getCount() == 0);
@@ -152,7 +147,11 @@ public class DatabaseWorkerTest {
                 null);
 
         final ArrayList<HistoryEntry> historyList = new ArrayList<>();
-        databaseWorker.requestAllHistoryFromDb(mActivityRule.getActivity(), new DatabaseWorker.RequestHistoryCallback() {
+        int batchSize = 100;
+        databaseWorker.requestAllHistoryFromDb(
+                mActivityRule.getActivity(),
+                batchSize,
+                new DatabaseWorker.RequestHistoryCallback() {
             @Override
             public void onResult(ArrayList<HistoryEntry> historyEntries) {
                 historyList.addAll(historyEntries);
@@ -161,6 +160,59 @@ public class DatabaseWorkerTest {
         Assert.assertEquals(1, historyList.size());
         Assert.assertEquals(historyList.get(0).getFoodstuff().getId(), foodstuff.getId());
         Assert.assertEquals(historyList.get(0).getTime(), date);
+    }
+
+    @Test
+    public void checkRequestHistoryCallbackCallsCount() {
+        int foodstuffsNumber = 10;
+        Foodstuff[] foodstuffs = new Foodstuff[foodstuffsNumber];
+        for (int index = 0; index < foodstuffsNumber; index++) {
+            foodstuffs[index] = new Foodstuff("foodstuff" + index, -1, 5, 5, 5, 5);
+        }
+        ArrayList<Long> foodstuffsIds = new ArrayList<>();
+        databaseWorker.saveGroupOfFoodstuffs(
+                mActivityRule.getActivity(),
+                foodstuffs,
+                new DatabaseWorker.SaveGroupOfFoodstuffsCallback() {
+                    @Override
+                    public void onResult(ArrayList<Long> ids) {
+                        foodstuffsIds.addAll(ids);
+                    }
+                }
+        );
+
+        NewHistoryEntry[] historyEntries = new NewHistoryEntry[foodstuffsNumber];
+        double weight = 100;
+        for (int index = 0; index < historyEntries.length; index++) {
+            historyEntries[index] = new NewHistoryEntry(
+                    foodstuffs[index].getId(),
+                    weight,
+                    new Date(118, 0, index));
+        }
+        ArrayList<Long> entriesIds = new ArrayList<>();
+        databaseWorker.saveGroupOfFoodstuffsToHistory(
+                mActivityRule.getActivity(),
+                historyEntries,
+                new DatabaseWorker.AddHistoryEntriesCallback() {
+                    @Override
+                    public void onResult(ArrayList<Long> historyEntriesIds) {
+                        entriesIds.addAll(historyEntriesIds);
+                    }
+                });
+
+        int batchSize = 3;
+        final int[] counter = {0};
+        databaseWorker.requestAllHistoryFromDb(
+                mActivityRule.getActivity(),
+                batchSize,
+                new DatabaseWorker.RequestHistoryCallback() {
+                    @Override
+                    public void onResult(ArrayList<HistoryEntry> historyEntries) {
+                        ++counter[0];
+                    }
+                }
+        );
+        Assert.assertEquals(4, counter[0]);
     }
 
     @Test
@@ -386,9 +438,6 @@ public class DatabaseWorkerTest {
                     public void onResult(ArrayList<Foodstuff> foodstuffs) {
                         ++counter[0];
                     }
-
-                    @Override
-                    public void finished() {}
                 });
         Assert.assertEquals(4, counter[0]);
     }
@@ -426,9 +475,6 @@ public class DatabaseWorkerTest {
                     public void onResult(ArrayList<Foodstuff> foodstuffs) {
                         returnedFoodstuffs.addAll(foodstuffs);
                     }
-
-                    @Override
-                    public void finished() {}
                 });
         Collections.sort(foodstuffsIds);
         Collections.sort(returnedFoodstuffs, new Comparator<Foodstuff>() {
@@ -476,9 +522,6 @@ public class DatabaseWorkerTest {
                     public void onResult(ArrayList<Foodstuff> foodstuffs) {
                         returnedFoodstuffs.addAll(foodstuffs);
                     }
-
-                    @Override
-                    public void finished() {}
                 });
         Assert.assertEquals(apple, returnedFoodstuffs.get(2).getName());
     }
@@ -502,9 +545,6 @@ public class DatabaseWorkerTest {
             public void onResult(ArrayList<Foodstuff> foodstuffs) {
                 foodstuffArrayList.addAll(foodstuffs);
             }
-
-            @Override
-            public void finished() {}
         });
 
         if (foodstuffArrayList.size() != 0) {
