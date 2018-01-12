@@ -100,7 +100,8 @@ public class HistoryActivity extends BaseActivity {
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(adapter);
 
-        databaseWorker.requestAllHistoryFromDb(this, new DatabaseWorker.RequestHistoryCallback() {
+        int batchSize = 100;
+        databaseWorker.requestAllHistoryFromDb(this, batchSize, new DatabaseWorker.RequestHistoryCallback() {
             @Override
             public void onResult(final ArrayList<HistoryEntry> historyEntries) {
                 for (HistoryEntry historyEntry : historyEntries) {
