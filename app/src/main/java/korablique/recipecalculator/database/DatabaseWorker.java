@@ -123,6 +123,9 @@ public class DatabaseWorker {
         });
     }
 
+    /**
+     * Порядок возвращаемых идентификаторов гарантированно идентичен порядку переданных фудстаффов.
+     */
     public void saveGroupOfFoodstuffs(
             final Context context,
             final Foodstuff[] foodstuffs,
@@ -262,7 +265,8 @@ public class DatabaseWorker {
                     batchOfFoodstuffs.add(foodstuff);
                     ++index;
                     if (index >= batchSize) {
-                        callback.onResult(new ArrayList<>(batchOfFoodstuffs));
+                        ArrayList<Foodstuff> batchCopy = new ArrayList<>(batchOfFoodstuffs);
+                        mainThreadExecutor.execute(() -> callback.onResult(batchCopy));
                         batchOfFoodstuffs.clear();
                         index = 0;
                     }
@@ -286,7 +290,7 @@ public class DatabaseWorker {
                     " JOIN " + FOODSTUFFS_TABLE_NAME +
                     " ON " + HISTORY_TABLE_NAME + "." + COLUMN_NAME_FOODSTUFF_ID
                     + "=" + FOODSTUFFS_TABLE_NAME + "." + FoodstuffsContract.ID;
-            Cursor cursor = db.query(joinTablesArg, null, null, null, null, null, null);
+            Cursor cursor = db.query(joinTablesArg, null, null, null, null, null, COLUMN_NAME_DATE + " DESC");
 
             ArrayList<HistoryEntry> historyBatch = new ArrayList<>();
             int index = 0;
@@ -308,7 +312,8 @@ public class DatabaseWorker {
                 historyBatch.add(historyEntry);
                 ++index;
                 if (index >= batchSize) {
-                    mainThreadExecutor.execute(() -> callback.onResult(new ArrayList<>(historyBatch)));
+                    ArrayList<HistoryEntry> batchCopy = new ArrayList<>(historyBatch);
+                    mainThreadExecutor.execute(() -> callback.onResult(batchCopy));
                     historyBatch.clear();
                     index = 0;
                 }

@@ -15,10 +15,16 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.ArrayList;
+import java.util.Date;
+
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.database.DatabaseWorker;
+import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.ui.Card;
+import korablique.recipecalculator.util.DbUtil;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.SyncMainThreadExecutor;
@@ -32,6 +38,10 @@ import static android.support.test.espresso.contrib.RecyclerViewActions.actionOn
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertContains;
+import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertNotContains;
+import static korablique.recipecalculator.database.HistoryContract.HISTORY_TABLE_NAME;
+import static korablique.recipecalculator.ui.history.HistoryActivity.BATCH_SIZE;
 import static org.hamcrest.Matchers.not;
 
 @RunWith(AndroidJUnit4.class)
@@ -56,6 +66,8 @@ public class HistoryActivityTest {
         Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         Resources resources = context.getResources();
 
+        DbUtil.clearTable(context, HISTORY_TABLE_NAME);
+
         String goal = resources.getStringArray(R.array.goals_array)[0];
         String gender = resources.getStringArray(R.array.gender_array)[0];
         int age = 24, height = 165, weight = 63;
@@ -72,7 +84,10 @@ public class HistoryActivityTest {
     public void tearDown() throws InterruptedException {
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
         instrumentation.runOnMainSync(() -> {
-            mActivityRule.getActivity().getCard().hide();
+            mActivityRule
+                    .getActivity()
+                    .getCard()
+                    .hide();
         });
     }
 
@@ -147,6 +162,36 @@ public class HistoryActivityTest {
         addItem();
         onView(withId(R.id.recycler_view)).perform(actionOnItemAtPosition(1, click()));
         onView(withId(R.id.button_save)).check(matches(not(isDisplayed())));
+    }
+
+    @Test
+    public void batchesAddedToBottom() {
+        Foodstuff[] foodstuffs = new Foodstuff[BATCH_SIZE + 1];
+        for (int index = 0; index < foodstuffs.length; index++) {
+            foodstuffs[index] = new Foodstuff("foodstuff" + index, -1, 5, 5, 5, 5);
+        }
+        ArrayList<Long> foodstuffIds = new ArrayList<>();
+        databaseWorker.saveGroupOfFoodstuffs(
+                mActivityRule.getActivity(),
+                foodstuffs,
+                (ids) -> {
+                    foodstuffIds.addAll(ids);
+                });
+
+        NewHistoryEntry[] entries = new NewHistoryEntry[BATCH_SIZE + 1];
+        for (int index = 0; index < entries.length; index++) {
+            entries[index] = new NewHistoryEntry(foodstuffIds.get(index), 100, new Date(index, 0, 1));
+        }
+        databaseWorker.saveGroupOfFoodstuffsToHistory(
+                mActivityRule.getActivity(),
+                entries,
+                null);
+
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
+
+        assertNotContains("foodstuff0");
+        assertContains("foodstuff" + BATCH_SIZE);
     }
 
     private void addItem() {

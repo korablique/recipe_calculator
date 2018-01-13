@@ -38,6 +38,8 @@ import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
 
 
 public class HistoryActivity extends BaseActivity {
+    public static final int BATCH_SIZE = 100;
+
     @Inject
     DatabaseWorker databaseWorker;
 
@@ -100,8 +102,7 @@ public class HistoryActivity extends BaseActivity {
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(adapter);
 
-        int batchSize = 100;
-        databaseWorker.requestAllHistoryFromDb(this, batchSize, new DatabaseWorker.RequestHistoryCallback() {
+        databaseWorker.requestAllHistoryFromDb(this, BATCH_SIZE, new DatabaseWorker.RequestHistoryCallback() {
             @Override
             public void onResult(final ArrayList<HistoryEntry> historyEntries) {
                 for (HistoryEntry historyEntry : historyEntries) {

@@ -22,6 +22,7 @@ import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.HistoryEntry;
 import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.ui.calculator.CalculatorActivity;
+import korablique.recipecalculator.util.DbUtil;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.InstantMainThreadExecutor;
 
@@ -45,8 +46,8 @@ public class DatabaseWorkerTest {
     public void setUp() {
         databaseWorker = new DatabaseWorker(
                 new InstantMainThreadExecutor(), new InstantDatabaseThreadExecutor());
-        clearTable(HISTORY_TABLE_NAME);
-        clearTable(FOODSTUFFS_TABLE_NAME);
+        DbUtil.clearTable(mActivityRule.getActivity(), HISTORY_TABLE_NAME);
+        DbUtil.clearTable(mActivityRule.getActivity(), FOODSTUFFS_TABLE_NAME);
     }
 
     @Test
@@ -524,15 +525,6 @@ public class DatabaseWorkerTest {
                     }
                 });
         Assert.assertEquals(apple, returnedFoodstuffs.get(2).getName());
-    }
-
-    private void clearTable(String tableName) {
-        FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(mActivityRule.getActivity());
-        SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-        database.delete(tableName, null, null);
-        Cursor cursor = database.rawQuery("SELECT * FROM " + tableName, null);
-        Assert.assertTrue(cursor.getCount() == 0);
-        cursor.close();
     }
 
     public Foodstuff getAnyFoodstuffFromDb() throws InterruptedException {

@@ -161,7 +161,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
 
     public void addItem(HistoryEntry historyEntry) {
-        DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.SHORT);
+        DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.DEFAULT);
         String newDateString = dateFormat.format(historyEntry.getTime());
         boolean isRequiredDateFound = false;
         for (int index = 0; index < data.size(); index++) {
