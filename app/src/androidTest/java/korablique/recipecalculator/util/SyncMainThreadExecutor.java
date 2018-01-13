@@ -8,7 +8,7 @@ import korablique.recipecalculator.base.MainThreadExecutor;
 public class SyncMainThreadExecutor extends MainThreadExecutor {
     @Override
     public void execute(Runnable runnable) {
-        if (Looper.getMainLooper().isCurrentThread()) {
+        if (Looper.getMainLooper().getThread().getId() == Thread.currentThread().getId()) {
             // Instrumentation.runOnMainSync выбрасывает исключение, если вызван на главном потоке
             runnable.run();
             return;
