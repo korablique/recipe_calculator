@@ -161,58 +161,85 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
 
     public void addItem(HistoryEntry historyEntry) {
+        int dateIndex = findHistoryEntryDateIndex(historyEntry);
+        // если нужная дата найдена
+        if (dateIndex != -1) {
+            addFoodstuffToDate(dateIndex, historyEntry);
+            return;
+        }
+
+        // если ещё ни одной даты нет - добавить новую + продукт
+        if (data.isEmpty()) {
+            addDate(historyEntry.getTime(), 0);
+            addFoodstuffToDate(0, historyEntry);
+        } else {
+            int earlierDateIndex = findEarlierDateIndex(historyEntry.getTime());
+            if (earlierDateIndex != -1) {
+                // замещаем старую дату новой
+                addDate(historyEntry.getTime(), earlierDateIndex);
+                addFoodstuffToDate(earlierDateIndex, historyEntry);
+                return;
+            }
+            // если более ранней даты нет
+            int endIndex = data.size();
+            addDate(historyEntry.getTime(), endIndex);
+            addFoodstuffToDate(endIndex, historyEntry);
+        }
+    }
+
+    private int findHistoryEntryDateIndex(HistoryEntry historyEntry) {
         DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.DEFAULT);
         String newDateString = dateFormat.format(historyEntry.getTime());
-        boolean isRequiredDateFound = false;
         for (int index = 0; index < data.size(); index++) {
             if (data.get(index) instanceof DateData) {
                 String dateString = dateFormat.format(((DateData) data.get(index)).getDate());
-                // если нужная дата найдена
                 if (newDateString.equals(dateString)) {
-                    data.add(index + 1, new FoodstuffData(historyEntry));
-                    notifyItemInserted(index + 1);
-                    // обновляем вьюшку с прогрессбарами
-                    notifyItemChanged(index);
-                    isRequiredDateFound = true;
-                    break;
+                    return index;
                 }
             }
         }
-        if (!isRequiredDateFound) {
-            // если ещё ни одной даты нет - добавить новую + продукт
-            if (data.size() == 0) {
-                data.add(new DateData(historyEntry.getTime()));
-                notifyItemInserted(data.size() - 1);
-                data.add(new FoodstuffData(historyEntry));
-                notifyItemInserted(data.size() - 1);
-                // обновляем вьюшку с прогрессбарами
-                notifyItemChanged(data.size() - 2);
-            } else {
-            // если есть - найти предыдущую и добавить перед ней дату и продукт
-                boolean isPreviousDateFound = false;
-                for (int index = 0; index < data.size(); index++) {
-                    // если дата по индексу - более ранняя
-                    if (data.get(index) instanceof DateData
-                            && ((DateData)data.get(index)).getDate().compareTo(historyEntry.getTime()) == -1) {
-                        data.add(index, new DateData(historyEntry.getTime()));
-                        notifyItemInserted(index);
-                        data.add(index + 1, new FoodstuffData(historyEntry));
-                        notifyItemInserted(index + 1);
-                        // обновляем вьюшку с прогрессбарами
-                        notifyItemChanged(index);
-                        isPreviousDateFound = true;
-                        break;
-                    }
-                }
-                // если более ранней даты нет
-                if (!isPreviousDateFound) {
-                    data.add(new DateData(historyEntry.getTime()));
-                    notifyItemInserted(data.size() - 1);
-                    data.add(new FoodstuffData(historyEntry));
-                    notifyItemInserted(data.size() - 1);
+        return -1;
+    }
+
+    private void addFoodstuffToDate(int dateIndex, HistoryEntry historyEntry) {
+        int index = findWhereToAddHistoryEntry(dateIndex, historyEntry);
+        data.add(index, new FoodstuffData(historyEntry));
+        notifyItemInserted(index);
+        // обновляем вьюшку с прогрессбарами
+        notifyItemChanged(dateIndex);
+    }
+
+    private void addDate(Date date, int dateIndex) {
+        data.add(dateIndex, new DateData(date));
+        notifyItemInserted(dateIndex);
+    }
+
+    private int findEarlierDateIndex(Date currentDate) {
+        for (int index = 0; index < data.size(); index++) {
+            // если дата по индексу - более ранняя
+            if (data.get(index) instanceof DateData) {
+                DateData dateData = (DateData) data.get(index);
+                if (dateData.getDate().compareTo(currentDate) < 0) {
+                    return index;
                 }
             }
         }
+        return -1;
+    }
+
+    private int findWhereToAddHistoryEntry(int dateIndex, HistoryEntry historyEntry) {
+        for (int index = dateIndex + 1; index < data.size(); index++) {
+            if (data.get(index) instanceof DateData) {
+                return index;
+            }
+            FoodstuffData foodstuffData = (FoodstuffData) data.get(index);
+            Date date = foodstuffData.getHistoryEntry().getTime();
+            Date currentDate = historyEntry.getTime();
+            if (date.compareTo(currentDate) < 0) {
+                return index;
+            }
+        }
+        return data.size();
     }
 
     public void deleteItem(int displayedPosition) {

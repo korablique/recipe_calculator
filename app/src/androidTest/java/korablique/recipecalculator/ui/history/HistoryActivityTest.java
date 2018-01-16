@@ -194,6 +194,36 @@ public class HistoryActivityTest {
         assertContains("foodstuff" + BATCH_SIZE);
     }
 
+    @Test
+    public void historyFoodstuffsOrderIsDescending() {
+        // добавить батч продуктов с интервалом в минуту
+        Foodstuff[] foodstuffs = new Foodstuff[BATCH_SIZE + 1];
+        for (int index = 0; index < foodstuffs.length; index++) {
+            foodstuffs[index] = new Foodstuff("foodstuff" + index, -1, 5, 5, 5, 5);
+        }
+        ArrayList<Long> foodstuffIds = new ArrayList<>();
+        databaseWorker.saveGroupOfFoodstuffs(
+                mActivityRule.getActivity(),
+                foodstuffs,
+                (ids) -> {
+                    foodstuffIds.addAll(ids);
+                });
+
+        NewHistoryEntry[] entries = new NewHistoryEntry[BATCH_SIZE + 1];
+        for (int index = 0; index < entries.length; index++) {
+            entries[index] = new NewHistoryEntry(foodstuffIds.get(index), 100, new Date(index));
+        }
+        databaseWorker.saveGroupOfFoodstuffsToHistory(
+                mActivityRule.getActivity(),
+                entries,
+                null);
+
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
+
+        assertContains("foodstuff" + BATCH_SIZE);
+    }
+
     private void addItem() {
         onView(withId(R.id.history_fab)).perform(click());
         onView(withId(R.id.name_edit_text)).perform(typeText("tomato"));
