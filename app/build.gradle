@@ -28,8 +28,8 @@ android {
         applicationId "korablique.recipecalculator"
         minSdkVersion 15
         targetSdkVersion 27
-        versionCode 8
-        versionName "18.01.13.hotfix1"
+        versionCode 9
+        versionName "18.01.16"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
