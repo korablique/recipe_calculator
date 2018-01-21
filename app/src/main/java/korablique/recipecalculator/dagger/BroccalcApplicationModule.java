@@ -1,5 +1,7 @@
 package korablique.recipecalculator.dagger;
 
+import android.content.Context;
+
 import javax.inject.Singleton;
 
 import dagger.Module;
@@ -9,6 +11,7 @@ import dagger.android.support.AndroidSupportInjectionModule;
 import korablique.recipecalculator.base.MainThreadExecutor;
 import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
+import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.ui.calculator.CalculatorActivity;
 import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
 import korablique.recipecalculator.ui.history.HistoryActivity;
@@ -33,6 +36,15 @@ public abstract class BroccalcApplicationModule {
     public static DatabaseWorker provideDatabaseWorker(
             MainThreadExecutor mainThreadExecutor, DatabaseThreadExecutor databaseThreadExecutor) {
         return new DatabaseWorker(mainThreadExecutor, databaseThreadExecutor);
+    }
+
+    @Provides
+    @Singleton
+    public static HistoryWorker provideHistoryWorker(
+            Context context,
+            MainThreadExecutor mainThreadExecutor,
+            DatabaseThreadExecutor databaseThreadExecutor) {
+        return new HistoryWorker(context, mainThreadExecutor, databaseThreadExecutor);
     }
 
     @ActivityScope
