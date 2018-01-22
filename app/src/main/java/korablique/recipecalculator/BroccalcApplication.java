@@ -13,10 +13,13 @@ import dagger.android.HasActivityInjector;
 import io.fabric.sdk.android.Fabric;
 
 import korablique.recipecalculator.dagger.DaggerBroccalcApplicationComponent;
+import korablique.recipecalculator.database.HistoryWorker;
 
 public class BroccalcApplication extends Application implements HasActivityInjector {
     @Inject
     DispatchingAndroidInjector<Activity> dispatchingAndroidInjector;
+    @Inject
+    HistoryWorker historyWorker;
 
     @Override
     public void onCreate() {
@@ -27,6 +30,8 @@ public class BroccalcApplication extends Application implements HasActivityInjec
                 .build()
                 .inject(this);
         Fabric.with(this, new Crashlytics());
+
+        historyWorker.initCache();
     }
 
     @Override

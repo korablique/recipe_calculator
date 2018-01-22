@@ -7,27 +7,20 @@ import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.NonNull;
 
 import java.util.ArrayList;
-import java.util.Date;
 
 import korablique.recipecalculator.base.MainThreadExecutor;
 import korablique.recipecalculator.model.Foodstuff;
-import korablique.recipecalculator.model.HistoryEntry;
-import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.UserParameters;
 
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_CALORIES;
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_CARBS;
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_FATS;
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_FOODSTUFF_NAME;
-import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_IS_LISTED;
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_FOODSTUFF_NAME_NOCASE;
+import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_IS_LISTED;
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_PROTEIN;
 import static korablique.recipecalculator.database.FoodstuffsContract.FOODSTUFFS_TABLE_NAME;
 import static korablique.recipecalculator.database.FoodstuffsContract.ID;
-import static korablique.recipecalculator.database.HistoryContract.COLUMN_NAME_DATE;
-import static korablique.recipecalculator.database.HistoryContract.COLUMN_NAME_FOODSTUFF_ID;
-import static korablique.recipecalculator.database.HistoryContract.COLUMN_NAME_WEIGHT;
-import static korablique.recipecalculator.database.HistoryContract.HISTORY_TABLE_NAME;
 import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_AGE;
 import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_COEFFICIENT;
 import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_FORMULA;
@@ -44,29 +37,24 @@ public class DatabaseWorker {
     public interface FoodstuffsRequestCallback {
         void onResult(ArrayList<Foodstuff> foodstuffs);
     }
+
     public interface SaveFoodstuffCallback {
         void onResult(long id);
         void onDuplication();
     }
+
     public interface SaveGroupOfFoodstuffsCallback {
         void onResult(ArrayList<Long> ids);
     }
-    public interface RequestHistoryCallback {
-        void onResult(ArrayList<HistoryEntry> historyEntries);
-    }
+
     public interface SaveUnlistedFoodstuffCallback {
         void onResult(long foodstuffId);
     }
-    public interface AddHistoryEntriesCallback {
-        void onResult(ArrayList<Long> historyEntriesIds);
-    }
+
     public interface RequestCurrentUserParametersCallback {
         void onResult(UserParameters userParameters);
     }
-    public interface RequestFoodstuffsIdsFromHistoryCallback {
-        void onResult(ArrayList<Long> ids);
-    }
-    
+
     public DatabaseWorker(MainThreadExecutor mainThreadExecutor, DatabaseThreadExecutor databaseThreadExecutor) {
         this.mainThreadExecutor = mainThreadExecutor;
         this.databaseThreadExecutor = databaseThreadExecutor;
@@ -74,8 +62,14 @@ public class DatabaseWorker {
 
     public void saveFoodstuff(
             final Context context,
+            final Foodstuff foodstuff) {
+        saveFoodstuff(context, foodstuff, null);
+    }
+
+    public void saveFoodstuff(
+            final Context context,
             final Foodstuff foodstuff,
-            @NonNull final SaveFoodstuffCallback callback) {
+            final SaveFoodstuffCallback callback) {
         databaseThreadExecutor.execute(() -> {
             FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
             SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
@@ -114,11 +108,14 @@ public class DatabaseWorker {
                 alreadyContainsListedFoodstuff = true;
             }
             cursor.close();
-            if (alreadyContainsListedFoodstuff) {
-                mainThreadExecutor.execute(() -> callback.onDuplication());
-            } else {
-                long finalId = id;
-                mainThreadExecutor.execute(() -> callback.onResult(finalId));
+
+            if (callback != null) {
+                if (alreadyContainsListedFoodstuff) {
+                    mainThreadExecutor.execute(() -> callback.onDuplication());
+                } else {
+                    long finalId = id;
+                    mainThreadExecutor.execute(() -> callback.onResult(finalId));
+                }
             }
         });
     }
@@ -279,146 +276,6 @@ public class DatabaseWorker {
         });
     }
 
-    public void requestAllHistoryFromDb(
-            final Context context,
-            int batchSize,
-            @NonNull final RequestHistoryCallback callback) {
-        databaseThreadExecutor.execute(() -> {
-            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
-            SQLiteDatabase db = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
-            String joinTablesArg = HISTORY_TABLE_NAME + " LEFT OUTER" +
-                    " JOIN " + FOODSTUFFS_TABLE_NAME +
-                    " ON " + HISTORY_TABLE_NAME + "." + COLUMN_NAME_FOODSTUFF_ID
-                    + "=" + FOODSTUFFS_TABLE_NAME + "." + FoodstuffsContract.ID;
-            Cursor cursor = db.query(joinTablesArg, null, null, null, null, null, COLUMN_NAME_DATE + " DESC");
-
-            ArrayList<HistoryEntry> historyBatch = new ArrayList<>();
-            int index = 0;
-            while (cursor.moveToNext()) {
-                long foodstuffId = cursor.getLong(
-                        cursor.getColumnIndex(HISTORY_TABLE_NAME + "." + COLUMN_NAME_FOODSTUFF_ID));
-                double weight = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_WEIGHT));
-                String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_FOODSTUFF_NAME));
-                double protein = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_PROTEIN));
-                double fats = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_FATS));
-                double carbs = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CARBS));
-                double calories = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CALORIES));
-                Foodstuff foodstuff = new Foodstuff(foodstuffId, name, weight, protein, fats, carbs, calories);
-
-                long time = cursor.getLong(cursor.getColumnIndex(COLUMN_NAME_DATE));
-                long historyId = cursor.getLong(
-                        cursor.getColumnIndex(HISTORY_TABLE_NAME + "." + HistoryContract.ID));
-                HistoryEntry historyEntry = new HistoryEntry(historyId, foodstuff, new Date(time));
-                historyBatch.add(historyEntry);
-                ++index;
-                if (index >= batchSize) {
-                    ArrayList<HistoryEntry> batchCopy = new ArrayList<>(historyBatch);
-                    mainThreadExecutor.execute(() -> callback.onResult(batchCopy));
-                    historyBatch.clear();
-                    index = 0;
-                }
-            }
-            if (historyBatch.size() > 0) {
-                mainThreadExecutor.execute(() -> callback.onResult(historyBatch));
-            }
-            cursor.close();
-        });
-    }
-
-    public void saveFoodstuffToHistory(
-            final Context context,
-            final Date date,
-            final long foodstuffId,
-            final double foodstuffWeight,
-            final AddHistoryEntriesCallback callback) {
-        saveGroupOfFoodstuffsToHistory(
-                context,
-                new NewHistoryEntry[]{new NewHistoryEntry(foodstuffId, foodstuffWeight, date)},
-                callback);
-    }
-
-    public void saveGroupOfFoodstuffsToHistory(
-            final Context context,
-            final NewHistoryEntry[] newEntries,
-            final AddHistoryEntriesCallback callback) {
-        databaseThreadExecutor.execute(() -> {
-            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
-            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-
-            final ArrayList<Long> ids = new ArrayList<>();
-            database.beginTransaction();
-            try {
-                for (NewHistoryEntry newEntry : newEntries) {
-                    ContentValues values = new ContentValues();
-                    values.put(COLUMN_NAME_DATE, newEntry.getDate().getTime());
-                    values.put(COLUMN_NAME_FOODSTUFF_ID, newEntry.getFoodstuffId());
-                    values.put(COLUMN_NAME_WEIGHT, newEntry.getFoodstuffWeight());
-                    long historyEntryId = database.insert(HISTORY_TABLE_NAME, null, values);
-                    ids.add(historyEntryId);
-                }
-                database.setTransactionSuccessful();
-            } finally {
-                database.endTransaction();
-            }
-            if (callback != null) {
-                mainThreadExecutor.execute(() -> callback.onResult(ids));
-            }
-        });
-    }
-
-    public void deleteEntryFromHistory(final Context context, final long historyId) {
-        databaseThreadExecutor.execute(() -> {
-            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
-            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-            database.delete(
-                    HISTORY_TABLE_NAME,
-                    HistoryContract.ID + " = ?",
-                    new String[]{String.valueOf(historyId)});
-        });
-    }
-
-    public void editWeightInHistoryEntry(
-            final Context context,
-            final long historyId,
-            final double newWeight,
-            final Runnable callback) {
-        databaseThreadExecutor.execute(() -> {
-            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
-            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-            ContentValues values = new ContentValues();
-            values.put(COLUMN_NAME_WEIGHT, newWeight);
-            database.update(
-                    HISTORY_TABLE_NAME,
-                    values,
-                    HistoryContract.ID + "=?",
-                    new String[]{String.valueOf(historyId)});
-            if (callback != null) {
-                mainThreadExecutor.execute(callback);
-            }
-        });
-    }
-
-    public void updateFoodstuffIdInHistory(
-            final Context context,
-            final long historyId,
-            final long newFoodstuffId,
-            final Runnable callback) {
-        databaseThreadExecutor.execute(() -> {
-            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
-            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-            ContentValues values = new ContentValues(1);
-            values.put(COLUMN_NAME_FOODSTUFF_ID, newFoodstuffId);
-            database.update(
-                    HISTORY_TABLE_NAME,
-                    values,
-                    HistoryContract.ID + "=?",
-                    new String[]{String.valueOf(historyId)});
-            if (callback != null) {
-                mainThreadExecutor.execute(callback);
-            }
-        });
-    }
-
     public void saveUserParameters(
             final Context context, final UserParameters userParameters, final Runnable callback) {
         databaseThreadExecutor.execute(() -> {
@@ -470,33 +327,6 @@ public class DatabaseWorker {
             cursor.close();
             UserParameters finalUserParameters = userParameters;
             mainThreadExecutor.execute(() -> callback.onResult(finalUserParameters));
-        });
-    }
-
-    public void requestFoodstuffsIdsFromHistoryForPeriod(
-            final long from,
-            final long to,
-            final Context context,
-            @NonNull final RequestFoodstuffsIdsFromHistoryCallback callback) {
-        databaseThreadExecutor.execute(() -> {
-            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
-            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
-            Cursor cursor = database.query(
-                    HISTORY_TABLE_NAME,
-                    new String[]{ COLUMN_NAME_FOODSTUFF_ID },
-                    COLUMN_NAME_DATE + " >= ? AND " + COLUMN_NAME_DATE + " <= ?",
-                    new String[]{ String.valueOf(from), String.valueOf(to) },
-                    null,
-                    null,
-                    COLUMN_NAME_DATE + " ASC");
-
-            ArrayList<Long> ids = new ArrayList<>();
-            while (cursor.moveToNext()) {
-                long id = cursor.getLong(cursor.getColumnIndex(COLUMN_NAME_FOODSTUFF_ID));
-                ids.add(id);
-            }
-            cursor.close();
-            mainThreadExecutor.execute(() -> callback.onResult(ids));
         });
     }
 }

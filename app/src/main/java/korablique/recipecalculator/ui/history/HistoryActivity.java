@@ -14,10 +14,12 @@ import com.tapadoo.alerter.Alerter;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import javax.inject.Inject;
 
 import korablique.recipecalculator.FloatUtils;
+import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.model.HistoryEntry;
 import korablique.recipecalculator.ui.Card;
 import korablique.recipecalculator.ui.CardDisplaySource;
@@ -38,10 +40,11 @@ import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
 
 
 public class HistoryActivity extends BaseActivity {
-    public static final int BATCH_SIZE = 100;
 
     @Inject
     DatabaseWorker databaseWorker;
+    @Inject
+    HistoryWorker historyWorker;
 
     private Card card;
     private int editedFoodstuffPosition;
@@ -102,9 +105,9 @@ public class HistoryActivity extends BaseActivity {
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(adapter);
 
-        databaseWorker.requestAllHistoryFromDb(this, BATCH_SIZE, new DatabaseWorker.RequestHistoryCallback() {
+        historyWorker.requestAllHistoryFromDb(new HistoryWorker.RequestHistoryCallback() {
             @Override
-            public void onResult(final ArrayList<HistoryEntry> historyEntries) {
+            public void onResult(final List<HistoryEntry> historyEntries) {
                 for (HistoryEntry historyEntry : historyEntries) {
                     adapter.addItem(historyEntry);
                 }
@@ -188,8 +191,7 @@ public class HistoryActivity extends BaseActivity {
                                 new DatabaseWorker.SaveUnlistedFoodstuffCallback() {
                                     @Override
                                     public void onResult(long foodstuffId) {
-                                        databaseWorker.updateFoodstuffIdInHistory(
-                                                HistoryActivity.this,
+                                        historyWorker.updateFoodstuffIdInHistory(
                                                 historyEntry.getHistoryId(),
                                                 foodstuffId,
                                                 null);
@@ -203,8 +205,8 @@ public class HistoryActivity extends BaseActivity {
                         HistoryEntry newEntry = new HistoryEntry(
                                 historyEntry.getHistoryId(), foodstuff, historyEntry.getTime());
                         adapter.replaceItem(newEntry, editedFoodstuffPosition);
-                        databaseWorker.editWeightInHistoryEntry(
-                                HistoryActivity.this, newEntry.getHistoryId(), newWeight, null);
+                        historyWorker.editWeightInHistoryEntry(
+                                newEntry.getHistoryId(), newWeight, null);
                     }
                     recyclerView.smoothScrollToPosition(editedFoodstuffPosition);
                 }
@@ -221,7 +223,7 @@ public class HistoryActivity extends BaseActivity {
                 long historyId = ((HistoryAdapter.FoodstuffData) adapter.getItem(editedFoodstuffPosition))
                         .getHistoryEntry().getHistoryId();
                 adapter.deleteItem(editedFoodstuffPosition);
-                databaseWorker.deleteEntryFromHistory(HistoryActivity.this, historyId);
+                historyWorker.deleteEntryFromHistory(historyId);
                 card.hide();
             }
         });
@@ -299,13 +301,12 @@ public class HistoryActivity extends BaseActivity {
 
     private void addListedFoodstuffToHistory(final Foodstuff foodstuff, long foodstuffId) {
         final Date date = new Date();
-        databaseWorker.saveFoodstuffToHistory(
-                HistoryActivity.this,
+        historyWorker.saveFoodstuffToHistory(
                 date,
                 foodstuffId,
-                foodstuff.getWeight(), new DatabaseWorker.AddHistoryEntriesCallback() {
+                foodstuff.getWeight(), new HistoryWorker.AddHistoryEntriesCallback() {
             @Override
-            public void onResult(final ArrayList<Long> historyEntriesIds) {
+            public void onResult(final List<Long> historyEntriesIds) {
                 adapter.addItem(new HistoryEntry(historyEntriesIds.get(0), foodstuff, date));
             }
         });
@@ -316,22 +317,16 @@ public class HistoryActivity extends BaseActivity {
         databaseWorker.saveUnlistedFoodstuff(
                 HistoryActivity.this,
                 foodstuff,
-                new DatabaseWorker.SaveUnlistedFoodstuffCallback() {
-            @Override
-            public void onResult(long foodstuffId) {
-                databaseWorker.saveFoodstuffToHistory(
-                        HistoryActivity.this,
-                        date,
-                        foodstuffId,
-                        foodstuff.getWeight(), new DatabaseWorker.AddHistoryEntriesCallback() {
-                    @Override
-                    public void onResult(final ArrayList<Long> historyEntriesIds) {
-                        adapter.addItem(new HistoryEntry(
-                                historyEntriesIds.get(0), foodstuff, date));
-                    }
-                });
-            }
-        });
+                (foodstuffId) -> {
+                    historyWorker.saveFoodstuffToHistory(
+                            date,
+                            foodstuffId,
+                            foodstuff.getWeight(),
+                            (historyEntriesIds) -> {
+                                adapter.addItem(new HistoryEntry(
+                                        historyEntriesIds.get(0), foodstuff, date));
+                            });
+            });
     }
 
     @Override

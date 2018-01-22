@@ -20,6 +20,7 @@ import java.util.Date;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.database.DatabaseWorker;
+import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.UserParameters;
@@ -41,7 +42,7 @@ import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertContains;
 import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertNotContains;
 import static korablique.recipecalculator.database.HistoryContract.HISTORY_TABLE_NAME;
-import static korablique.recipecalculator.ui.history.HistoryActivity.BATCH_SIZE;
+import static korablique.recipecalculator.database.HistoryWorker.BATCH_SIZE;
 import static org.hamcrest.Matchers.not;
 
 @RunWith(AndroidJUnit4.class)
@@ -49,12 +50,14 @@ import static org.hamcrest.Matchers.not;
 public class HistoryActivityTest {
     private DatabaseWorker databaseWorker =
             new DatabaseWorker(new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
+    private HistoryWorker historyWorker;
 
     @Rule
     public ActivityTestRule<HistoryActivity> mActivityRule =
             InjectableActivityTestRule.forActivity(HistoryActivity.class)
                 .withInjector((HistoryActivity activity) -> {
                     activity.databaseWorker = databaseWorker;
+                    activity.historyWorker = historyWorker;
                 })
                 .withManualStart() // Нужно предотвратить старт UserGoalActivity.
                 .build();
@@ -64,6 +67,9 @@ public class HistoryActivityTest {
         Card.setAnimationDuration(0);
 
         Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        historyWorker = new HistoryWorker(
+                context, new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
+
         Resources resources = context.getResources();
 
         DbUtil.clearTable(context, HISTORY_TABLE_NAME);
@@ -182,10 +188,7 @@ public class HistoryActivityTest {
         for (int index = 0; index < entries.length; index++) {
             entries[index] = new NewHistoryEntry(foodstuffIds.get(index), 100, new Date(index, 0, 1));
         }
-        databaseWorker.saveGroupOfFoodstuffsToHistory(
-                mActivityRule.getActivity(),
-                entries,
-                null);
+        historyWorker.saveGroupOfFoodstuffsToHistory(entries);
 
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
         instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
@@ -213,10 +216,7 @@ public class HistoryActivityTest {
         for (int index = 0; index < entries.length; index++) {
             entries[index] = new NewHistoryEntry(foodstuffIds.get(index), 100, new Date(index));
         }
-        databaseWorker.saveGroupOfFoodstuffsToHistory(
-                mActivityRule.getActivity(),
-                entries,
-                null);
+        historyWorker.saveGroupOfFoodstuffsToHistory(entries);
 
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
         instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
