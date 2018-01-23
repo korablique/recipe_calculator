@@ -12,6 +12,7 @@ import korablique.recipecalculator.base.MainThreadExecutor;
 import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.HistoryWorker;
+import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.ui.calculator.CalculatorActivity;
 import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
 import korablique.recipecalculator.ui.history.HistoryActivity;
@@ -45,6 +46,15 @@ public abstract class BroccalcApplicationModule {
             MainThreadExecutor mainThreadExecutor,
             DatabaseThreadExecutor databaseThreadExecutor) {
         return new HistoryWorker(context, mainThreadExecutor, databaseThreadExecutor);
+    }
+
+    @Provides
+    @Singleton
+    public static UserParametersWorker provideUserParametersWorker(
+            Context context,
+            MainThreadExecutor mainThreadExecutor,
+            DatabaseThreadExecutor databaseThreadExecutor) {
+        return new UserParametersWorker(context, mainThreadExecutor, databaseThreadExecutor);
     }
 
     @ActivityScope
