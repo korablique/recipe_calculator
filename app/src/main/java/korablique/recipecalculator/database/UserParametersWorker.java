@@ -21,7 +21,7 @@ public class UserParametersWorker {
     private Context context;
     private DatabaseThreadExecutor databaseThreadExecutor;
     private MainThreadExecutor mainThreadExecutor;
-    private UserParameters cachedUserParameters;
+    private volatile UserParameters cachedUserParameters;
 
     public interface RequestCurrentUserParametersCallback {
         void onResult(UserParameters userParameters);
@@ -41,7 +41,7 @@ public class UserParametersWorker {
     }
 
     private void updateCache() {
-        requestCurrentUserParameters(context, (userParameters) -> {
+        requestCurrentUserParametersImpl(context, (userParameters) -> {
             cachedUserParameters = userParameters;
         });
     }
@@ -63,46 +63,64 @@ public class UserParametersWorker {
             if (callback != null) {
                 mainThreadExecutor.execute(callback);
             }
-        });
 
-        updateCache();
+            updateCache();
+        });
     }
 
     public void requestCurrentUserParameters(
             final Context context,
             final RequestCurrentUserParametersCallback callback) {
-        databaseThreadExecutor.execute(() -> {
-            if (cachedUserParameters != null) {
-                mainThreadExecutor.execute(() -> callback.onResult(cachedUserParameters));
-                return;
+        if (cachedUserParameters != null) {
+            if (callback != null) {
+                callback.onResult(cachedUserParameters);
             }
-            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
-            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
-            Cursor cursor = database.query(
-                    USER_PARAMETERS_TABLE_NAME,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    UserParametersContract.ID + " DESC",
-                    String.valueOf(1));
-            UserParameters userParameters = null;
-            if (cursor.getCount() != 0) {
-                while (cursor.moveToNext()) {
-                    String goal = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_GOAL));
-                    String gender = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_GENDER));
-                    int age = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_AGE));
-                    int height = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_HEIGHT));
-                    int weight = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_USER_WEIGHT));
-                    float coefficient = cursor.getFloat(cursor.getColumnIndex(COLUMN_NAME_COEFFICIENT));
-                    String formula = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_FORMULA));
-                    userParameters = new UserParameters(goal, gender, age, height, weight, coefficient, formula);
-                }
+            return;
+        }
+        databaseThreadExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                UserParametersWorker.this.requestCurrentUserParametersImpl(context, userParameters -> {
+                    if (callback != null) {
+                        mainThreadExecutor.execute(() -> callback.onResult(userParameters));
+                    }
+                });
             }
-            cursor.close();
-            UserParameters finalUserParameters = userParameters;
-            mainThreadExecutor.execute(() -> callback.onResult(finalUserParameters));
         });
+    }
+
+    private void requestCurrentUserParametersImpl(
+            final Context context,
+            final RequestCurrentUserParametersCallback callback) {
+        if (cachedUserParameters != null) {
+            mainThreadExecutor.execute(() -> callback.onResult(cachedUserParameters));
+            return;
+        }
+        FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+        SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
+        Cursor cursor = database.query(
+                USER_PARAMETERS_TABLE_NAME,
+                null,
+                null,
+                null,
+                null,
+                null,
+                UserParametersContract.ID + " DESC",
+                String.valueOf(1));
+        UserParameters userParameters = null;
+        if (cursor.getCount() != 0) {
+            while (cursor.moveToNext()) {
+                String goal = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_GOAL));
+                String gender = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_GENDER));
+                int age = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_AGE));
+                int height = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_HEIGHT));
+                int weight = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_USER_WEIGHT));
+                float coefficient = cursor.getFloat(cursor.getColumnIndex(COLUMN_NAME_COEFFICIENT));
+                String formula = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_FORMULA));
+                userParameters = new UserParameters(goal, gender, age, height, weight, coefficient, formula);
+            }
+        }
+        cursor.close();
+        callback.onResult(userParameters);
     }
 }

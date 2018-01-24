@@ -5,6 +5,10 @@ import android.support.test.InstrumentationRegistry;
 
 import korablique.recipecalculator.base.MainThreadExecutor;
 
+/**
+ * Выполняет переданный Runnable на главном потоке, но синхронно
+ * (не возвращает управление, пока Runnable не окажется выполненным).
+ */
 public class SyncMainThreadExecutor extends MainThreadExecutor {
     @Override
     public void execute(Runnable runnable) {

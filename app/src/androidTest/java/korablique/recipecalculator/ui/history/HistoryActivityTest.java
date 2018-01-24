@@ -72,6 +72,8 @@ public class HistoryActivityTest {
         Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         historyWorker = new HistoryWorker(
                 context, new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
+        userParametersWorker = new UserParametersWorker(
+                context, new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
 
         Resources resources = context.getResources();
 
@@ -91,6 +93,9 @@ public class HistoryActivityTest {
 
     @After
     public void tearDown() throws InterruptedException {
+        if (mActivityRule.getActivity() == null) {
+            return;
+        }
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
         instrumentation.runOnMainSync(() -> {
             mActivityRule
