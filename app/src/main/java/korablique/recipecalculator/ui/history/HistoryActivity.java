@@ -20,6 +20,7 @@ import javax.inject.Inject;
 
 import korablique.recipecalculator.FloatUtils;
 import korablique.recipecalculator.database.HistoryWorker;
+import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.model.HistoryEntry;
 import korablique.recipecalculator.ui.Card;
 import korablique.recipecalculator.ui.CardDisplaySource;
@@ -45,6 +46,8 @@ public class HistoryActivity extends BaseActivity {
     DatabaseWorker databaseWorker;
     @Inject
     HistoryWorker historyWorker;
+    @Inject
+    UserParametersWorker userParametersWorker;
 
     private Card card;
     private int editedFoodstuffPosition;
@@ -71,8 +74,8 @@ public class HistoryActivity extends BaseActivity {
         ViewGroup parentLayout = findViewById(R.id.history_parent);
         card = new Card(this, parentLayout);
 
-        databaseWorker.requestCurrentUserParameters(
-                HistoryActivity.this, new DatabaseWorker.RequestCurrentUserParametersCallback() {
+        userParametersWorker.requestCurrentUserParameters(
+                HistoryActivity.this, new UserParametersWorker.RequestCurrentUserParametersCallback() {
             @Override
             public void onResult(final UserParameters userParameters) {
                 if (userParameters == null) {

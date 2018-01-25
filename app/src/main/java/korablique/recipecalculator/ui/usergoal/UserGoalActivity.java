@@ -17,12 +17,15 @@ import javax.inject.Inject;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.ui.history.HistoryActivity;
 
 public class UserGoalActivity extends BaseActivity {
     @Inject
     DatabaseWorker databaseWorker;
+    @Inject
+    UserParametersWorker userParametersWorker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,7 +81,7 @@ public class UserGoalActivity extends BaseActivity {
                 String defaultFormula = getResources().getStringArray(R.array.formula_array)[0];
                 UserParameters userParameters = new UserParameters(
                         selectedGoal, selectedGender, age, height, weight, coefficient, defaultFormula);
-                databaseWorker.saveUserParameters(
+                userParametersWorker.saveUserParameters(
                         UserGoalActivity.this, userParameters, new Runnable() {
                             @Override
                             public void run() {

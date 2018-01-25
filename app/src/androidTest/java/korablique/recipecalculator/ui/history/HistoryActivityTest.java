@@ -21,6 +21,7 @@ import java.util.Date;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.HistoryWorker;
+import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.UserParameters;
@@ -51,6 +52,7 @@ public class HistoryActivityTest {
     private DatabaseWorker databaseWorker =
             new DatabaseWorker(new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
     private HistoryWorker historyWorker;
+    private UserParametersWorker userParametersWorker;
 
     @Rule
     public ActivityTestRule<HistoryActivity> mActivityRule =
@@ -58,6 +60,7 @@ public class HistoryActivityTest {
                 .withInjector((HistoryActivity activity) -> {
                     activity.databaseWorker = databaseWorker;
                     activity.historyWorker = historyWorker;
+                    activity.userParametersWorker = userParametersWorker;
                 })
                 .withManualStart() // Нужно предотвратить старт UserGoalActivity.
                 .build();
@@ -68,6 +71,8 @@ public class HistoryActivityTest {
 
         Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         historyWorker = new HistoryWorker(
+                context, new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
+        userParametersWorker = new UserParametersWorker(
                 context, new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
 
         Resources resources = context.getResources();
@@ -81,13 +86,16 @@ public class HistoryActivityTest {
         String defaultFormula = resources.getStringArray(R.array.formula_array)[0];
         UserParameters userParameters = new UserParameters(
                 goal, gender, age, height, weight, coefficient, defaultFormula);
-        databaseWorker.saveUserParameters(context, userParameters, null);
+        userParametersWorker.saveUserParameters(context, userParameters, null);
 
         mActivityRule.launchActivity(null);
     }
 
     @After
     public void tearDown() throws InterruptedException {
+        if (mActivityRule.getActivity() == null) {
+            return;
+        }
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
         instrumentation.runOnMainSync(() -> {
             mActivityRule
