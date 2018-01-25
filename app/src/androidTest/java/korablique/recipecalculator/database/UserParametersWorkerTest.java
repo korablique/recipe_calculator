@@ -76,9 +76,6 @@ public class UserParametersWorkerTest {
         // т.к. проверяем, что при отсутствии кеша UserParamsWorker будет взаимодействовать с БД
         reset(spiedDatabaseThreadExecutor);
 
-        // Убеждаемся, что "шпион" чистый, что с ним после его создания никто не взаимодействовал
-        verify(spiedDatabaseThreadExecutor, never()).execute(any(Runnable.class));
-
         userParametersWorker.requestCurrentUserParameters(context, null);
         // Через шпиона убеждаемся, что UserParamsWorker взаимодействовал с БД,
         // т.к. у него 100% отсутствовал кеш и достать параметры юзера он больше ни откуда не мог

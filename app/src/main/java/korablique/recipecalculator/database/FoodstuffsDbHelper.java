@@ -93,10 +93,10 @@ public class FoodstuffsDbHelper {
 
     public static synchronized void deinitializeDatabase(Context context) {
         File dbFile = getDbFile(context);
-        boolean deleted = true;
-        if (dbFile.exists()) {
-            deleted = dbFile.delete();
+        if (!dbFile.exists()) {
+            return;
         }
+        boolean deleted = dbFile.delete();
         if (!deleted) {
             throw new Error("Couldn't delete database");
         }
