@@ -188,17 +188,22 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
 
     private int findHistoryEntryDateIndex(HistoryEntry historyEntry) {
-        DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.DEFAULT);
-        String newDateString = dateFormat.format(historyEntry.getTime());
+        Date newDate = historyEntry.getTime();
         for (int index = 0; index < data.size(); index++) {
             if (data.get(index) instanceof DateData) {
-                String dateString = dateFormat.format(((DateData) data.get(index)).getDate());
-                if (newDateString.equals(dateString)) {
+                Date currentDate = ((DateData) data.get(index)).getDate();
+                if (isSameDay(newDate, currentDate)) {
                     return index;
                 }
             }
         }
         return -1;
+    }
+
+    private boolean isSameDay(Date d1, Date d2) {
+        return d1.getDay() == d2.getDay()
+                && d1.getMonth() == d2.getMonth()
+                && d1.getYear() == d2.getYear();
     }
 
     private void addFoodstuffToDate(int dateIndex, HistoryEntry historyEntry) {
