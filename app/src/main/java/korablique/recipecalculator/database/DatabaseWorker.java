@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.NonNull;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import korablique.recipecalculator.base.MainThreadExecutor;
 import korablique.recipecalculator.model.Foodstuff;
@@ -35,7 +36,7 @@ public class DatabaseWorker {
     private MainThreadExecutor mainThreadExecutor;
 
     public interface FoodstuffsRequestCallback {
-        void onResult(ArrayList<Foodstuff> foodstuffs);
+        void onResult(List<Foodstuff> foodstuffs);
     }
 
     public interface SaveFoodstuffCallback {
@@ -117,7 +118,7 @@ public class DatabaseWorker {
     }
 
     /**
-     * Порядок возвращаемых идентификаторов гарантированно идентичен порядку переданных фудстаффов.
+     * Порядок возвращаемых айдишников гарантированно идентичен порядку переданных фудстаффов.
      */
     public void saveGroupOfFoodstuffs(
             final Context context,
@@ -231,43 +232,88 @@ public class DatabaseWorker {
             final Context context,
             final int batchSize,
             @NonNull final FoodstuffsRequestCallback callback) {
-        databaseThreadExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
-                SQLiteDatabase db = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
-                Cursor cursor = db.query(
-                        FOODSTUFFS_TABLE_NAME,
-                        null,
-                        COLUMN_NAME_IS_LISTED + "=?",
-                        new String[]{ String.valueOf(1) },
-                        null,
-                        null,
-                        COLUMN_NAME_FOODSTUFF_NAME_NOCASE + " ASC");
-                ArrayList<Foodstuff> batchOfFoodstuffs = new ArrayList<>();
-                int index = 0;
-                while (cursor.moveToNext()) {
-                    Foodstuff foodstuff = new Foodstuff(
-                            cursor.getLong(cursor.getColumnIndex(ID)),
-                            cursor.getString(cursor.getColumnIndex(COLUMN_NAME_FOODSTUFF_NAME)),
-                            -1,
-                            cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_PROTEIN)),
-                            cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_FATS)),
-                            cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CARBS)),
-                            cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CALORIES)));
-                    batchOfFoodstuffs.add(foodstuff);
-                    ++index;
-                    if (index >= batchSize) {
-                        ArrayList<Foodstuff> batchCopy = new ArrayList<>(batchOfFoodstuffs);
-                        mainThreadExecutor.execute(() -> callback.onResult(batchCopy));
-                        batchOfFoodstuffs.clear();
-                        index = 0;
-                    }
+        databaseThreadExecutor.execute(() -> {
+            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+            SQLiteDatabase db = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
+            Cursor cursor = db.query(
+                    FOODSTUFFS_TABLE_NAME,
+                    null,
+                    COLUMN_NAME_IS_LISTED + "=?",
+                    new String[]{ String.valueOf(1) },
+                    null,
+                    null,
+                    COLUMN_NAME_FOODSTUFF_NAME_NOCASE + " ASC");
+            ArrayList<Foodstuff> batchOfFoodstuffs = new ArrayList<>();
+            int index = 0;
+            while (cursor.moveToNext()) {
+                Foodstuff foodstuff = new Foodstuff(
+                        cursor.getLong(cursor.getColumnIndex(ID)),
+                        cursor.getString(cursor.getColumnIndex(COLUMN_NAME_FOODSTUFF_NAME)),
+                        -1,
+                        cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_PROTEIN)),
+                        cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_FATS)),
+                        cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CARBS)),
+                        cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CALORIES)));
+                batchOfFoodstuffs.add(foodstuff);
+                ++index;
+                if (index >= batchSize) {
+                    ArrayList<Foodstuff> batchCopy = new ArrayList<>(batchOfFoodstuffs);
+                    mainThreadExecutor.execute(() -> callback.onResult(batchCopy));
+                    batchOfFoodstuffs.clear();
+                    index = 0;
                 }
-                if (batchOfFoodstuffs.size() > 0) {
-                    mainThreadExecutor.execute(() -> callback.onResult(batchOfFoodstuffs));
+            }
+            if (batchOfFoodstuffs.size() > 0) {
+                mainThreadExecutor.execute(() -> callback.onResult(batchOfFoodstuffs));
+            }
+            cursor.close();
+        });
+    }
+
+    /**
+     * Метод получает фудстаффы по их id.
+     * Порядок возвращенных из метода фудстаффов соответствует порядку переданных id. (Для этого
+     * мы запрашиваем продукты по одному).
+     * Если передать несуществующие id, то метод вернёт пустой List.
+     * @param context
+     * @param ids - id продуктов, которые мы хотим получить.
+     * @param callback - возвращает продукты.
+     */
+    public void requestFoodstuffsByIds(
+            Context context,
+            List<Long> ids,
+            FoodstuffsRequestCallback callback) {
+        databaseThreadExecutor.execute(() -> {
+            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
+            List<Foodstuff> result = new ArrayList<>();
+            String[] columns = new String[] {
+                    COLUMN_NAME_FOODSTUFF_NAME,
+                    COLUMN_NAME_PROTEIN,
+                    COLUMN_NAME_FATS,
+                    COLUMN_NAME_CARBS,
+                    COLUMN_NAME_CALORIES };
+
+            for (Long id : ids) {
+                Cursor cursor = database.query(
+                        FOODSTUFFS_TABLE_NAME,
+                        columns,
+                        FoodstuffsContract.ID + "=?",
+                        new String[]{ String.valueOf(id) },
+                        null, null, null);
+                if (cursor.moveToNext()) {
+                    String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_FOODSTUFF_NAME));
+                    double protein = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_PROTEIN));
+                    double fats = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_FATS));
+                    double carbs = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CARBS));
+                    double calories = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CALORIES));
+                    Foodstuff foodstuff = new Foodstuff(id, name, -1, protein, fats, carbs, calories);
+                    result.add(foodstuff);
                 }
                 cursor.close();
+            }
+            if (callback != null) {
+                mainThreadExecutor.execute(() -> callback.onResult(result));
             }
         });
     }

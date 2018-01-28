@@ -108,7 +108,7 @@ public class HistoryActivityTest {
     @Test
     public void canUpdateFoodstuffWeight() {
         addItem();
-        onView(ViewMatchers.withId(R.id.recycler_view)).perform(actionOnItemAtPosition(1, click()));
+        onView(withId(R.id.recycler_view)).perform(actionOnItemAtPosition(1, click()));
         onView(withId(R.id.weight_edit_text)).perform(replaceText("100"));
         onView(withId(R.id.button_ok)).perform(click());
 

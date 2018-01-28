@@ -12,7 +12,6 @@ import android.view.ViewGroup;
 import com.crashlytics.android.Crashlytics;
 import com.tapadoo.alerter.Alerter;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 

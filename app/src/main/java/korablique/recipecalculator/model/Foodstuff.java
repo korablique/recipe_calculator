@@ -29,6 +29,24 @@ public class Foodstuff implements Parcelable, Comparable<Foodstuff> {
         this.calories = calories;
     }
 
+    /**
+     * Копирует фудстафф в новый объект, но с айдишником.
+     * Если передаётся фудстафф, который уже имеет id, это значит, что мы пытаемся изменить id,
+     * что запрещено (приводит к выбросу исключения IllegalArgumentException).
+     */
+    public Foodstuff(long id, Foodstuff foodstuff) {
+        if (foodstuff.getId() != -1) {
+            throw new IllegalArgumentException("Изменение id запрещено.");
+        }
+        this.id = id;
+        this.name = foodstuff.name;
+        this.weight = foodstuff.weight;
+        this.protein = foodstuff.protein;
+        this.fats = foodstuff.fats;
+        this.carbs = foodstuff.carbs;
+        this.calories = foodstuff.calories;
+    }
+
     public long getId() {
         return id;
     }
@@ -94,6 +112,18 @@ public class Foodstuff implements Parcelable, Comparable<Foodstuff> {
     @Override
     public int compareTo(@NonNull Foodstuff foodstuff) {
         return name.compareToIgnoreCase(foodstuff.getName());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof Foodstuff) {
+            Foodstuff foodstuff = (Foodstuff) o;
+            return id == foodstuff.id && name.equals(foodstuff.name) && haveSameNutrition(this, foodstuff);
+        } else {
+            // если передан аргумент неправильного типа, метод обязан возвращать false,
+            // или если передан null (в этом случае данная проверка всё равно сработает)
+            return false;
+        }
     }
 
     /**

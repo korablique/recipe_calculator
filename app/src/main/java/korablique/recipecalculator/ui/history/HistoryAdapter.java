@@ -190,7 +190,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private int findHistoryEntryDateIndex(HistoryEntry historyEntry) {
         DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.DEFAULT);
         String newDateString = dateFormat.format(historyEntry.getTime());
-        for (int index = 0; index < data.size(); index++) {
+        for (int index = data.size() - 1; index >= 0; index--) {
             if (data.get(index) instanceof DateData) {
                 String dateString = dateFormat.format(((DateData) data.get(index)).getDate());
                 if (newDateString.equals(dateString)) {
@@ -215,7 +215,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
 
     private int findEarlierDateIndex(Date currentDate) {
-        for (int index = 0; index < data.size(); index++) {
+        for (int index = data.size() - 1; index >= 0; index--) {
             // если дата по индексу - более ранняя
             if (data.get(index) instanceof DateData) {
                 DateData dateData = (DateData) data.get(index);

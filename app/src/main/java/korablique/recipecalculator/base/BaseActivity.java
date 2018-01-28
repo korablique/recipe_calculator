@@ -15,12 +15,14 @@ import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import java.util.ArrayList;
 import java.util.List;
 
+import korablique.recipecalculator.BuildConfig;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.dagger.ActivityInjector;
 import korablique.recipecalculator.dagger.DefaultActivityInjector;
 import korablique.recipecalculator.ui.calculator.CalculatorActivity;
 import korablique.recipecalculator.ui.history.HistoryActivity;
 import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
+import korablique.recipecalculator.ui.mainscreen.MainScreenActivity;
 
 public abstract class BaseActivity extends AppCompatActivity {
     private ActivityInjector injector = new DefaultActivityInjector();
@@ -105,10 +107,28 @@ public abstract class BaseActivity extends AppCompatActivity {
                         return true;
                     }
                 });
+
+        IDrawerItem itemPrimary4 = null;
+        if (BuildConfig.DEBUG) {
+            itemPrimary4 = new PrimaryDrawerItem()
+                    .withName("MainScreenActivity")
+                    .withSelectable(false)
+                    .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
+                        @Override
+                        public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
+                            Intent intent = new Intent(BaseActivity.this, MainScreenActivity.class);
+                            BaseActivity.this.startActivity(intent);
+                            return true;
+                        }
+                    });
+        }
         List<IDrawerItem> drawerItems = new ArrayList<>();
         drawerItems.add(itemPrimary1);
         drawerItems.add(itemPrimary2);
         drawerItems.add(itemPrimary3);
+        if (itemPrimary4 != null) {
+            drawerItems.add(itemPrimary4);
+        }
 
         drawerBuilder.withDrawerItems(drawerItems);
 
