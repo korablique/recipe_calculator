@@ -201,7 +201,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
 
     private boolean isSameDay(Date d1, Date d2) {
-        return d1.getDay() == d2.getDay()
+        return d1.getDate() == d2.getDate()
                 && d1.getMonth() == d2.getMonth()
                 && d1.getYear() == d2.getYear();
     }
