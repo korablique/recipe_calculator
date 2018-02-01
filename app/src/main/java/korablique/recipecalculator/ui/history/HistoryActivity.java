@@ -111,9 +111,7 @@ public class HistoryActivity extends BaseActivity {
         historyWorker.requestAllHistoryFromDb(new HistoryWorker.RequestHistoryCallback() {
             @Override
             public void onResult(final List<HistoryEntry> historyEntries) {
-                for (HistoryEntry historyEntry : historyEntries) {
-                    adapter.addItem(historyEntry);
-                }
+                adapter.addItems(historyEntries);
             }
         });
 

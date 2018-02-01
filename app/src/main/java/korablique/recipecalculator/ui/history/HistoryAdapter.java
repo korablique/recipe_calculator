@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Formatter;
 import java.util.List;
@@ -55,14 +56,31 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     public class DateData implements Data {
         private Date date;
+        private long daySinceBC;
 
         public DateData(Date date) {
             this.date = date;
+            // Работа с датами очень медленная штука, поэтому, зная что нам придётся сравнивать
+            // дни между собой, кешируем день заранее.
+            this.daySinceBC = calculateDaySinceBC(date);
         }
 
         public Date getDate() {
             return date;
         }
+
+        public long getDaySinceBC() {
+            return daySinceBC;
+        }
+    }
+
+    /**
+     * День от начала нулевого года.
+     */
+    private long calculateDaySinceBC(Date date) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        return calendar.get(Calendar.DAY_OF_YEAR) + calendar.get(Calendar.YEAR) * 365;
     }
 
     @Override
@@ -161,6 +179,31 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
 
     public void addItem(HistoryEntry historyEntry) {
+        addItemImpl(historyEntry);
+        // Уведомляем recycler view об изменении всего множества, а не о вставки 1 элемента, т.к.
+        // addItemImpl() может добавить как 1 элемент (если вставляем фудстаф в уже существующую дату),
+        // так и 2 элемента (если вставляем фудстаф в новую дату, то вставляется и фудстаф и дата) -
+        // придётся из addItemImpl() возвращать List<InsertedIndex>,
+        // и по нему итерироваться, уведомляя recycler view.
+        notifyDataSetChanged();
+    }
+
+    public void addItems(List<HistoryEntry> historyEntries) {
+        for (HistoryEntry entry : historyEntries) {
+            addItemImpl(entry);
+        }
+        notifyDataSetChanged();
+    }
+
+    /**
+     * Impl-метод не уведомляет recycler view об изменениях.
+     * Это нужно специально чтобы иметь возможность вставлять большие батчи фудстафов
+     * в адаптер с уведомлением recycler view только в конце вставки батча (см. addItems)
+     * - если уведомлять recycler view после вставки каждого элемента, то такая вставка начинает
+     * очень заметно тормозить, т.к. recycler view зачем-то производит тяжёлые операции
+     * при каждом уведомлении об изменениях, даже если изменяемые элементы точно не видны.
+     */
+    private void addItemImpl(HistoryEntry historyEntry) {
         int dateIndex = findHistoryEntryDateIndex(historyEntry);
         // если нужная дата найдена
         if (dateIndex != -1) {
@@ -188,11 +231,11 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
 
     private int findHistoryEntryDateIndex(HistoryEntry historyEntry) {
-        Date newDate = historyEntry.getTime();
+        long newDaySinceBC = calculateDaySinceBC(historyEntry.getTime());
         for (int index = 0; index < data.size(); index++) {
             if (data.get(index) instanceof DateData) {
-                Date currentDate = ((DateData) data.get(index)).getDate();
-                if (isSameDay(newDate, currentDate)) {
+                DateData currentDate = (DateData) data.get(index);
+                if (newDaySinceBC == currentDate.getDaySinceBC()) {
                     return index;
                 }
             }
@@ -200,23 +243,13 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         return -1;
     }
 
-    private boolean isSameDay(Date d1, Date d2) {
-        return d1.getDate() == d2.getDate()
-                && d1.getMonth() == d2.getMonth()
-                && d1.getYear() == d2.getYear();
-    }
-
     private void addFoodstuffToDate(int dateIndex, HistoryEntry historyEntry) {
         int index = findWhereToAddHistoryEntry(dateIndex, historyEntry);
         data.add(index, new FoodstuffData(historyEntry));
-        notifyItemInserted(index);
-        // обновляем вьюшку с прогрессбарами
-        notifyItemChanged(dateIndex);
     }
 
     private void addDate(Date date, int dateIndex) {
         data.add(dateIndex, new DateData(date));
-        notifyItemInserted(dateIndex);
     }
 
     private int findEarlierDateIndex(Date currentDate) {
