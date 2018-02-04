@@ -37,7 +37,8 @@
             android:value="f8e3ec4d634763d9b91038aef3b8cf9c8c0a65d9" />
 
         <activity android:name=".ui.history.HistoryActivity" />
-        <activity android:name=".ui.usergoal.UserGoalActivity"></activity>
+        <activity android:name=".ui.usergoal.UserGoalActivity" />
+        <activity android:name=".ui.mainscreen.MainScreenActivity" />
     </application>
 
 </manifest>

@@ -20,6 +20,7 @@ import com.crashlytics.android.Crashlytics;
 import com.tapadoo.alerter.Alerter;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -146,7 +147,7 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
                 batchSize,
                 new DatabaseWorker.FoodstuffsRequestCallback() {
             @Override
-            public void onResult(final ArrayList<Foodstuff> foodstuffs) {
+            public void onResult(final List<Foodstuff> foodstuffs) {
                 recyclerViewAdapter.addItems(foodstuffs);
             }
         });
