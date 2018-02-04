@@ -189,7 +189,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     private int findHistoryEntryDateIndex(HistoryEntry historyEntry) {
         Date newDate = historyEntry.getTime();
-        for (int index = data.size() - 1; index >= 0; index--) {
+        for (int index = 0; index < data.size(); index++) {
             if (data.get(index) instanceof DateData) {
                 Date currentDate = ((DateData) data.get(index)).getDate();
                 if (isSameDay(newDate, currentDate)) {
@@ -220,7 +220,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
 
     private int findEarlierDateIndex(Date currentDate) {
-        for (int index = data.size() - 1; index >= 0; index--) {
+        for (int index = 0; index < data.size(); index++) {
             // если дата по индексу - более ранняя
             if (data.get(index) instanceof DateData) {
                 DateData dateData = (DateData) data.get(index);

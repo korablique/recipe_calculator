@@ -17,12 +17,12 @@ import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.ui.FoodstuffViewHolder;
 
-public class TopAdapterChild implements AdapterChild {
-    private List<AdapterChildObserver> observers = new ArrayList<>();
+public class TopAdapterChild extends AdapterChild {
     private List<Foodstuff> topFoodstuffs = new ArrayList<>();
     private Context context;
 
     public TopAdapterChild(Context context) {
+        super(1);
         this.context = context;
     }
 
@@ -56,27 +56,12 @@ public class TopAdapterChild implements AdapterChild {
         return 0;
     }
 
-    @Override
-    public int getItemViewTypesCount() {
-        return 2;
-    }
-
-    @Override
-    public void addObserver(AdapterChildObserver observer) {
-        observers.add(observer);
-    }
-
-    @Override
-    public void removeObserver(AdapterChildObserver observer) {
-        observers.remove(observer);
-    }
-
     public void addItems(List<Foodstuff> foodstuffs) {
         int allFoodstuffsSizeBefore = topFoodstuffs.size();
         topFoodstuffs.addAll(foodstuffs);
 
-        for (int index = 1; index <= foodstuffs.size(); index++) {
-            for (AdapterChildObserver observer : observers) {
+        for (int index = 0; index < foodstuffs.size(); index++) {
+            for (Observer observer : getObservers()) {
                 observer.notifyItemInsertedToChild(allFoodstuffsSizeBefore + index, this);
             }
         }
@@ -86,12 +71,10 @@ public class TopAdapterChild implements AdapterChild {
         addItems(Collections.singletonList(foodstuff));
     }
 
-    // TODO: 26.01.18 ничего что скопировала из другого адаптера?
-    private <T> void setTextViewText(View parent, int viewId, T text) {
-        ((TextView) parent.findViewById(viewId)).setText(text.toString());
+    private void setTextViewText(View parent, int viewId, String text) {
+        ((TextView) parent.findViewById(viewId)).setText(text);
     }
 
-    // TODO: 26.01.18 ничего что скопировала из другого адаптера?
     private void setNutritions(View foodstuffView, double protein, double fats, double carbs, double calories) {
         setTextViewText(foodstuffView, R.id.protein, context.getString(
                 R.string.one_digit_precision_float, protein));

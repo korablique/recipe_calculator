@@ -8,13 +8,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class AdapterParent extends RecyclerView.Adapter implements AdapterChildObserver {
+public class AdapterParent extends RecyclerView.Adapter {
     private List<AdapterChild> children = new ArrayList<>();
 
     @VisibleForTesting
     static class ChildWithPosition {
         AdapterChild child;
         int position; // позиция относительно дочернего адаптера
+    }
+
+    /**
+     * Этот внутренний нестатический класс создан вместо реализации AdapterParent'ом
+     * интерфейса AdapterChild.Observer.
+     * Т.о. методы интерфейса AdapterChild.Observer станут недоступны для (случайного) вызова
+     * через ссылку на AdapterParent, и мы явно отделим публичный интерфейс AdapterParent'а
+     * от деталей его реализации (то, что он обзёрвит AdapterChild - деталь реализации).
+     */
+    private class ChildrenObserver implements AdapterChild.Observer {
+        @Override
+        public void notifyItemInsertedToChild(int childIndex, AdapterChild child) {
+            int parentIndex = transformChildPositionIntoParentPosition(childIndex, child);
+            notifyItemInserted(parentIndex);
+        }
     }
 
     @Override
@@ -30,7 +45,7 @@ public class AdapterParent extends RecyclerView.Adapter implements AdapterChildO
                 return child.onCreateViewHolder(parent, childsViewType);
             }
         }
-        throw new IllegalStateException("Такой viewType не найден");
+        throw new IllegalStateException("ViewType not found");
     }
 
     @Override
@@ -63,7 +78,7 @@ public class AdapterParent extends RecyclerView.Adapter implements AdapterChildO
 
     public void addChild(AdapterChild child) {
         children.add(child);
-        child.addObserver(this);
+        child.addObserver(new ChildrenObserver());
     }
 
     @VisibleForTesting
@@ -94,11 +109,5 @@ public class AdapterParent extends RecyclerView.Adapter implements AdapterChildO
             }
         }
         return parentPosition;
-    }
-
-    @Override
-    public void notifyItemInsertedToChild(int childIndex, AdapterChild child) {
-        int parentIndex = transformChildPositionIntoParentPosition(childIndex, child);
-        notifyItemInserted(parentIndex);
     }
 }
