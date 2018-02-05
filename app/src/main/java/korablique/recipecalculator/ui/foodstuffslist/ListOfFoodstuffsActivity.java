@@ -72,9 +72,7 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list_of_foodstuffs);
 
-        Intent receivedIntent = getIntent();
-        if (receivedIntent.getAction() != null
-                && receivedIntent.getAction().equals(getString(R.string.find_foodstuff_action))) {
+        if (wasActivityOpenedForSearching()) {
             createRecyclerView(findFoodstuffObserver);
         } else {
             card = new Card(this, findViewById(R.id.list_of_recipes_parent));
@@ -157,6 +155,24 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
     public boolean onCreateOptionsMenu(final Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.options_menu, menu);
+
+        if (wasActivityOpenedForSearching()) {
+            // Добавляем ActionExpandListener, чтобы во время коллапса (когда скукоживаается поиск)
+            // закрывать активити
+            MenuItem searchItem = menu.findItem(R.id.search);
+            searchItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
+                @Override
+                public boolean onMenuItemActionExpand(MenuItem item) {
+                    return true;
+                }
+                @Override
+                public boolean onMenuItemActionCollapse(MenuItem item) {
+                    ListOfFoodstuffsActivity.this.finish();
+                    return true;
+                }
+            });
+        }
+
         SearchManager searchManager =
                 (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         SearchView searchView = (SearchView) menu.findItem(R.id.search).getActionView();
@@ -206,5 +222,11 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
         } else {
             Crashlytics.log("getSupportActionBar вернул null");
         }
+    }
+
+    private boolean wasActivityOpenedForSearching() {
+        Intent receivedIntent = getIntent();
+        return receivedIntent.getAction() != null
+                && receivedIntent.getAction().equals(getString(R.string.find_foodstuff_action));
     }
 }
