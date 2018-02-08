@@ -77,8 +77,8 @@ public class AdapterParentTest {
         verify(child1).onCreateViewHolder(parent, 1);
 
         verify(child2, never()).onCreateViewHolder(parent, 1);
-        adapterParent.onCreateViewHolder(parent, 3);
-        verify(child2).onCreateViewHolder(parent, 1);
+        adapterParent.onCreateViewHolder(parent, 2);
+        verify(child2).onCreateViewHolder(parent, 0);
     }
 
     // когда передаем позишн = 1, viewType = 1

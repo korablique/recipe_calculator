@@ -41,7 +41,7 @@ public class AdapterParent extends RecyclerView.Adapter {
         for (AdapterChild child : children) {
             accumulator += child.getItemViewTypesCount();
             if (accumulator > viewType) {
-                int childsViewType = accumulator - viewType;
+                int childsViewType = viewType - (accumulator - child.getItemViewTypesCount());
                 return child.onCreateViewHolder(parent, childsViewType);
             }
         }
@@ -76,9 +76,12 @@ public class AdapterParent extends RecyclerView.Adapter {
         return itemCount;
     }
 
-    public void addChild(AdapterChild child) {
-        children.add(child);
-        child.addObserver(new ChildrenObserver());
+    public void addChild(AdapterChild... children) {
+        for (AdapterChild child : children) {
+            this.children.add(child);
+            child.addObserver(new ChildrenObserver());
+        }
+        notifyDataSetChanged();
     }
 
     @VisibleForTesting
