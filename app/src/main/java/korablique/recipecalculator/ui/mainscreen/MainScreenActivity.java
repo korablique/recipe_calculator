@@ -22,6 +22,9 @@ public class MainScreenActivity extends BaseActivity {
     @Inject
     HistoryWorker historyWorker;
     AdapterParent adapterParent;
+    private FoodstuffsAdapterChild foodstuffAdapterChild;
+    private List<Foodstuff> top;
+    private List<Foodstuff> all;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,9 +41,6 @@ public class MainScreenActivity extends BaseActivity {
         // а затем уже добавляем в адаптеры элементы.
         // Это нужно для того, чтобы элементы на экране загружались все сразу
 
-        List<Foodstuff> topFoodstuffsList = new ArrayList<>();
-        List<Foodstuff> allFoodstuffsList = new ArrayList<>();
-
         // получаем топ продуктов
         List<Long> foodstuffsIds = new ArrayList<>(); // это айдишники всех продуктов за период
         historyWorker.requestFoodstuffsIdsFromHistoryForPeriod(
@@ -54,30 +54,40 @@ public class MainScreenActivity extends BaseActivity {
                         topFoodstuffIds.add(topList.get(index).getFoodstuffId());
                     }
                     databaseWorker.requestFoodstuffsByIds(MainScreenActivity.this, topFoodstuffIds, (foodstuffs) -> {
-                        topFoodstuffsList.addAll(foodstuffs);
-                        attemptToAddElementsToAdapters(topFoodstuffsList, allFoodstuffsList);
+                        top = new ArrayList<>();
+                        top.addAll(foodstuffs);
+                        attemptToAddElementsToAdapters();
                     });
                 });
 
         // получаем все продукты
         int batchSize = 100;
         databaseWorker.requestListedFoodstuffsFromDb(MainScreenActivity.this, batchSize, (foodstuffs) -> {
-            allFoodstuffsList.addAll(foodstuffs);
-            attemptToAddElementsToAdapters(topFoodstuffsList, allFoodstuffsList);
+            if (all == null) {
+                all = new ArrayList<>();
+            }
+            all.addAll(foodstuffs);
+            attemptToAddElementsToAdapters();
         });
     }
 
-    private void attemptToAddElementsToAdapters(List<Foodstuff> topFoodstuffs, List<Foodstuff> allFoodstuffs) {
-        if (!topFoodstuffs.isEmpty() && !allFoodstuffs.isEmpty()) {
-            AdapterChild topAdapterChild = new FoodstuffsAdapterChild(
+    private void attemptToAddElementsToAdapters() {
+        if (top == null || all == null) {
+            return;
+        }
+        if (!top.isEmpty()) {
+            FoodstuffsAdapterChild topAdapterChild = new FoodstuffsAdapterChild(
                     MainScreenActivity.this, R.layout.top_foodstuffs_header);
             adapterParent.addChild(topAdapterChild);
-            topAdapterChild.addItems(topFoodstuffs);
+            topAdapterChild.addItems(top);
+        }
+        // если топ пустой, то топ-адаптер не нужно создавать, чтобы не было заголовка
 
-            AdapterChild foodstuffAdapterChild = new FoodstuffsAdapterChild(
+        if (foodstuffAdapterChild == null) {
+            foodstuffAdapterChild = new FoodstuffsAdapterChild(
                     MainScreenActivity.this, R.layout.all_foodstuffs_header);
             adapterParent.addChild(foodstuffAdapterChild);
-            foodstuffAdapterChild.addItems(allFoodstuffs);
         }
+        foodstuffAdapterChild.addItems(all);
     }
 }

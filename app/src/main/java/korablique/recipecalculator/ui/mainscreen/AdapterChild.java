@@ -30,8 +30,6 @@ public abstract class AdapterChild {
         return itemViewTypesCount;
     }
 
-    public abstract void addItems(List<Foodstuff> items);
-
     public void addObserver(Observer observer) {
         observers.add(observer);
     }

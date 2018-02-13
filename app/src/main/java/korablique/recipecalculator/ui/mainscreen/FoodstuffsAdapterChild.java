@@ -2,6 +2,7 @@ package korablique.recipecalculator.ui.mainscreen;
 
 
 import android.content.Context;
+import android.support.annotation.LayoutRes;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,10 +20,11 @@ public class FoodstuffsAdapterChild extends AdapterChild {
     public static final int VIEW_TYPE_HEADER = 0;
     public static final int VIEW_TYPE_FOODSTUFF = 1;
     private List<Foodstuff> foodstuffs = new ArrayList<>();
-    private int headerLayoutId;
     private Context context;
+    @LayoutRes
+    private int headerLayoutId;
 
-    public FoodstuffsAdapterChild(Context context, int headerLayoutId) {
+    public FoodstuffsAdapterChild(Context context, @LayoutRes int headerLayoutId) {
         super(2);
         this.context = context;
         this.headerLayoutId = headerLayoutId;
@@ -34,10 +36,12 @@ public class FoodstuffsAdapterChild extends AdapterChild {
             ViewGroup header = (ViewGroup) LayoutInflater.from(parent.getContext())
                     .inflate(headerLayoutId, parent, false);
             return new MyViewHolder(header);
-        } else {
+        } else if (viewType == VIEW_TYPE_FOODSTUFF) {
             ViewGroup foodstuffView = (ViewGroup) LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.new_foodstuff_layout, parent, false);
             return new MyViewHolder(foodstuffView);
+        } else {
+            throw new IllegalArgumentException("No such view type: " + viewType);
         }
     }
 
@@ -47,20 +51,17 @@ public class FoodstuffsAdapterChild extends AdapterChild {
             // значит, это первый заголовок
             return;
         }
-        int viewType = getItemViewType(childPosition);
-        if (viewType == VIEW_TYPE_HEADER) {
-            // заголовок
-        } else {
-            ViewGroup item = ((MyViewHolder) holder).getItem();
-            Foodstuff foodstuff = foodstuffs.get(childPosition - 1);
-            setTextViewText(item, R.id.new_foodstuff_name, foodstuff.getName());
+        ViewGroup item = ((MyViewHolder) holder).getItem();
+        Foodstuff foodstuff = foodstuffs.get(childPosition - 1);
+        setTextViewText(item, R.id.new_foodstuff_name, foodstuff.getName());
 
-            setCalories(item, foodstuff.getCalories());
-        }
+        setCalories(item, foodstuff.getCalories());
     }
 
     @Override
     public int getItemCount() {
+        // + 1, т.к. в foodstuffs не содержится заголовок,
+        // а нам нужно вернуть количество _всех_ элементов в адаптере
         return foodstuffs.size() + 1;
     }
 
@@ -72,7 +73,6 @@ public class FoodstuffsAdapterChild extends AdapterChild {
         return VIEW_TYPE_FOODSTUFF;
     }
 
-    @Override
     public void addItems(List<Foodstuff> items) {
         int allFoodstuffsSizeBefore = foodstuffs.size();
         foodstuffs.addAll(items);
