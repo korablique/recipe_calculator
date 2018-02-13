@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="62dp"
+    android:background="#EFF1F6">
+
+    <TextView
+        android:height="29dp"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:paddingLeft="16dp"
+        style="@style/MontserratText"
+        android:text="@string/top_header"
+        android:layout_gravity="center_vertical"/>
+</FrameLayout>

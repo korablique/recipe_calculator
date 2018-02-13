@@ -15,7 +15,7 @@ import java.util.List;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.R;
 
-public class FoodstuffsAdapter extends RecyclerView.Adapter<FoodstuffViewHolder> {
+public class FoodstuffsAdapter extends RecyclerView.Adapter<MyViewHolder> {
     public interface Observer {
         void onItemClicked(Foodstuff foodstuff, int displayedPosition);
         void onItemsCountChanged(int count);
@@ -32,15 +32,15 @@ public class FoodstuffsAdapter extends RecyclerView.Adapter<FoodstuffViewHolder>
     }
 
     @Override
-    public FoodstuffViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         final LinearLayout item = (LinearLayout) LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.foodstuff_layout, parent, false);
-        return new FoodstuffViewHolder(item);
+        return new MyViewHolder(item);
     }
 
     @Override
-    public void onBindViewHolder(final FoodstuffViewHolder holder, int displayedPosition) {
-        LinearLayout item = holder.getItem();
+    public void onBindViewHolder(final MyViewHolder holder, int displayedPosition) {
+        ViewGroup item = holder.getItem();
         final Foodstuff foodstuff = getItem(displayedPosition);
         double weight = foodstuff.getWeight();
         if (weight != -1) {

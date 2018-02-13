@@ -20,7 +20,7 @@ import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.HistoryEntry;
 import korablique.recipecalculator.model.Rates;
-import korablique.recipecalculator.ui.FoodstuffViewHolder;
+import korablique.recipecalculator.ui.MyViewHolder;
 
 
 public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -88,11 +88,11 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         if (viewType == ITEM_TYPE_FOODSTUFF) {
             LinearLayout foodstuffView = (LinearLayout) LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.foodstuff_layout, parent, false);
-            return new FoodstuffViewHolder(foodstuffView);
+            return new MyViewHolder(foodstuffView);
         } else {
             LinearLayout nutritionProgress = (LinearLayout) LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.nutrition_progress_layout, parent, false);
-            return new ProgressViewHolder(nutritionProgress);
+            return new MyViewHolder(nutritionProgress);
         }
     }
 
@@ -100,7 +100,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
         int itemType = getItemViewType(position);
         if (itemType == ITEM_TYPE_FOODSTUFF) {
-            LinearLayout item = ((FoodstuffViewHolder)holder).getItem();
+            ViewGroup item = ((MyViewHolder)holder).getItem();
             final Foodstuff foodstuff = ((FoodstuffData) getItem(position)).getHistoryEntry().getFoodstuff();
             double weight = foodstuff.getWeight();
             setTextViewText(item, R.id.name, context.getString(
@@ -120,7 +120,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 }
             });
         } else if (itemType == ITEM_TYPE_PROGRESS) {
-            LinearLayout item = ((ProgressViewHolder)holder).getItem();
+            ViewGroup item = ((MyViewHolder)holder).getItem();
             Date date = ((DateData) getItem(position)).getDate();
             DateFormat df = DateFormat.getDateInstance();
             String dateString = df.format(date);
@@ -148,7 +148,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 ateCalories += foodstuff.getCalories() * weight * 0.01;
             }
             // изменить числа в прогресс барах
-            LinearLayout nutritionLayout = ((ProgressViewHolder) holder).getItem();
+            ViewGroup nutritionLayout = ((MyViewHolder) holder).getItem();
             setProgressBarValue(nutritionLayout.findViewById(R.id.protein_progress),
                     ateProtein, rates.getProtein());
             setProgressBarValue(nutritionLayout.findViewById(R.id.fat_progress),

@@ -7,6 +7,8 @@ import android.view.ViewGroup;
 import java.util.ArrayList;
 import java.util.List;
 
+import korablique.recipecalculator.model.Foodstuff;
+
 public abstract class AdapterChild {
     private List<Observer> observers = new ArrayList<>();
     private int itemViewTypesCount;
