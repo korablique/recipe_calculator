@@ -23,7 +23,7 @@ repositories {
 
 android {
     compileSdkVersion 27
-    buildToolsVersion '27.0.0'
+    buildToolsVersion '27.0.3'
     defaultConfig {
         applicationId "korablique.recipecalculator"
         minSdkVersion 16
@@ -79,6 +79,7 @@ dependencies {
     compile 'com.android.support:recyclerview-v7:27.0.2'
     compile 'com.android.support:design:27.0.2'
     compile 'com.tapadoo.android:alerter:2.0.1'
+    implementation project(':libs:floatingsearchview:library')
 
     compile 'com.google.dagger:dagger:2.11'
     annotationProcessor 'com.google.dagger:dagger-compiler:2.11'

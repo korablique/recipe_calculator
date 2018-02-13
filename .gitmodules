@@ -1,0 +1,3 @@
+[submodule "libs/floatingsearchview"]
+	path = libs/floatingsearchview
+	url = git://github.com/korablique/floatingsearchview.git
