@@ -12,7 +12,7 @@
         app:floatingSearch_searchBarMarginLeft="8dp"
         app:floatingSearch_searchBarMarginTop="14dp"
         app:floatingSearch_searchBarMarginRight="8dp"
-        app:floatingSearch_searchHint="Поиск..."
+        app:floatingSearch_searchHint="@string/search"
         app:floatingSearch_suggestionsListAnimDuration="250"
         app:floatingSearch_showSearchKey="false"
         app:floatingSearch_leftActionMode="noLeftAction"
