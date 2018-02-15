@@ -1,6 +1,8 @@
 package korablique.recipecalculator.ui.mainscreen;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.BottomNavigationView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
@@ -15,6 +17,7 @@ import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.PopularProductsUtils;
+import korablique.recipecalculator.ui.history.HistoryActivity;
 
 public class MainScreenActivity extends BaseActivity {
     @Inject
@@ -30,6 +33,23 @@ public class MainScreenActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_screen);
+
+        BottomNavigationView bottomNavigationView = findViewById(R.id.navigation);
+        bottomNavigationView.setOnNavigationItemSelectedListener((item) -> {
+            switch (item.getItemId()) {
+                case R.id.menu_item_foodstuffs:
+
+                    break;
+                case R.id.menu_item_history:
+                    Intent historyIntent = new Intent(MainScreenActivity.this, HistoryActivity.class);
+                    startActivity(historyIntent);
+                    break;
+                case R.id.menu_item_profile:
+
+                    break;
+            }
+            return false;
+        });
 
         RecyclerView recyclerView = findViewById(R.id.main_screen_recycler_view);
         adapterParent = new AdapterParent();

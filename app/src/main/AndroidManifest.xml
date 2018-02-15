@@ -14,11 +14,7 @@
         <activity
             android:name=".ui.calculator.CalculatorActivity"
             android:windowSoftInputMode="adjustResize|stateHidden">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <activity android:name=".ui.foodstuffslist.ListOfFoodstuffsActivity">
             <meta-data
@@ -38,7 +34,13 @@
 
         <activity android:name=".ui.history.HistoryActivity" />
         <activity android:name=".ui.usergoal.UserGoalActivity" />
-        <activity android:name=".ui.mainscreen.MainScreenActivity" />
+        <activity android:name=".ui.mainscreen.MainScreenActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>
