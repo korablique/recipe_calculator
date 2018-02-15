@@ -39,6 +39,7 @@
     <string name="user_goal_finish_button_text">далее</string>
     <string name="top_header">Популярное</string>
     <string name="all_foodstuffs_header">Все продукты</string>
+    <string name="add">Добавить</string>
 
     <string-array name="goals_array">
         <item name="losing_weight">Похудение</item>
