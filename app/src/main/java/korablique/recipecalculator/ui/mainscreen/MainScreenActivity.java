@@ -37,15 +37,9 @@ public class MainScreenActivity extends BaseActivity {
         BottomNavigationView bottomNavigationView = findViewById(R.id.navigation);
         bottomNavigationView.setOnNavigationItemSelectedListener((item) -> {
             switch (item.getItemId()) {
-                case R.id.menu_item_foodstuffs:
-
-                    break;
                 case R.id.menu_item_history:
                     Intent historyIntent = new Intent(MainScreenActivity.this, HistoryActivity.class);
                     startActivity(historyIntent);
-                    break;
-                case R.id.menu_item_profile:
-
                     break;
             }
             return false;
