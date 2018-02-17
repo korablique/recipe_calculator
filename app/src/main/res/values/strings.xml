@@ -41,6 +41,7 @@
     <string name="all_foodstuffs_header">Все продукты</string>
     <string name="foodstuffs">Продукты</string>
     <string name="profile">Профиль</string>
+    <string name="add">Добавить</string>
 
     <string-array name="goals_array">
         <item name="losing_weight">Похудение</item>

@@ -1,17 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="75dp"
     android:background="#EFF1F6">
 
     <TextView
         android:id="@+id/all_foodstuffs_header_text"
-        android:height="29dp"
         android:layout_height="wrap_content"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:paddingLeft="16dp"
         style="@style/MontserratText"
         android:text="@string/all_foodstuffs_header"
-        android:layout_gravity="center_vertical"/>
+        android:layout_marginTop="30dp" />
 
-</FrameLayout>
+    <TextView
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:lineSpacingMultiplier="1.30"
+        android:layout_toLeftOf="@+id/plus_button"
+        android:paddingRight="10dp"
+        style="@style/RobotoMonoHintText"
+        android:text="@string/add"
+        android:layout_marginTop="40dp" />
+
+    <ImageView
+        android:id="@+id/plus_button"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginTop="35dp"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="16dp"
+        android:src="@drawable/ic_active"/>
+
+</RelativeLayout>
