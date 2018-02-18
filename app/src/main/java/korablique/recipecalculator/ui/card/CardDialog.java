@@ -10,6 +10,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowManager;
 
 import korablique.recipecalculator.R;
@@ -38,6 +39,7 @@ public class CardDialog extends DialogFragment {
     @Override
     @NonNull public Dialog onCreateDialog(Bundle savedInstanceState) {
         Dialog dialog1 = super.onCreateDialog(savedInstanceState);
+        dialog1.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog1.setOnShowListener(dialog -> {
             WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
             layoutParams.copyFrom(dialog1.getWindow().getAttributes());
