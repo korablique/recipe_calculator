@@ -1,10 +1,13 @@
 package korablique.recipecalculator.ui.mainscreen;
 
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
+import android.widget.Button;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +20,7 @@ import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.PopularProductsUtils;
+import korablique.recipecalculator.ui.NewCard;
 import korablique.recipecalculator.ui.history.HistoryActivity;
 
 public class MainScreenActivity extends BaseActivity {
@@ -83,6 +87,8 @@ public class MainScreenActivity extends BaseActivity {
             all.addAll(foodstuffs);
             attemptToAddElementsToAdapters();
         });
+
+        NewCard newCard = new NewCard(this, findViewById(R.id.parent_layout));
     }
 
     private void attemptToAddElementsToAdapters() {
