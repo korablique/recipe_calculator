@@ -6,6 +6,7 @@
     <string name="fats">Жиры</string>
     <string name="carbs">Углеводы</string>
     <string name="calories">Калории</string>
+    <string name="calories_per_100_g">Каллории, 100 г.</string>
     <string name="weight_of_cooked_product">Масса готового продукта:</string>
     <string name="ok">OK</string>
     <string name="product_name">Название продукта</string>
@@ -42,6 +43,8 @@
     <string name="foodstuffs">Продукты</string>
     <string name="profile">Профиль</string>
     <string name="add">Добавить</string>
+    <string name="weight_in_card">Масса, граммов</string>
+    <string name="add_foodstuff">Добавить продукт</string>
 
     <string-array name="goals_array">
         <item name="losing_weight">Похудение</item>

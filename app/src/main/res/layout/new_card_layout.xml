@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="5dp"
+    android:layout_marginRight="5dp"
+    android:layout_marginBottom="5dp"
+    android:background="@drawable/new_card_background">
+
+    <!--строка с названием продукта, кнопкой редактирования и закрыть-->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_marginLeft="15dp"
+            android:layout_marginTop="20dp"
+            android:lineSpacingMultiplier="1.21"
+            style="@style/MontserratText"
+            android:text="Чечевица" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_gravity="right">
+
+                <ImageView
+                    android:id="@+id/button_edit"
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:layout_marginTop="29dp"
+                    android:layout_marginRight="14dp"
+                    android:src="@drawable/ic_edit" />
+
+                <FrameLayout
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="@drawable/button_close_background"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginRight="16dp">
+
+                    <ImageView
+                        android:id="@+id/button_close"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_close" />
+                </FrameLayout>
+            </LinearLayout>
+        </FrameLayout>
+    </LinearLayout>
+
+    <!--прогресс-бар-->
+    <ProgressBar
+        android:layout_width="match_parent"
+        android:layout_height="10dp"
+        android:layout_marginTop="14dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:progressDrawable="@drawable/progress_drawable"
+        android:indeterminate="false"
+        android:progress="25"
+        android:max="100" />
+
+    <!--табличка БЖУК-->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <include
+            android:id="@+id/protein_layout"
+            layout="@layout/nutrition_layout"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="15dp"
+            android:layout_marginTop="10dp"/>
+
+        <include
+            android:id="@+id/fats_layout"
+            layout="@layout/nutrition_layout"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"/>
+
+        <include
+            android:id="@+id/carbs_layout"
+            layout="@layout/nutrition_layout"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"/>
+
+        <include
+            android:id="@+id/calories_layout"
+            layout="@layout/nutrition_layout"
+            android:layout_weight="1.5"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"/>
+    </LinearLayout>
+
+    <TextView
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_marginLeft="15dp"
+        android:layout_marginTop="16dp"
+        android:lineSpacingMultiplier="1.30"
+        style="@style/RobotoMonoHintText"
+        android:text="@string/weight_in_card" />
+
+    <EditText
+        android:id="@+id/weight_edit_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="11dp"
+        android:layout_marginRight="15dp"
+        style="@style/RobotoMonoText"
+        android:maxLines="1"
+        android:inputType="numberDecimal"
+        android:text="100"/>
+
+    <Button
+        android:id="@+id/add_foodstuff_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="7dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginBottom="15dp"
+        style="@style/CardButton"
+        android:text="@string/add_foodstuff"/>
+</LinearLayout>
