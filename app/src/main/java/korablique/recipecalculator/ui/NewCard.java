@@ -18,9 +18,9 @@ public class NewCard {
     public NewCard(Context context, ViewGroup parent) {
         cardLayout = (ViewGroup) LayoutInflater.from(context).inflate(R.layout.new_card_layout, parent);
 
-        setNutritionTable(R.id.protein_layout, R.string.protein, R.drawable.red_circle);
-        setNutritionTable(R.id.fats_layout, R.string.fats, R.drawable.yellow_circle);
-        setNutritionTable(R.id.carbs_layout, R.string.carbs, R.drawable.violet_circle);
+        setNutritionTable(R.id.protein_layout, R.string.protein, R.drawable.new_card_protein_icon);
+        setNutritionTable(R.id.fats_layout, R.string.fats, R.drawable.new_card_fats_icon);
+        setNutritionTable(R.id.carbs_layout, R.string.carbs, R.drawable.new_card_carbs_icon);
         setNutritionTable(R.id.calories_layout, R.string.calories_per_100_g, R.drawable.invisible_drawable);
     }
 

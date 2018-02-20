@@ -24,7 +24,7 @@
             android:layout_height="6dp"
             android:layout_marginTop="6dp"
             android:layout_marginLeft="3dp"
-            android:background="@drawable/red_circle"/>
+            android:background="@drawable/new_card_protein_icon"/>
     </LinearLayout>
 
     <!--значение-->
