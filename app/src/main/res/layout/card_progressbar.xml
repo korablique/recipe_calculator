@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="10dp"
+    android:background="@drawable/card_progressbar_nothing">
+
+    <View
+        android:id="@+id/protein_progress"
+        android:layout_weight="20"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:background="@drawable/card_progressbar_protein" />
+
+    <View
+        android:id="@+id/fats_progress"
+        android:layout_weight="3"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:background="@drawable/card_progressbar_fats" />
+
+    <View
+        android:id="@+id/carbs_progress"
+        android:layout_weight="50"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:background="@drawable/card_progressbar_carbs" />
+
+    <View
+        android:id="@+id/nothing_progress"
+        android:layout_weight="27"
+        android:layout_width="0dp"
+        android:layout_height="match_parent" />
+</LinearLayout>
