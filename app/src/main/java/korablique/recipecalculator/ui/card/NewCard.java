@@ -1,4 +1,4 @@
-package korablique.recipecalculator.ui;
+package korablique.recipecalculator.ui.card;
 
 
 import android.content.Context;
@@ -14,9 +14,11 @@ import android.widget.TextView;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.Foodstuff;
-import korablique.recipecalculator.ui.mainscreen.CardDialog;
 
 public class NewCard {
+    public interface OnAddFoodstuffButtonClickListener {
+        void onClick(Foodstuff foodstuff);
+    }
     private ViewGroup cardLayout;
     private Context context;
     private TextView nameTextView;
@@ -42,7 +44,6 @@ public class NewCard {
         setNutritionTable(R.id.fats_layout, R.string.fats, R.drawable.new_card_fats_icon);
         setNutritionTable(R.id.carbs_layout, R.string.carbs, R.drawable.new_card_carbs_icon);
         setNutritionTable(R.id.calories_layout, R.string.calories_per_100_g, R.drawable.invisible_drawable);
-
     }
 
     private void setNutritionTable(@IdRes int nutritionLayout, @StringRes int nutritionName, @DrawableRes int drawable) {
@@ -62,15 +63,18 @@ public class NewCard {
     }
 
     private void setNutritionValue(TextView nutritionTextView, double nutritionValue) {
+        // Заменяем запятую на точку, потому что когда делаешь getString()
+        // вместо точки образуется запятая из-за локали,
+        // а Double.valueOf() не может распарсить строку с запятой
         nutritionTextView.setText(context.getString(R.string.one_digit_precision_float,
                 nutritionValue).replace(',', '.'));
     }
 
-    public ViewGroup getCardLayout() {
+    ViewGroup getCardLayout() {
         return cardLayout;
     }
 
-    public void setOnAddFoodstuffButtonClickListener(CardDialog.OnAddFoodstuffButtonClickListener listener) {
+    public void setOnAddFoodstuffButtonClickListener(OnAddFoodstuffButtonClickListener listener) {
         Button addFoodstuffButton = cardLayout.findViewById(R.id.add_foodstuff_button);
         addFoodstuffButton.setOnClickListener(v -> {
             Foodstuff clickedFoodstuff = new Foodstuff(

@@ -1,4 +1,4 @@
-package korablique.recipecalculator.ui.mainscreen;
+package korablique.recipecalculator.ui.card;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -14,14 +14,12 @@ import android.view.WindowManager;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.ui.KeyboardHandler;
-import korablique.recipecalculator.ui.NewCard;
+import korablique.recipecalculator.ui.card.NewCard;
+import korablique.recipecalculator.ui.mainscreen.MainScreenActivity;
 
 
 public class CardDialog extends DialogFragment {
-    public interface OnAddFoodstuffButtonClickListener {
-        void onClick(Foodstuff foodstuff);
-    }
-    private OnAddFoodstuffButtonClickListener onAddFoodstuffButtonClickListener;
+    private NewCard.OnAddFoodstuffButtonClickListener onAddFoodstuffButtonClickListener;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -37,18 +35,17 @@ public class CardDialog extends DialogFragment {
 
     @Override
     @NonNull public Dialog onCreateDialog(Bundle savedInstanceState) {
-        Dialog d = super.onCreateDialog(savedInstanceState);
-        d.setOnShowListener(dialog -> {
+        Dialog dialog1 = super.onCreateDialog(savedInstanceState);
+        dialog1.setOnShowListener(dialog -> {
             WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
-            layoutParams.copyFrom(d.getWindow().getAttributes());
+            layoutParams.copyFrom(dialog1.getWindow().getAttributes());
             layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
             layoutParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
             layoutParams.gravity = Gravity.BOTTOM;
-            layoutParams.horizontalMargin = 50;
-            d.getWindow().setAttributes(layoutParams);
-            d.getWindow().setBackgroundDrawable(getContext().getResources().getDrawable(R.drawable.new_card_background));
+            dialog1.getWindow().setAttributes(layoutParams);
+            dialog1.getWindow().setBackgroundDrawable(getContext().getResources().getDrawable(R.drawable.new_card_background));
         });
-        return d;
+        return dialog1;
     }
 
     @Override
@@ -57,7 +54,8 @@ public class CardDialog extends DialogFragment {
         new KeyboardHandler(getActivity()).hideKeyBoard();
     }
 
-    public void setOnAddFoodstuffButtonClickListener(OnAddFoodstuffButtonClickListener listener) {
+    public void setOnAddFoodstuffButtonClickListener(NewCard.OnAddFoodstuffButtonClickListener listener) {
+
         this.onAddFoodstuffButtonClickListener = listener;
     }
 }

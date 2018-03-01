@@ -2,19 +2,13 @@ package korablique.recipecalculator.ui.mainscreen;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,11 +21,12 @@ import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.PopularProductsUtils;
-import korablique.recipecalculator.ui.NewCard;
+import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.history.HistoryActivity;
 
 public class MainScreenActivity extends BaseActivity {
     public static final String CLICKED_FOODSTUFF = "CLICKED_FOODSTUFF";
+    public static final String FOODSTUFF_CARD = "FOODSTUFF_CARD";
     @Inject
     DatabaseWorker databaseWorker;
     @Inject
@@ -45,7 +40,7 @@ public class MainScreenActivity extends BaseActivity {
         bundle.putParcelable(CLICKED_FOODSTUFF, foodstuff);
         CardDialog dialog = new CardDialog();
         dialog.setArguments(bundle);
-        dialog.show(getSupportFragmentManager(), "show card");
+        dialog.show(getSupportFragmentManager(), FOODSTUFF_CARD);
     };
 
     protected void onCreate(Bundle savedInstanceState) {
