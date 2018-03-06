@@ -24,6 +24,7 @@ public class NewCard {
     public interface OnAddFoodstuffButtonClickListener {
         void onClick(Foodstuff foodstuff);
     }
+    private static final int PROGRESSBAR_CORNERS_RADIUS = 4;
     private ViewGroup cardLayout;
     private Context context;
     private TextView nameTextView;
@@ -90,7 +91,10 @@ public class NewCard {
                 new NutritionWithProgress(proteinTextView, proteinProgress),
                 new NutritionWithProgress(fatsTextView, fatsProgress),
                 new NutritionWithProgress(carbsTextView, carbsProgress)};
-        // round corners
+        roundCorners(nutritionsWithProgress);
+    }
+
+    private void roundCorners(NutritionWithProgress[] nutritionsWithProgress) {
         // find the most left line
         NutritionWithProgress left = null;
         for (int index = 0; index < nutritionsWithProgress.length; index++) {
@@ -116,7 +120,8 @@ public class NewCard {
         }
 
         Resources resources = context.getResources();
-        float cornersRadiusInDp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, resources.getDisplayMetrics());
+        float cornersRadiusInDp = TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, PROGRESSBAR_CORNERS_RADIUS, resources.getDisplayMetrics());
         // if the most left and right lines are the same - make all corners round
         if (left == right) {
             GradientDrawable background = (GradientDrawable) left.progressView.getBackground();
