@@ -1,13 +1,14 @@
 package korablique.recipecalculator.ui.mainscreen;
 
+import android.content.Context;
 import android.content.Intent;
-import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.design.widget.BottomNavigationView;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.view.View;
-import android.widget.Button;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,10 +21,12 @@ import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.PopularProductsUtils;
-import korablique.recipecalculator.ui.NewCard;
+import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.history.HistoryActivity;
 
 public class MainScreenActivity extends BaseActivity {
+    public static final String CLICKED_FOODSTUFF = "CLICKED_FOODSTUFF";
+    public static final String FOODSTUFF_CARD = "FOODSTUFF_CARD";
     @Inject
     DatabaseWorker databaseWorker;
     @Inject
@@ -32,8 +35,14 @@ public class MainScreenActivity extends BaseActivity {
     private FoodstuffsAdapterChild foodstuffAdapterChild;
     private List<Foodstuff> top;
     private List<Foodstuff> all;
+    private FoodstuffsAdapterChild.ClickObserver clickObserver = (foodstuff, displayedPosition) -> {
+        Bundle bundle = new Bundle();
+        bundle.putParcelable(CLICKED_FOODSTUFF, foodstuff);
+        CardDialog dialog = new CardDialog();
+        dialog.setArguments(bundle);
+        dialog.show(getSupportFragmentManager(), FOODSTUFF_CARD);
+    };
 
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_screen);
@@ -88,7 +97,26 @@ public class MainScreenActivity extends BaseActivity {
             attemptToAddElementsToAdapters();
         });
 
-        NewCard newCard = new NewCard(this, findViewById(R.id.parent_layout));
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.registerFragmentLifecycleCallbacks(new FragmentManager.FragmentLifecycleCallbacks() {
+            @Override
+            public void onFragmentAttached(FragmentManager fm, Fragment f, Context context) {
+                super.onFragmentAttached(fm, f, context);
+                if (f instanceof CardDialog) {
+                    CardDialog cardDialog = (CardDialog) f;
+                    cardDialog.setOnAddFoodstuffButtonClickListener(foodstuff -> {
+                        cardDialog.dismiss();
+                        Snackbar.make(
+                                findViewById(android.R.id.content),
+                                "added foodstuff: " + foodstuff.getName(),
+                                Snackbar.LENGTH_SHORT)
+                                .show();
+                    });
+                } else {
+                    throw new IllegalStateException("Unexpected type of fragment");
+                }
+            }
+        }, true);
     }
 
     private void attemptToAddElementsToAdapters() {
@@ -97,7 +125,7 @@ public class MainScreenActivity extends BaseActivity {
         }
         if (!top.isEmpty()) {
             FoodstuffsAdapterChild topAdapterChild = new FoodstuffsAdapterChild(
-                    MainScreenActivity.this, R.layout.top_foodstuffs_header);
+                    MainScreenActivity.this, clickObserver, R.layout.top_foodstuffs_header);
             adapterParent.addChild(topAdapterChild);
             topAdapterChild.addItems(top);
         }
@@ -105,7 +133,7 @@ public class MainScreenActivity extends BaseActivity {
 
         if (foodstuffAdapterChild == null) {
             foodstuffAdapterChild = new FoodstuffsAdapterChild(
-                    MainScreenActivity.this, R.layout.all_foodstuffs_header);
+                    MainScreenActivity.this, clickObserver, R.layout.all_foodstuffs_header);
             adapterParent.addChild(foodstuffAdapterChild);
         }
         foodstuffAdapterChild.addItems(all);
