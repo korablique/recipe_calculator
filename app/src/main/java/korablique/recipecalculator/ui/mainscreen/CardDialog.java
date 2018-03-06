@@ -54,7 +54,6 @@ public class CardDialog extends DialogFragment {
     @Override
     public void onDismiss(DialogInterface dialog) {
         super.onDismiss(dialog);
-        new KeyboardHandler(getActivity()).hideKeyBoard();
     }
 
     public void setOnAddFoodstuffButtonClickListener(OnAddFoodstuffButtonClickListener listener) {

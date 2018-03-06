@@ -2,16 +2,24 @@ package korablique.recipecalculator.ui;
 
 
 import android.content.Context;
+import android.content.res.Resources;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.ShapeDrawable;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.IdRes;
 import android.support.annotation.StringRes;
+import android.support.v4.content.ContextCompat;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import korablique.recipecalculator.FloatUtils;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.ui.mainscreen.CardDialog;
@@ -26,6 +34,15 @@ public class NewCard {
     private TextView caloriesTextView;
     private EditText weightEditText;
 
+    private static class NutritionWithProgress {
+        TextView nutritionTextView;
+        View progressView;
+
+        public NutritionWithProgress(TextView nutritionTextView, View progressView) {
+            this.nutritionTextView = nutritionTextView;
+            this.progressView = progressView;
+        }
+    }
 
     public NewCard(Context context, ViewGroup parent) {
         cardLayout = (ViewGroup) LayoutInflater.from(context).inflate(R.layout.new_card_layout, parent);
@@ -45,6 +62,7 @@ public class NewCard {
 
     }
 
+    // только задает цвета кружкам и названия в шапке
     private void setNutritionTable(@IdRes int nutritionLayout, @StringRes int nutritionName, @DrawableRes int drawable) {
         ViewGroup layout = cardLayout.findViewById(nutritionLayout);
         TextView header = layout.findViewById(R.id.nutrition_name);
@@ -59,11 +77,79 @@ public class NewCard {
         setNutritionValue(fatsTextView, foodstuff.getFats());
         setNutritionValue(carbsTextView, foodstuff.getCarbs());
         setNutritionValue(caloriesTextView, foodstuff.getCalories());
+
+        // set progress in progressbar
+        View proteinProgress = cardLayout.findViewById(R.id.protein_progress);
+        setNutritionProgress(proteinProgress, foodstuff.getProtein());
+        View fatsProgress = cardLayout.findViewById(R.id.fats_progress);
+        setNutritionProgress(fatsProgress, foodstuff.getFats());
+        View carbsProgress = cardLayout.findViewById(R.id.carbs_progress);
+        setNutritionProgress(carbsProgress, foodstuff.getCarbs());
+        View nothing = cardLayout.findViewById(R.id.nothing_progress);
+        setNutritionProgress(nothing, 100 - foodstuff.getProtein() - foodstuff.getFats() - foodstuff.getCarbs());
+
+        NutritionWithProgress[] nutritionsWithProgress = new NutritionWithProgress[]{
+                new NutritionWithProgress(proteinTextView, proteinProgress),
+                new NutritionWithProgress(fatsTextView, fatsProgress),
+                new NutritionWithProgress(carbsTextView, carbsProgress)};
+        // round corners
+        // find the most left line
+        NutritionWithProgress left = null;
+        for (int index = 0; index < nutritionsWithProgress.length; index++) {
+            double progress = Double.valueOf(nutritionsWithProgress[index].nutritionTextView.getText().toString());
+            if (!FloatUtils.areFloatsEquals(progress, 0)) {
+                left = nutritionsWithProgress[index];
+                break;
+            }
+        }
+        // find the most right line
+        NutritionWithProgress right = null;
+        for (int index = nutritionsWithProgress.length - 1; index >= 0; index--) {
+            double progress = Double.valueOf(nutritionsWithProgress[index].nutritionTextView.getText().toString());
+            if (!FloatUtils.areFloatsEquals(progress, 0)) {
+                right = nutritionsWithProgress[index];
+                break;
+            }
+        }
+
+        if (left == null || right == null) {
+            // means that foodstuff has no nutritions
+            return;
+        }
+
+        Resources resources = context.getResources();
+        float cornersRadiusInDp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, resources.getDisplayMetrics());
+        // if the most left and right lines are the same - make all corners round
+        if (left == right) {
+            GradientDrawable background = (GradientDrawable) left.progressView.getBackground();
+            background.setCornerRadius(cornersRadiusInDp);
+        } else {
+            GradientDrawable leftBackground = (GradientDrawable) left.progressView.getBackground();
+            float[] leftCorners = new float[]{
+                    cornersRadiusInDp, cornersRadiusInDp,
+                    0, 0,
+                    0, 0,
+                    cornersRadiusInDp, cornersRadiusInDp};
+            leftBackground.setCornerRadii(leftCorners);
+
+            GradientDrawable rightBackground = (GradientDrawable) right.progressView.getBackground();
+            float[] rightCorners = new float[]{
+                    0, 0,
+                    cornersRadiusInDp, cornersRadiusInDp,
+                    cornersRadiusInDp, cornersRadiusInDp,
+                    0, 0};
+            rightBackground.setCornerRadii(rightCorners);
+        }
     }
 
     private void setNutritionValue(TextView nutritionTextView, double nutritionValue) {
         nutritionTextView.setText(context.getString(R.string.one_digit_precision_float,
                 nutritionValue).replace(',', '.'));
+    }
+
+    private void setNutritionProgress(View nutritionView, double progress) {
+        nutritionView.setLayoutParams(new LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.MATCH_PARENT, (float) progress));
     }
 
     public ViewGroup getCardLayout() {
