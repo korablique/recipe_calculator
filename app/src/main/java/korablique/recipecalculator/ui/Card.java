@@ -186,7 +186,7 @@ public class Card {
         return true;
     }
 
-    public Foodstuff parseFoodstuff() throws NumberFormatException {
+    public Foodstuff parseFoodstuff() {
         String productName = getName();
         double weight;
         if (getWeightEditText().getText().toString().isEmpty()) {

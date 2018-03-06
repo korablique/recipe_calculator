@@ -17,16 +17,20 @@ import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.ui.MyViewHolder;
 
 public class FoodstuffsAdapterChild extends AdapterChild {
+    interface ClickObserver {
+        void onItemClicked(Foodstuff foodstuff, int displayedPosition);
+    }
     public static final int VIEW_TYPE_HEADER = 0;
     public static final int VIEW_TYPE_FOODSTUFF = 1;
     private List<Foodstuff> foodstuffs = new ArrayList<>();
     private Context context;
-    @LayoutRes
-    private int headerLayoutId;
+    @LayoutRes private int headerLayoutId;
+    private ClickObserver clickObserver;
 
-    public FoodstuffsAdapterChild(Context context, @LayoutRes int headerLayoutId) {
+    public FoodstuffsAdapterChild(Context context, ClickObserver clickObserver, @LayoutRes int headerLayoutId) {
         super(2);
         this.context = context;
+        this.clickObserver = clickObserver;
         this.headerLayoutId = headerLayoutId;
     }
 
@@ -56,6 +60,10 @@ public class FoodstuffsAdapterChild extends AdapterChild {
         setTextViewText(item, R.id.new_foodstuff_name, foodstuff.getName());
 
         setCalories(item, foodstuff.getCalories());
+
+        item.setOnClickListener((v) -> {
+            clickObserver.onItemClicked(foodstuff, holder.getAdapterPosition());
+        });
     }
 
     @Override

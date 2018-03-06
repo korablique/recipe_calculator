@@ -61,11 +61,8 @@ public class FoodstuffsAdapter extends RecyclerView.Adapter<MyViewHolder> {
                     foodstuff.getCarbs(),
                     foodstuff.getCalories());
         }
-        item.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                observer.onItemClicked(foodstuff, holder.getAdapterPosition());
-            }
+        item.setOnClickListener((v) -> {
+            observer.onItemClicked(foodstuff, holder.getAdapterPosition());
         });
     }
 
