@@ -19,13 +19,14 @@ import korablique.recipecalculator.ui.mainscreen.MainScreenActivity;
 
 
 public class CardDialog extends DialogFragment {
+    private NewCard card;
     private NewCard.OnAddFoodstuffButtonClickListener onAddFoodstuffButtonClickListener;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container,
                              Bundle savedInstanceState) {
-        NewCard card = new NewCard(getContext(), container);
+        card = new NewCard(getContext(), container);
         card.setOnAddFoodstuffButtonClickListener(onAddFoodstuffButtonClickListener);
         Foodstuff foodstuff = getArguments().getParcelable(MainScreenActivity.CLICKED_FOODSTUFF);
         card.setFoodstuff(foodstuff);
@@ -55,7 +56,10 @@ public class CardDialog extends DialogFragment {
     }
 
     public void setOnAddFoodstuffButtonClickListener(NewCard.OnAddFoodstuffButtonClickListener listener) {
-
-        this.onAddFoodstuffButtonClickListener = listener;
+        if (card != null) {
+            card.setOnAddFoodstuffButtonClickListener(listener);
+        } else {
+            this.onAddFoodstuffButtonClickListener = listener;
+        }
     }
 }
