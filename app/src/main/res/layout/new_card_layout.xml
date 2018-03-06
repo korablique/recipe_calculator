@@ -70,17 +70,14 @@
         </LinearLayout>
 
         <!--прогресс-бар-->
-        <ProgressBar
+        <include
+            layout="@layout/card_progressbar"
+            android:id="@+id/nutrition_progress_bar"
             android:layout_width="match_parent"
             android:layout_height="10dp"
             android:layout_marginTop="14dp"
             android:layout_marginLeft="15dp"
-            android:layout_marginRight="15dp"
-            style="@android:style/Widget.ProgressBar.Horizontal"
-            android:progressDrawable="@drawable/progress_drawable"
-            android:indeterminate="false"
-            android:progress="25"
-            android:max="100" />
+            android:layout_marginRight="15dp" />
 
         <!--табличка БЖУК-->
         <LinearLayout
