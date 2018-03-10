@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.NonNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import korablique.recipecalculator.base.MainThreadExecutor;
@@ -312,6 +313,44 @@ public class DatabaseWorker {
                 }
                 cursor.close();
             }
+            if (callback != null) {
+                mainThreadExecutor.execute(() -> callback.onResult(result));
+            }
+        });
+    }
+
+    /**
+     * Получает фудстаффы с названием, похожим на запрос.
+     * @param context
+     * @param nameQuery - поисковый запрос
+     * @param limit - требуемое количество результатов поиска
+     * @param callback
+     */
+    public void requestFoodstuffsLike(Context context, String nameQuery, int limit, FoodstuffsRequestCallback callback) {
+        databaseThreadExecutor.execute(() -> {
+            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
+            List<Foodstuff> result = new ArrayList<>();
+            Cursor cursor = database.query(
+                    FOODSTUFFS_TABLE_NAME,
+                    null,
+                    COLUMN_NAME_FOODSTUFF_NAME_NOCASE + " LIKE ?",
+                    new String[]{"%" + nameQuery.toLowerCase() + "%"},
+                    null,
+                    null,
+                    COLUMN_NAME_FOODSTUFF_NAME_NOCASE + " ASC",
+                    String.valueOf(limit));
+            while (cursor.moveToNext()) {
+                long id = cursor.getLong(cursor.getColumnIndex(FoodstuffsContract.ID));
+                String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_FOODSTUFF_NAME));
+                double protein = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_PROTEIN));
+                double fats = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_FATS));
+                double carbs = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CARBS));
+                double calories = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CALORIES));
+                Foodstuff foodstuff = new Foodstuff(id, name, -1, protein, fats, carbs, calories);
+                result.add(foodstuff);
+            }
+            cursor.close();
             if (callback != null) {
                 mainThreadExecutor.execute(() -> callback.onResult(result));
             }
