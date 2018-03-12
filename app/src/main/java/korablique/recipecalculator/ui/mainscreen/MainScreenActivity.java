@@ -3,12 +3,16 @@ package korablique.recipecalculator.ui.mainscreen;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcel;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+
+import com.arlib.floatingsearchview.FloatingSearchView;
+import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +31,7 @@ import korablique.recipecalculator.ui.history.HistoryActivity;
 public class MainScreenActivity extends BaseActivity {
     public static final String CLICKED_FOODSTUFF = "CLICKED_FOODSTUFF";
     public static final String FOODSTUFF_CARD = "FOODSTUFF_CARD";
+    private static final int SEARCH_SUGGESTIONS_NUMBER = 3;
     @Inject
     DatabaseWorker databaseWorker;
     @Inject
@@ -117,6 +122,21 @@ public class MainScreenActivity extends BaseActivity {
                 }
             }
         }, true);
+
+        FloatingSearchView searchView = findViewById(R.id.floating_search_view);
+        searchView.setOnQueryChangeListener((oldQuery, newQuery) -> {
+            //get suggestions based on newQuery
+            databaseWorker.requestFoodstuffsLike(
+                    MainScreenActivity.this, newQuery, SEARCH_SUGGESTIONS_NUMBER, foodstuffs -> {
+                //pass them on to the search view
+                List<SearchSuggestion> newSuggestions = new ArrayList<>();
+                for (Foodstuff foodstuff : foodstuffs) {
+                    SearchSuggestion suggestion = new FoodstuffSearchSuggestion(foodstuff);
+                    newSuggestions.add(suggestion);
+                }
+                searchView.swapSuggestions(newSuggestions);
+            });
+        });
     }
 
     private void attemptToAddElementsToAdapters() {

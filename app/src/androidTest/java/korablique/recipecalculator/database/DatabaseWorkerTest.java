@@ -13,6 +13,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -344,6 +345,42 @@ public class DatabaseWorkerTest {
         Assert.assertEquals(returnedFoodstuffs.get(0), foodstuffs[2]);
         Assert.assertEquals(returnedFoodstuffs.get(1), foodstuffs[1]);
         Assert.assertEquals(returnedFoodstuffs.get(2), foodstuffs[0]);
+    }
+
+    @Test
+    public void requestFoodstuffsLikeWorks() throws IOException {
+        Foodstuff[] foodstuffs = new Foodstuff[10];
+        foodstuffs[0] = new Foodstuff("варенье из абрикосов", -1, 1, 1, 1, 1);
+        foodstuffs[1] = new Foodstuff("вареники", -1, 1, 1, 1, 1);
+        foodstuffs[2] = new Foodstuff("вареная картошка", -1, 1, 1, 1, 1);
+        foodstuffs[3] = new Foodstuff("варенье из груш", -1, 1, 1, 1, 1);
+        foodstuffs[4] = new Foodstuff("абрикос", -1, 1, 1, 1, 1);
+        foodstuffs[5] = new Foodstuff("варенье из смородины", -1, 1, 1, 1, 1);
+        foodstuffs[6] = new Foodstuff("варенье из клубники", -1, 1, 1, 1, 1);
+        foodstuffs[7] = new Foodstuff("шоколад", -1, 1, 1, 1, 1);
+        foodstuffs[8] = new Foodstuff("хлеб", -1, 1, 1, 1, 1);
+        foodstuffs[9] = new Foodstuff("варенье из черники", -1, 1, 1, 1, 1);
+
+        databaseWorker.saveGroupOfFoodstuffs(
+                mActivityRule.getActivity(),
+                foodstuffs,
+                null);
+
+        String query = "варенье";
+        List<Foodstuff> searchResult = new ArrayList<>();
+        databaseWorker.requestFoodstuffsLike(
+                mActivityRule.getActivity(),
+                query,
+                3,
+                new DatabaseWorker.FoodstuffsRequestCallback() {
+                    @Override
+                    public void onResult(List<Foodstuff> foodstuffs) {
+                        searchResult.addAll(foodstuffs);
+                    }
+                });
+        Assert.assertEquals(searchResult.get(0).getName(), "варенье из абрикосов");
+        Assert.assertEquals(searchResult.get(1).getName(), "варенье из груш");
+        Assert.assertEquals(searchResult.get(2).getName(), "варенье из клубники");
     }
 
     public Foodstuff getAnyFoodstuffFromDb() throws InterruptedException {

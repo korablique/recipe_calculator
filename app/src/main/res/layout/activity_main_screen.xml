@@ -5,19 +5,19 @@
     android:id="@+id/parent_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="#EFF1F6"
     tools:context="korablique.recipecalculator.ui.mainscreen.MainScreenActivity">
 
-    <include
-        android:id="@+id/search_layout"
-        layout="@layout/search_layout"/>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="78dp"
+        android:background="#FF5768E9" />
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/main_screen_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/search_layout">
+        android:layout_marginTop="78dp">
     </android.support.v7.widget.RecyclerView>
 
     <android.support.design.widget.BottomNavigationView
@@ -30,4 +30,8 @@
         app:itemBackground="@drawable/navigation_item_background"
         app:itemIconTint="@drawable/navigation_item_selector"
         app:itemTextColor="@drawable/navigation_item_selector" />
+
+    <include
+        android:id="@+id/search_layout"
+        layout="@layout/search_layout"/>
 </RelativeLayout>
