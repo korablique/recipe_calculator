@@ -351,9 +351,7 @@ public class DatabaseWorker {
                 result.add(foodstuff);
             }
             cursor.close();
-            if (callback != null) {
-                mainThreadExecutor.execute(() -> callback.onResult(result));
-            }
+            mainThreadExecutor.execute(() -> callback.onResult(result));
         });
     }
 }

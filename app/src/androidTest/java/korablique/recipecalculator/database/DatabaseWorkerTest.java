@@ -13,6 +13,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -344,6 +345,28 @@ public class DatabaseWorkerTest {
         Assert.assertEquals(returnedFoodstuffs.get(0), foodstuffs[2]);
         Assert.assertEquals(returnedFoodstuffs.get(1), foodstuffs[1]);
         Assert.assertEquals(returnedFoodstuffs.get(2), foodstuffs[0]);
+    }
+
+    @Test
+    public void requestFoodstuffsLikeWorks() throws IOException {
+        FoodstuffsDbHelper.deinitializeDatabase(mActivityRule.getActivity());
+        FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(mActivityRule.getActivity());
+        dbHelper.initializeDatabase();
+        String query = "варенье";
+        List<Foodstuff> searchResult = new ArrayList<>();
+        databaseWorker.requestFoodstuffsLike(
+                mActivityRule.getActivity(),
+                query,
+                3,
+                new DatabaseWorker.FoodstuffsRequestCallback() {
+                    @Override
+                    public void onResult(List<Foodstuff> foodstuffs) {
+                        searchResult.addAll(foodstuffs);
+                    }
+                });
+        Assert.assertEquals(searchResult.get(0).getName(), "варенье из абрикосов");
+        Assert.assertEquals(searchResult.get(1).getName(), "варенье из айвы");
+        Assert.assertEquals(searchResult.get(2).getName(), "варенье из апельсинов");
     }
 
     public Foodstuff getAnyFoodstuffFromDb() throws InterruptedException {
