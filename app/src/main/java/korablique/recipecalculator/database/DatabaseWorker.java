@@ -124,7 +124,7 @@ public class DatabaseWorker {
     public void saveGroupOfFoodstuffs(
             final Context context,
             final Foodstuff[] foodstuffs,
-            @NonNull final SaveGroupOfFoodstuffsCallback callback) {
+            final SaveGroupOfFoodstuffsCallback callback) {
         databaseThreadExecutor.execute(new Runnable() {
             @Override
             public void run() {
@@ -149,7 +149,9 @@ public class DatabaseWorker {
                 } finally {
                     database.endTransaction();
                 }
-                mainThreadExecutor.execute(() -> callback.onResult(ids));
+                if (callback != null) {
+                    mainThreadExecutor.execute(() -> callback.onResult(ids));
+                }
             }
         });
     }
