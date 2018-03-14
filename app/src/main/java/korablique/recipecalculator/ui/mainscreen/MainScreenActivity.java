@@ -3,7 +3,6 @@ package korablique.recipecalculator.ui.mainscreen;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Parcel;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
@@ -26,7 +25,12 @@ import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.PopularProductsUtils;
 import korablique.recipecalculator.ui.card.CardDialog;
+import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
 import korablique.recipecalculator.ui.history.HistoryActivity;
+
+import static korablique.recipecalculator.IntentConstants.FIND_FOODSTUFF_REQUEST;
+import static korablique.recipecalculator.IntentConstants.NAME;
+import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
 
 public class MainScreenActivity extends BaseActivity {
     public static final String CLICKED_FOODSTUFF = "CLICKED_FOODSTUFF";
@@ -137,6 +141,33 @@ public class MainScreenActivity extends BaseActivity {
                 searchView.swapSuggestions(newSuggestions);
             });
         });
+
+        searchView.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
+            @Override
+            public void onSuggestionClicked(SearchSuggestion searchSuggestion) {
+
+            }
+
+            @Override
+            public void onSearchAction(String currentQuery) {
+                makeSearchIntent(currentQuery);
+            }
+        });
+
+        searchView.setOnMenuItemClickListener(item -> {
+            String query = searchView.getQuery().trim();
+            makeSearchIntent(query);
+        });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == FIND_FOODSTUFF_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                Foodstuff foodstuff = data.getParcelableExtra(SEARCH_RESULT);
+                Snackbar.make(findViewById(android.R.id.content), "selected foodstuff: " + foodstuff.getName(), Snackbar.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void attemptToAddElementsToAdapters() {
@@ -157,5 +188,12 @@ public class MainScreenActivity extends BaseActivity {
             adapterParent.addChild(foodstuffAdapterChild);
         }
         foodstuffAdapterChild.addItems(all);
+    }
+
+    private void makeSearchIntent(String query) {
+        Intent sendIntent = new Intent(MainScreenActivity.this, ListOfFoodstuffsActivity.class);
+        sendIntent.setAction(getString(R.string.find_foodstuff_action));
+        sendIntent.putExtra(NAME, query);
+        startActivityForResult(sendIntent, FIND_FOODSTUFF_REQUEST);
     }
 }
