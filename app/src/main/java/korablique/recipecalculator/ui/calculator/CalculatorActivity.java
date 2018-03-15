@@ -107,15 +107,8 @@ public class CalculatorActivity extends BaseActivity {
             }
         });
 
-        card.setOnSearchButtonClickedRunnable(new Runnable() {
-            @Override
-            public void run() {
-                Intent sendIntent = new Intent(CalculatorActivity.this, ListOfFoodstuffsActivity.class);
-                sendIntent.setAction(getString(R.string.find_foodstuff_action));
-                String foodstuffName = card.getName();
-                sendIntent.putExtra(NAME, foodstuffName);
-                startActivityForResult(sendIntent, FIND_FOODSTUFF_REQUEST);
-            }
+        card.setOnSearchButtonClickedRunnable(() -> {
+            ListOfFoodstuffsActivity.performSearch(CalculatorActivity.this, card.getName());
         });
 
         card.setOnButtonOkClickedRunnable(new Runnable() {

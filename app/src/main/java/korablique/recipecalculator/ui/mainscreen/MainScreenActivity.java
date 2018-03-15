@@ -145,18 +145,22 @@ public class MainScreenActivity extends BaseActivity {
         searchView.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
             @Override
             public void onSuggestionClicked(SearchSuggestion searchSuggestion) {
-
+                Bundle bundle = new Bundle();
+                bundle.putParcelable(CLICKED_FOODSTUFF, ((FoodstuffSearchSuggestion)searchSuggestion).getFoodstuff());
+                CardDialog dialog = new CardDialog();
+                dialog.setArguments(bundle);
+                dialog.show(getSupportFragmentManager(), FOODSTUFF_CARD);
             }
 
             @Override
             public void onSearchAction(String currentQuery) {
-                makeSearchIntent(currentQuery);
+                ListOfFoodstuffsActivity.performSearch(MainScreenActivity.this, currentQuery);
             }
         });
 
         searchView.setOnMenuItemClickListener(item -> {
             String query = searchView.getQuery().trim();
-            makeSearchIntent(query);
+            ListOfFoodstuffsActivity.performSearch(this, query);
         });
     }
 
@@ -188,12 +192,5 @@ public class MainScreenActivity extends BaseActivity {
             adapterParent.addChild(foodstuffAdapterChild);
         }
         foodstuffAdapterChild.addItems(all);
-    }
-
-    private void makeSearchIntent(String query) {
-        Intent sendIntent = new Intent(MainScreenActivity.this, ListOfFoodstuffsActivity.class);
-        sendIntent.setAction(getString(R.string.find_foodstuff_action));
-        sendIntent.putExtra(NAME, query);
-        startActivityForResult(sendIntent, FIND_FOODSTUFF_REQUEST);
     }
 }

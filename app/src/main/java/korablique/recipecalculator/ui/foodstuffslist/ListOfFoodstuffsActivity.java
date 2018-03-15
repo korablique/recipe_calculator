@@ -1,5 +1,6 @@
 package korablique.recipecalculator.ui.foodstuffslist;
 
+import android.app.Activity;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
@@ -32,6 +33,7 @@ import korablique.recipecalculator.ui.KeyboardHandler;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.R;
 
+import static korablique.recipecalculator.IntentConstants.FIND_FOODSTUFF_REQUEST;
 import static korablique.recipecalculator.IntentConstants.NAME;
 import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
 
@@ -228,5 +230,12 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
         Intent receivedIntent = getIntent();
         return receivedIntent.getAction() != null
                 && receivedIntent.getAction().equals(getString(R.string.find_foodstuff_action));
+    }
+
+    public static void performSearch(Activity activity, String query) {
+        Intent sendIntent = new Intent(activity, ListOfFoodstuffsActivity.class);
+        sendIntent.setAction(activity.getString(R.string.find_foodstuff_action));
+        sendIntent.putExtra(NAME, query);
+        activity.startActivityForResult(sendIntent, FIND_FOODSTUFF_REQUEST);
     }
 }
