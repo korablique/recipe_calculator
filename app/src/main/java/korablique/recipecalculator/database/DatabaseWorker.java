@@ -33,6 +33,7 @@ import static korablique.recipecalculator.database.UserParametersContract.COLUMN
 import static korablique.recipecalculator.database.UserParametersContract.USER_PARAMETERS_TABLE_NAME;
 
 public class DatabaseWorker {
+    public static final int NO_LIMIT = -1;
     private DatabaseThreadExecutor databaseThreadExecutor;
     private MainThreadExecutor mainThreadExecutor;
 
@@ -333,6 +334,10 @@ public class DatabaseWorker {
             FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
             SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
             List<Foodstuff> result = new ArrayList<>();
+            String limitString = null;
+            if (limit != NO_LIMIT) {
+                limitString = String.valueOf(limit);
+            }
             Cursor cursor = database.query(
                     FOODSTUFFS_TABLE_NAME,
                     null,
@@ -341,7 +346,7 @@ public class DatabaseWorker {
                     null,
                     null,
                     COLUMN_NAME_FOODSTUFF_NAME_NOCASE + " ASC",
-                    String.valueOf(limit));
+                    limitString);
             while (cursor.moveToNext()) {
                 long id = cursor.getLong(cursor.getColumnIndex(FoodstuffsContract.ID));
                 String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_FOODSTUFF_NAME));

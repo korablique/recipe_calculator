@@ -41,4 +41,8 @@ public class FoodstuffSearchSuggestion implements SearchSuggestion {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeParcelable(suggestion, flags);
     }
+
+    public Foodstuff getFoodstuff() {
+        return suggestion;
+    }
 }

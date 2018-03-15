@@ -15,7 +15,6 @@
     <string name="recipe_name">Введите название рецепта</string>
     <string name="start">Для добавления продукта нажмите на +</string>
     <string name="search">Поиск…</string>
-    <string name="find_foodstuff_action">korablique.recipecalculator.FIND_FOODSTUFF_ACTION</string>
     <string name="calculator">Калькулятор</string>
     <string name="list_of_foodstuffs">Все продукты</string>
     <string name="per_100_g">(на 100 грамм)</string>
