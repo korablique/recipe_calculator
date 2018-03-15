@@ -37,6 +37,7 @@ import korablique.recipecalculator.model.UserParameters;
 import static korablique.recipecalculator.IntentConstants.FIND_FOODSTUFF_REQUEST;
 import static korablique.recipecalculator.IntentConstants.NAME;
 import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
+import static korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity.FIND_FOODSTUFF_ACTION;
 
 
 public class HistoryActivity extends BaseActivity {
@@ -291,7 +292,7 @@ public class HistoryActivity extends BaseActivity {
             @Override
             public void run() {
                 Intent sendIntent = new Intent(HistoryActivity.this, ListOfFoodstuffsActivity.class);
-                sendIntent.setAction(getString(R.string.find_foodstuff_action));
+                sendIntent.setAction(FIND_FOODSTUFF_ACTION);
                 String foodstuffName = card.getName();
                 sendIntent.putExtra(NAME, foodstuffName);
                 startActivityForResult(sendIntent, FIND_FOODSTUFF_REQUEST);

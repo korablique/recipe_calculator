@@ -29,7 +29,6 @@ import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
 import korablique.recipecalculator.ui.history.HistoryActivity;
 
 import static korablique.recipecalculator.IntentConstants.FIND_FOODSTUFF_REQUEST;
-import static korablique.recipecalculator.IntentConstants.NAME;
 import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
 
 public class MainScreenActivity extends BaseActivity {
@@ -45,11 +44,7 @@ public class MainScreenActivity extends BaseActivity {
     private List<Foodstuff> top;
     private List<Foodstuff> all;
     private FoodstuffsAdapterChild.ClickObserver clickObserver = (foodstuff, displayedPosition) -> {
-        Bundle bundle = new Bundle();
-        bundle.putParcelable(CLICKED_FOODSTUFF, foodstuff);
-        CardDialog dialog = new CardDialog();
-        dialog.setArguments(bundle);
-        dialog.show(getSupportFragmentManager(), FOODSTUFF_CARD);
+        CardDialog.showCard(MainScreenActivity.this, foodstuff);
     };
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -145,11 +140,7 @@ public class MainScreenActivity extends BaseActivity {
         searchView.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
             @Override
             public void onSuggestionClicked(SearchSuggestion searchSuggestion) {
-                Bundle bundle = new Bundle();
-                bundle.putParcelable(CLICKED_FOODSTUFF, ((FoodstuffSearchSuggestion)searchSuggestion).getFoodstuff());
-                CardDialog dialog = new CardDialog();
-                dialog.setArguments(bundle);
-                dialog.show(getSupportFragmentManager(), FOODSTUFF_CARD);
+                CardDialog.showCard(MainScreenActivity.this, ((FoodstuffSearchSuggestion)searchSuggestion).getFoodstuff());
             }
 
             @Override

@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentActivity;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,9 +14,9 @@ import android.view.WindowManager;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.Foodstuff;
-import korablique.recipecalculator.ui.KeyboardHandler;
-import korablique.recipecalculator.ui.card.NewCard;
-import korablique.recipecalculator.ui.mainscreen.MainScreenActivity;
+
+import static korablique.recipecalculator.ui.mainscreen.MainScreenActivity.CLICKED_FOODSTUFF;
+import static korablique.recipecalculator.ui.mainscreen.MainScreenActivity.FOODSTUFF_CARD;
 
 
 public class CardDialog extends DialogFragment {
@@ -28,7 +29,7 @@ public class CardDialog extends DialogFragment {
                              Bundle savedInstanceState) {
         card = new NewCard(getContext(), container);
         card.setOnAddFoodstuffButtonClickListener(onAddFoodstuffButtonClickListener);
-        Foodstuff foodstuff = getArguments().getParcelable(MainScreenActivity.CLICKED_FOODSTUFF);
+        Foodstuff foodstuff = getArguments().getParcelable(CLICKED_FOODSTUFF);
         card.setFoodstuff(foodstuff);
 
         return card.getCardLayout();
@@ -60,5 +61,13 @@ public class CardDialog extends DialogFragment {
         } else {
             this.onAddFoodstuffButtonClickListener = listener;
         }
+    }
+
+    public static void showCard(FragmentActivity activity, Foodstuff foodstuff) {
+        Bundle bundle = new Bundle();
+        bundle.putParcelable(CLICKED_FOODSTUFF, foodstuff);
+        CardDialog dialog = new CardDialog();
+        dialog.setArguments(bundle);
+        dialog.show(activity.getSupportFragmentManager(), FOODSTUFF_CARD);
     }
 }

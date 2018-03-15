@@ -41,6 +41,7 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
     @Inject
     DatabaseWorker databaseWorker;
 
+    public static final String FIND_FOODSTUFF_ACTION = "korablique.recipecalculator.FIND_FOODSTUFF_ACTION";
     private Card card;
     private FoodstuffsAdapter recyclerViewAdapter;
     private int editedFoodstuffPosition;
@@ -198,7 +199,7 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
         EditText searchEditText = searchView.findViewById(R.id.search_src_text);
         searchEditText.setHintTextColor(getResources().getColor(R.color.colorPrimaryLight));
 
-        if (getString(R.string.find_foodstuff_action).equals(getIntent().getAction())) {
+        if (FIND_FOODSTUFF_ACTION.equals(getIntent().getAction())) {
             final String searchName = getIntent().getStringExtra(NAME);
             menu.findItem(R.id.search).expandActionView();
             searchView.setQuery(searchName, false);
@@ -229,12 +230,12 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
     private boolean wasActivityOpenedForSearching() {
         Intent receivedIntent = getIntent();
         return receivedIntent.getAction() != null
-                && receivedIntent.getAction().equals(getString(R.string.find_foodstuff_action));
+                && receivedIntent.getAction().equals(FIND_FOODSTUFF_ACTION);
     }
 
     public static void performSearch(Activity activity, String query) {
         Intent sendIntent = new Intent(activity, ListOfFoodstuffsActivity.class);
-        sendIntent.setAction(activity.getString(R.string.find_foodstuff_action));
+        sendIntent.setAction(FIND_FOODSTUFF_ACTION);
         sendIntent.putExtra(NAME, query);
         activity.startActivityForResult(sendIntent, FIND_FOODSTUFF_REQUEST);
     }
