@@ -103,6 +103,26 @@ public class MainScreenActivity extends BaseActivity {
                     });
                 });
 
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.registerFragmentLifecycleCallbacks(new FragmentManager.FragmentLifecycleCallbacks() {
+            @Override
+            public void onFragmentAttached(FragmentManager fm, Fragment f, Context context) {
+                super.onFragmentAttached(fm, f, context);
+                if (f instanceof CardDialog) {
+                    CardDialog cardDialog = (CardDialog) f;
+                    cardDialog.setOnAddFoodstuffButtonClickListener(foodstuff -> {
+                        cardDialog.dismiss();
+                        snackbar.addFoodstuff(foodstuff);
+                        if (!snackbar.isShown()) {
+                            snackbar.show();
+                        }
+                    });
+                } else {
+                    throw new IllegalStateException("Unexpected type of fragment");
+                }
+            }
+        }, true);
+
         // получаем все продукты
         int batchSize = 100;
         databaseWorker.requestListedFoodstuffsFromDb(MainScreenActivity.this, batchSize, (foodstuffs) -> {
@@ -144,27 +164,6 @@ public class MainScreenActivity extends BaseActivity {
             String query = searchView.getQuery().trim();
             ListOfFoodstuffsActivity.performSearch(this, query);
         });
-
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        fragmentManager.registerFragmentLifecycleCallbacks(new FragmentManager.FragmentLifecycleCallbacks() {
-            @Override
-            public void onFragmentAttached(FragmentManager fm, Fragment f, Context context) {
-                super.onFragmentAttached(fm, f, context);
-                if (f instanceof CardDialog) {
-                    CardDialog cardDialog = (CardDialog) f;
-                    cardDialog.setOnAddFoodstuffButtonClickListener(foodstuff -> {
-                        cardDialog.dismiss();
-                        snackbar.addFoodstuff(foodstuff);
-                        if (!isSnackbarShown) {
-                            snackbar.show();
-                        }
-                        isSnackbarShown = true;
-                    });
-                } else {
-                    throw new IllegalStateException("Unexpected type of fragment");
-                }
-            }
-        }, true);
     }
 
     @Override
@@ -195,12 +194,6 @@ public class MainScreenActivity extends BaseActivity {
             adapterParent.addChild(foodstuffAdapterChild);
         }
         foodstuffAdapterChild.addItems(all);
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-
     }
 
     @Override

@@ -15,10 +15,10 @@ import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.Foodstuff;
 
 public class SelectedFoodstuffsSnackbar {
-    private static long DURATION = 250L;
+    private static final long DURATION = 250L;
     private static final String IS_SNACKBAR_SHOWN = "IS_SNACKBAR_SHOWN";
     private static final String SELECTED_FOODSTUFFS = "SELECTED_FOODSTUFFS";
-    private boolean isSnackbarShown;
+    private boolean isShown;
     private ViewGroup snackbarLayout;
     private TextView selectedFoodstuffsCounter;
     private List<Foodstuff> selectedFoodstuffs = new ArrayList<>();
@@ -28,22 +28,15 @@ public class SelectedFoodstuffsSnackbar {
         selectedFoodstuffsCounter = activity.findViewById(R.id.selected_foodstuffs_counter);
     }
 
-    public SelectedFoodstuffsSnackbar(Activity activity, Bundle savedInstanceState) {
-        snackbarLayout = activity.findViewById(R.id.snackbar);
-        selectedFoodstuffsCounter = activity.findViewById(R.id.selected_foodstuffs_counter);
-
-        onRestoreInstanceState(savedInstanceState);
-    }
-
     public void show() {
         snackbarLayout.setVisibility(View.VISIBLE);
         snackbarLayout.bringToFront();
         float startValue = snackbarLayout.getHeight();
         float endValue = 0;
-        if (!isSnackbarShown) {
+        if (!isShown) {
             animateSnackbar(startValue, endValue);
         }
-        isSnackbarShown = true;
+        isShown = true;
     }
 
     public void hide() {
@@ -89,13 +82,17 @@ public class SelectedFoodstuffsSnackbar {
         return selectedFoodstuffs;
     }
 
-    public void setSelectedFoodstuffs(List<Foodstuff> selectedFoodstuffs) {
+    private void setSelectedFoodstuffs(List<Foodstuff> selectedFoodstuffs) {
         this.selectedFoodstuffs = selectedFoodstuffs;
         updateSelectedFoodstuffsCounter();
     }
 
+    public boolean isShown() {
+        return isShown;
+    }
+
     public void onSaveInstanceState(Bundle out) {
-        out.putBoolean(IS_SNACKBAR_SHOWN, isSnackbarShown);
+        out.putBoolean(IS_SNACKBAR_SHOWN, isShown);
         out.putParcelableArrayList(SELECTED_FOODSTUFFS, new ArrayList<>(selectedFoodstuffs));
     }
 
