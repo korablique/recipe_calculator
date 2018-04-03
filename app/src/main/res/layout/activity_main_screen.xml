@@ -1,37 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/parent_layout"
+    android:id="@+id/main_screen_parent_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#EFF1F6"
     tools:context="korablique.recipecalculator.ui.mainscreen.MainScreenActivity">
 
-    <View
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="78dp"
-        android:background="#FF5768E9" />
+        android:layout_height="match_parent">
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/main_screen_recycler_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="78dp">
-    </android.support.v7.widget.RecyclerView>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="78dp"
+            android:background="#FF5768E9" />
 
-    <android.support.design.widget.BottomNavigationView
-        android:id="@+id/navigation"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_gravity="start"
-        android:layout_alignParentBottom="true"
-        app:menu="@menu/navigation_items"
-        app:itemBackground="@drawable/navigation_item_background"
-        app:itemIconTint="@drawable/navigation_item_selector"
-        app:itemTextColor="@drawable/navigation_item_selector" />
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/main_screen_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="78dp">
+        </android.support.v7.widget.RecyclerView>
 
-    <include
-        android:id="@+id/search_layout"
-        layout="@layout/search_layout"/>
-</RelativeLayout>
+        <android.support.design.widget.BottomNavigationView
+            android:id="@+id/navigation"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_gravity="start"
+            android:layout_alignParentBottom="true"
+            app:menu="@menu/navigation_items"
+            android:background="@drawable/navigation_item_background"
+            app:itemBackground="@drawable/navigation_item_background"
+            app:itemIconTint="@drawable/navigation_item_selector"
+            app:itemTextColor="@drawable/navigation_item_selector" />
+
+        <include
+            android:id="@+id/search_layout"
+            layout="@layout/search_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <include
+            android:id="@+id/snackbar"
+            layout="@layout/selected_foodstuffs_snackbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@id/navigation"
+            android:visibility="invisible" />
+
+    </RelativeLayout>
+
+</FrameLayout>

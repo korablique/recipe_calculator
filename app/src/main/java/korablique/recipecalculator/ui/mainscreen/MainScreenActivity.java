@@ -4,11 +4,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.BottomNavigationView;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.widget.Toast;
 
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
@@ -43,6 +43,8 @@ public class MainScreenActivity extends BaseActivity {
     private FoodstuffsAdapterChild foodstuffAdapterChild;
     private List<Foodstuff> top;
     private List<Foodstuff> all;
+    private SelectedFoodstuffsSnackbar snackbar;
+    private boolean isSnackbarShown;
     private FoodstuffsAdapterChild.ClickObserver clickObserver = (foodstuff, displayedPosition) -> {
         CardDialog.showCard(MainScreenActivity.this, foodstuff);
     };
@@ -50,6 +52,16 @@ public class MainScreenActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_screen);
+
+        snackbar = new SelectedFoodstuffsSnackbar(MainScreenActivity.this);
+        snackbar.setOnBasketClickRunnable(() -> {
+            StringBuilder selectedFoodstuffs = new StringBuilder();
+            for (Foodstuff selectedFoodstuff : snackbar.getSelectedFoodstuffs()) {
+                selectedFoodstuffs.append(selectedFoodstuff.getName());
+                selectedFoodstuffs.append(", ");
+            }
+            Toast.makeText(MainScreenActivity.this, "selected products: " + selectedFoodstuffs, Toast.LENGTH_LONG).show();
+        });
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.navigation);
         bottomNavigationView.setOnNavigationItemSelectedListener((item) -> {
@@ -91,16 +103,6 @@ public class MainScreenActivity extends BaseActivity {
                     });
                 });
 
-        // получаем все продукты
-        int batchSize = 100;
-        databaseWorker.requestListedFoodstuffsFromDb(MainScreenActivity.this, batchSize, (foodstuffs) -> {
-            if (all == null) {
-                all = new ArrayList<>();
-            }
-            all.addAll(foodstuffs);
-            attemptToAddElementsToAdapters();
-        });
-
         FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentManager.registerFragmentLifecycleCallbacks(new FragmentManager.FragmentLifecycleCallbacks() {
             @Override
@@ -110,17 +112,26 @@ public class MainScreenActivity extends BaseActivity {
                     CardDialog cardDialog = (CardDialog) f;
                     cardDialog.setOnAddFoodstuffButtonClickListener(foodstuff -> {
                         cardDialog.dismiss();
-                        Snackbar.make(
-                                findViewById(android.R.id.content),
-                                "added foodstuff: " + foodstuff.getName(),
-                                Snackbar.LENGTH_SHORT)
-                                .show();
+                        snackbar.addFoodstuff(foodstuff);
+                        if (!snackbar.isShown()) {
+                            snackbar.show();
+                        }
                     });
                 } else {
                     throw new IllegalStateException("Unexpected type of fragment");
                 }
             }
         }, true);
+
+        // получаем все продукты
+        int batchSize = 100;
+        databaseWorker.requestListedFoodstuffsFromDb(MainScreenActivity.this, batchSize, (foodstuffs) -> {
+            if (all == null) {
+                all = new ArrayList<>();
+            }
+            all.addAll(foodstuffs);
+            attemptToAddElementsToAdapters();
+        });
 
         FloatingSearchView searchView = findViewById(R.id.floating_search_view);
         searchView.setOnQueryChangeListener((oldQuery, newQuery) -> {
@@ -160,7 +171,7 @@ public class MainScreenActivity extends BaseActivity {
         if (requestCode == FIND_FOODSTUFF_REQUEST) {
             if (resultCode == RESULT_OK) {
                 Foodstuff foodstuff = data.getParcelableExtra(SEARCH_RESULT);
-                Snackbar.make(findViewById(android.R.id.content), "selected foodstuff: " + foodstuff.getName(), Snackbar.LENGTH_SHORT).show();
+                CardDialog.showCard(MainScreenActivity.this, foodstuff);
             }
         }
     }
@@ -183,5 +194,17 @@ public class MainScreenActivity extends BaseActivity {
             adapterParent.addChild(foodstuffAdapterChild);
         }
         foodstuffAdapterChild.addItems(all);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        snackbar.onSaveInstanceState(outState);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        snackbar.onRestoreInstanceState(savedInstanceState);
+        super.onRestoreInstanceState(savedInstanceState);
     }
 }

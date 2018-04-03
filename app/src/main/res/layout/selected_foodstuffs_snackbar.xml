@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#FF373B4F">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_marginLeft="16dp"
+        android:paddingTop="9dp"
+        android:paddingBottom="9dp"
+        android:text="@string/selected_foodstuffs"
+        android:textColor="#FFFFFF"
+        style="@style/MainScreenSnackbarTextStyle" />
+
+    <!--корзина-->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/basket"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_basket"
+            android:layout_gravity="right"
+            android:layout_marginRight="20dp"
+            android:layout_marginTop="7dp"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/selected_foodstuffs_counter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="13dp"
+            android:layout_gravity="right"
+            android:gravity="center"
+            android:layout_marginRight="18dp"
+            android:layout_marginTop="7dp"
+            style="@style/MainScreenSnackbarCircleText"
+            android:text="5"
+            android:background="@drawable/new_card_protein_icon" />
+    </FrameLayout>
+</LinearLayout>
