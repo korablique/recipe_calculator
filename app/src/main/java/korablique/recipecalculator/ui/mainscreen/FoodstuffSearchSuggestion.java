@@ -34,7 +34,7 @@ public class FoodstuffSearchSuggestion implements SearchSuggestion {
 
     @Override
     public int describeContents() {
-        return 0;
+        return suggestion.hashCode();
     }
 
     @Override
