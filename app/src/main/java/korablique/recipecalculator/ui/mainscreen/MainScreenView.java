@@ -12,15 +12,15 @@ import korablique.recipecalculator.ui.card.NewCard;
 public interface MainScreenView {
     void showSnackbar();
     void hideSnackbar();
+    void addSnackbarFoodstuff(Foodstuff foodstuff);
+    void setOnSnackbarClickListener(OnSnackbarBasketClickListener listener);
     void showCard(Foodstuff foodstuff);
     void hideCard();
-    void setOnSnackbarClickListener(OnSnackbarBasketClickListener listener);
     void setOnNavigationItemSelectedListener(OnNavigationItemSelectedListener listener);
     void setAdapter(RecyclerView.Adapter adapter);
     void setCardDialogAddButtonClickListener(NewCard.OnAddFoodstuffButtonClickListener listener);
     void setOnSearchQueryChangeListener(OnSearchQueryChangeListener listener);
     void setSearchSuggestions(List<FoodstuffSearchSuggestion> suggestions);
-    void addSnackbarFoodstuff(Foodstuff foodstuff);
     void setOnSearchListener(OnSearchListener listener);
     void setOnActivityResultListener(OnActivityResultListener listener);
 

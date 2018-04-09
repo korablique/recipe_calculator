@@ -37,7 +37,19 @@ public class MainScreenActivity extends BaseActivity implements MainScreenView {
 
     private MainScreenPresenter presenter;
 
+    // Этот флаг нужен, чтобы приложение не крешило при показе диалога, когда тот показывается в момент,
+    // когда активити в фоне (запаузена).
+    // fragment manager не позваляет выполнять никакие операции с фрагментами, пока активити запаузена -
+    // ведь fragment manager уже сохранил состояние всех фрагментов,
+    // и ещё раз это сделать до резьюма активити невозможно (больше не вызовается Activity.onSaveInstanseState).
+    // Чтобы сохранение стейта случилось ещё раз, активити должна выйти на передний план.
+    // А когда активити в фоне, неизвестно, выйдет ли она на передний план - fm от этой неизвестности страхуется исключением.
+    // (Если не выйдет, то будет потеря состояния.)
+    // (Тут иерархичное подчинение - ОС требует от Активити сохранение стейта,
+    // Активти требует от всех своих компонентов, в т.ч. от fm,
+    // а fm требует сохранение стейта от всех своих компонентов, и т.д.)
     private boolean activitySavedInstanceStateDone;
+    // Действие, которое нужно выполнить с диалогом после savedInstanceState (показ или скрытие диалога)
     private Runnable dialogAction;
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,15 +57,13 @@ public class MainScreenActivity extends BaseActivity implements MainScreenView {
         setContentView(R.layout.activity_main_screen);
 
         snackbar = new SelectedFoodstuffsSnackbar(MainScreenActivity.this);
-
         bottomNavigationView = findViewById(R.id.navigation);
+        searchView = findViewById(R.id.floating_search_view);
 
         recyclerView = findViewById(R.id.main_screen_recycler_view);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
-
-        searchView = findViewById(R.id.floating_search_view);
-
+        
         MainScreenView mainScreenView = this;
         presenter = new MainScreenPresenter(mainScreenView, this, databaseWorker, historyWorker);
     }
