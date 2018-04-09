@@ -1,9 +1,9 @@
 package korablique.recipecalculator.ui.card;
 
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.view.Gravity;
@@ -17,10 +17,10 @@ import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.Foodstuff;
 
 import static korablique.recipecalculator.ui.mainscreen.MainScreenActivity.CLICKED_FOODSTUFF;
-import static korablique.recipecalculator.ui.mainscreen.MainScreenActivity.FOODSTUFF_CARD;
 
 
 public class CardDialog extends DialogFragment {
+    private static final String FOODSTUFF_CARD = "FOODSTUFF_CARD";
     private NewCard card;
     private NewCard.OnAddFoodstuffButtonClickListener onAddFoodstuffButtonClickListener;
 
@@ -52,11 +52,6 @@ public class CardDialog extends DialogFragment {
         return dialog1;
     }
 
-    @Override
-    public void onDismiss(DialogInterface dialog) {
-        super.onDismiss(dialog);
-    }
-
     public void setOnAddFoodstuffButtonClickListener(NewCard.OnAddFoodstuffButtonClickListener listener) {
         if (card != null) {
             card.setOnAddFoodstuffButtonClickListener(listener);
@@ -65,11 +60,26 @@ public class CardDialog extends DialogFragment {
         }
     }
 
-    public static void showCard(FragmentActivity activity, Foodstuff foodstuff) {
+    public static CardDialog showCard(FragmentActivity activity, Foodstuff foodstuff) {
         Bundle bundle = new Bundle();
         bundle.putParcelable(CLICKED_FOODSTUFF, foodstuff);
         CardDialog dialog = new CardDialog();
         dialog.setArguments(bundle);
         dialog.show(activity.getSupportFragmentManager(), FOODSTUFF_CARD);
+        return dialog;
+    }
+
+    public static void hideCard(FragmentActivity activity) {
+        CardDialog cardDialog = findCard(activity);
+        if (cardDialog != null) {
+            cardDialog.dismiss();
+        }
+    }
+
+    // Метод нужен, чтоб обрабатывать такую ситуацию:
+    // При смене конфигурации экрана (пересоздании активити) диалог уже может находиться в пересозданной активити.
+    // Если он уже существует, то ему надо задать setOnAddFoodstuffButtonClickListener
+    @Nullable public static CardDialog findCard(FragmentActivity activity) {
+        return (CardDialog) activity.getSupportFragmentManager().findFragmentByTag(FOODSTUFF_CARD);
     }
 }
