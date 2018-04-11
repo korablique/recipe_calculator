@@ -65,7 +65,8 @@ public class MainScreenActivity extends BaseActivity implements MainScreenView {
         recyclerView.setLayoutManager(layoutManager);
         
         MainScreenView mainScreenView = this;
-        presenter = new MainScreenPresenter(mainScreenView, this, databaseWorker, historyWorker);
+        MainScreenModel model = new MainScreenModelImpl(databaseWorker, historyWorker);
+        presenter = new MainScreenPresenter(mainScreenView, model, this);
     }
 
     @Override
