@@ -10,10 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import korablique.recipecalculator.R;
-import korablique.recipecalculator.database.DatabaseWorker;
-import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.model.Foodstuff;
-import korablique.recipecalculator.model.PopularProductsUtils;
 import korablique.recipecalculator.ui.card.NewCard;
 import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
 import korablique.recipecalculator.ui.history.HistoryActivity;
@@ -24,11 +21,10 @@ import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
 
 public class MainScreenPresenter {
     private static final int SEARCH_SUGGESTIONS_NUMBER = 3;
+    private static final int TOP_LIMIT = 5;
     private final MainScreenView view;
     private final Context context;
-    private final DatabaseWorker databaseWorker;
-    private final HistoryWorker historyWorker;
-
+    private final MainScreenModel model;
     private AdapterParent adapterParent;
     private FoodstuffsAdapterChild foodstuffAdapterChild;
     private List<Foodstuff> top;
@@ -36,11 +32,10 @@ public class MainScreenPresenter {
 
     private FoodstuffsAdapterChild.ClickObserver clickObserver;
 
-    public MainScreenPresenter(MainScreenView view, Activity context, DatabaseWorker databaseWorker, HistoryWorker historyWorker) {
+    public MainScreenPresenter(MainScreenView view, MainScreenModel model, Activity context) {
         this.view = view;
+        this.model = model;
         this.context = context;
-        this.databaseWorker = databaseWorker;
-        this.historyWorker = historyWorker;
 
         clickObserver = (foodstuff, displayedPosition) -> {
             view.showCard(foodstuff);
@@ -83,10 +78,8 @@ public class MainScreenPresenter {
         view.setOnSearchQueryChangeListener(new MainScreenView.OnSearchQueryChangeListener() {
             @Override
             public void onSearchQueryChange(String newQuery) {
-                // model - БД, presenter - взаимодействия с view (searchView.swapSuggestions(newSuggestions);)
                 //get suggestions based on newQuery
-
-                databaseWorker.requestFoodstuffsLike(
+                model.requestFoodstuffsLike(
                         context, newQuery, SEARCH_SUGGESTIONS_NUMBER, foodstuffs -> {
                             //pass them on to the search view
                             List<FoodstuffSearchSuggestion> newSuggestions = new ArrayList<>();
@@ -120,33 +113,13 @@ public class MainScreenPresenter {
             }
         });
 
-        // Сначала делаем запросы в БД, в коллбеках сохраняем результаты,
-        // а затем уже добавляем в адаптеры элементы.
-        // Это нужно для того, чтобы элементы на экране загружались все сразу
+        model.requestTopFoodstuffs(context, TOP_LIMIT, (foodstuffs) -> {
+            top = new ArrayList<>();
+            top.addAll(foodstuffs);
+            attemptToAddElementsToAdapters();
+        });
 
-        // model (взаимодействие с адаптерами - presenter)
-        // получаем топ продуктов
-        List<Long> foodstuffsIds = new ArrayList<>(); // это айдишники всех продуктов за период
-        historyWorker.requestFoodstuffsIdsFromHistoryForPeriod(
-                0,
-                Long.MAX_VALUE,
-                (ids) -> {
-                    foodstuffsIds.addAll(ids);
-                    List<PopularProductsUtils.FoodstuffFrequency> topList = PopularProductsUtils.getTop(foodstuffsIds); // это топ из них
-                    List<Long> topFoodstuffIds = new ArrayList<>(); // это айдишники топа
-                    for (int index = 0; index < topList.size() && index < 5; ++index) {
-                        topFoodstuffIds.add(topList.get(index).getFoodstuffId());
-                    }
-                    databaseWorker.requestFoodstuffsByIds(context, topFoodstuffIds, (foodstuffs) -> {
-                        top = new ArrayList<>();
-                        top.addAll(foodstuffs);
-                        attemptToAddElementsToAdapters();
-                    });
-                });
-
-        // получаем все продукты
-        int batchSize = 100;
-        databaseWorker.requestListedFoodstuffsFromDb(context, batchSize, (foodstuffs) -> {
+        model.requestAllFoodstuffs(context, (foodstuffs) -> {
             if (all == null) {
                 all = new ArrayList<>();
             }
