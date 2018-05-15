@@ -24,9 +24,7 @@ import korablique.recipecalculator.ui.card.NewCard;
 public class MainScreenActivity extends BaseActivity implements MainScreenView {
     public static final String CLICKED_FOODSTUFF = "CLICKED_FOODSTUFF";
     @Inject
-    DatabaseWorker databaseWorker;
-    @Inject
-    HistoryWorker historyWorker;
+    MainScreenPresenter presenter;
 
     private SelectedFoodstuffsSnackbar snackbar;
     private BottomNavigationView bottomNavigationView;
@@ -34,8 +32,6 @@ public class MainScreenActivity extends BaseActivity implements MainScreenView {
     private FloatingSearchView searchView;
     private NewCard.OnAddFoodstuffButtonClickListener cardDialogListener;
     private OnActivityResultListener onActivityResultListener;
-
-    private MainScreenPresenter presenter;
 
     // Этот флаг нужен, чтобы приложение не крешило при показе диалога, когда тот показывается в момент,
     // когда активити в фоне (запаузена).
@@ -63,10 +59,8 @@ public class MainScreenActivity extends BaseActivity implements MainScreenView {
         recyclerView = findViewById(R.id.main_screen_recycler_view);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
-        
-        MainScreenView mainScreenView = this;
-        MainScreenModel model = new MainScreenModelImpl(databaseWorker, historyWorker);
-        presenter = new MainScreenPresenter(mainScreenView, model, this);
+
+        presenter.onActivityCreate();
     }
 
     @Override

@@ -9,9 +9,13 @@ import dagger.Component;
 import dagger.android.AndroidInjectionModule;
 import dagger.android.AndroidInjector;
 import korablique.recipecalculator.BroccalcApplication;
+import korablique.recipecalculator.ui.mainscreen.MainScreenModule;
 
 @Singleton
-@Component(modules = { AndroidInjectionModule.class, BroccalcApplicationModule.class})
+@Component(modules = {
+        AndroidInjectionModule.class,
+        BroccalcApplicationModule.class,
+        MainScreenModule.class })
 public interface BroccalcApplicationComponent extends AndroidInjector<BroccalcApplication> {
     @Component.Builder
     interface Builder {
