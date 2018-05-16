@@ -1,7 +1,7 @@
 package korablique.recipecalculator.ui.mainscreen;
 
 
-import android.content.Intent;
+import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 
 import java.util.List;
@@ -10,6 +10,10 @@ import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.ui.card.NewCard;
 
 public interface MainScreenView {
+    void initActivity();
+    void saveState(Bundle outState);
+    void restoreState(Bundle savedState);
+    void onUIShown();
     void showSnackbar();
     void hideSnackbar();
     void addSnackbarFoodstuff(Foodstuff foodstuff);
@@ -22,7 +26,6 @@ public interface MainScreenView {
     void setOnSearchQueryChangeListener(OnSearchQueryChangeListener listener);
     void setSearchSuggestions(List<FoodstuffSearchSuggestion> suggestions);
     void setOnSearchListener(OnSearchListener listener);
-    void setOnActivityResultListener(OnActivityResultListener listener);
 
     interface OnSnackbarBasketClickListener {
         void onClick(List<Foodstuff> selectedFoodstuffs);
@@ -39,10 +42,6 @@ public interface MainScreenView {
     interface OnSearchListener {
         void onSuggestionClicked(FoodstuffSearchSuggestion suggestion);
         void onSearchAction(String query);
-    }
-
-    interface OnActivityResultListener {
-        void onActivityResult(int requestCode, int resultCode, Intent data);
     }
 
     enum NavigationItem {
