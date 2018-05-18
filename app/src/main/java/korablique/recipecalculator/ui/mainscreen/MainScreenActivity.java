@@ -12,14 +12,11 @@ import korablique.recipecalculator.database.HistoryWorker;
 public class MainScreenActivity extends BaseActivity {
     public static final String CLICKED_FOODSTUFF = "CLICKED_FOODSTUFF";
     @Inject
-    DatabaseWorker databaseWorker;
-    @Inject
-    HistoryWorker historyWorker;
-    private MainScreenPresenter presenter;
+    MainScreenPresenter presenter;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+      
         MainScreenView view = new MainScreenViewImpl(this);
         MainScreenModel model = new MainScreenModelImpl(databaseWorker, historyWorker);
         presenter = new MainScreenPresenterImpl(view, model, this);

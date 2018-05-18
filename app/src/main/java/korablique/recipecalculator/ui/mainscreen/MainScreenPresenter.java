@@ -1,6 +1,5 @@
 package korablique.recipecalculator.ui.mainscreen;
 
-
 import android.content.Intent;
 import android.os.Bundle;
 

@@ -1,6 +1,5 @@
 package korablique.recipecalculator.ui.mainscreen;
 
-
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -167,5 +166,25 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
                 view.showCard(foodstuff);
             }
         }
+    }
+
+    private void attemptToAddElementsToAdapters() {
+        if (top == null || all == null) {
+            return;
+        }
+        if (!top.isEmpty()) {
+            FoodstuffsAdapterChild topAdapterChild = new FoodstuffsAdapterChild(
+                    context, clickObserver, R.layout.top_foodstuffs_header);
+            adapterParent.addChild(topAdapterChild);
+            topAdapterChild.addItems(top);
+        }
+        // если топ пустой, то топ-адаптер не нужно создавать, чтобы не было заголовка
+
+        if (foodstuffAdapterChild == null) {
+            foodstuffAdapterChild = new FoodstuffsAdapterChild(
+                    context, clickObserver, R.layout.all_foodstuffs_header);
+            adapterParent.addChild(foodstuffAdapterChild);
+        }
+        foodstuffAdapterChild.addItems(all);
     }
 }
