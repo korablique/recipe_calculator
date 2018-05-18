@@ -8,5 +8,6 @@ public interface MainScreenPresenter {
     void onActivitySaveState(Bundle outState);
     void onActivityRestoreState(Bundle savedInstanceState);
     void onActivityResume();
+    void onActivityPause();
     void onActivityResult(int requestCode, int resultCode, Intent data);
 }

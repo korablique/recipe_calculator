@@ -23,6 +23,6 @@ public class MainScreenModule {
     @ActivityScope
     @Provides
     MainScreenView provideView(MainScreenActivity activity) {
-        return activity;
+        return new MainScreenViewImpl(activity);
     }
 }

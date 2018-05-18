@@ -35,7 +35,7 @@ public class MainScreenViewImpl implements MainScreenView {
     // (Тут иерархичное подчинение - ОС требует от Активити сохранение стейта,
     // Активти требует от всех своих компонентов, в т.ч. от fm,
     // а fm требует сохранение стейта от всех своих компонентов, и т.д.)
-    private boolean activitySavedInstanceStateDone;
+    private boolean isUiHidden;
     // Действие, которое нужно выполнить с диалогом после savedInstanceState (показ или скрытие диалога)
     private Runnable dialogAction;
 
@@ -59,7 +59,6 @@ public class MainScreenViewImpl implements MainScreenView {
     @Override
     public void saveState(Bundle outState) {
         snackbar.onSaveInstanceState(outState);
-        activitySavedInstanceStateDone = true;
     }
 
     @Override
@@ -69,10 +68,15 @@ public class MainScreenViewImpl implements MainScreenView {
 
     @Override
     public void onUIShown() {
-        activitySavedInstanceStateDone = false;
+        isUiHidden = false;
         if (dialogAction != null) {
             dialogAction.run();
         }
+    }
+
+    @Override
+    public void onUiHidden() {
+        isUiHidden = true;
     }
 
     @Override
@@ -102,7 +106,7 @@ public class MainScreenViewImpl implements MainScreenView {
             cardDialog.setOnAddFoodstuffButtonClickListener(cardDialogListener);
             dialogAction = null;
         };
-        if (!activitySavedInstanceStateDone) {
+        if (!isUiHidden) {
             dialogAction.run();
         }
     }
@@ -113,7 +117,7 @@ public class MainScreenViewImpl implements MainScreenView {
             CardDialog.hideCard(activity);
             dialogAction = null;
         };
-        if (!activitySavedInstanceStateDone) {
+        if (!isUiHidden) {
             dialogAction.run();
         }
     }

@@ -14,6 +14,7 @@ public interface MainScreenView {
     void saveState(Bundle outState);
     void restoreState(Bundle savedState);
     void onUIShown();
+    void onUiHidden();
     void showSnackbar();
     void hideSnackbar();
     void addSnackbarFoodstuff(Foodstuff foodstuff);

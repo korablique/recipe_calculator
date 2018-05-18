@@ -37,26 +37,6 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
         this.context = context;
     }
 
-    private void attemptToAddElementsToAdapters() {
-        if (top == null || all == null) {
-            return;
-        }
-        if (!top.isEmpty()) {
-            FoodstuffsAdapterChild topAdapterChild = new FoodstuffsAdapterChild(
-                    context, clickObserver, R.layout.top_foodstuffs_header);
-            adapterParent.addChild(topAdapterChild);
-            topAdapterChild.addItems(top);
-        }
-        // если топ пустой, то топ-адаптер не нужно создавать, чтобы не было заголовка
-
-        if (foodstuffAdapterChild == null) {
-            foodstuffAdapterChild = new FoodstuffsAdapterChild(
-                    context, clickObserver, R.layout.all_foodstuffs_header);
-            adapterParent.addChild(foodstuffAdapterChild);
-        }
-        foodstuffAdapterChild.addItems(all);
-    }
-
     @Override
     public void onActivityCreate() {
         view.initActivity();
@@ -156,6 +136,11 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
     @Override
     public void onActivityResume() {
         view.onUIShown();
+    }
+
+    @Override
+    public void onActivityPause() {
+        view.onUiHidden();
     }
 
     @Override
