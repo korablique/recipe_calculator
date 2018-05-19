@@ -2,6 +2,7 @@ package korablique.recipecalculator.ui.mainscreen;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Bundle;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -34,14 +35,16 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
         this.view = view;
         this.model = model;
         this.context = context;
-        this.adapterParent = new AdapterParent();
-        this.clickObserver = (foodstuff, displayedPosition) -> {
-            view.showCard(foodstuff);
-        };
     }
 
     @Override
     public void onActivityCreate() {
+        view.initActivity();
+
+        clickObserver = (foodstuff, displayedPosition) -> {
+            view.showCard(foodstuff);
+        };
+
         view.setOnSnackbarClickListener(new MainScreenView.OnSnackbarBasketClickListener() {
             @Override
             public void onClick(List<Foodstuff> selectedFoodstuffs) {
@@ -64,6 +67,7 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
             }
         });
 
+        adapterParent = new AdapterParent();
         view.setAdapter(adapterParent);
 
         view.setCardDialogAddButtonClickListener(new NewCard.OnAddFoodstuffButtonClickListener() {
@@ -104,15 +108,6 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
             }
         });
 
-        view.setOnActivityResultListener((requestCode, resultCode, data) -> {
-            if (requestCode == FIND_FOODSTUFF_REQUEST) {
-                if (resultCode == RESULT_OK) {
-                    Foodstuff foodstuff = data.getParcelableExtra(SEARCH_RESULT);
-                    view.showCard(foodstuff);
-                }
-            }
-        });
-
         model.requestTopFoodstuffs(context, TOP_LIMIT, (foodstuffs) -> {
             top = new ArrayList<>();
             top.addAll(foodstuffs);
@@ -126,6 +121,36 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
             all.addAll(foodstuffs);
             attemptToAddElementsToAdapters();
         });
+    }
+
+    @Override
+    public void onActivitySaveState(Bundle outState) {
+        view.saveState(outState);
+    }
+
+    @Override
+    public void onActivityRestoreState(Bundle savedInstanceState) {
+        view.restoreState(savedInstanceState);
+    }
+
+    @Override
+    public void onActivityResume() {
+        view.onUIShown();
+    }
+
+    @Override
+    public void onActivityPause() {
+        view.onUiHidden();
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == FIND_FOODSTUFF_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                Foodstuff foodstuff = data.getParcelableExtra(SEARCH_RESULT);
+                view.showCard(foodstuff);
+            }
+        }
     }
 
     private void attemptToAddElementsToAdapters() {
@@ -147,5 +172,4 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
         }
         foodstuffAdapterChild.addItems(all);
     }
-
 }
