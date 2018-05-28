@@ -71,7 +71,7 @@
 
         <!--прогресс-бар-->
         <include
-            layout="@layout/card_progressbar"
+            layout="@layout/nutrition_progress"
             android:id="@+id/nutrition_progress_bar"
             android:layout_width="match_parent"
             android:layout_height="10dp"
@@ -147,7 +147,7 @@
             android:layout_marginLeft="15dp"
             android:layout_marginRight="15dp"
             android:layout_marginBottom="15dp"
-            style="@style/CardButton"
+            style="@style/VioletButton"
             android:text="@string/add_foodstuff"/>
     </LinearLayout>
 </LinearLayout>
