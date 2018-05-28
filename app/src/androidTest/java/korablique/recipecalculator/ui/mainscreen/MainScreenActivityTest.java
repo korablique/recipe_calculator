@@ -41,14 +41,19 @@ public class MainScreenActivityTest {
     private DatabaseWorker databaseWorker =
             new DatabaseWorker(new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
     private HistoryWorker historyWorker;
+    private MainScreenPresenter presenter;
+    private MainScreenModel model;
+    private MainScreenView view;
     private Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
     @Rule
     public ActivityTestRule<MainScreenActivity> mActivityRule =
             InjectableActivityTestRule.forActivity(MainScreenActivity.class)
                     .withInjector((MainScreenActivity activity) -> {
-                        activity.databaseWorker = databaseWorker;
-                        activity.historyWorker = historyWorker;
+                        model = new MainScreenModelImpl(databaseWorker, historyWorker);
+                        view = new MainScreenViewImpl(activity);
+                        presenter = new MainScreenPresenterImpl(view, model, activity);
+                        activity.presenter = presenter;
                     })
                     .withManualStart()
                     .build();
