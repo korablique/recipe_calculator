@@ -13,6 +13,9 @@ import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.ui.card.NewCard;
 import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
 import korablique.recipecalculator.ui.history.HistoryActivity;
+import korablique.recipecalculator.ui.nestingadapters.AdapterParent;
+import korablique.recipecalculator.ui.nestingadapters.FoodstuffsAdapterChild;
+import korablique.recipecalculator.ui.nestingadapters.SingleItemAdapterChild;
 
 import static android.app.Activity.RESULT_OK;
 import static korablique.recipecalculator.IntentConstants.FIND_FOODSTUFF_REQUEST;
@@ -158,16 +161,18 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
             return;
         }
         if (!top.isEmpty()) {
-            FoodstuffsAdapterChild topAdapterChild = new FoodstuffsAdapterChild(
-                    context, clickObserver, R.layout.top_foodstuffs_header);
+            FoodstuffsAdapterChild topAdapterChild = new FoodstuffsAdapterChild(context, clickObserver);
+            SingleItemAdapterChild topTitle = new SingleItemAdapterChild(R.layout.top_foodstuffs_header);
+            adapterParent.addChild(topTitle);
             adapterParent.addChild(topAdapterChild);
             topAdapterChild.addItems(top);
         }
         // если топ пустой, то топ-адаптер не нужно создавать, чтобы не было заголовка
 
         if (foodstuffAdapterChild == null) {
-            foodstuffAdapterChild = new FoodstuffsAdapterChild(
-                    context, clickObserver, R.layout.all_foodstuffs_header);
+            SingleItemAdapterChild foodstuffsTitle = new SingleItemAdapterChild(R.layout.all_foodstuffs_header);
+            foodstuffAdapterChild = new FoodstuffsAdapterChild(context, clickObserver);
+            adapterParent.addChild(foodstuffsTitle);
             adapterParent.addChild(foodstuffAdapterChild);
         }
         foodstuffAdapterChild.addItems(all);
