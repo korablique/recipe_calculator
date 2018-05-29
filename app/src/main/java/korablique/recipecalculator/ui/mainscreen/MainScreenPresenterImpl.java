@@ -3,13 +3,13 @@ package korablique.recipecalculator.ui.mainscreen;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.card.NewCard;
 import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
 import korablique.recipecalculator.ui.history.HistoryActivity;
@@ -51,12 +51,7 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
         view.setOnSnackbarClickListener(new MainScreenView.OnSnackbarBasketClickListener() {
             @Override
             public void onClick(List<Foodstuff> selectedFoodstuffs) {
-                StringBuilder selectedFoodstuffsStringBuilder = new StringBuilder();
-                for (Foodstuff selectedFoodstuff : selectedFoodstuffs) {
-                    selectedFoodstuffsStringBuilder.append(selectedFoodstuff.getName());
-                    selectedFoodstuffsStringBuilder.append(", ");
-                }
-                Toast.makeText(context, "selected products: " + selectedFoodstuffsStringBuilder, Toast.LENGTH_LONG).show();
+                BucketListActivity.start(new ArrayList<>(selectedFoodstuffs), context);
             }
         });
 

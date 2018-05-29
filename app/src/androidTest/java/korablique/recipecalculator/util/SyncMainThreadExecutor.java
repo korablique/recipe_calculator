@@ -19,4 +19,9 @@ public class SyncMainThreadExecutor extends MainThreadExecutor {
         }
         InstrumentationRegistry.getInstrumentation().runOnMainSync(runnable);
     }
+
+    @Override
+    public void executeDelayed(long delayMillis, Runnable runnable) {
+        execute(runnable);
+    }
 }

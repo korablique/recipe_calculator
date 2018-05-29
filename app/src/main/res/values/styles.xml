@@ -42,6 +42,11 @@
         <item name="android:textColor">#FFFFFFFF</item>
     </style>
 
+    <style name="VioletLiningButton" parent="BroccalcButton">
+        <item name="android:background">@drawable/violet_lining_button_background</item>
+        <item name="android:textColor">@color/colorAccent</item>
+    </style>
+
     <style name="MainScreenSnackbarTextStyle" parent="@style/TextAppearance.AppCompat">
         <item name="android:fontFamily">Roboto Mono</item>
         <item name="android:textColor">#FFFFFFFF</item>

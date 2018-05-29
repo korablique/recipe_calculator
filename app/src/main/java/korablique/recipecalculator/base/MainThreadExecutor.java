@@ -10,4 +10,8 @@ public class MainThreadExecutor {
     public void execute(Runnable runnable) {
         handler.post(runnable);
     }
+
+    public void executeDelayed(long delayMillis, Runnable runnable) {
+        handler.postDelayed(runnable, delayMillis);
+    }
 }

@@ -27,6 +27,7 @@ public class NewCard {
         void onClick(Foodstuff foodstuff);
     }
     private ViewGroup cardLayout;
+    private Long foodstuffId;
     private EditText weightEditText;
     private TextView nameTextView;
 
@@ -41,6 +42,7 @@ public class NewCard {
     }
 
     public void setFoodstuff(Foodstuff foodstuff) {
+        foodstuffId = foodstuff.getId();
         nameTextView.setText(foodstuff.getName());
         nutritionWrapper.setNutrition(Nutrition.of100gramsOf(foodstuff));
     }
@@ -53,6 +55,7 @@ public class NewCard {
         Button addFoodstuffButton = cardLayout.findViewById(R.id.add_foodstuff_button);
         addFoodstuffButton.setOnClickListener(v -> {
             Foodstuff clickedFoodstuff = new Foodstuff(
+                    foodstuffId,
                     nameTextView.getText().toString(),
                     Double.valueOf(weightEditText.getText().toString()),
                     nutritionWrapper.getProteinValue(),
