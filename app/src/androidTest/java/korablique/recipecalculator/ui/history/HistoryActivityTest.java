@@ -2,6 +2,7 @@ package korablique.recipecalculator.ui.history;
 
 import android.app.Instrumentation;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.matcher.ViewMatchers;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.base.MainThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
@@ -26,6 +28,7 @@ import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.ui.Card;
+import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.util.DbUtil;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
@@ -44,13 +47,15 @@ import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.
 import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertNotContains;
 import static korablique.recipecalculator.database.HistoryContract.HISTORY_TABLE_NAME;
 import static korablique.recipecalculator.database.HistoryWorker.BATCH_SIZE;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class HistoryActivityTest {
+    private MainThreadExecutor mainThreadExecutor = new SyncMainThreadExecutor();
     private DatabaseWorker databaseWorker =
-            new DatabaseWorker(new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
+            new DatabaseWorker(mainThreadExecutor, new InstantDatabaseThreadExecutor());
     private HistoryWorker historyWorker;
     private UserParametersWorker userParametersWorker;
 
@@ -61,6 +66,7 @@ public class HistoryActivityTest {
                     activity.databaseWorker = databaseWorker;
                     activity.historyWorker = historyWorker;
                     activity.userParametersWorker = userParametersWorker;
+                    activity.mainThreadExecutor = mainThreadExecutor;
                 })
                 .withManualStart() // Нужно предотвратить старт UserGoalActivity.
                 .build();
@@ -87,8 +93,6 @@ public class HistoryActivityTest {
         UserParameters userParameters = new UserParameters(
                 goal, gender, age, height, weight, coefficient, defaultFormula);
         userParametersWorker.saveUserParameters(context, userParameters, null);
-
-        mActivityRule.launchActivity(null);
     }
 
     @After
@@ -107,6 +111,8 @@ public class HistoryActivityTest {
 
     @Test
     public void canUpdateFoodstuffWeight() {
+        mActivityRule.launchActivity(null);
+
         addItem();
         onView(withId(R.id.recycler_view)).perform(actionOnItemAtPosition(1, click()));
         onView(withId(R.id.weight_edit_text)).perform(replaceText("100"));
@@ -125,6 +131,8 @@ public class HistoryActivityTest {
 
     @Test
     public void nutritionAndNameModificationWorksAfterActivityRestart() {
+        mActivityRule.launchActivity(null);
+
         addItem();
         onView(withId(R.id.recycler_view)).perform(actionOnItemAtPosition(1, click()));
 
@@ -153,6 +161,8 @@ public class HistoryActivityTest {
 
     @Test
     public void canModifyNutritionAndName() {
+        mActivityRule.launchActivity(null);
+
         addItem();
         onView(withId(R.id.recycler_view)).perform(actionOnItemAtPosition(1, click()));
 
@@ -173,6 +183,8 @@ public class HistoryActivityTest {
 
     @Test
     public void saveButtonInvisibleOnEditingFoodstuff() {
+        mActivityRule.launchActivity(null);
+
         addItem();
         onView(withId(R.id.recycler_view)).perform(actionOnItemAtPosition(1, click()));
         onView(withId(R.id.button_save)).check(matches(not(isDisplayed())));
@@ -180,6 +192,8 @@ public class HistoryActivityTest {
 
     @Test
     public void batchesAddedToBottom() {
+        mActivityRule.launchActivity(null);
+
         Foodstuff[] foodstuffs = new Foodstuff[BATCH_SIZE + 1];
         for (int index = 0; index < foodstuffs.length; index++) {
             foodstuffs[index] = new Foodstuff("foodstuff" + index, -1, 5, 5, 5, 5);
@@ -207,6 +221,8 @@ public class HistoryActivityTest {
 
     @Test
     public void historyFoodstuffsOrderIsDescending() {
+        mActivityRule.launchActivity(null);
+
         // добавить батч продуктов с интервалом в минуту
         Foodstuff[] foodstuffs = new Foodstuff[BATCH_SIZE + 1];
         for (int index = 0; index < foodstuffs.length; index++) {
@@ -230,6 +246,22 @@ public class HistoryActivityTest {
         instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
 
         assertContains("foodstuff" + BATCH_SIZE);
+    }
+
+    @Test
+    public void containsGivenFoodstuffs() {
+        ArrayList<Foodstuff> foodstuffs = new ArrayList<>();
+        foodstuffs.add(new Foodstuff("apple", 123, 1, 2, 3, 4));
+        foodstuffs.add(new Foodstuff("water", 123, 1, 2, 3, 4));
+        foodstuffs.add(new Foodstuff("beer", 123, 1, 2, 3, 4));
+
+        Intent startIntent =
+                HistoryActivity.createStartAndAddIntent(foodstuffs, InstrumentationRegistry.getTargetContext());
+        mActivityRule.launchActivity(startIntent);
+
+        onView(withText(containsString("apple"))).check(matches(isDisplayed()));
+        onView(withText(containsString("water"))).check(matches(isDisplayed()));
+        onView(withText(containsString("beer"))).check(matches(isDisplayed()));
     }
 
     private void addItem() {
