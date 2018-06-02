@@ -19,7 +19,7 @@ import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.ui.card.NewCard;
 
-public class NutritionProgressWithNumbersWrapper {
+public class NutritionProgressWithValuesWrapper {
     private static final int PROGRESSBAR_CORNERS_RADIUS = 4;
     private ViewGroup layout;
     private Context context;
@@ -38,14 +38,14 @@ public class NutritionProgressWithNumbersWrapper {
         }
     }
 
-    public NutritionProgressWithNumbersWrapper(Context context, ViewGroup layout) {
+    public NutritionProgressWithValuesWrapper(Context context, ViewGroup layout) {
         this.layout = layout;
         this.context = context;
 
-        proteinTextView = this.layout.findViewById(R.id.protein_layout).findViewById(R.id.nutrition_text_view);
-        fatsTextView = this.layout.findViewById(R.id.fats_layout).findViewById(R.id.nutrition_text_view);
-        carbsTextView = this.layout.findViewById(R.id.carbs_layout).findViewById(R.id.nutrition_text_view);
-        caloriesTextView = this.layout.findViewById(R.id.calories_layout).findViewById(R.id.nutrition_text_view);
+        proteinTextView = layout.findViewById(R.id.protein_layout).findViewById(R.id.nutrition_text_view);
+        fatsTextView = layout.findViewById(R.id.fats_layout).findViewById(R.id.nutrition_text_view);
+        carbsTextView = layout.findViewById(R.id.carbs_layout).findViewById(R.id.nutrition_text_view);
+        caloriesTextView = layout.findViewById(R.id.calories_layout).findViewById(R.id.nutrition_text_view);
 
         setNutritionTable(R.id.protein_layout, R.string.protein, R.drawable.new_card_protein_icon);
         setNutritionTable(R.id.fats_layout, R.string.fats, R.drawable.new_card_fats_icon);

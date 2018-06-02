@@ -70,8 +70,8 @@
         </LinearLayout>
 
         <include
-            android:id="@+id/nutrition_progress_with_numbers"
-            layout="@layout/nutrition_progress_with_numbers"
+            android:id="@+id/nutrition_progress_with_values"
+            layout="@layout/nutrition_progress_with_values"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="15dp"

@@ -14,14 +14,14 @@ import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
-import korablique.recipecalculator.ui.NutritionProgressWithNumbersWrapper;
+import korablique.recipecalculator.ui.NutritionProgressWithValuesWrapper;
 import korablique.recipecalculator.ui.history.HistoryActivity;
 import korablique.recipecalculator.ui.nestingadapters.AdapterParent;
 import korablique.recipecalculator.ui.nestingadapters.FoodstuffsAdapterChild;
 
 public class BucketListActivity extends BaseActivity {
     private static final String EXTRA_FOODSTUFFS_LIST = "EXTRA_FOODSTUFFS_LIST";
-    private NutritionProgressWithNumbersWrapper nutritionWrapper;
+    private NutritionProgressWithValuesWrapper nutritionWrapper;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -29,7 +29,7 @@ public class BucketListActivity extends BaseActivity {
         setContentView(R.layout.activity_bucket_list);
 
         nutritionWrapper =
-                new NutritionProgressWithNumbersWrapper(this, findViewById(R.id.nutrition_progress_with_numbers));
+                new NutritionProgressWithValuesWrapper(this, findViewById(R.id.nutrition_progress_with_values));
 
         List<Foodstuff> foodstuffs = getIntent().getParcelableArrayListExtra(EXTRA_FOODSTUFFS_LIST);
         if (foodstuffs == null) {

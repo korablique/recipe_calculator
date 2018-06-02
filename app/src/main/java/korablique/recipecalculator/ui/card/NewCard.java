@@ -2,25 +2,16 @@ package korablique.recipecalculator.ui.card;
 
 
 import android.content.Context;
-import android.content.res.Resources;
-import android.graphics.drawable.GradientDrawable;
-import android.support.annotation.DrawableRes;
-import android.support.annotation.IdRes;
-import android.support.annotation.StringRes;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import korablique.recipecalculator.FloatUtils;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
-import korablique.recipecalculator.ui.NutritionProgressWithNumbersWrapper;
+import korablique.recipecalculator.ui.NutritionProgressWithValuesWrapper;
 
 public class NewCard {
     public interface OnAddFoodstuffButtonClickListener {
@@ -31,14 +22,14 @@ public class NewCard {
     private EditText weightEditText;
     private TextView nameTextView;
 
-    private NutritionProgressWithNumbersWrapper nutritionWrapper;
+    private NutritionProgressWithValuesWrapper nutritionWrapper;
 
     public NewCard(Context context, ViewGroup parent) {
         cardLayout = (ViewGroup) LayoutInflater.from(context).inflate(R.layout.new_card_layout, parent);
         weightEditText = cardLayout.findViewById(R.id.weight_edit_text);
         nameTextView = cardLayout.findViewById(R.id.foodstuff_name_text_view);
-        nutritionWrapper = new NutritionProgressWithNumbersWrapper(
-                context, cardLayout.findViewById(R.id.nutrition_progress_with_numbers));
+        nutritionWrapper = new NutritionProgressWithValuesWrapper(
+                context, cardLayout.findViewById(R.id.nutrition_progress_with_values));
     }
 
     public void setFoodstuff(Foodstuff foodstuff) {

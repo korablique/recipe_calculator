@@ -140,9 +140,9 @@ public class MainScreenActivityTest {
         // фудстафов в топе не менялась, менее 3 её делать не стоит.
         for (int index = 0; index < 2; ++index) {
             Foodstuff foodstuff = topFoodstuffs.get(index);
-            Foodstuff foodstuffBellow = topFoodstuffs.get(index + 1);
+            Foodstuff foodstuffBelow = topFoodstuffs.get(index + 1);
 
-            // NOTE: у оба Фудстафа мы фильтруем проверкой "completely above all_foodstuffs_header"
+            // NOTE: оба Фудстафа мы фильтруем проверкой "completely above all_foodstuffs_header"
             // Это нужно из-за того, что одни и те же Фудстафы могут присутствовать в двух списках -
             // в топе Фудстафов и в списке всех Фудстафов. Когда Эспрессо просят найти вьюшку,
             // и под параметры поиска подпадают сразу несколько вьюшек, Эспрессо моментально паникует
@@ -154,12 +154,13 @@ public class MainScreenActivityTest {
                     withText(foodstuff.getName()),
                     matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header))));
 
-            Matcher<View> foodstuffBellowMatcher = allOf(
-                    withText(foodstuffBellow.getName()),
+            Matcher<View> foodstuffBelowMatcher = allOf(
+                    withText(foodstuffBelow.getName()),
                     matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header))),
                     matches(isCompletelyBelow(foodstuffMatcher)));
 
-            onView(foodstuffBellowMatcher).check(matches(isDisplayed()));
+            onView(foodstuffMatcher).check(matches(isDisplayed()));
+            onView(foodstuffBelowMatcher).check(matches(isDisplayed()));
         }
     }
 

@@ -250,6 +250,8 @@ public class HistoryActivityTest {
 
     @Test
     public void containsGivenFoodstuffs() {
+        // Проверяем, что если запустить HistoryActivity с интентом на добавление продуктов,
+        // HistoryActivity после открытия будет содержать в себе эти добавленные продукты.
         ArrayList<Foodstuff> foodstuffs = new ArrayList<>();
         foodstuffs.add(new Foodstuff("apple", 123, 1, 2, 3, 4));
         foodstuffs.add(new Foodstuff("water", 123, 1, 2, 3, 4));

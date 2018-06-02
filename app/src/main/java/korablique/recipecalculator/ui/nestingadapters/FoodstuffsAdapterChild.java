@@ -19,7 +19,6 @@ public class FoodstuffsAdapterChild extends AdapterChild {
     public interface ClickObserver {
         void onItemClicked(Foodstuff foodstuff, int displayedPosition);
     }
-    public static final int VIEW_TYPE_FOODSTUFF = 0;
     private List<Foodstuff> foodstuffs = new ArrayList<>();
     private Context context;
     private ClickObserver clickObserver;
@@ -32,13 +31,9 @@ public class FoodstuffsAdapterChild extends AdapterChild {
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        if (viewType == VIEW_TYPE_FOODSTUFF) {
-            ViewGroup foodstuffView = (ViewGroup) LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.new_foodstuff_layout, parent, false);
-            return new MyViewHolder(foodstuffView);
-        } else {
-            throw new IllegalArgumentException("No such view type: " + viewType);
-        }
+        ViewGroup foodstuffView = (ViewGroup) LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.new_foodstuff_layout, parent, false);
+        return new MyViewHolder(foodstuffView);
     }
 
     @Override
@@ -61,13 +56,13 @@ public class FoodstuffsAdapterChild extends AdapterChild {
 
     @Override
     public int getItemViewType(int childPosition) {
-        return VIEW_TYPE_FOODSTUFF;
+        return 0;
     }
 
     public void addItems(List<Foodstuff> items) {
         int allFoodstuffsSizeBefore = foodstuffs.size();
         foodstuffs.addAll(items);
-        for (int index = 0; index <= items.size(); index++) {
+        for (int index = 0; index < items.size(); index++) {
             for (Observer observer : getObservers()) {
                 observer.notifyItemInsertedToChild(allFoodstuffsSizeBefore + index, this);
             }

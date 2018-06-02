@@ -47,6 +47,11 @@ import static korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActi
 
 public class HistoryActivity extends BaseActivity {
     private static final String ACTION_ADD_FOODSTUFFS = "ACTION_ADD_FOODSTUFFS";
+    /**
+     * При открытии HistoryActivity с одновременным добавлением в неё продуктов, нужно чтобы
+     * продукты добавились не сразу, а с небольшой задержкой, чтобы юзер мог визуально увидеть
+     * добавление этих новых продуктов.
+     */
     private static final long DELAY_OF_ACTION_ADD_FOODSTUFFS = 1000;
     private static final String EXTRA_FOODSTUFFS = "EXTRA_FOODSTUFFS";
 
