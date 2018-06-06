@@ -11,10 +11,10 @@ import dagger.android.AndroidInjector;
 import dagger.android.DispatchingAndroidInjector;
 import dagger.android.HasActivityInjector;
 import io.fabric.sdk.android.Fabric;
-
 import korablique.recipecalculator.dagger.DaggerBroccalcApplicationComponent;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
+import korablique.recipecalculator.ui.notifications.FoodReminderComponent;
 
 public class BroccalcApplication extends Application implements HasActivityInjector {
     @Inject
@@ -36,6 +36,8 @@ public class BroccalcApplication extends Application implements HasActivityInjec
 
         historyWorker.initCache();
         userParametersWorker.initCache();
+
+        new FoodReminderComponent(this).scheduleNotification();
     }
 
     @Override
