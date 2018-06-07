@@ -90,6 +90,7 @@ public class UserGoalActivity extends BaseActivity {
                                     public void run() {
                                         Intent intent = new Intent(UserGoalActivity.this, HistoryActivity.class);
                                         startActivity(intent);
+                                        finish();
                                     }
                                 });
                             }

@@ -91,7 +91,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             return new MyViewHolder(foodstuffView);
         } else {
             LinearLayout nutritionProgress = (LinearLayout) LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.nutrition_progress_layout, parent, false);
+                    .inflate(R.layout.history_nutrition_progress_layout, parent, false);
             return new MyViewHolder(nutritionProgress);
         }
     }

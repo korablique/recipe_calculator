@@ -1,6 +1,7 @@
 package korablique.recipecalculator.util;
 
 import android.content.Intent;
+import android.support.test.espresso.intent.Intents;
 import android.support.test.rule.ActivityTestRule;
 
 import korablique.recipecalculator.base.BaseActivity;
@@ -12,6 +13,8 @@ import korablique.recipecalculator.dagger.ActivityInjector;
  * мимо Даггера.
  */
 public class InjectableActivityTestRule<T extends BaseActivity> extends ActivityTestRule<T> {
+    private boolean isInitialized;
+
     // Паттерн 'Builder'.
     public static class Builder<BT extends BaseActivity> {
         private final Class<BT> activityClass;
@@ -55,5 +58,23 @@ public class InjectableActivityTestRule<T extends BaseActivity> extends Activity
         super(new InjectableActivityFactory<T>(builder.activityClass, builder.injector),
                 false,
                 builder.shouldStartImmediately);
+    }
+
+    @Override
+    protected void afterActivityLaunched() {
+        // Initializing espresso-intents
+        Intents.init();
+        isInitialized = true;
+        super.afterActivityLaunched();
+    }
+
+    @Override
+    protected void afterActivityFinished() {
+        // Deinitializing espresso-intents
+        super.afterActivityFinished();
+        if (isInitialized) {
+            Intents.release();
+            isInitialized = false;
+        }
     }
 }
