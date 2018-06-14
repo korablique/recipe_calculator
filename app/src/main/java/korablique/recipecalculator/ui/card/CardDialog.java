@@ -78,7 +78,7 @@ public class CardDialog extends DialogFragment {
 
     // Метод нужен, чтоб обрабатывать такую ситуацию:
     // При смене конфигурации экрана (пересоздании активити) диалог уже может находиться в пересозданной активити.
-    // Если он уже существует, то ему надо задать setOnAddFoodstuffButtonClickListener
+    // Если он уже существует, то ему надо задать setOnSaveDishButtonClickListener
     @Nullable public static CardDialog findCard(FragmentActivity activity) {
         return (CardDialog) activity.getSupportFragmentManager().findFragmentByTag(FOODSTUFF_CARD);
     }
