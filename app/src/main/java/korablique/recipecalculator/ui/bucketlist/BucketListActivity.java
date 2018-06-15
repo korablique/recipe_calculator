@@ -27,6 +27,7 @@ public class BucketListActivity extends BaseActivity {
     private NutritionProgressWithValuesWrapper nutritionWrapper;
     @Inject
     DatabaseWorker databaseWorker;
+    private double resultWeight;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -50,6 +51,7 @@ public class BucketListActivity extends BaseActivity {
         nutritionWrapper.setNutrition(totalNutrition);
         TextView totalWeightTextView = findViewById(R.id.total_weight_text_view);
         totalWeightTextView.setText(getString(R.string.weight_is_n_gramms, totalWeight));
+        resultWeight = totalWeight;
 
         AdapterParent adapterParent = new AdapterParent();
         FoodstuffsAdapterChild foodstuffsAdapter =
@@ -61,9 +63,6 @@ public class BucketListActivity extends BaseActivity {
         foodstuffsListRecyclerView.setAdapter(adapterParent);
 
         findViewById(R.id.save_as_single_foodstuff_button).setOnClickListener((view) -> {
-            String totalWeightStr = totalWeightTextView.getText().toString();
-            double resultWeight = Double.parseDouble(
-                    totalWeightStr.substring(totalWeightStr.indexOf(" ") + 1, totalWeightStr.lastIndexOf(" ")).replace(',', '.'));
             SaveDishDialog dialog = SaveDishDialog.showDialog(this, foodstuffs, resultWeight);
             dialog.setOnSaveDishButtonClickListener(new SaveDishDialog.OnSaveDishButtonClickListener() {
                 @Override
@@ -72,12 +71,12 @@ public class BucketListActivity extends BaseActivity {
                         @Override
                         public void onResult(long id) {
                             dialog.dismiss();
-                            Toast.makeText(BucketListActivity.this, "Сохранено", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(BucketListActivity.this, R.string.saved, Toast.LENGTH_SHORT).show();
                         }
 
                         @Override
                         public void onDuplication() {
-                            Toast.makeText(BucketListActivity.this, "Такой продукт уже существует", Toast.LENGTH_LONG).show();
+                            Toast.makeText(BucketListActivity.this, R.string.foodstuff_already_exists, Toast.LENGTH_LONG).show();
                         }
                     });
                 }

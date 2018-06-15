@@ -51,6 +51,8 @@
     <string name="selected_foodstuffs_summary">Всего из списка продуктов</string>
     <string name="weight_is_n_gramms">Масса: %1$.1f грамм</string>
     <string name="name">Название</string>
+    <string name="saved">Сохранено</string>
+    <string name="foodstuff_already_exists">Такой продукт уже существует</string>
 
     <string-array name="goals_array">
         <item name="losing_weight">Похудение</item>

@@ -3,6 +3,7 @@ package korablique.recipecalculator.ui.bucketlist;
 import android.app.Dialog;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.view.Gravity;
@@ -26,7 +27,6 @@ public class SaveDishDialog extends DialogFragment {
     public static String RESULT_WEIGHT = "RESULT_WEIGHT";
     public static String SAVE_DISH = "SAVE_DISH";
     private OnSaveDishButtonClickListener listener;
-    private View dialogView;
 
     public interface OnSaveDishButtonClickListener {
         void onClick(Foodstuff foodstuff);
@@ -36,7 +36,7 @@ public class SaveDishDialog extends DialogFragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container,
                              Bundle savedInstanceState) {
-        dialogView = inflater.inflate(R.layout.save_as_dish_dialog, null);
+        View dialogView = inflater.inflate(R.layout.save_as_dish_dialog, null);
         if (listener != null) {
             dialogView.findViewById(R.id.save_button).setOnClickListener(v -> {
                 listener.onClick(extractFoodstuff());
@@ -47,18 +47,18 @@ public class SaveDishDialog extends DialogFragment {
 
     @Override
     @NonNull public Dialog onCreateDialog(Bundle savedInstanceState) {
-        Dialog dialog1 = super.onCreateDialog(savedInstanceState);
-        dialog1.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog1.setOnShowListener(dialog -> {
+        Dialog dialog = super.onCreateDialog(savedInstanceState);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setOnShowListener(unused -> {
             WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
-            layoutParams.copyFrom(dialog1.getWindow().getAttributes());
+            layoutParams.copyFrom(dialog.getWindow().getAttributes());
             layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
             layoutParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
             layoutParams.gravity = Gravity.BOTTOM;
-            dialog1.getWindow().setAttributes(layoutParams);
-            dialog1.getWindow().setBackgroundDrawable(getContext().getResources().getDrawable(R.drawable.new_card_background));
+            dialog.getWindow().setAttributes(layoutParams);
+            dialog.getWindow().setBackgroundDrawable(getContext().getResources().getDrawable(R.drawable.new_card_background));
         });
-        return dialog1;
+        return dialog;
     }
 
     public static SaveDishDialog showDialog(FragmentActivity activity, List<Foodstuff> foodstuffs, double resultWeight) {
@@ -72,6 +72,7 @@ public class SaveDishDialog extends DialogFragment {
     }
 
     public void setOnSaveDishButtonClickListener(OnSaveDishButtonClickListener listener) {
+        View dialogView = getView();
         if (dialogView != null) {
             dialogView.findViewById(R.id.save_button).setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -91,9 +92,14 @@ public class SaveDishDialog extends DialogFragment {
         ArrayList<Foodstuff> savedFoodstuffs = getArguments().getParcelableArrayList(SELECTED_FOODSTUFFS);
         double resultWeight = getArguments().getDouble(RESULT_WEIGHT);
         Nutrition nutrition = DishNutritionCalculator.calculate(savedFoodstuffs, resultWeight);
-        EditText nameEditText = dialogView.findViewById(R.id.dish_name_edit_text);
+        EditText nameEditText = getView().findViewById(R.id.dish_name_edit_text);
         String name = nameEditText.getText().toString();
         return new Foodstuff(
                 name, -1, nutrition.getProtein(), nutrition.getFats(), nutrition.getCarbs(), nutrition.getCalories());
+    }
+
+    @Nullable
+    public static SaveDishDialog findDialog(FragmentActivity activity) {
+        return (SaveDishDialog) activity.getSupportFragmentManager().findFragmentByTag(SAVE_DISH);
     }
 }
