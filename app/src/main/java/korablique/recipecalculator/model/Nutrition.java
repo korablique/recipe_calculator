@@ -30,8 +30,16 @@ public class Nutrition {
         return new Nutrition(
                 this.protein + nutrition.protein,
                 this.fats + nutrition.fats,
-                this.carbs + nutrition.fats,
+                this.carbs + nutrition.carbs,
                 this.calories + nutrition.calories);
+    }
+
+    public Nutrition multiply(double factor) {
+        return new Nutrition(
+                this.protein * factor,
+                this.fats * factor,
+                this.carbs * factor,
+                this.calories * factor);
     }
 
     private Nutrition(double protein, double fats, double carbs, double calories) {

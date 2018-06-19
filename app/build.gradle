@@ -77,9 +77,9 @@ dependencies {
     compile('com.crashlytics.sdk.android:crashlytics:2.8.0@aar') {
         transitive = true
     }
-    compile 'com.android.support:appcompat-v7:27.0.2'
-    compile 'com.android.support:recyclerview-v7:27.0.2'
-    compile 'com.android.support:design:27.0.2'
+    compile 'com.android.support:appcompat-v7:27.1.0'
+    compile 'com.android.support:recyclerview-v7:27.1.0'
+    compile 'com.android.support:design:27.1.0'
     compile 'com.android.support.constraint:constraint-layout:1.1.0'
     compile 'com.tapadoo.android:alerter:2.0.1'
     implementation project(':libs:floatingsearchview:library')
