@@ -62,25 +62,32 @@ public class BucketListActivity extends BaseActivity {
         RecyclerView foodstuffsListRecyclerView = findViewById(R.id.foodstuffs_list);
         foodstuffsListRecyclerView.setAdapter(adapterParent);
 
-        findViewById(R.id.save_as_single_foodstuff_button).setOnClickListener((view) -> {
-            SaveDishDialog dialog = SaveDishDialog.showDialog(this, foodstuffs, resultWeight);
-            dialog.setOnSaveDishButtonClickListener(new SaveDishDialog.OnSaveDishButtonClickListener() {
+        SaveDishDialog.OnSaveDishButtonClickListener saveDishButtonClickListener = (foodstuff) -> {
+            databaseWorker.saveFoodstuff(BucketListActivity.this, foodstuff, new DatabaseWorker.SaveFoodstuffCallback() {
                 @Override
-                public void onClick(Foodstuff foodstuff) {
-                    databaseWorker.saveFoodstuff(BucketListActivity.this, foodstuff, new DatabaseWorker.SaveFoodstuffCallback() {
-                        @Override
-                        public void onResult(long id) {
-                            dialog.dismiss();
-                            Toast.makeText(BucketListActivity.this, R.string.saved, Toast.LENGTH_SHORT).show();
-                        }
+                public void onResult(long id) {
+                    SaveDishDialog dialog = SaveDishDialog.findDialog(BucketListActivity.this);
+                    if (dialog != null) {
+                        dialog.dismiss();
+                    }
+                    Toast.makeText(BucketListActivity.this, R.string.saved, Toast.LENGTH_SHORT).show();
+                }
 
-                        @Override
-                        public void onDuplication() {
-                            Toast.makeText(BucketListActivity.this, R.string.foodstuff_already_exists, Toast.LENGTH_LONG).show();
-                        }
-                    });
+                @Override
+                public void onDuplication() {
+                    Toast.makeText(BucketListActivity.this, R.string.foodstuff_already_exists, Toast.LENGTH_LONG).show();
                 }
             });
+        };
+
+        SaveDishDialog existingDialog = SaveDishDialog.findDialog(this);
+        if (existingDialog != null) {
+            existingDialog.setOnSaveDishButtonClickListener(saveDishButtonClickListener);
+        }
+
+        findViewById(R.id.save_as_single_foodstuff_button).setOnClickListener((view) -> {
+            SaveDishDialog dialog = SaveDishDialog.showDialog(this, foodstuffs, resultWeight);
+            dialog.setOnSaveDishButtonClickListener(saveDishButtonClickListener);
         });
 
         findViewById(R.id.edit_bucket_button).setOnClickListener((view) -> {
