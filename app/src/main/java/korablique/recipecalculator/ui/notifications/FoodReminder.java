@@ -12,7 +12,6 @@ import android.graphics.Color;
 import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
-import android.support.v4.app.TaskStackBuilder;
 
 import java.util.Calendar;
 
@@ -21,7 +20,7 @@ import korablique.recipecalculator.ui.history.HistoryActivity;
 
 import static android.content.Context.NOTIFICATION_SERVICE;
 
-public class FoodReminderComponent {
+public class FoodReminder {
     public static final String ANDROID_CHANNEL_ID = "korablique.recipecalculator.ANDROID";
     public static final int BREAKFAST_NOTIFICATION_ID = 1;
     private Context context;
@@ -44,7 +43,7 @@ public class FoodReminderComponent {
         }
     }
 
-    public FoodReminderComponent(Context context) {
+    public FoodReminder(Context context) {
         this.context = context;
     }
 
@@ -55,11 +54,10 @@ public class FoodReminderComponent {
         notificationTimes[2] = new Time(20, 0);
         Calendar current = Calendar.getInstance();
         current.setTimeInMillis(System.currentTimeMillis());
-        Time currentTime = new Time(current.get(Calendar.HOUR_OF_DAY), current.get(Calendar.MINUTE));
-        Calendar calendar = NotificationTimeGenerator.createNextNotificationTime(currentTime, notificationTimes);
+        Calendar calendar = NotificationTimeGenerator.createNextNotificationTime(current, notificationTimes);
 
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(context, TimeNotificationReceiver.class);
+        Intent intent = new Intent(context, FoodReminderReceiver.class);
         PendingIntent alarmIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
 
         // без повтора
@@ -91,17 +89,13 @@ public class FoodReminderComponent {
 
         // Create an Intent for the activity you want to start
         Intent resultIntent = new Intent(context, HistoryActivity.class);
-        // Create the TaskStackBuilder and add the intent, which inflates the back stack
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
-        stackBuilder.addNextIntentWithParentStack(resultIntent);
-        // Get the PendingIntent containing the entire back stack
-        PendingIntent resultPendingIntent =
-                stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+        // Get the PendingIntent
+        PendingIntent resultPendingIntent = PendingIntent.getActivity(context, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, ANDROID_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_products_apple_active)
-                .setContentTitle(context.getString(R.string.breakfast))
-                .setContentText(context.getString(R.string.breakfast_notification))
+                .setContentTitle(context.getString(R.string.meal))
+                .setContentText(context.getString(R.string.meal_notification))
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setCategory(NotificationCompat.CATEGORY_REMINDER)
                 // Set the intent that will fire when the user taps the notification

@@ -45,8 +45,8 @@
     <string name="weight_in_card">Масса, граммов</string>
     <string name="add_foodstuff">Добавить продукт</string>
     <string name="selected_foodstuffs">Выбранные продукты</string>
-    <string name="breakfast">Завтрак</string>
-    <string name="breakfast_notification">Не забудьте внести в приложение ваш завтрак</string>
+    <string name="meal">Приём пищи</string>
+    <string name="meal_notification">Не забудьте внести в приложение, что вы кушали</string>
     <string name="channel_name">Напоминание о приеме пищи</string>
 
     <string-array name="goals_array">

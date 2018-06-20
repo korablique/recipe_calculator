@@ -41,7 +41,7 @@
         <activity android:name=".ui.usergoal.UserGoalActivity" />
         <activity android:name=".ui.mainscreen.MainScreenActivity" />
 
-        <receiver android:name=".ui.notifications.TimeNotificationReceiver" />
+        <receiver android:name=".ui.notifications.FoodReminderReceiver" />
     </application>
 
 </manifest>
