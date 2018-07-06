@@ -9,7 +9,7 @@
     <android.support.constraint.ConstraintLayout
         android:id="@+id/title_layout"
         android:layout_width="match_parent"
-        android:layout_height="83dp"
+        android:layout_height="59dp"
         android:background="@color/colorAccent"
         android:paddingLeft="16dp"
         android:paddingRight="16dp"
@@ -65,47 +65,50 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp" />
-        <TextView
-            android:id="@+id/total_weight_text_view"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="34dp"
-            android:fontFamily="@font/roboto_mono"
-            android:textStyle="bold"
-            android:textColor="#FF373B4F"
-            android:textSize="14sp"
-            android:paddingBottom="20dp"
-            android:text="@string/weight_is_n_gramms"/>
+
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/foodstuffs_list_layout"
+        android:id="@+id/total_weight_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@android:color/white"
+        app:layout_constraintTop_toBottomOf="@id/summary_layout">
+
+        <TextView
+            android:id="@+id/weight_text_view"
+            style="@style/RobotoMonoHintText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lineSpacingMultiplier="1.30"
+            android:layout_marginLeft="22dp"
+            android:paddingTop="18dp"
+            android:text="@string/result_weight"
+            app:layout_constraintTop_toBottomOf="@id/summary_layout"/>
+
+        <EditText
+            android:id="@+id/total_weight_edit_text"
+            style="@style/RobotoMonoText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="17dp"
+            android:layout_marginRight="17dp"
+            android:layout_marginBottom="8dp"
+            android:inputType="numberDecimal"
+            android:maxLines="1"
+            tools:text="100"
+            app:layout_constraintTop_toBottomOf="@+id/weight_text_view" />
+    </LinearLayout>
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/foodstuffs_list"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:background="#EFF1F6"
-        android:orientation="vertical"
         app:layout_constraintBottom_toTopOf="@+id/actions_layout"
-        app:layout_constraintTop_toBottomOf="@+id/summary_layout" >
-        <Button
-            android:id="@+id/edit_bucket_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/edit_selected_foodstuffs"
-            android:textColor="@color/colorAccent"
-            android:textSize="14sp"
-            android:paddingRight="16dp"
-            android:paddingLeft="16dp"
-            android:fontFamily="@font/roboto_mono"
-            android:textAllCaps="false"
-            android:background="@android:color/transparent"/>
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/foodstuffs_list"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layoutManager="android.support.v7.widget.LinearLayoutManager"
-            android:paddingRight="10dp"
-            android:paddingLeft="10dp"/>
-    </LinearLayout>
+        app:layout_constraintTop_toBottomOf="@+id/total_weight_layout"
+        app:layoutManager="android.support.v7.widget.LinearLayoutManager" />
 
     <LinearLayout
         android:id="@+id/actions_layout"

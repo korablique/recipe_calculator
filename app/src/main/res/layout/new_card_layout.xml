@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -31,7 +32,7 @@
                 android:layout_marginTop="20dp"
                 android:lineSpacingMultiplier="1.21"
                 style="@style/MontserratText"
-                android:text="Чечевица" />
+                tools:text="Чечевица" />
 
             <FrameLayout
                 android:layout_width="match_parent"
@@ -95,8 +96,7 @@
             android:layout_marginRight="15dp"
             style="@style/RobotoMonoText"
             android:maxLines="1"
-            android:inputType="numberDecimal"
-            android:text="100"/>
+            android:inputType="numberDecimal"/>
 
         <Button
             android:id="@+id/add_foodstuff_button"

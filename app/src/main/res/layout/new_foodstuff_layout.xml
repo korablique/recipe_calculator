@@ -17,7 +17,7 @@
         android:background="@drawable/foodstuff_background">
 
         <TextView
-            android:id="@+id/new_foodstuff_name"
+            android:id="@+id/name"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             style="@style/RobotoMonoText"
@@ -30,7 +30,7 @@
             android:layout_height="match_parent">
 
             <include
-                layout="@layout/calories_block"
+                layout="@layout/extra_info_block"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right|center_vertical"

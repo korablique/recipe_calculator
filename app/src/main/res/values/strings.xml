@@ -6,7 +6,7 @@
     <string name="fats">Жиры</string>
     <string name="carbs">Углеводы</string>
     <string name="calories">Калории</string>
-    <string name="calories_per_100_g">Каллории, 100 г.</string>
+    <string name="calories_per_100_g">Калории, 100 г.</string>
     <string name="weight_of_cooked_product">Масса готового продукта:</string>
     <string name="ok">OK</string>
     <string name="product_name">Название продукта</string>
@@ -47,12 +47,11 @@
     <string name="selected_foodstuffs">Выбранные продукты</string>
     <string name="save_as_dish">Сохранить как блюдо</string>
     <string name="add_to_history">Добавить в историю</string>
-    <string name="edit_selected_foodstuffs">Редактировать список</string>
     <string name="selected_foodstuffs_summary">Всего из списка продуктов</string>
-    <string name="weight_is_n_gramms">Масса: %1$.1f грамм</string>
     <string name="name">Название</string>
     <string name="saved">Сохранено</string>
     <string name="foodstuff_already_exists">Такой продукт уже существует</string>
+    <string name="result_weight">Масса готового продукта, граммов</string>
 
     <string-array name="goals_array">
         <item name="losing_weight">Похудение</item>

@@ -14,7 +14,7 @@
         android:background="@drawable/calories_block_background">
 
         <TextView
-            android:id="@+id/calories_block"
+            android:id="@+id/extra_info_block"
             android:layout_height="match_parent"
             android:layout_width="match_parent"
             android:lineSpacingMultiplier="1.30"
