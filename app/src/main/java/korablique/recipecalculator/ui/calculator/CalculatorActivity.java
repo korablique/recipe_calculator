@@ -34,6 +34,7 @@ import static korablique.recipecalculator.IntentConstants.FIND_FOODSTUFF_REQUEST
 import static korablique.recipecalculator.IntentConstants.NAME;
 import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
 
+@Deprecated
 public class CalculatorActivity extends BaseActivity {
     public static final String WEIGHT = "WEIGHT";
     public static final String PROTEIN = "PROTEIN";

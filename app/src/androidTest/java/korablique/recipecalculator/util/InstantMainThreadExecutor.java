@@ -7,4 +7,9 @@ public class InstantMainThreadExecutor extends MainThreadExecutor {
     public void execute(Runnable runnable) {
         runnable.run();
     }
+
+    @Override
+    public void executeDelayed(long delayMillis, Runnable runnable) {
+        runnable.run();
+    }
 }

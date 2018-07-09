@@ -16,7 +16,7 @@
     <string name="start">Для добавления продукта нажмите на +</string>
     <string name="search">Поиск…</string>
     <string name="calculator">Калькулятор</string>
-    <string name="list_of_foodstuffs">Все продукты</string>
+    <string name="list_of_foodstuffs">Продукты</string>
     <string name="per_100_g">(на 100 грамм)</string>
     <string name="history">История</string>
     <string name="pref_first_start_of_history">is it the first start of HistoryActivity</string>
@@ -48,6 +48,14 @@
     <string name="meal">Приём пищи</string>
     <string name="meal_notification">Не забудьте внести в приложение, что вы кушали</string>
     <string name="channel_name">Напоминание о приеме пищи</string>
+    <string name="save_as_dish">Сохранить как блюдо</string>
+    <string name="add_to_history">Добавить в историю</string>
+    <string name="edit_selected_foodstuffs">Редактировать список</string>
+    <string name="selected_foodstuffs_summary">Всего из списка продуктов</string>
+    <string name="weight_is_n_gramms">Масса: %1$.1f грамм</string>
+    <string name="name">Название</string>
+    <string name="saved">Сохранено</string>
+    <string name="foodstuff_already_exists">Такой продукт уже существует</string>
 
     <string-array name="goals_array">
         <item name="losing_weight">Похудение</item>

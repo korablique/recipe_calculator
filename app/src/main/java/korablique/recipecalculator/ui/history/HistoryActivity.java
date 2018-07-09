@@ -1,7 +1,9 @@
 package korablique.recipecalculator.ui.history;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.LinearLayoutManager;
@@ -12,12 +14,15 @@ import android.view.ViewGroup;
 import com.crashlytics.android.Crashlytics;
 import com.tapadoo.alerter.Alerter;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import korablique.recipecalculator.FloatUtils;
+import korablique.recipecalculator.base.MainThreadExecutor;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.model.HistoryEntry;
@@ -41,6 +46,14 @@ import static korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActi
 
 
 public class HistoryActivity extends BaseActivity {
+    private static final String ACTION_ADD_FOODSTUFFS = "ACTION_ADD_FOODSTUFFS";
+    /**
+     * При открытии HistoryActivity с одновременным добавлением в неё продуктов, нужно чтобы
+     * продукты добавились не сразу, а с небольшой задержкой, чтобы юзер мог визуально увидеть
+     * добавление этих новых продуктов.
+     */
+    private static final long DELAY_OF_ACTION_ADD_FOODSTUFFS = 1000;
+    private static final String EXTRA_FOODSTUFFS = "EXTRA_FOODSTUFFS";
 
     @Inject
     DatabaseWorker databaseWorker;
@@ -48,6 +61,8 @@ public class HistoryActivity extends BaseActivity {
     HistoryWorker historyWorker;
     @Inject
     UserParametersWorker userParametersWorker;
+    @Inject
+    MainThreadExecutor mainThreadExecutor;
 
     private Card card;
     private int editedFoodstuffPosition;
@@ -84,6 +99,31 @@ public class HistoryActivity extends BaseActivity {
                     finish();
                 } else {
                     initializeActivity(userParameters);
+                    tryToAddFoodstuffsFrom(getIntent());
+                }
+            }
+        });
+    }
+
+    private void tryToAddFoodstuffsFrom(@Nullable Intent intent) {
+        if (intent == null || !ACTION_ADD_FOODSTUFFS.equals(intent.getAction())) {
+            return;
+        }
+
+        List<Foodstuff> foodstuffs = intent.getParcelableArrayListExtra(EXTRA_FOODSTUFFS);
+        if (foodstuffs == null) {
+            throw new IllegalArgumentException("Need " + EXTRA_FOODSTUFFS);
+        }
+        // Меняем action на action-по-умолчанию чтобы при пересоздании Активити
+        // в неё повторно не были добавлены переданные сюда фудстафы.
+        intent.setAction(Intent.ACTION_DEFAULT);
+
+        mainThreadExecutor.executeDelayed(DELAY_OF_ACTION_ADD_FOODSTUFFS, () -> {
+            for (Foodstuff foodstuff : foodstuffs) {
+                if (foodstuff.getId() >= 0) {
+                    addListedFoodstuffToHistory(foodstuff, foodstuff.getId());
+                } else {
+                    addUnlistedFoodstuffToHistory(foodstuff);
                 }
             }
         });
@@ -365,5 +405,16 @@ public class HistoryActivity extends BaseActivity {
 
     public Card getCard() {
         return card;
+    }
+
+    public static void startAndAdd(List<Foodstuff> items, Context context) {
+        context.startActivity(createStartAndAddIntent(items, context));
+    }
+
+    public static Intent createStartAndAddIntent(List<Foodstuff> items, Context context) {
+        Intent intent = new Intent(context, HistoryActivity.class);
+        intent.setAction(ACTION_ADD_FOODSTUFFS);
+        intent.putParcelableArrayListExtra(EXTRA_FOODSTUFFS, new ArrayList<>(items));
+        return intent;
     }
 }

@@ -1,4 +1,4 @@
-package korablique.recipecalculator.ui.mainscreen;
+package korablique.recipecalculator.ui.nestingadapters;
 
 
 import android.support.v7.widget.RecyclerView;
@@ -7,14 +7,16 @@ import android.view.ViewGroup;
 import java.util.ArrayList;
 import java.util.List;
 
-import korablique.recipecalculator.model.Foodstuff;
-
 public abstract class AdapterChild {
     private List<Observer> observers = new ArrayList<>();
     private int itemViewTypesCount;
 
     public interface Observer {
         void notifyItemInsertedToChild(int index, AdapterChild child);
+    }
+
+    public AdapterChild() {
+        this(1);
     }
 
     public AdapterChild(int itemViewTypesCount) {
