@@ -41,6 +41,8 @@
         <activity android:name=".ui.usergoal.UserGoalActivity" />
         <activity android:name=".ui.mainscreen.MainScreenActivity" />
         <activity android:name=".ui.bucketlist.BucketListActivity" />
+
+        <receiver android:name=".ui.notifications.FoodReminderReceiver" />
     </application>
 
 </manifest>

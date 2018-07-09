@@ -45,6 +45,9 @@
     <string name="weight_in_card">Масса, граммов</string>
     <string name="add_foodstuff">Добавить продукт</string>
     <string name="selected_foodstuffs">Выбранные продукты</string>
+    <string name="meal">Приём пищи</string>
+    <string name="meal_notification">Не забудьте внести в приложение, что вы кушали</string>
+    <string name="channel_name">Напоминание о приеме пищи</string>
     <string name="save_as_dish">Сохранить как блюдо</string>
     <string name="add_to_history">Добавить в историю</string>
     <string name="edit_selected_foodstuffs">Редактировать список</string>
