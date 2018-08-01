@@ -33,25 +33,25 @@ public class NewCard {
         cardLayout = (ViewGroup) LayoutInflater.from(context).inflate(R.layout.new_card_layout, parent);
         addFoodstuffButton = cardLayout.findViewById(R.id.add_foodstuff_button);
         weightEditText = cardLayout.findViewById(R.id.weight_edit_text);
-        if (TextUtils.isEmpty(weightEditText.getText())) {
-            addFoodstuffButton.setEnabled(false);
-        } else {
-            addFoodstuffButton.setEnabled(true);
-        }
+        updateAddButtonEnability(weightEditText.getText());
         weightEditText.addTextChangedListener(new TextWatcherAdapter() {
             @Override
             public void afterTextChanged(Editable s) {
                 super.afterTextChanged(s);
-                if (TextUtils.isEmpty(s)) {
-                    addFoodstuffButton.setEnabled(false);
-                } else {
-                    addFoodstuffButton.setEnabled(true);
-                }
+                updateAddButtonEnability(s);
             }
         });
         nameTextView = cardLayout.findViewById(R.id.foodstuff_name_text_view);
         nutritionWrapper = new NutritionProgressWithValuesWrapper(
                 context, cardLayout.findViewById(R.id.nutrition_progress_with_values));
+    }
+
+    private void updateAddButtonEnability(Editable text) {
+        if (TextUtils.isEmpty(text)) {
+            addFoodstuffButton.setEnabled(false);
+        } else {
+            addFoodstuffButton.setEnabled(true);
+        }
     }
 
     public void setFoodstuff(Foodstuff foodstuff) {

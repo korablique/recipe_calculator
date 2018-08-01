@@ -69,7 +69,7 @@ public class BucketListAdapter extends RecyclerView.Adapter<MyViewHolder> {
     public void addItems(List<Foodstuff> foodstuffs) {
         int allFoodstuffsSizeBefore = allFoodstuffs.size();
         allFoodstuffs.addAll(foodstuffs);
-        for (int index = 1; index <= foodstuffs.size(); index++) {
+        for (int index = 0; index < foodstuffs.size(); index++) {
             notifyItemInserted(allFoodstuffsSizeBefore + index);
         }
         listener.onItemsCountChange(getItemCount());
@@ -77,7 +77,6 @@ public class BucketListAdapter extends RecyclerView.Adapter<MyViewHolder> {
 
     public void addItem(Foodstuff foodstuff) {
         addItems(Collections.singletonList(foodstuff));
-        listener.onItemsCountChange(getItemCount());
     }
 
     public void deleteItem(int displayedPosition) {
@@ -96,7 +95,7 @@ public class BucketListAdapter extends RecyclerView.Adapter<MyViewHolder> {
     }
 
     public List<Foodstuff> getItems() {
-        return allFoodstuffs;
+        return Collections.unmodifiableList(allFoodstuffs);
     }
 
     private <T> void setTextViewText(View parent, int viewId, T text) {

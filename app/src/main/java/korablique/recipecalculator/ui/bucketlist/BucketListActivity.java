@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.Editable;
-import android.text.TextUtils;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -18,6 +17,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import korablique.recipecalculator.FloatUtils;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.database.DatabaseWorker;
@@ -33,6 +33,9 @@ public class BucketListActivity extends BaseActivity {
     @Inject
     DatabaseWorker databaseWorker;
     private BucketListAdapter adapter;
+    private EditText totalWeightEditText;
+    private Button saveToHistoryButton;
+    private Button saveAsSingleFoodstuffButton;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -51,38 +54,21 @@ public class BucketListActivity extends BaseActivity {
         Nutrition totalNutrition = countTotalNutrition(foodstuffs);
         nutritionWrapper.setNutrition(totalNutrition);
 
-        Button saveToHistoryButton = findViewById(R.id.save_to_history_button);
-        Button saveAsSingleFoodstuffButton = findViewById(R.id.save_as_single_foodstuff_button);
+        saveToHistoryButton = findViewById(R.id.save_to_history_button);
+        saveAsSingleFoodstuffButton = findViewById(R.id.save_as_single_foodstuff_button);
 
-        EditText totalWeightEditText = findViewById(R.id.total_weight_edit_text);
+        totalWeightEditText = findViewById(R.id.total_weight_edit_text);
         totalWeightEditText.setText(String.valueOf(totalWeight));
         totalWeightEditText.addTextChangedListener(new TextWatcherAdapter() {
             @Override
             public void afterTextChanged(Editable s) {
                 super.afterTextChanged(s);
-                if (TextUtils.isEmpty(s)) {
-                    saveAsSingleFoodstuffButton.setEnabled(false);
-                    saveToHistoryButton.setEnabled(false);
-                } else {
-                    saveAsSingleFoodstuffButton.setEnabled(true);
-                    saveToHistoryButton.setEnabled(true);
-                }
+                updateSaveButtonsEnability();
             }
         });
 
         BucketListAdapter.OnItemsCountChangeListener onItemsCountChangeListener = count -> {
-            if (count == 0) {
-                saveAsSingleFoodstuffButton.setEnabled(false);
-                saveToHistoryButton.setEnabled(false);
-                Nutrition newNutrition = countTotalNutrition(adapter.getItems());
-                nutritionWrapper.setNutrition(newNutrition);
-
-            } else {
-                saveAsSingleFoodstuffButton.setEnabled(true);
-                saveToHistoryButton.setEnabled(true);
-                Nutrition newNutrition = countTotalNutrition(adapter.getItems());
-                nutritionWrapper.setNutrition(newNutrition);
-            }
+            updateSaveButtonsEnability();
         };
 
         BucketListAdapter.OnItemClickedObserver onItemClickedObserver = (foodstuff, position) -> {
@@ -105,23 +91,17 @@ public class BucketListActivity extends BaseActivity {
         RecyclerView foodstuffsListRecyclerView = findViewById(R.id.foodstuffs_list);
         foodstuffsListRecyclerView.setAdapter(adapter);
 
-        // удаление элементов свайпом
-        ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(
+        OnSwipeItemCallback onSwipeItemCallback = new OnSwipeItemCallback(
                 0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
-            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-                return false;
-            }
-
-            @Override
-            public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
                 int position = viewHolder.getAdapterPosition();
                 adapter.deleteItem(position);
                 double newWeight = countTotalWeight(adapter.getItems());
                 totalWeightEditText.setText(String.valueOf(newWeight));
             }
         };
-        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(onSwipeItemCallback);
         itemTouchHelper.attachToRecyclerView(foodstuffsListRecyclerView);
 
         // диалог, появляющийся при сохранении блюда
@@ -173,6 +153,19 @@ public class BucketListActivity extends BaseActivity {
             totalNutrition = totalNutrition.plus(Nutrition.of(foodstuff));
         }
         return totalNutrition;
+    }
+
+    private void updateSaveButtonsEnability() {
+        String text = totalWeightEditText.getText().toString();
+        if (text.isEmpty()
+                || FloatUtils.areFloatsEquals(Double.parseDouble(text), 0.0)
+                || adapter.getItemCount() == 0) {
+            saveAsSingleFoodstuffButton.setEnabled(false);
+            saveToHistoryButton.setEnabled(false);
+        } else {
+            saveAsSingleFoodstuffButton.setEnabled(true);
+            saveToHistoryButton.setEnabled(true);
+        }
     }
 
     public static void start(ArrayList<Foodstuff> foodstuffs, Context context) {
