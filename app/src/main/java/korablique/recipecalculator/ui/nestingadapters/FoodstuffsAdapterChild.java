@@ -40,7 +40,7 @@ public class FoodstuffsAdapterChild extends AdapterChild {
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int childPosition) {
         ViewGroup item = ((MyViewHolder) holder).getItem();
         Foodstuff foodstuff = foodstuffs.get(childPosition);
-        setTextViewText(item, R.id.new_foodstuff_name, foodstuff.getName());
+        setTextViewText(item, R.id.name, foodstuff.getName());
 
         setCalories(item, foodstuff.getCalories());
 
@@ -74,7 +74,7 @@ public class FoodstuffsAdapterChild extends AdapterChild {
     }
 
     private void setCalories(View foodstuffView, double calories) {
-        setTextViewText(foodstuffView, R.id.calories_block, context.getString(
+        setTextViewText(foodstuffView, R.id.extra_info_block, context.getString(
                 R.string.one_digit_precision_float, calories));
     }
 

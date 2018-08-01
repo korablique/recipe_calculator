@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical">
 
     <!--заголовок-->
@@ -34,6 +35,6 @@
         android:layout_width="wrap_content"
         android:lineSpacingMultiplier="1.43"
         style="@style/RobotoMonoText"
-        android:text="35 г." />
+        tools:text="35 г." />
 
 </LinearLayout>
