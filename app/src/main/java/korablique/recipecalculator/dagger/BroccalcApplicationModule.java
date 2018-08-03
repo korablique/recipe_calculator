@@ -13,6 +13,7 @@ import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
+import korablique.recipecalculator.ui.addnewfoodstuff.AddNewFoodstuffActivity;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.calculator.CalculatorActivity;
 import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
@@ -95,4 +96,8 @@ public abstract class BroccalcApplicationModule {
     @ActivityScope
     @ContributesAndroidInjector
     abstract BucketListActivity contributeBucketListActivityInjector();
+
+    @ActivityScope
+    @ContributesAndroidInjector
+    abstract AddNewFoodstuffActivity contributeAddNewFoodstuffActivityInjector();
 }

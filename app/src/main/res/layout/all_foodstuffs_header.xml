@@ -1,35 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="75dp"
     android:background="#EFF1F6">
 
     <TextView
         android:id="@+id/all_foodstuffs_header_text"
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:paddingLeft="16dp"
         style="@style/MontserratText"
-        android:text="@string/all_foodstuffs_header"
-        android:layout_marginTop="30dp" />
-
-    <TextView
-        android:layout_height="wrap_content"
         android:layout_width="wrap_content"
-        android:lineSpacingMultiplier="1.30"
-        android:layout_toLeftOf="@+id/plus_button"
-        android:paddingRight="10dp"
-        style="@style/RobotoMonoHintText"
-        android:text="@string/add"
-        android:layout_marginTop="40dp" />
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:paddingLeft="16dp"
+        android:text="@string/all_foodstuffs_header"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
-    <ImageView
-        android:id="@+id/plus_button"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:layout_marginTop="35dp"
-        android:layout_alignParentRight="true"
+    <LinearLayout
+        android:id="@+id/add_new_foodstuff"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
         android:layout_marginRight="16dp"
-        android:src="@drawable/ic_active"/>
+        android:layout_marginEnd="16dp"
+        android:paddingTop="7dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:background="@drawable/add_new_foodstuff_button_selector">
 
-</RelativeLayout>
+        <TextView
+            style="@style/RobotoMonoHintText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:lineSpacingMultiplier="1.30"
+            android:paddingRight="10dp"
+            android:text="@string/add" />
+
+        <ImageView
+            android:id="@+id/plus_button"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_active" />
+    </LinearLayout>
+
+</android.support.constraint.ConstraintLayout>

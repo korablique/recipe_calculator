@@ -3,12 +3,14 @@ package korablique.recipecalculator.ui.mainscreen;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.ui.addnewfoodstuff.AddNewFoodstuffActivity;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.card.NewCard;
 import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
@@ -165,7 +167,12 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
         // если топ пустой, то топ-адаптер не нужно создавать, чтобы не было заголовка
 
         if (foodstuffAdapterChild == null) {
-            SingleItemAdapterChild foodstuffsTitle = new SingleItemAdapterChild(R.layout.all_foodstuffs_header);
+            SingleItemAdapterChild foodstuffsTitle = new SingleItemAdapterChild(R.layout.all_foodstuffs_header, v -> {
+                v.setOnClickListener(v1 -> {
+                    Intent intent = new Intent(context, AddNewFoodstuffActivity.class);
+                    context.startActivity(intent);
+                });
+            });
             foodstuffAdapterChild = new FoodstuffsAdapterChild(context, clickObserver);
             adapterParent.addChild(foodstuffsTitle);
             adapterParent.addChild(foodstuffAdapterChild);
