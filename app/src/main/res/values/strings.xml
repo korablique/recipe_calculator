@@ -55,6 +55,7 @@
     <string name="saved">Сохранено</string>
     <string name="foodstuff_already_exists">Такой продукт уже существует</string>
     <string name="result_weight">Масса готового продукта, граммов</string>
+    <string name="new_foodstuff">Новый продукт</string>
 
     <string-array name="goals_array">
         <item name="losing_weight">Похудение</item>

@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="korablique.recipecalculator.ui.addnewfoodstuff.AddNewFoodstuffActivity">
+
+    <include
+        android:id="@+id/title_layout"
+        layout="@layout/title_view_with_cancel_button" />
+
+    <!--layout margin 11dp + textview margin 4.5dp == ~16dp-->
+    <!--because of default edittext margin-->
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="11dp">
+
+        <!--view for shifting edittext up-->
+        <View
+            android:id="@+id/row_fake_top_1"
+            android:layout_width="0dp"
+            android:layout_height="4dp"
+            android:layout_marginTop="12dp"/>
+
+        <!--foodstuff name-->
+        <TextView
+            android:id="@+id/foodstuff_name_text_view"
+            style="@style/RobotoMonoHintText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4.5dp"
+            android:layout_marginStart="4.5dp"
+            android:text="@string/product_name" />
+
+        <EditText
+            android:id="@+id/foodstuff_name"
+            style="@style/RobotoMonoText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textCapSentences"
+            app:layout_constraintTop_toBottomOf="@+id/row_fake_top_1"
+            tools:text="Чечевица" />
+
+        <View
+            android:id="@+id/row_fake_top_2"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="12dp"
+            app:layout_constraintTop_toBottomOf="@+id/foodstuff_name"/>
+
+        <!--protein-->
+        <LinearLayout
+            android:id="@+id/protein_views"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/foodstuff_name"
+            app:layout_constraintWidth_percent="0.5">
+
+            <TextView
+                android:id="@+id/protein_text_view"
+                style="@style/RobotoMonoHintText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="4.5dp"
+                android:layout_marginStart="4.5dp"
+                android:text="@string/protein" />
+
+            <View
+                android:id="@+id/red_circle"
+                android:layout_width="6dp"
+                android:layout_height="6dp"
+                android:layout_marginLeft="3dp"
+                android:layout_marginStart="3dp"
+                android:layout_marginTop="5dp"
+                android:background="@drawable/new_card_protein_icon" />
+        </LinearLayout>
+
+        <EditText
+            android:id="@+id/protein_value"
+            style="@style/RobotoMonoText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/row_fake_top_2"
+            app:layout_constraintWidth_percent="0.5"
+            tools:text="17" />
+
+        <!--fats-->
+        <LinearLayout
+            android:id="@+id/fats_views"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            app:layout_constraintStart_toEndOf="@id/protein_views"
+            app:layout_constraintTop_toBottomOf="@+id/foodstuff_name"
+            app:layout_constraintWidth_percent="0.5">
+
+            <TextView
+                android:id="@+id/fats_text_view"
+                style="@style/RobotoMonoHintText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="4.5dp"
+                android:layout_marginStart="4.5dp"
+                android:text="@string/fats" />
+
+            <View
+                android:id="@+id/yellow_circle"
+                android:layout_width="6dp"
+                android:layout_height="6dp"
+                android:layout_marginLeft="3dp"
+                android:layout_marginStart="3dp"
+                android:layout_marginTop="5dp"
+                android:background="@drawable/new_card_fats_icon" />
+        </LinearLayout>
+
+        <EditText
+            android:id="@+id/fats_value"
+            style="@style/RobotoMonoText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"
+            app:layout_constraintStart_toEndOf="@id/protein_value"
+            app:layout_constraintTop_toBottomOf="@id/row_fake_top_2"
+            app:layout_constraintWidth_percent="0.5"
+            tools:text="2" />
+
+        <View
+            android:id="@+id/row_fake_top_3"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="12dp"
+            app:layout_constraintTop_toBottomOf="@+id/fats_value"/>
+
+        <!--carbohydrates-->
+        <LinearLayout
+            android:id="@+id/carbs_views"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/protein_value"
+            app:layout_constraintWidth_percent="0.5">
+
+            <TextView
+                android:id="@+id/carbs_text_view"
+                style="@style/RobotoMonoHintText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="4.5dp"
+                android:layout_marginStart="4.5dp"
+                android:text="@string/carbs" />
+
+            <View
+                android:id="@+id/violet_circle"
+                android:layout_width="6dp"
+                android:layout_height="6dp"
+                android:layout_marginLeft="3dp"
+                android:layout_marginStart="3dp"
+                android:layout_marginTop="5dp"
+                android:background="@drawable/new_card_carbs_icon" />
+        </LinearLayout>
+
+        <EditText
+            android:id="@+id/carbs_value"
+            style="@style/RobotoMonoText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/row_fake_top_3"
+            app:layout_constraintWidth_percent="0.5"
+            tools:text="68" />
+
+        <!--calories-->
+        <TextView
+            android:id="@+id/calories_text_view"
+            style="@style/RobotoMonoHintText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4.5dp"
+            android:layout_marginStart="4.5dp"
+            android:layout_marginTop="8dp"
+            android:text="@string/calories"
+            app:layout_constraintStart_toEndOf="@id/carbs_views"
+            app:layout_constraintTop_toBottomOf="@+id/fats_value"
+            app:layout_constraintWidth_percent="0.5" />
+
+        <EditText
+            android:id="@+id/calories_value"
+            style="@style/RobotoMonoText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"
+            app:layout_constraintStart_toEndOf="@id/carbs_value"
+            app:layout_constraintTop_toBottomOf="@id/row_fake_top_3"
+            app:layout_constraintWidth_percent="0.5"
+            tools:text="17" />
+
+        <Button
+            android:id="@+id/save_button"
+            style="@style/VioletButton"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:layout_marginBottom="9dp"
+            android:layout_marginEnd="9dp"
+            android:layout_marginStart="9dp"
+            android:text="@string/save"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+    </android.support.constraint.ConstraintLayout>
+
+</LinearLayout>

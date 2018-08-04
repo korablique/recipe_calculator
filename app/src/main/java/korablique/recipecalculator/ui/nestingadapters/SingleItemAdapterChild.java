@@ -1,18 +1,30 @@
 package korablique.recipecalculator.ui.nestingadapters;
 
 import android.support.annotation.LayoutRes;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
+import korablique.recipecalculator.R;
 import korablique.recipecalculator.ui.MyViewHolder;
 
 public class SingleItemAdapterChild extends AdapterChild {
+    public interface Observer {
+        void onViewShown(View v);
+    }
     @LayoutRes
     private final int layoutId;
+    private Observer observer;
+
+    public SingleItemAdapterChild(@LayoutRes int layoutId, Observer observer) {
+        this.layoutId = layoutId;
+        this.observer = observer;
+    }
 
     public SingleItemAdapterChild(@LayoutRes int layoutId) {
-        this.layoutId = layoutId;
+        this(layoutId, null);
     }
 
     @Override
@@ -25,6 +37,11 @@ public class SingleItemAdapterChild extends AdapterChild {
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int childPosition) {
         // У нас всегда 1 чайлд
+
+        ViewGroup item = ((MyViewHolder) holder).getItem();
+        if (observer != null) {
+            observer.onViewShown(item);
+        }
     }
 
     @Override
