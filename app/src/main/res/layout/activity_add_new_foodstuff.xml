@@ -9,7 +9,7 @@
 
     <include
         android:id="@+id/title_layout"
-        layout="@layout/title_view_with_cancel" />
+        layout="@layout/title_view_with_cancel_button" />
 
     <!--layout margin 11dp + textview margin 4.5dp == ~16dp-->
     <!--because of default edittext margin-->

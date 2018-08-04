@@ -46,7 +46,8 @@
 
         <receiver android:name=".ui.notifications.FoodReminderReceiver" />
 
-        <activity android:name=".ui.addnewfoodstuff.AddNewFoodstuffActivity"></activity>
+        <activity android:name=".ui.addnewfoodstuff.AddNewFoodstuffActivity"
+            android:windowSoftInputMode="adjustResize"/>
     </application>
 
 </manifest>

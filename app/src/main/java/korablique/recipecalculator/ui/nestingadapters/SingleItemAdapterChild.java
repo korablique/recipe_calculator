@@ -40,10 +40,7 @@ public class SingleItemAdapterChild extends AdapterChild {
 
         ViewGroup item = ((MyViewHolder) holder).getItem();
         if (observer != null) {
-            View addNewFoodstuffButton = item.findViewById(R.id.add_new_foodstuff);
-            if (addNewFoodstuffButton != null) {
-                observer.onViewShown(addNewFoodstuffButton);
-            }
+            observer.onViewShown(item);
         }
     }
 

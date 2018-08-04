@@ -8,7 +8,7 @@
 
     <include
         android:id="@+id/title_layout"
-        layout="@layout/title_view_with_cancel" />
+        layout="@layout/title_view_with_cancel_button" />
 
     <LinearLayout
         android:id="@+id/summary_layout"

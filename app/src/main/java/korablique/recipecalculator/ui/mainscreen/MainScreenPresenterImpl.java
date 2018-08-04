@@ -167,12 +167,15 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
         // если топ пустой, то топ-адаптер не нужно создавать, чтобы не было заголовка
 
         if (foodstuffAdapterChild == null) {
-            SingleItemAdapterChild foodstuffsTitle = new SingleItemAdapterChild(R.layout.all_foodstuffs_header, v -> {
-                v.setOnClickListener(v1 -> {
+            SingleItemAdapterChild.Observer observer = v -> {
+                View addNewFoodstuffButton = v.findViewById(R.id.add_new_foodstuff);
+                addNewFoodstuffButton.setOnClickListener(v1 -> {
                     Intent intent = new Intent(context, AddNewFoodstuffActivity.class);
                     context.startActivity(intent);
                 });
-            });
+            };
+            SingleItemAdapterChild foodstuffsTitle = new SingleItemAdapterChild(
+                    R.layout.all_foodstuffs_header, observer);
             foodstuffAdapterChild = new FoodstuffsAdapterChild(context, clickObserver);
             adapterParent.addChild(foodstuffsTitle);
             adapterParent.addChild(foodstuffAdapterChild);
