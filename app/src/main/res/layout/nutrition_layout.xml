@@ -17,6 +17,8 @@
             android:layout_width="fill_parent"
             android:lineSpacingMultiplier="1.30"
             style="@style/RobotoMonoHintText"
+            android:maxLines="1"
+            android:ellipsize="end"
             android:text="@string/protein" />
 
         <View

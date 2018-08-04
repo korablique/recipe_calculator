@@ -28,7 +28,7 @@
     <style name="RobotoMonoHintText" parent="@style/TextAppearance.AppCompat">
         <item name="android:fontFamily">@font/roboto_mono</item>
         <item name="android:textColor">#FF9B9DA7</item>
-        <item name="android:textSize">10sp</item>
+        <item name="android:textSize">12sp</item>
     </style>
 
     <style name="BroccalcButton" parent="Base.TextAppearance.AppCompat.Button">
