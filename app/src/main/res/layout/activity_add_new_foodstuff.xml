@@ -194,7 +194,6 @@
             app:layout_constraintStart_toEndOf="@id/carbs_views"
             app:layout_constraintTop_toBottomOf="@+id/fats_value"
             app:layout_constraintWidth_percent="0.5" />
-
         <EditText
             android:id="@+id/calories_value"
             style="@style/RobotoMonoText"
@@ -205,6 +204,28 @@
             app:layout_constraintTop_toBottomOf="@id/row_fake_top_3"
             app:layout_constraintWidth_percent="0.5"
             tools:text="17" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/RobotoMonoHintText"
+            android:text="@string/nutrition_per_100_g"
+            app:layout_constraintBottom_toTopOf="@id/nutrition_progress_bar"
+            android:layout_marginBottom="10dp"
+            android:layout_marginLeft="9dp"
+            android:layout_marginRight="9dp"/>
+
+        <include
+            android:id="@+id/nutrition_progress_bar"
+            layout="@layout/nutrition_progress"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:layout_marginBottom="20dp"
+            android:layout_marginLeft="9dp"
+            android:layout_marginRight="9dp"
+            app:layout_constraintBottom_toTopOf="@+id/save_button"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
 
         <Button
             android:id="@+id/save_button"
