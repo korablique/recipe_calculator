@@ -14,8 +14,7 @@
         <TextView
             android:id="@+id/nutrition_name"
             android:layout_height="wrap_content"
-            android:layout_width="fill_parent"
-            android:lineSpacingMultiplier="1.30"
+            android:layout_width="match_parent"
             style="@style/RobotoMonoHintText"
             android:maxLines="1"
             android:ellipsize="end"
@@ -35,7 +34,7 @@
         android:id="@+id/nutrition_text_view"
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
-        android:lineSpacingMultiplier="1.43"
+        android:layout_marginTop="5dp"
         style="@style/RobotoMonoText"
         tools:text="35 г." />
 
