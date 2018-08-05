@@ -49,6 +49,7 @@ public class CardDialog extends DialogFragment {
             dialog1.getWindow().setAttributes(layoutParams);
             dialog1.getWindow().setBackgroundDrawable(getContext().getResources().getDrawable(R.drawable.new_card_background));
         });
+        dialog1.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
         return dialog1;
     }
 
