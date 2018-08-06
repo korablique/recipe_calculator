@@ -99,6 +99,9 @@ public class BucketListActivity extends BaseActivity {
                 adapter.deleteItem(position);
                 double newWeight = countTotalWeight(adapter.getItems());
                 totalWeightEditText.setText(String.valueOf(newWeight));
+
+                Nutrition newNutrition = countTotalNutrition(adapter.getItems());
+                nutritionWrapper.setNutrition(newNutrition);
             }
         };
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(onSwipeItemCallback);
