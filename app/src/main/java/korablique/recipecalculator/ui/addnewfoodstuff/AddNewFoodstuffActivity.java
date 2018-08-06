@@ -1,11 +1,15 @@
 package korablique.recipecalculator.ui.addnewfoodstuff;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.arlib.floatingsearchview.util.adapter.TextWatcherAdapter;
 
 import javax.inject.Inject;
 
@@ -13,10 +17,18 @@ import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.ui.NutritionProgressWrapper;
 
 public class AddNewFoodstuffActivity extends BaseActivity {
     @Inject
     DatabaseWorker databaseWorker;
+    private NutritionProgressWrapper nutritionProgressWrapper;
+    private EditText foodstuffNameEditText;
+    private EditText proteinEditText;
+    private EditText fatsEditText;
+    private EditText carbsEditText;
+    private EditText caloriesEditText;
+    private Button saveButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,12 +38,7 @@ public class AddNewFoodstuffActivity extends BaseActivity {
         TextView titleTextView = findViewById(R.id.title_text);
         titleTextView.setText(R.string.new_foodstuff);
 
-        View cancelButton = findViewById(R.id.button_close);
-        cancelButton.setOnClickListener(v -> {
-            finish();
-        });
-
-        Button saveButton = findViewById(R.id.save_button);
+        saveButton = findViewById(R.id.save_button);
         saveButton.setOnClickListener(v -> {
             databaseWorker.saveFoodstuff(AddNewFoodstuffActivity.this, parseFoodstuff(), new DatabaseWorker.SaveFoodstuffCallback() {
                 @Override
@@ -46,19 +53,75 @@ public class AddNewFoodstuffActivity extends BaseActivity {
                 }
             });
         });
+
+        foodstuffNameEditText = findViewById(R.id.foodstuff_name);
+        proteinEditText = findViewById(R.id.protein_value);
+        fatsEditText = findViewById(R.id.fats_value);
+        carbsEditText = findViewById(R.id.carbs_value);
+        caloriesEditText = findViewById(R.id.calories_value);
+
+        nutritionProgressWrapper = new NutritionProgressWrapper(this, findViewById(R.id.nutrition_progress_bar));
+        nutritionProgressWrapper.setProgressInProgressBar(0, 0, 0);
+        updateSaveButtonEnability();
+        TextWatcher nutritionChangeWatcher = new TextWatcherAdapter() {
+            @Override
+            public void afterTextChanged(Editable s) {
+                double protein = parseNutrient(proteinEditText);
+                double fats = parseNutrient(fatsEditText);
+                double carbs = parseNutrient(carbsEditText);
+                nutritionProgressWrapper.setProgressInProgressBar(protein, fats, carbs);
+            }
+        };
+        proteinEditText.addTextChangedListener(nutritionChangeWatcher);
+        fatsEditText.addTextChangedListener(nutritionChangeWatcher);
+        carbsEditText.addTextChangedListener(nutritionChangeWatcher);
+
+        TextWatcher foodstuffInfoWatcher = new TextWatcherAdapter() {
+            @Override
+            public void afterTextChanged(Editable s) {
+                super.afterTextChanged(s);
+                updateSaveButtonEnability();
+            }
+        };
+        foodstuffNameEditText.addTextChangedListener(foodstuffInfoWatcher);
+        proteinEditText.addTextChangedListener(foodstuffInfoWatcher);
+        fatsEditText.addTextChangedListener(foodstuffInfoWatcher);
+        carbsEditText.addTextChangedListener(foodstuffInfoWatcher);
+        caloriesEditText.addTextChangedListener(foodstuffInfoWatcher);
+
+        View cancelButton = findViewById(R.id.button_close);
+        cancelButton.setOnClickListener(v -> {
+            finish();
+        });
     }
 
     private Foodstuff parseFoodstuff() {
-        EditText foodstuffNameEdittext = findViewById(R.id.foodstuff_name);
-        String foodstuffName = foodstuffNameEdittext.getText().toString();
-        EditText proteinEdittext = findViewById(R.id.protein_value);
-        double protein = Double.parseDouble(proteinEdittext.getText().toString());
-        EditText fatsEdittext = findViewById(R.id.fats_value);
-        double fats = Double.parseDouble(fatsEdittext.getText().toString());
-        EditText carbsEdittext = findViewById(R.id.carbs_value);
-        double carbs = Double.parseDouble(carbsEdittext.getText().toString());
-        EditText caloriesEdittext = findViewById(R.id.calories_value);
-        double calories = Double.parseDouble(caloriesEdittext.getText().toString());
+        String foodstuffName = foodstuffNameEditText.getText().toString();
+        double protein = Double.parseDouble(proteinEditText.getText().toString());
+        double fats = Double.parseDouble(fatsEditText.getText().toString());
+        double carbs = Double.parseDouble(carbsEditText.getText().toString());
+        double calories = Double.parseDouble(caloriesEditText.getText().toString());
         return new Foodstuff(foodstuffName, -1, protein, fats, carbs, calories);
+    }
+
+    private double parseNutrient(EditText editText) {
+        String valueString = editText.getText().toString();
+        if (valueString.isEmpty()) {
+            return 0.0;
+        } else {
+            return Double.parseDouble(valueString);
+        }
+    }
+
+    private void updateSaveButtonEnability() {
+        if (foodstuffNameEditText.getText().toString().isEmpty()
+                || proteinEditText.getText().toString().isEmpty()
+                || fatsEditText.getText().toString().isEmpty()
+                || carbsEditText.getText().toString().isEmpty()
+                || caloriesEditText.getText().toString().isEmpty()) {
+            saveButton.setEnabled(false);
+        } else {
+            saveButton.setEnabled(true);
+        }
     }
 }
