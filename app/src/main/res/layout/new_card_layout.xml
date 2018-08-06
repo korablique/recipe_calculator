@@ -5,6 +5,11 @@
     android:layout_height="wrap_content"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!--лейаут нужный для задания маржина-->
+    <!--коренной лейаут этой разметки очень нагло эксплуатируется диалогом
+    как тому заблогарассудится, поэтому власти над ним мы имеем очень мало -
+    зато мы имеем власть над всем контентом, и поэтому мы сделали второй
+    "большой" лейаут с маржином, чтоб буковы отъехали от краёв-->
     <android.support.constraint.ConstraintLayout
         android:id="@+id/constraint_layout"
         android:layout_width="match_parent"
