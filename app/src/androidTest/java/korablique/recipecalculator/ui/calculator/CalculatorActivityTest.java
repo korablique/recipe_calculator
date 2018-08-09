@@ -19,7 +19,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.concurrent.CountDownLatch;
+import java.util.Collections;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.database.DatabaseWorker;
@@ -41,13 +41,14 @@ import static org.hamcrest.Matchers.not;
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class CalculatorActivityTest {
+    private DatabaseWorker databaseWorker = new DatabaseWorker(
+            new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
+
     @Rule
     public ActivityTestRule<CalculatorActivity> mActivityRule =
             InjectableActivityTestRule.forActivity(CalculatorActivity.class)
-                    .withInjector((CalculatorActivity activity) -> {
-                        activity.databaseWorker =
-                                new DatabaseWorker(
-                                        new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
+                    .withSingletones(() -> {
+                        return Collections.singletonList(databaseWorker);
                     })
                     .build();
 
@@ -57,12 +58,13 @@ public class CalculatorActivityTest {
     }
 
     @After
-    public void tearDown() throws InterruptedException {
+    public void tearDown() {
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
         instrumentation.runOnMainSync(() -> {
-            mActivityRule
-                    .getActivity()
-                    .getCard().hide();
+            CalculatorActivity activity = mActivityRule.getActivity();
+            if (activity != null) {
+                activity.getCard().hide();
+            }
         });
     }
 

@@ -1,4 +1,4 @@
-package korablique.recipecalculator.ui.mainscreen;
+package korablique.recipecalculator.ui.nestingadapters;
 
 import android.view.ViewGroup;
 
@@ -11,8 +11,6 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import korablique.recipecalculator.BuildConfig;
-import korablique.recipecalculator.ui.nestingadapters.AdapterChild;
-import korablique.recipecalculator.ui.nestingadapters.AdapterParent;
 import korablique.recipecalculator.ui.nestingadapters.AdapterParent.ChildWithPosition;
 
 import static org.mockito.Mockito.mock;

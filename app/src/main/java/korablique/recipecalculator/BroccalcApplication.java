@@ -12,6 +12,8 @@ import dagger.android.DispatchingAndroidInjector;
 import dagger.android.HasActivityInjector;
 import io.fabric.sdk.android.Fabric;
 import korablique.recipecalculator.dagger.DaggerBroccalcApplicationComponent;
+import korablique.recipecalculator.dagger.Injector;
+import korablique.recipecalculator.dagger.InjectorHolder;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.ui.notifications.FoodReminder;
@@ -29,19 +31,19 @@ public class BroccalcApplication extends Application implements HasActivityInjec
     @Override
     public void onCreate() {
         super.onCreate();
-        DaggerBroccalcApplicationComponent
-                .builder()
-                .context(this)
-                .build()
-                .inject(this);
         Fabric.with(this, new Crashlytics());
-
-        historyWorker.initCache();
-        userParametersWorker.initCache();
-
-        foodReminder.scheduleNotification();
+        if (!TestEnvironmentDetector.isInTests()) {
+            InjectorHolder.getInjector().inject(this);
+            historyWorker.initCache();
+            userParametersWorker.initCache();
+            foodReminder.scheduleNotification();
+        }
     }
 
+    /**
+     * Don't call!
+     * Use {@link Injector} instead.
+     */
     @Override
     public AndroidInjector<Activity> activityInjector() {
         return dispatchingAndroidInjector;
