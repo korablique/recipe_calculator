@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
 
 public class NutritionValuesWrapper {
@@ -19,6 +20,7 @@ public class NutritionValuesWrapper {
     private TextView fatsTextView;
     private TextView carbsTextView;
     private TextView caloriesTextView;
+    private Foodstuff foodstuff;
 
     public NutritionValuesWrapper(Context context, ViewGroup layout) {
         this.layout = layout;
@@ -32,7 +34,7 @@ public class NutritionValuesWrapper {
         setNutritionTable(R.id.protein_layout, R.string.protein, R.drawable.new_card_protein_icon);
         setNutritionTable(R.id.fats_layout, R.string.fats, R.drawable.new_card_fats_icon);
         setNutritionTable(R.id.carbs_layout, R.string.carbs, R.drawable.new_card_carbs_icon);
-        setNutritionTable(R.id.calories_layout, R.string.calories_per_100_g, R.drawable.invisible_drawable);
+        setNutritionTable(R.id.calories_layout, R.string.calories, R.drawable.invisible_drawable);
     }
 
     // только задает цвета кружкам и названия в шапке
@@ -73,5 +75,13 @@ public class NutritionValuesWrapper {
 
     public double getCaloriesValue() {
         return Double.valueOf(caloriesTextView.getText().toString());
+    }
+
+    public Foodstuff getFoodstuff() {
+        return foodstuff;
+    }
+
+    public void setFoodstuff(Foodstuff foodstuff) {
+        this.foodstuff = foodstuff;
     }
 }

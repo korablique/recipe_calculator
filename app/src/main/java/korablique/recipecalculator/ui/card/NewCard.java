@@ -15,7 +15,8 @@ import com.arlib.floatingsearchview.util.adapter.TextWatcherAdapter;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
-import korablique.recipecalculator.ui.NutritionProgressWithValuesWrapper;
+import korablique.recipecalculator.ui.NutritionProgressWrapper;
+import korablique.recipecalculator.ui.NutritionValuesWrapper;
 
 public class NewCard {
     public interface OnAddFoodstuffButtonClickListener {
@@ -27,23 +28,19 @@ public class NewCard {
     private TextView nameTextView;
     private Button addFoodstuffButton;
 
-    private NutritionProgressWithValuesWrapper nutritionWrapper;
+    private NutritionProgressWrapper nutritionProgressWrapper;
+    private NutritionValuesWrapper nutritionValuesWrapper;
 
     public NewCard(Context context, ViewGroup parent) {
         cardLayout = (ViewGroup) LayoutInflater.from(context).inflate(R.layout.new_card_layout, parent);
         addFoodstuffButton = cardLayout.findViewById(R.id.add_foodstuff_button);
         weightEditText = cardLayout.findViewById(R.id.weight_edit_text);
         updateAddButtonEnability(weightEditText.getText());
-        weightEditText.addTextChangedListener(new TextWatcherAdapter() {
-            @Override
-            public void afterTextChanged(Editable s) {
-                super.afterTextChanged(s);
-                updateAddButtonEnability(s);
-            }
-        });
+
         nameTextView = cardLayout.findViewById(R.id.foodstuff_name_text_view);
-        nutritionWrapper = new NutritionProgressWithValuesWrapper(
-                context, cardLayout.findViewById(R.id.nutrition_progress_with_values));
+        ViewGroup nutritionLayout = cardLayout.findViewById(R.id.nutrition_progress_with_values);
+        nutritionProgressWrapper = new NutritionProgressWrapper(context, nutritionLayout);
+        nutritionValuesWrapper = new NutritionValuesWrapper(context, nutritionLayout);
     }
 
     private void updateAddButtonEnability(Editable text) {
@@ -61,7 +58,30 @@ public class NewCard {
             weightEditText.setText(String.valueOf(foodstuff.getWeight()));
             weightEditText.setSelection(weightEditText.getText().length());
         }
-        nutritionWrapper.setNutrition(Nutrition.of100gramsOf(foodstuff));
+        nutritionProgressWrapper.setProgressInProgressBar(foodstuff.getProtein(), foodstuff.getFats(), foodstuff.getCarbs());
+        nutritionValuesWrapper.setFoodstuff(foodstuff);
+        if (foodstuff.getWeight() == -1) {
+            // когда фудстафф только задали - показываем БЖУ на 100 г
+            nutritionValuesWrapper.setNutrition(Nutrition.of100gramsOf(foodstuff));
+        } else {
+            // если у него уже есть масса - показываем БЖУ на эту массу
+            nutritionValuesWrapper.setNutrition(Nutrition.of(foodstuff));
+        }
+        weightEditText.addTextChangedListener(new TextWatcherAdapter() {
+            @Override
+            public void afterTextChanged(Editable s) {
+                // пользователь отредактировал массу - показываем значения БЖУ на новую массу
+                super.afterTextChanged(s);
+                updateAddButtonEnability(s);
+                double newWeight = 0;
+                if (!s.toString().isEmpty()) {
+                    newWeight = Double.parseDouble(s.toString());
+                }
+                Foodstuff foodstuffWithNewWeight = foodstuff.recreateWithWeight(newWeight);
+                Nutrition newNutrition = Nutrition.of(foodstuffWithNewWeight);
+                nutritionValuesWrapper.setNutrition(newNutrition);
+            }
+        });
     }
 
     ViewGroup getCardLayout() {
@@ -74,10 +94,10 @@ public class NewCard {
                     foodstuffId,
                     nameTextView.getText().toString(),
                     Double.valueOf(weightEditText.getText().toString()),
-                    nutritionWrapper.getProteinValue(),
-                    nutritionWrapper.getFatsValue(),
-                    nutritionWrapper.getCarbsValue(),
-                    nutritionWrapper.getCaloriesValue());
+                    nutritionValuesWrapper.getFoodstuff().getProtein(),
+                    nutritionValuesWrapper.getFoodstuff().getFats(),
+                    nutritionValuesWrapper.getFoodstuff().getCarbs(),
+                    nutritionValuesWrapper.getFoodstuff().getCalories());
             listener.onClick(clickedFoodstuff);
         });
     }

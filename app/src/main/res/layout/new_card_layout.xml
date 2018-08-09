@@ -78,8 +78,8 @@
             android:id="@+id/text_input_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="12dp"
-            android:layout_marginRight="12dp"
+            android:layout_marginLeft="11dp"
+            android:layout_marginRight="13dp"
             android:layout_marginTop="16dp"
             app:layout_constraintTop_toBottomOf="@id/nutrition_progress_with_values">
 
@@ -90,7 +90,8 @@
                 android:layout_height="wrap_content"
                 android:hint="@string/weight_in_card"
                 android:inputType="numberDecimal"
-                android:maxLines="1" />
+                android:maxLines="1"
+                android:text="@string/default_weight" />
         </android.support.design.widget.TextInputLayout>
 
         <Button
