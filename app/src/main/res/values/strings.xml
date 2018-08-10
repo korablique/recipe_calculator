@@ -6,7 +6,6 @@
     <string name="fats">Жиры</string>
     <string name="carbs">Углеводы</string>
     <string name="calories">Калории</string>
-    <string name="calories_per_100_g">Калории, 100 г.</string>
     <string name="weight_of_cooked_product">Масса готового продукта:</string>
     <string name="ok">OK</string>
     <string name="product_name">Название продукта</string>

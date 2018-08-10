@@ -17,6 +17,7 @@ import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.ui.NutritionProgressWrapper;
 
 public class AddNewFoodstuffActivity extends BaseActivity {
@@ -61,7 +62,7 @@ public class AddNewFoodstuffActivity extends BaseActivity {
         caloriesEditText = findViewById(R.id.calories_value);
 
         nutritionProgressWrapper = new NutritionProgressWrapper(this, findViewById(R.id.nutrition_progress_bar));
-        nutritionProgressWrapper.setProgressInProgressBar(0, 0, 0);
+        nutritionProgressWrapper.setNutrition(Nutrition.zero());
         updateSaveButtonEnability();
         TextWatcher nutritionChangeWatcher = new TextWatcherAdapter() {
             @Override
@@ -69,7 +70,7 @@ public class AddNewFoodstuffActivity extends BaseActivity {
                 double protein = parseNutrient(proteinEditText);
                 double fats = parseNutrient(fatsEditText);
                 double carbs = parseNutrient(carbsEditText);
-                nutritionProgressWrapper.setProgressInProgressBar(protein, fats, carbs);
+                nutritionProgressWrapper.setNutrition(protein, fats, carbs);
             }
         };
         proteinEditText.addTextChangedListener(nutritionChangeWatcher);

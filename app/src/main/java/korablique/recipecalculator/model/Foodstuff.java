@@ -141,4 +141,8 @@ public class Foodstuff implements Parcelable, Comparable<Foodstuff> {
             return false;
         }
     }
+
+    public Foodstuff recreateWithWeight(double weight) {
+        return new Foodstuff(name, weight, protein, fats, carbs, calories);
+    }
 }
