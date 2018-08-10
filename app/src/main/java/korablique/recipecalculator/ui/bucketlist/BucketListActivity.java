@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.Editable;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -17,19 +18,22 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import korablique.recipecalculator.DishNutritionCalculator;
 import korablique.recipecalculator.FloatUtils;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
-import korablique.recipecalculator.ui.NutritionProgressWithValuesWrapper;
+import korablique.recipecalculator.ui.NutritionProgressWrapper;
+import korablique.recipecalculator.ui.NutritionValuesWrapper;
 import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.history.HistoryActivity;
 
 public class BucketListActivity extends BaseActivity {
     public static final String EXTRA_FOODSTUFFS_LIST = "EXTRA_FOODSTUFFS_LIST";
-    private NutritionProgressWithValuesWrapper nutritionWrapper;
+    private NutritionProgressWrapper nutritionProgressWrapper;
+    private NutritionValuesWrapper nutritionValuesWrapper;
     @Inject
     DatabaseWorker databaseWorker;
     private BucketListAdapter adapter;
@@ -42,17 +46,16 @@ public class BucketListActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bucket_list);
 
-        nutritionWrapper =
-                new NutritionProgressWithValuesWrapper(this, findViewById(R.id.nutrition_progress_with_values));
+        ViewGroup nutritionLayout = findViewById(R.id.nutrition_progress_with_values);
+        nutritionProgressWrapper = new NutritionProgressWrapper(this, nutritionLayout);
+        nutritionValuesWrapper = new NutritionValuesWrapper(this, nutritionLayout);
 
         List<Foodstuff> foodstuffs = getIntent().getParcelableArrayListExtra(EXTRA_FOODSTUFFS_LIST);
         if (foodstuffs == null) {
             throw new IllegalArgumentException("Can't start without " + EXTRA_FOODSTUFFS_LIST);
         }
-
         double totalWeight = countTotalWeight(foodstuffs);
-        Nutrition totalNutrition = countTotalNutrition(foodstuffs);
-        nutritionWrapper.setNutrition(totalNutrition);
+        updateNutritionWrappers(foodstuffs, totalWeight);
 
         saveToHistoryButton = findViewById(R.id.save_to_history_button);
         saveAsSingleFoodstuffButton = findViewById(R.id.save_as_single_foodstuff_button);
@@ -77,11 +80,10 @@ public class BucketListActivity extends BaseActivity {
                 adapter.replaceItem(newFoodstuff, position);
                 CardDialog.hideCard(BucketListActivity.this);
 
-                Nutrition newNutrition = countTotalNutrition(adapter.getItems());
-                nutritionWrapper.setNutrition(newNutrition);
-
                 double newTotalWeight = countTotalWeight(adapter.getItems());
                 totalWeightEditText.setText(String.valueOf(newTotalWeight));
+
+                updateNutritionWrappers(adapter.getItems(), newTotalWeight);
             });
         };
 
@@ -100,8 +102,7 @@ public class BucketListActivity extends BaseActivity {
                 double newWeight = countTotalWeight(adapter.getItems());
                 totalWeightEditText.setText(String.valueOf(newWeight));
 
-                Nutrition newNutrition = countTotalNutrition(adapter.getItems());
-                nutritionWrapper.setNutrition(newNutrition);
+                updateNutritionWrappers(adapter.getItems(), newWeight);
             }
         };
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(onSwipeItemCallback);
@@ -140,6 +141,14 @@ public class BucketListActivity extends BaseActivity {
             HistoryActivity.startAndAdd(adapter.getItems(), BucketListActivity.this);
             finish();
         });
+    }
+
+    private void updateNutritionWrappers(List<Foodstuff> foodstuffs, double totalWeight) {
+        Nutrition totalNutrition = countTotalNutrition(foodstuffs);
+        nutritionValuesWrapper.setNutrition(totalNutrition);
+        // чтобы высчитать БЖУ на 100% для NutritionProgressWrapper'а
+        Nutrition nutritionPer100Percent = DishNutritionCalculator.calculate(foodstuffs, totalWeight);
+        nutritionProgressWrapper.setNutrition(nutritionPer100Percent);
     }
 
     private double countTotalWeight(List<Foodstuff> foodstuffs) {
