@@ -11,6 +11,7 @@ import android.widget.LinearLayout;
 
 import korablique.recipecalculator.FloatUtils;
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.model.Nutrition;
 
 public class NutritionProgressWrapper {
     private static final int PROGRESSBAR_CORNERS_RADIUS = 4;
@@ -32,7 +33,7 @@ public class NutritionProgressWrapper {
         this.context = context;
     }
 
-    public void setProgressInProgressBar(double protein, double fats, double carbs) {
+    public void setNutrition(double protein, double fats, double carbs) {
         // set progress in progressbar
         View proteinProgress = layout.findViewById(R.id.protein_progress);
         setNutritionProgress(proteinProgress, protein);
@@ -48,6 +49,10 @@ public class NutritionProgressWrapper {
                 new NutritionWithProgress(fats, fatsProgress),
                 new NutritionWithProgress(carbs, carbsProgress)};
         roundCorners(nutritionsWithProgress);
+    }
+
+    public void setNutrition(Nutrition nutrition) {
+        setNutrition(nutrition.getProtein(), nutrition.getFats(), nutrition.getCarbs());
     }
 
     private void roundCorners(NutritionWithProgress[] nutritionsWithProgress) {

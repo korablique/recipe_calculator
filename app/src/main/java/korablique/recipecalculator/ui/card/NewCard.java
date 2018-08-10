@@ -22,6 +22,7 @@ public class NewCard {
     public interface OnAddFoodstuffButtonClickListener {
         void onClick(Foodstuff foodstuff);
     }
+    public static final int DEFAULT_WEIGHT = 100;
     private ViewGroup cardLayout;
     private Long foodstuffId;
     private EditText weightEditText;
@@ -35,6 +36,7 @@ public class NewCard {
         cardLayout = (ViewGroup) LayoutInflater.from(context).inflate(R.layout.new_card_layout, parent);
         addFoodstuffButton = cardLayout.findViewById(R.id.add_foodstuff_button);
         weightEditText = cardLayout.findViewById(R.id.weight_edit_text);
+        weightEditText.setText(String.valueOf(DEFAULT_WEIGHT));
         updateAddButtonEnability(weightEditText.getText());
 
         nameTextView = cardLayout.findViewById(R.id.foodstuff_name_text_view);
@@ -58,7 +60,7 @@ public class NewCard {
             weightEditText.setText(String.valueOf(foodstuff.getWeight()));
             weightEditText.setSelection(weightEditText.getText().length());
         }
-        nutritionProgressWrapper.setProgressInProgressBar(foodstuff.getProtein(), foodstuff.getFats(), foodstuff.getCarbs());
+        nutritionProgressWrapper.setNutrition(Nutrition.of100gramsOf(foodstuff));
         nutritionValuesWrapper.setFoodstuff(foodstuff);
         if (foodstuff.getWeight() == -1) {
             // когда фудстафф только задали - показываем БЖУ на 100 г

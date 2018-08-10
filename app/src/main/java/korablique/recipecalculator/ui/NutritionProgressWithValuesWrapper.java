@@ -16,7 +16,7 @@ public class NutritionProgressWithValuesWrapper {
 
     public void setNutrition(Nutrition nutrition) {
         nutritionValuesWrapper.setNutrition(nutrition);
-        nutritionProgressWrapper.setProgressInProgressBar(nutrition.getProtein(), nutrition.getFats(), nutrition.getCarbs());
+        nutritionProgressWrapper.setNutrition(nutrition);
     }
 
     public double getProteinValue() {
