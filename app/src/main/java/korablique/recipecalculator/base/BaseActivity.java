@@ -17,34 +17,19 @@ import java.util.List;
 
 import korablique.recipecalculator.BuildConfig;
 import korablique.recipecalculator.R;
-import korablique.recipecalculator.dagger.ActivityInjector;
-import korablique.recipecalculator.dagger.DefaultActivityInjector;
+import korablique.recipecalculator.dagger.InjectorHolder;
 import korablique.recipecalculator.ui.calculator.CalculatorActivity;
 import korablique.recipecalculator.ui.history.HistoryActivity;
 import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
 import korablique.recipecalculator.ui.mainscreen.MainScreenActivity;
 
 public abstract class BaseActivity extends AppCompatActivity {
-    private ActivityInjector injector = new DefaultActivityInjector();
     private Drawer drawer;
-    private boolean onCreateCalled;
-
-    /**
-     * Метод требуется для подмены Даггера в тестах.
-     */
-    public void setInjector(
-            ActivityInjector<? extends BaseActivity> injector) {
-        if (onCreateCalled) {
-            throw new IllegalStateException("Must be called before onCreate");
-        }
-        this.injector = injector;
-    }
 
     @Override
     @SuppressWarnings("unchecked")
     protected void onCreate(Bundle savedInstanceState) {
-        onCreateCalled = true;
-        injector.inject(this);
+        InjectorHolder.getInjector().inject(this);
         super.onCreate(savedInstanceState);
     }
 

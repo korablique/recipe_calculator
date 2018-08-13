@@ -1,7 +1,9 @@
 package korablique.recipecalculator.database;
 
+import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.LargeTest;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
@@ -31,17 +33,15 @@ import static korablique.recipecalculator.database.FoodstuffsContract.FOODSTUFFS
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class DatabaseWorkerTest {
+    private Context context;
     private DatabaseWorker databaseWorker;
-
-    @Rule
-    public ActivityTestRule<CalculatorActivity> mActivityRule =
-            new ActivityTestRule<>(CalculatorActivity.class);
 
     @Before
     public void setUp() {
+        context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         databaseWorker = new DatabaseWorker(
                 new InstantMainThreadExecutor(), new InstantDatabaseThreadExecutor());
-        DbUtil.clearTable(mActivityRule.getActivity(), FOODSTUFFS_TABLE_NAME);
+        DbUtil.clearTable(context, FOODSTUFFS_TABLE_NAME);
     }
 
     @Test
@@ -51,7 +51,7 @@ public class DatabaseWorkerTest {
         Foodstuff foodstuff3 = new Foodstuff("продукт3", 1, 1, 1, 1, 1);
         Foodstuff foodstuff4 = new Foodstuff("продукт4", 1, 1, 1, 1, 1);
         databaseWorker.saveFoodstuff(
-                mActivityRule.getActivity(),
+                context,
                 foodstuff1,
                 new DatabaseWorker.SaveFoodstuffCallback() {
             @Override
@@ -61,7 +61,7 @@ public class DatabaseWorkerTest {
                 throw new RuntimeException("Видимо, продукт уже существует");
             }
         });
-        databaseWorker.saveFoodstuff(mActivityRule.getActivity(), foodstuff2, new DatabaseWorker.SaveFoodstuffCallback() {
+        databaseWorker.saveFoodstuff(context, foodstuff2, new DatabaseWorker.SaveFoodstuffCallback() {
             @Override
             public void onResult(long id) {}
 
@@ -71,12 +71,12 @@ public class DatabaseWorkerTest {
             }
         });
         //сохраняем два unlisted foodstuff'а
-        databaseWorker.saveUnlistedFoodstuff(mActivityRule.getActivity(), foodstuff3, null);
-        databaseWorker.saveUnlistedFoodstuff(mActivityRule.getActivity(), foodstuff4, null);
+        databaseWorker.saveUnlistedFoodstuff(context, foodstuff3, null);
+        databaseWorker.saveUnlistedFoodstuff(context, foodstuff4, null);
 
         final int[] listedFoodstuffsCount = new int[1];
         databaseWorker.requestListedFoodstuffsFromDb(
-                mActivityRule.getActivity(),
+                context,
                 20,
                 new DatabaseWorker.FoodstuffsRequestCallback() {
             @Override
@@ -85,7 +85,7 @@ public class DatabaseWorkerTest {
             }
         });
 
-        FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(mActivityRule.getActivity());
+        FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
         SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
         Cursor unlistedFoodstuffs = database.rawQuery(
                 "SELECT * FROM " + FOODSTUFFS_TABLE_NAME + " WHERE " + COLUMN_NAME_IS_LISTED + "=0", null);
@@ -101,7 +101,7 @@ public class DatabaseWorkerTest {
         Foodstuff foodstuff = new Foodstuff("falafel", -1, 10, 10, 10, 100);
         final long[] id = {-1};
         databaseWorker.saveUnlistedFoodstuff(
-                mActivityRule.getActivity(),
+                context,
                 foodstuff,
                 new DatabaseWorker.SaveUnlistedFoodstuffCallback() {
             @Override
@@ -110,11 +110,11 @@ public class DatabaseWorkerTest {
             }
         });
 
-        databaseWorker.makeFoodstuffUnlisted(mActivityRule.getActivity(), id[0], null);
+        databaseWorker.makeFoodstuffUnlisted(context, id[0], null);
 
         final boolean[] containsListedFoodstuff = new boolean[1];
         databaseWorker.saveFoodstuff(
-                mActivityRule.getActivity(),
+                context,
                 foodstuff,
                 new DatabaseWorker.SaveFoodstuffCallback() {
             @Override
@@ -142,7 +142,7 @@ public class DatabaseWorkerTest {
         // сохраняем продукты в список
         final ArrayList<Long> foodstuffsIds = new ArrayList<>();
         databaseWorker.saveGroupOfFoodstuffs(
-                mActivityRule.getActivity(),
+                context,
                 foodstuffs,
                 new DatabaseWorker.SaveGroupOfFoodstuffsCallback() {
                     @Override
@@ -156,7 +156,7 @@ public class DatabaseWorkerTest {
         int batchSize = 3;
         final int[] counter = {0};
         databaseWorker.requestListedFoodstuffsFromDb(
-                mActivityRule.getActivity(),
+                context,
                 batchSize,
                 new DatabaseWorker.FoodstuffsRequestCallback() {
                     @Override
@@ -179,7 +179,7 @@ public class DatabaseWorkerTest {
         // сохраняем продукты в список
         final ArrayList<Long> foodstuffsIds = new ArrayList<>();
         databaseWorker.saveGroupOfFoodstuffs(
-                mActivityRule.getActivity(),
+                context,
                 foodstuffs,
                 new DatabaseWorker.SaveGroupOfFoodstuffsCallback() {
                     @Override
@@ -193,7 +193,7 @@ public class DatabaseWorkerTest {
         int batchSize = 3;
         final ArrayList<Foodstuff> returnedFoodstuffs = new ArrayList<>();
         databaseWorker.requestListedFoodstuffsFromDb(
-                mActivityRule.getActivity(),
+                context,
                 batchSize,
                 new DatabaseWorker.FoodstuffsRequestCallback() {
                     @Override
@@ -226,7 +226,7 @@ public class DatabaseWorkerTest {
         // сохраняем продукты в список
         final ArrayList<Long> foodstuffsIds = new ArrayList<>();
         databaseWorker.saveGroupOfFoodstuffs(
-                mActivityRule.getActivity(),
+                context,
                 foodstuffs,
                 new DatabaseWorker.SaveGroupOfFoodstuffsCallback() {
                     @Override
@@ -240,7 +240,7 @@ public class DatabaseWorkerTest {
         int batchSize = 4;
         final ArrayList<Foodstuff> returnedFoodstuffs = new ArrayList<>();
         databaseWorker.requestListedFoodstuffsFromDb(
-                mActivityRule.getActivity(),
+                context,
                 batchSize,
                 new DatabaseWorker.FoodstuffsRequestCallback() {
                     @Override
@@ -266,7 +266,7 @@ public class DatabaseWorkerTest {
         // сохраняем продукты в список
         final ArrayList<Long> foodstuffsIds = new ArrayList<>();
         databaseWorker.saveGroupOfFoodstuffs(
-                mActivityRule.getActivity(),
+                context,
                 foodstuffs,
                 new DatabaseWorker.SaveGroupOfFoodstuffsCallback() {
                     @Override
@@ -277,7 +277,7 @@ public class DatabaseWorkerTest {
 
         List<Foodstuff> returnedFoodstuffs = new ArrayList<>();
         databaseWorker.requestFoodstuffsByIds(
-                mActivityRule.getActivity(),
+                context,
                 foodstuffsIds,
                 new DatabaseWorker.FoodstuffsRequestCallback() {
                     @Override
@@ -303,7 +303,7 @@ public class DatabaseWorkerTest {
         // сохраняем продукты в список
         final ArrayList<Long> foodstuffsIds = new ArrayList<>();
         databaseWorker.saveGroupOfFoodstuffs(
-                mActivityRule.getActivity(),
+                context,
                 foodstuffs,
                 new DatabaseWorker.SaveGroupOfFoodstuffsCallback() {
                     @Override
@@ -318,7 +318,7 @@ public class DatabaseWorkerTest {
 
         List<Foodstuff> returnedFoodstuffs = new ArrayList<>();
         databaseWorker.requestFoodstuffsByIds(
-                mActivityRule.getActivity(),
+                context,
                 foodstuffsIds,
                 new DatabaseWorker.FoodstuffsRequestCallback() {
                     @Override
@@ -334,7 +334,7 @@ public class DatabaseWorkerTest {
         Collections.reverse(foodstuffsIds);
         returnedFoodstuffs.clear();
         databaseWorker.requestFoodstuffsByIds(
-                mActivityRule.getActivity(),
+                context,
                 foodstuffsIds,
                 new DatabaseWorker.FoodstuffsRequestCallback() {
                     @Override
@@ -362,14 +362,14 @@ public class DatabaseWorkerTest {
         foodstuffs[9] = new Foodstuff("варенье из черники", -1, 1, 1, 1, 1);
 
         databaseWorker.saveGroupOfFoodstuffs(
-                mActivityRule.getActivity(),
+                context,
                 foodstuffs,
                 null);
 
         String query = "варенье";
         List<Foodstuff> searchResult = new ArrayList<>();
         databaseWorker.requestFoodstuffsLike(
-                mActivityRule.getActivity(),
+                context,
                 query,
                 3,
                 new DatabaseWorker.FoodstuffsRequestCallback() {
@@ -386,7 +386,7 @@ public class DatabaseWorkerTest {
     public Foodstuff getAnyFoodstuffFromDb() throws InterruptedException {
         final ArrayList<Foodstuff> foodstuffArrayList = new ArrayList<>();
         databaseWorker.requestListedFoodstuffsFromDb(
-                mActivityRule.getActivity(),
+                context,
                 20,
                 new DatabaseWorker.FoodstuffsRequestCallback() {
             @Override
@@ -400,7 +400,7 @@ public class DatabaseWorkerTest {
         }
 
         Foodstuff foodstuff = new Foodstuff("apricot", -1, 10, 10, 10, 10);
-        databaseWorker.saveFoodstuff(mActivityRule.getActivity(), foodstuff, new DatabaseWorker.SaveFoodstuffCallback() {
+        databaseWorker.saveFoodstuff(context, foodstuff, new DatabaseWorker.SaveFoodstuffCallback() {
             @Override
             public void onResult(long id) {}
             @Override

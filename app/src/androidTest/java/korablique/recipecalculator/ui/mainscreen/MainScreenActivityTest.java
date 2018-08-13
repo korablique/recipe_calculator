@@ -10,12 +10,15 @@ import android.support.test.runner.AndroidJUnit4;
 import android.view.View;
 
 import org.hamcrest.Matcher;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -31,9 +34,13 @@ import korablique.recipecalculator.util.DbUtil;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.SyncMainThreadExecutor;
+import korablique.recipecalculator.util.TestingInjector;
+import korablique.recipecalculator.util.TestingInjector.ActivitiesInjectionSource;
+import korablique.recipecalculator.util.TestingInjector.SingletonInjectionsSource;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
+import static android.support.test.espresso.action.ViewActions.typeText;
 import static android.support.test.espresso.assertion.PositionAssertions.isCompletelyAbove;
 import static android.support.test.espresso.assertion.PositionAssertions.isCompletelyBelow;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
@@ -54,34 +61,38 @@ import static org.hamcrest.CoreMatchers.allOf;
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class MainScreenActivityTest {
-    private DatabaseWorker databaseWorker =
-            new DatabaseWorker(new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
+    private DatabaseWorker databaseWorker;
     private HistoryWorker historyWorker;
-    private MainScreenPresenter presenter;
-    private MainScreenModel model;
-    private MainScreenView view;
     private Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
     @Rule
     public ActivityTestRule<MainScreenActivity> mActivityRule =
             InjectableActivityTestRule.forActivity(MainScreenActivity.class)
-                    .withInjector((MainScreenActivity activity) -> {
-                        model = new MainScreenModelImpl(databaseWorker, historyWorker);
-                        view = new MainScreenViewImpl(activity);
-                        presenter = new MainScreenPresenterImpl(view, model, activity);
-                        activity.presenter = presenter;
-                    })
-                    .withManualStart()
-                    .build();
+                .withManualStart()
+                .withSingletones(() -> {
+                    databaseWorker =
+                            new DatabaseWorker(new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
+                    historyWorker = new HistoryWorker(
+                            context, new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
+                    return Arrays.asList(databaseWorker, historyWorker);
+                })
+                .withActivityScoped((injectionTarget) -> {
+                    if (!(injectionTarget instanceof MainScreenActivity)) {
+                        return Collections.emptyList();
+                    }
+                    MainScreenActivity activity = (MainScreenActivity) injectionTarget;
+                    MainScreenModel model = new MainScreenModelImpl(databaseWorker, historyWorker);
+                    MainScreenView view = new MainScreenViewImpl(activity);
+                    MainScreenPresenter presenter = new MainScreenPresenterImpl(view, model, activity);
+                    return Collections.singletonList(presenter);
+                })
+                .build();
 
     @Before
-    public void setUp() throws InterruptedException {
+    public void setUp() {
         FoodstuffsDbHelper.deinitializeDatabase(context);
         FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
         dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-
-        historyWorker = new HistoryWorker(
-                context, new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
 
         Foodstuff[] foodstuffs = new Foodstuff[7];
         foodstuffs[0] = new Foodstuff("apple", -1, 1, 1, 1, 1);
@@ -114,6 +125,12 @@ public class MainScreenActivityTest {
         historyWorker.saveGroupOfFoodstuffsToHistory(newEntries);
 
         // каждый тест должен сам сделать launchActivity()
+    }
+
+    @After
+    public void tearDown() {
+        databaseWorker = null;
+        historyWorker = null;
     }
 
     @Test
@@ -179,16 +196,19 @@ public class MainScreenActivityTest {
         onView(allOf(
                 withText(clickedFoodstuffs.get(0).getName()),
                 matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header))))).perform(click());
+        onView(withId(R.id.weight_edit_text)).perform(typeText("123"));
         onView(withId(R.id.add_foodstuff_button)).perform(click());
 
         onView(allOf(
                 withText(clickedFoodstuffs.get(1).getName()),
                 matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header))))).perform(click());
+        onView(withId(R.id.weight_edit_text)).perform(typeText("123"));
         onView(withId(R.id.add_foodstuff_button)).perform(click());
 
         onView(allOf(
                 withText(clickedFoodstuffs.get(2).getName()),
                 matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header))))).perform(click());
+        onView(withId(R.id.weight_edit_text)).perform(typeText("123"));
         onView(withId(R.id.add_foodstuff_button)).perform(click());
 
         // Кликаем на корзинку в снэкбаре

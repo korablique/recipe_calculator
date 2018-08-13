@@ -12,16 +12,22 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.MainThreadExecutor;
+import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.FoodstuffsDbHelper;
+import korablique.recipecalculator.database.HistoryWorker;
+import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.ui.calculator.CalculatorActivity;
 import korablique.recipecalculator.ui.history.HistoryActivity;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
@@ -45,21 +51,28 @@ import static org.hamcrest.CoreMatchers.allOf;
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class BucketListActivityTest {
+    private Context context = InstrumentationRegistry.getTargetContext();
     private MainThreadExecutor mainThreadExecutor = new SyncMainThreadExecutor();
+    private DatabaseThreadExecutor databaseThreadExecutor = new InstantDatabaseThreadExecutor();
     private DatabaseWorker databaseWorker =
             new DatabaseWorker(mainThreadExecutor, new InstantDatabaseThreadExecutor());
+    private HistoryWorker historyWorker =
+            new HistoryWorker(context, mainThreadExecutor, databaseThreadExecutor);
+    private UserParametersWorker userParametersWorker =
+            new UserParametersWorker(context, mainThreadExecutor, databaseThreadExecutor);
 
     @Rule
     public ActivityTestRule<BucketListActivity> activityRule =
             InjectableActivityTestRule.forActivity(BucketListActivity.class)
-                    .withInjector((BucketListActivity activity) -> {
-                        activity.databaseWorker = databaseWorker;
-                    })
                     .withManualStart()
+                    .withSingletones(() -> {
+                        return Arrays.asList(mainThreadExecutor, databaseWorker,
+                                historyWorker, userParametersWorker);
+                    })
                     .build();
+
     @Before
     public void setUp() {
-        Context context = InstrumentationRegistry.getTargetContext();
         FoodstuffsDbHelper.deinitializeDatabase(context);
         FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
         dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);

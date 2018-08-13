@@ -1,15 +1,18 @@
 package korablique.recipecalculator.database;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.NonNull;
+import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.LargeTest;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
 import junit.framework.Assert;
 
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,19 +49,22 @@ import static korablique.recipecalculator.database.UserParametersContract.USER_P
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class FoodstuffsDbHelperTest {
-    @Rule
-    public ActivityTestRule<CalculatorActivity> mActivityRule =
-            new ActivityTestRule<>(CalculatorActivity.class);
+    private Context context;
+    
+    @Before
+    public void setUp() {
+        context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+    }
 
     @NonNull
     private File getDbFile() {
-        return FoodstuffsDbHelper.getDbFile(mActivityRule.getActivity());
+        return FoodstuffsDbHelper.getDbFile(context);
     }
 
     @Test
     public void databaseUpgradesFrom1to2version() {
         // Удалим существующую базу данных
-        FoodstuffsDbHelper.deinitializeDatabase(mActivityRule.getActivity());
+        FoodstuffsDbHelper.deinitializeDatabase(context);
 
         // Создадим файл базы данных НЕ используя FoodstuffsDbHelper
         SQLiteDatabase database1 = SQLiteDatabase.openOrCreateDatabase(getDbFile(), null);
@@ -80,7 +86,7 @@ public class FoodstuffsDbHelperTest {
         database1.close();
 
         // Создать FoodstuffsDbHelper и сделать open
-        FoodstuffsDbHelper helper = new FoodstuffsDbHelper(mActivityRule.getActivity());
+        FoodstuffsDbHelper helper = new FoodstuffsDbHelper(context);
         SQLiteDatabase database2 = helper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
 
         // Убедиться, что БД имеет 2 версию
@@ -94,7 +100,7 @@ public class FoodstuffsDbHelperTest {
     @Test
     public void databaseUpgradesFrom2to3version() {
         // Удалим существующую базу данных
-        FoodstuffsDbHelper.deinitializeDatabase(mActivityRule.getActivity());
+        FoodstuffsDbHelper.deinitializeDatabase(context);
 
         // Создадим файл базы данных НЕ используя FoodstuffsDbHelper
         SQLiteDatabase database1 = SQLiteDatabase.openOrCreateDatabase(getDbFile(), null);
@@ -146,7 +152,7 @@ public class FoodstuffsDbHelperTest {
         long id = database1.insert(FOODSTUFFS_TABLE_NAME, null, values);
 
         // Создать FoodstuffsDbHelper и сделать open
-        FoodstuffsDbHelper helper = new FoodstuffsDbHelper(mActivityRule.getActivity());
+        FoodstuffsDbHelper helper = new FoodstuffsDbHelper(context);
         SQLiteDatabase database2 = helper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
 
         // Убедиться, что БД имеет 3 версию, т.е. проверить наличие столбца name_nocase
@@ -169,13 +175,13 @@ public class FoodstuffsDbHelperTest {
 
     @Test
     public void databaseDoesNotUpdateIfHasActualVersion() throws IOException {
-        FoodstuffsDbHelper.deinitializeDatabase(mActivityRule.getActivity());
+        FoodstuffsDbHelper.deinitializeDatabase(context);
 
-        FoodstuffsDbHelper helper1 = new FoodstuffsDbHelper(mActivityRule.getActivity());
+        FoodstuffsDbHelper helper1 = new FoodstuffsDbHelper(context);
         FoodstuffsDbHelper.InitializationResult result1 = helper1.initializeDatabase();
         Assert.assertEquals(DATABASE_VERSION, result1.getNewVersion());
 
-        FoodstuffsDbHelper helper2 = new FoodstuffsDbHelper(mActivityRule.getActivity());
+        FoodstuffsDbHelper helper2 = new FoodstuffsDbHelper(context);
         FoodstuffsDbHelper.InitializationResult result2 = helper2.initializeDatabase();
         Assert.assertEquals(FoodstuffsDbHelper.InitializationType.None, result2.getPerformedInitialization());
     }

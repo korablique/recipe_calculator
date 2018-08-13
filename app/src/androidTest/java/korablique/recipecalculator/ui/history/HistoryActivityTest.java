@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.support.test.InstrumentationRegistry;
-import android.support.test.espresso.matcher.ViewMatchers;
 import android.support.test.filters.LargeTest;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
@@ -17,7 +16,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.MainThreadExecutor;
@@ -28,11 +29,11 @@ import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.ui.Card;
-import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.util.DbUtil;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.SyncMainThreadExecutor;
+import korablique.recipecalculator.util.TestingInjector;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
@@ -59,27 +60,28 @@ public class HistoryActivityTest {
     private HistoryWorker historyWorker;
     private UserParametersWorker userParametersWorker;
 
+
     @Rule
     public ActivityTestRule<HistoryActivity> mActivityRule =
             InjectableActivityTestRule.forActivity(HistoryActivity.class)
-                .withInjector((HistoryActivity activity) -> {
-                    activity.databaseWorker = databaseWorker;
-                    activity.historyWorker = historyWorker;
-                    activity.userParametersWorker = userParametersWorker;
-                    activity.mainThreadExecutor = mainThreadExecutor;
-                })
-                .withManualStart() // Нужно предотвратить старт UserGoalActivity.
-                .build();
+            .withManualStart()
+            .withSingletones(() -> {
+                Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+                historyWorker = new HistoryWorker(
+                        context, new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
+                userParametersWorker = new UserParametersWorker(
+                        context, new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
+
+                return Arrays.asList(mainThreadExecutor, databaseWorker,
+                        historyWorker, userParametersWorker);
+            })
+            .build();
 
     @Before
-    public void setUp() throws InterruptedException {
+    public void setUp() {
         Card.setAnimationDuration(0);
 
         Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        historyWorker = new HistoryWorker(
-                context, new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
-        userParametersWorker = new UserParametersWorker(
-                context, new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
 
         Resources resources = context.getResources();
 
@@ -96,7 +98,7 @@ public class HistoryActivityTest {
     }
 
     @After
-    public void tearDown() throws InterruptedException {
+    public void tearDown() {
         if (mActivityRule.getActivity() == null) {
             return;
         }
@@ -107,6 +109,8 @@ public class HistoryActivityTest {
                     .getCard()
                     .hide();
         });
+        historyWorker = null;
+        userParametersWorker = null;
     }
 
     @Test

@@ -2,7 +2,6 @@ package korablique.recipecalculator.ui.foodstuffslist;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
-import android.support.test.espresso.matcher.ViewMatchers;
 import android.support.test.filters.LargeTest;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
@@ -17,6 +16,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.util.Collections;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.database.DatabaseWorker;
@@ -42,13 +43,14 @@ public class ListOfFoodstuffsActivityTest {
             new DatabaseWorker(new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
     private Long savedFoodstuffId;
 
+
     @Rule
     public ActivityTestRule<ListOfFoodstuffsActivity> mActivityRule =
             InjectableActivityTestRule.forActivity(ListOfFoodstuffsActivity.class)
-                    .withInjector((ListOfFoodstuffsActivity activity) -> {
-                        activity.databaseWorker = databaseWorker;
+                    .withManualStart()
+                    .withSingletones(() -> {
+                        return Collections.singletonList(databaseWorker);
                     })
-                    .withManualStart() // Сначала добавим контент, затем будем стартовать.
                     .build();
 
     @Before
