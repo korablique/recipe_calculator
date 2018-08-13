@@ -79,6 +79,12 @@ public class BucketListAdapter extends RecyclerView.Adapter<MyViewHolder> {
         addItems(Collections.singletonList(foodstuff));
     }
 
+    public void addItem(Foodstuff foodstuff, int position) {
+        allFoodstuffs.add(position, foodstuff);
+        notifyItemInserted(position);
+        listener.onItemsCountChange(getItemCount());
+    }
+
     public void deleteItem(int displayedPosition) {
         allFoodstuffs.remove(displayedPosition);
         notifyItemRemoved(displayedPosition);

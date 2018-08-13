@@ -3,6 +3,7 @@ package korablique.recipecalculator.ui.bucketlist;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.Editable;
@@ -98,11 +99,20 @@ public class BucketListActivity extends BaseActivity {
             @Override
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
                 int position = viewHolder.getAdapterPosition();
+                Foodstuff deleting = adapter.getItem(position);
                 adapter.deleteItem(position);
                 double newWeight = countTotalWeight(adapter.getItems());
                 totalWeightEditText.setText(String.valueOf(newWeight));
-
                 updateNutritionWrappers(adapter.getItems(), newWeight);
+
+                Snackbar snackbar = Snackbar.make(foodstuffsListRecyclerView,
+                        R.string.deleted, Snackbar.LENGTH_SHORT);
+                snackbar.setAction(R.string.undo, v -> {
+                    adapter.addItem(deleting, position);
+                    totalWeightEditText.setText(String.valueOf(newWeight + deleting.getWeight()));
+                    updateNutritionWrappers(adapter.getItems(), newWeight + deleting.getWeight());
+                });
+                snackbar.show();
             }
         };
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(onSwipeItemCallback);
