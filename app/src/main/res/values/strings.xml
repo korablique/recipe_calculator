@@ -56,6 +56,8 @@
     <string name="result_weight">Масса готового продукта, граммов</string>
     <string name="new_foodstuff">Новый продукт</string>
     <string name="nutrition_per_100_g">Белки, жиры и углеводы указаны на 100 г</string>
+    <string name="undo">Отмена</string>
+    <string name="deleted">Продукт удалён</string>
 
     <string-array name="goals_array">
         <item name="losing_weight">Похудение</item>
