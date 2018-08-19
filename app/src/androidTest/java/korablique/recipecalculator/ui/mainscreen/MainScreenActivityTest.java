@@ -23,6 +23,7 @@ import java.util.Date;
 import java.util.List;
 
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.FoodstuffsDbHelper;
 import korablique.recipecalculator.database.HistoryWorker;
@@ -82,8 +83,9 @@ public class MainScreenActivityTest {
                     }
                     MainScreenActivity activity = (MainScreenActivity) injectionTarget;
                     MainScreenModel model = new MainScreenModelImpl(databaseWorker, historyWorker);
-                    MainScreenView view = new MainScreenViewImpl(activity);
-                    MainScreenPresenter presenter = new MainScreenPresenterImpl(view, model, activity);
+                    ActivityCallbacks activityCallbacks = activity.getActivityCallbacks();
+                    MainScreenView view = new MainScreenViewImpl(activity, activityCallbacks);
+                    MainScreenPresenter presenter = new MainScreenPresenterImpl(view, model, activity, activityCallbacks);
                     return Collections.singletonList(presenter);
                 })
                 .build();

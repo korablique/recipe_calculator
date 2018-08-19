@@ -13,11 +13,12 @@ import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import java.util.List;
 
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.card.NewCard;
 
-public class MainScreenViewImpl implements MainScreenView {
+public class MainScreenViewImpl extends ActivityCallbacks.Observer implements MainScreenView {
     private FragmentActivity activity;
     private SelectedFoodstuffsSnackbar snackbar;
     private BottomNavigationView bottomNavigationView;
@@ -39,8 +40,9 @@ public class MainScreenViewImpl implements MainScreenView {
     // Действие, которое нужно выполнить с диалогом после savedInstanceState (показ или скрытие диалога)
     private Runnable dialogAction;
 
-    public MainScreenViewImpl(FragmentActivity activity) {
+    public MainScreenViewImpl(FragmentActivity activity, ActivityCallbacks activityCallbacks) {
         this.activity = activity;
+        activityCallbacks.addObserver(this);
     }
 
     @Override
@@ -57,17 +59,17 @@ public class MainScreenViewImpl implements MainScreenView {
     }
 
     @Override
-    public void saveState(Bundle outState) {
+    public void onActivitySaveInstanceState(Bundle outState) {
         snackbar.onSaveInstanceState(outState);
     }
 
     @Override
-    public void restoreState(Bundle savedState) {
-        snackbar.onRestoreInstanceState(savedState);
+    public void onActivityRestoreInstanceState(Bundle savedInstanceState) {
+        snackbar.onRestoreInstanceState(savedInstanceState);
     }
 
     @Override
-    public void onUIShown() {
+    public void onActivityResume() {
         isUiHidden = false;
         if (dialogAction != null) {
             dialogAction.run();
@@ -75,18 +77,13 @@ public class MainScreenViewImpl implements MainScreenView {
     }
 
     @Override
-    public void onUiHidden() {
+    public void onActivityPause() {
         isUiHidden = true;
     }
 
     @Override
     public void showSnackbar() {
         snackbar.show();
-    }
-
-    @Override
-    public void hideSnackbar() {
-        snackbar.hide();
     }
 
     @Override

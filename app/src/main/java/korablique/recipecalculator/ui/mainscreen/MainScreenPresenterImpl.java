@@ -1,6 +1,8 @@
 package korablique.recipecalculator.ui.mainscreen;
 
 import android.app.Activity;
+import android.arch.lifecycle.Lifecycle;
+import android.arch.lifecycle.LifecycleObserver;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -9,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.ui.addnewfoodstuff.AddNewFoodstuffActivity;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
@@ -23,7 +26,7 @@ import static android.app.Activity.RESULT_OK;
 import static korablique.recipecalculator.IntentConstants.FIND_FOODSTUFF_REQUEST;
 import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
 
-public class MainScreenPresenterImpl implements MainScreenPresenter {
+public class MainScreenPresenterImpl extends ActivityCallbacks.Observer implements MainScreenPresenter {
     private static final int SEARCH_SUGGESTIONS_NUMBER = 3;
     private static final int TOP_LIMIT = 5;
     private final MainScreenView view;
@@ -36,14 +39,19 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
 
     private FoodstuffsAdapterChild.ClickObserver clickObserver;
 
-    public MainScreenPresenterImpl(MainScreenView view, MainScreenModel model, Activity context) {
+    public MainScreenPresenterImpl(
+            MainScreenView view,
+            MainScreenModel model,
+            Activity context,
+            ActivityCallbacks activityCallbacks) {
         this.view = view;
         this.model = model;
         this.context = context;
+        activityCallbacks.addObserver(this);
     }
 
     @Override
-    public void onActivityCreate() {
+    public void onActivityCreate(Bundle savedInstanceState) {
         view.initActivity();
 
         clickObserver = (foodstuff, displayedPosition) -> {
@@ -121,26 +129,6 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
             all.addAll(foodstuffs);
             attemptToAddElementsToAdapters();
         });
-    }
-
-    @Override
-    public void onActivitySaveState(Bundle outState) {
-        view.saveState(outState);
-    }
-
-    @Override
-    public void onActivityRestoreState(Bundle savedInstanceState) {
-        view.restoreState(savedInstanceState);
-    }
-
-    @Override
-    public void onActivityResume() {
-        view.onUIShown();
-    }
-
-    @Override
-    public void onActivityPause() {
-        view.onUiHidden();
     }
 
     @Override

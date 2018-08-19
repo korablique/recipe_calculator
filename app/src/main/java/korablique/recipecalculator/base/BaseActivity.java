@@ -24,6 +24,7 @@ import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
 import korablique.recipecalculator.ui.mainscreen.MainScreenActivity;
 
 public abstract class BaseActivity extends AppCompatActivity {
+    private final ActivityCallbacks activityCallbacks = new ActivityCallbacks();
     private Drawer drawer;
 
     @Override
@@ -31,6 +32,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         InjectorHolder.getInjector().inject(this);
         super.onCreate(savedInstanceState);
+        activityCallbacks.dispatchActivityCreate(savedInstanceState);
     }
 
     @Override
@@ -121,9 +123,34 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        activityCallbacks.dispatchActivityResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        activityCallbacks.dispatchActivityPause();
+    }
+
+    @Override
     protected void onSaveInstanceState(Bundle outState) {
+        activityCallbacks.dispatchSaveInstanceState(outState);
         outState = drawer.saveInstanceState(outState);
         super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        activityCallbacks.dispatchRestoreInstanceState(savedInstanceState);
+        super.onRestoreInstanceState(savedInstanceState);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        activityCallbacks.dispatchActivityResult(requestCode, resultCode, data);
     }
 
     @Override
@@ -147,5 +174,9 @@ public abstract class BaseActivity extends AppCompatActivity {
         } else {
             super.onBackPressed();
         }
+    }
+
+    public ActivityCallbacks getActivityCallbacks() {
+        return activityCallbacks;
     }
 }
