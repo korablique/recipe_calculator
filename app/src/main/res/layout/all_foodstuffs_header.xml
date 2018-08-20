@@ -28,7 +28,7 @@
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:background="@drawable/add_new_foodstuff_button_selector">
+        android:background="@drawable/rectangular_button_click_selector">
 
         <TextView
             style="@style/RobotoMonoHintText"

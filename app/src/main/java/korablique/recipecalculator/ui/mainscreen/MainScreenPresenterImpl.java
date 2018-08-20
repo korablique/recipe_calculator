@@ -10,9 +10,8 @@ import java.util.List;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.Foodstuff;
-import korablique.recipecalculator.ui.addnewfoodstuff.AddNewFoodstuffActivity;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
-import korablique.recipecalculator.ui.card.NewCard;
+import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
 import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
 import korablique.recipecalculator.ui.history.HistoryActivity;
 import korablique.recipecalculator.ui.nestingadapters.AdapterParent;
@@ -20,8 +19,12 @@ import korablique.recipecalculator.ui.nestingadapters.FoodstuffsAdapterChild;
 import korablique.recipecalculator.ui.nestingadapters.SingleItemAdapterChild;
 
 import static android.app.Activity.RESULT_OK;
+import static korablique.recipecalculator.IntentConstants.EDIT_FOODSTUFF_REQUEST;
+import static korablique.recipecalculator.IntentConstants.EDIT_RESULT;
 import static korablique.recipecalculator.IntentConstants.FIND_FOODSTUFF_REQUEST;
 import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
+import static korablique.recipecalculator.ui.card.NewCard.EDITED_FOODSTUFF;
+import static korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity.EDIT_FOODSTUFF_ACTION;
 
 public class MainScreenPresenterImpl implements MainScreenPresenter {
     private static final int SEARCH_SUGGESTIONS_NUMBER = 3;
@@ -70,13 +73,17 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
         adapterParent = new AdapterParent();
         view.setAdapter(adapterParent);
 
-        view.setCardDialogAddButtonClickListener(new NewCard.OnAddFoodstuffButtonClickListener() {
-            @Override
-            public void onClick(Foodstuff foodstuff) {
-                view.hideCard();
-                view.addSnackbarFoodstuff(foodstuff);
-                view.showSnackbar();
-            }
+        view.setCardDialogAddButtonClickListener(foodstuff -> {
+            view.hideCard();
+            view.addSnackbarFoodstuff(foodstuff);
+            view.showSnackbar();
+        });
+
+        view.setCardDialogOnEditButtonClickListener(foodstuff -> {
+            Intent intent = new Intent(context, EditFoodstuffActivity.class);
+            intent.setAction(EDIT_FOODSTUFF_ACTION);
+            intent.putExtra(EDITED_FOODSTUFF, foodstuff);
+            context.startActivityForResult(intent, EDIT_FOODSTUFF_REQUEST);
         });
 
         view.setOnSearchQueryChangeListener(new MainScreenView.OnSearchQueryChangeListener() {
@@ -150,6 +157,11 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
                 Foodstuff foodstuff = data.getParcelableExtra(SEARCH_RESULT);
                 view.showCard(foodstuff);
             }
+        } else if (requestCode == EDIT_FOODSTUFF_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                Foodstuff editedFoodstuff = data.getParcelableExtra(EDIT_RESULT);
+                view.showCard(editedFoodstuff);
+            }
         }
     }
 
@@ -170,7 +182,7 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
             SingleItemAdapterChild.Observer observer = v -> {
                 View addNewFoodstuffButton = v.findViewById(R.id.add_new_foodstuff);
                 addNewFoodstuffButton.setOnClickListener(v1 -> {
-                    Intent intent = new Intent(context, AddNewFoodstuffActivity.class);
+                    Intent intent = new Intent(context, EditFoodstuffActivity.class);
                     context.startActivity(intent);
                 });
             };

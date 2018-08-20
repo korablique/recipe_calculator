@@ -24,6 +24,7 @@ public class MainScreenViewImpl implements MainScreenView {
     private RecyclerView recyclerView;
     private FloatingSearchView searchView;
     private NewCard.OnAddFoodstuffButtonClickListener cardDialogListener;
+    private NewCard.OnEditButtonClickListener cardDialogOnEditButtonClickListener;
     // Этот флаг нужен, чтобы приложение не крешило при показе диалога, когда тот показывается в момент,
     // когда активити в фоне (запаузена).
     // fragment manager не позваляет выполнять никакие операции с фрагментами, пока активити запаузена -
@@ -104,6 +105,7 @@ public class MainScreenViewImpl implements MainScreenView {
         dialogAction = () -> {
             CardDialog cardDialog = CardDialog.showCard(activity, foodstuff);
             cardDialog.setOnAddFoodstuffButtonClickListener(cardDialogListener);
+            cardDialog.setOnEditButtonClickListener(cardDialogOnEditButtonClickListener);
             dialogAction = null;
         };
         if (!isUiHidden) {
@@ -145,6 +147,15 @@ public class MainScreenViewImpl implements MainScreenView {
         CardDialog cardDialog = CardDialog.findCard(activity);
         if (cardDialog != null) {
             cardDialog.setOnAddFoodstuffButtonClickListener(cardDialogListener);
+        }
+    }
+
+    @Override
+    public void setCardDialogOnEditButtonClickListener(NewCard.OnEditButtonClickListener listener) {
+        cardDialogOnEditButtonClickListener = listener;
+        CardDialog cardDialog = CardDialog.findCard(activity);
+        if (cardDialog != null) {
+            cardDialog.setOnEditButtonClickListener(cardDialogOnEditButtonClickListener);
         }
     }
 

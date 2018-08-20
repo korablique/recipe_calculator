@@ -9,7 +9,7 @@ buildscript {
 
         // We recommend changing it to the latest version from our changelog:
         // https://docs.fabric.io/android/changelog.html#fabric-gradle-plugin
-        classpath 'io.fabric.tools:gradle:1.24.4'
+        classpath 'io.fabric.tools:gradle:1.25.4'
     }
 }
 
@@ -84,9 +84,9 @@ dependencies {
     compile 'com.tapadoo.android:alerter:2.0.1'
     implementation project(':libs:floatingsearchview:library')
 
-    compile 'com.google.dagger:dagger:2.11'
+    compile 'com.google.dagger:dagger:2.15'
     annotationProcessor 'com.google.dagger:dagger-compiler:2.11'
-    compile 'com.google.dagger:dagger-android:2.11'
+    compile 'com.google.dagger:dagger-android:2.15'
     compile 'com.google.dagger:dagger-android-support:2.11'
     annotationProcessor 'com.google.dagger:dagger-android-processor:2.11'
 

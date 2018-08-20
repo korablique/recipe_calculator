@@ -1,5 +1,6 @@
-package korablique.recipecalculator.ui.addnewfoodstuff;
+package korablique.recipecalculator.ui.editfoodstuff;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -20,7 +21,11 @@ import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.ui.NutritionProgressWrapper;
 
-public class AddNewFoodstuffActivity extends BaseActivity {
+import static korablique.recipecalculator.IntentConstants.EDIT_RESULT;
+import static korablique.recipecalculator.ui.card.NewCard.EDITED_FOODSTUFF;
+
+public class EditFoodstuffActivity extends BaseActivity {
+    public static final String EDIT_FOODSTUFF_ACTION = "korablique.recipecalculator.EDIT_FOODSTUFF_ACTION";
     @Inject
     DatabaseWorker databaseWorker;
     private NutritionProgressWrapper nutritionProgressWrapper;
@@ -39,27 +44,12 @@ public class AddNewFoodstuffActivity extends BaseActivity {
         TextView titleTextView = findViewById(R.id.title_text);
         titleTextView.setText(R.string.new_foodstuff);
 
-        saveButton = findViewById(R.id.save_button);
-        saveButton.setOnClickListener(v -> {
-            databaseWorker.saveFoodstuff(AddNewFoodstuffActivity.this, parseFoodstuff(), new DatabaseWorker.SaveFoodstuffCallback() {
-                @Override
-                public void onResult(long id) {
-                    Toast.makeText(AddNewFoodstuffActivity.this, R.string.saved, Toast.LENGTH_SHORT).show();
-                    finish();
-                }
-
-                @Override
-                public void onDuplication() {
-                    Toast.makeText(AddNewFoodstuffActivity.this, R.string.foodstuff_already_exists, Toast.LENGTH_SHORT).show();
-                }
-            });
-        });
-
         foodstuffNameEditText = findViewById(R.id.foodstuff_name);
         proteinEditText = findViewById(R.id.protein_value);
         fatsEditText = findViewById(R.id.fats_value);
         carbsEditText = findViewById(R.id.carbs_value);
         caloriesEditText = findViewById(R.id.calories_value);
+        saveButton = findViewById(R.id.save_button);
 
         nutritionProgressWrapper = new NutritionProgressWrapper(this, findViewById(R.id.nutrition_progress_bar));
         nutritionProgressWrapper.setNutrition(Nutrition.zero());
@@ -94,6 +84,48 @@ public class AddNewFoodstuffActivity extends BaseActivity {
         cancelButton.setOnClickListener(v -> {
             finish();
         });
+
+        Intent receivedIntent = getIntent();
+        if (receivedIntent.getAction() != null && receivedIntent.getAction().equals(EDIT_FOODSTUFF_ACTION)) {
+            titleTextView.setText(R.string.change_foodstuff);
+            Foodstuff editingFoodstuff = receivedIntent.getParcelableExtra(EDITED_FOODSTUFF);
+            setDisplayingFoodstuff(editingFoodstuff);
+
+            saveButton.setOnClickListener(v -> {
+                Intent intent = new Intent();
+                Foodstuff editedFoodstuff = parseFoodstuff();
+                databaseWorker.editFoodstuff(EditFoodstuffActivity.this, editingFoodstuff.getId(), editedFoodstuff);
+
+                intent.putExtra(EDIT_RESULT, editedFoodstuff);
+                setResult(RESULT_OK, intent);
+                finish();
+            });
+        } else {
+            saveButton.setOnClickListener(v -> {
+                databaseWorker.saveFoodstuff(EditFoodstuffActivity.this, parseFoodstuff(), new DatabaseWorker.SaveFoodstuffCallback() {
+                    @Override
+                    public void onResult(long id) {
+                        Toast.makeText(EditFoodstuffActivity.this, R.string.saved, Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
+
+                    @Override
+                    public void onDuplication() {
+                        Toast.makeText(EditFoodstuffActivity.this, R.string.foodstuff_already_exists, Toast.LENGTH_SHORT).show();
+                    }
+                });
+            });
+        }
+    }
+
+    private void setDisplayingFoodstuff(Foodstuff editingFoodstuff) {
+        foodstuffNameEditText.setText(editingFoodstuff.getName());
+        proteinEditText.setText(String.valueOf(editingFoodstuff.getProtein()));
+        fatsEditText.setText(String.valueOf(editingFoodstuff.getFats()));
+        carbsEditText.setText(String.valueOf(editingFoodstuff.getCarbs()));
+        caloriesEditText.setText(String.valueOf(editingFoodstuff.getCalories()));
+        nutritionProgressWrapper.setNutrition(
+                editingFoodstuff.getProtein(), editingFoodstuff.getFats(), editingFoodstuff.getCarbs());
     }
 
     private Foodstuff parseFoodstuff() {
