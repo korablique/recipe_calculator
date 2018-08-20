@@ -1,7 +1,5 @@
 package korablique.recipecalculator.ui.mainscreen;
 
-
-import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 
 import java.util.List;
@@ -11,12 +9,7 @@ import korablique.recipecalculator.ui.card.NewCard;
 
 public interface MainScreenView {
     void initActivity();
-    void saveState(Bundle outState);
-    void restoreState(Bundle savedState);
-    void onUIShown();
-    void onUiHidden();
     void showSnackbar();
-    void hideSnackbar();
     void addSnackbarFoodstuff(Foodstuff foodstuff);
     void setOnSnackbarClickListener(OnSnackbarBasketClickListener listener);
     void showCard(Foodstuff foodstuff);
