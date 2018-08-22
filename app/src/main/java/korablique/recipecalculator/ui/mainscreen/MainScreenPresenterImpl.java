@@ -23,8 +23,6 @@ import static korablique.recipecalculator.IntentConstants.EDIT_FOODSTUFF_REQUEST
 import static korablique.recipecalculator.IntentConstants.EDIT_RESULT;
 import static korablique.recipecalculator.IntentConstants.FIND_FOODSTUFF_REQUEST;
 import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
-import static korablique.recipecalculator.ui.card.NewCard.EDITED_FOODSTUFF;
-import static korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity.EDIT_FOODSTUFF_ACTION;
 
 public class MainScreenPresenterImpl implements MainScreenPresenter {
     private static final int SEARCH_SUGGESTIONS_NUMBER = 3;
@@ -80,10 +78,7 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
         });
 
         view.setCardDialogOnEditButtonClickListener(foodstuff -> {
-            Intent intent = new Intent(context, EditFoodstuffActivity.class);
-            intent.setAction(EDIT_FOODSTUFF_ACTION);
-            intent.putExtra(EDITED_FOODSTUFF, foodstuff);
-            context.startActivityForResult(intent, EDIT_FOODSTUFF_REQUEST);
+            EditFoodstuffActivity.startForEditing(context, foodstuff);
         });
 
         view.setOnSearchQueryChangeListener(new MainScreenView.OnSearchQueryChangeListener() {
@@ -182,8 +177,7 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
             SingleItemAdapterChild.Observer observer = v -> {
                 View addNewFoodstuffButton = v.findViewById(R.id.add_new_foodstuff);
                 addNewFoodstuffButton.setOnClickListener(v1 -> {
-                    Intent intent = new Intent(context, EditFoodstuffActivity.class);
-                    context.startActivity(intent);
+                    EditFoodstuffActivity.startForCreation(context);
                 });
             };
             SingleItemAdapterChild foodstuffsTitle = new SingleItemAdapterChild(

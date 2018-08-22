@@ -1,5 +1,7 @@
 package korablique.recipecalculator.ui.editfoodstuff;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
@@ -21,6 +23,7 @@ import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.ui.NutritionProgressWrapper;
 
+import static korablique.recipecalculator.IntentConstants.EDIT_FOODSTUFF_REQUEST;
 import static korablique.recipecalculator.IntentConstants.EDIT_RESULT;
 import static korablique.recipecalculator.ui.card.NewCard.EDITED_FOODSTUFF;
 
@@ -86,7 +89,7 @@ public class EditFoodstuffActivity extends BaseActivity {
         });
 
         Intent receivedIntent = getIntent();
-        if (receivedIntent.getAction() != null && receivedIntent.getAction().equals(EDIT_FOODSTUFF_ACTION)) {
+        if (EDIT_FOODSTUFF_ACTION.equals(receivedIntent.getAction())) {
             titleTextView.setText(R.string.change_foodstuff);
             Foodstuff editingFoodstuff = receivedIntent.getParcelableExtra(EDITED_FOODSTUFF);
             setDisplayingFoodstuff(editingFoodstuff);
@@ -118,14 +121,25 @@ public class EditFoodstuffActivity extends BaseActivity {
         }
     }
 
+    public static void startForCreation(Context context) {
+        Intent intent = new Intent(context, EditFoodstuffActivity.class);
+        context.startActivity(intent);
+    }
+
+    public static void startForEditing(Activity context, Foodstuff foodstuff) {
+        Intent intent = new Intent(context, EditFoodstuffActivity.class);
+        intent.setAction(EDIT_FOODSTUFF_ACTION);
+        intent.putExtra(EDITED_FOODSTUFF, foodstuff);
+        context.startActivityForResult(intent, EDIT_FOODSTUFF_REQUEST);
+    }
+
     private void setDisplayingFoodstuff(Foodstuff editingFoodstuff) {
         foodstuffNameEditText.setText(editingFoodstuff.getName());
         proteinEditText.setText(String.valueOf(editingFoodstuff.getProtein()));
         fatsEditText.setText(String.valueOf(editingFoodstuff.getFats()));
         carbsEditText.setText(String.valueOf(editingFoodstuff.getCarbs()));
         caloriesEditText.setText(String.valueOf(editingFoodstuff.getCalories()));
-        nutritionProgressWrapper.setNutrition(
-                editingFoodstuff.getProtein(), editingFoodstuff.getFats(), editingFoodstuff.getCarbs());
+        nutritionProgressWrapper.setNutrition(Nutrition.of100gramsOf(editingFoodstuff));
     }
 
     private Foodstuff parseFoodstuff() {

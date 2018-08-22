@@ -58,18 +58,16 @@ public class CardDialog extends DialogFragment {
     }
 
     public void setOnAddFoodstuffButtonClickListener(NewCard.OnAddFoodstuffButtonClickListener listener) {
+        onAddFoodstuffButtonClickListener = listener;
         if (card != null) {
             card.setOnAddFoodstuffButtonClickListener(listener);
-        } else {
-            this.onAddFoodstuffButtonClickListener = listener;
         }
     }
 
     public void setOnEditButtonClickListener(NewCard.OnEditButtonClickListener listener) {
+        onEditButtonClickListener = listener;
         if (card != null) {
             card.setOnEditButtonClickListener(listener);
-        } else {
-            this.onEditButtonClickListener = listener;
         }
     }
 
@@ -89,10 +87,9 @@ public class CardDialog extends DialogFragment {
     }
 
     public void prohibitEditing(boolean flag) {
+        prohibitEditingFlag = flag;
         if (card != null) {
             card.prohibitEditing(flag);
-        } else {
-            prohibitEditingFlag = flag;
         }
     }
 
