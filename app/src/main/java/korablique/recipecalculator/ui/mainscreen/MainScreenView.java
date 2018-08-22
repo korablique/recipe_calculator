@@ -17,6 +17,7 @@ public interface MainScreenView {
     void setOnNavigationItemSelectedListener(OnNavigationItemSelectedListener listener);
     void setAdapter(RecyclerView.Adapter adapter);
     void setCardDialogAddButtonClickListener(NewCard.OnAddFoodstuffButtonClickListener listener);
+    void setCardDialogOnEditButtonClickListener(NewCard.OnEditButtonClickListener listener);
     void setOnSearchQueryChangeListener(OnSearchQueryChangeListener listener);
     void setSearchSuggestions(List<FoodstuffSearchSuggestion> suggestions);
     void setOnSearchListener(OnSearchListener listener);

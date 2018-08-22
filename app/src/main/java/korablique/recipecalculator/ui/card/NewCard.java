@@ -5,6 +5,7 @@ import android.content.Context;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
@@ -22,12 +23,20 @@ public class NewCard {
     public interface OnAddFoodstuffButtonClickListener {
         void onClick(Foodstuff foodstuff);
     }
+
+    public interface OnEditButtonClickListener {
+        void onClick(Foodstuff editingFoodstuff);
+    }
+
     public static final int DEFAULT_WEIGHT = 100;
+    public static final String EDITED_FOODSTUFF = "EDITED_FOODSTUFF";
     private ViewGroup cardLayout;
-    private Long foodstuffId;
+    private Foodstuff displayedFoodstuff;
     private EditText weightEditText;
     private TextView nameTextView;
     private Button addFoodstuffButton;
+    private View editButton;
+
 
     private NutritionProgressWrapper nutritionProgressWrapper;
     private NutritionValuesWrapper nutritionValuesWrapper;
@@ -35,6 +44,7 @@ public class NewCard {
     public NewCard(Context context, ViewGroup parent) {
         cardLayout = (ViewGroup) LayoutInflater.from(context).inflate(R.layout.new_card_layout, parent);
         addFoodstuffButton = cardLayout.findViewById(R.id.add_foodstuff_button);
+        editButton = cardLayout.findViewById(R.id.frame_layout_button_edit);
         weightEditText = cardLayout.findViewById(R.id.weight_edit_text);
         weightEditText.setText(String.valueOf(DEFAULT_WEIGHT));
         updateAddButtonEnability(weightEditText.getText());
@@ -54,7 +64,7 @@ public class NewCard {
     }
 
     public void setFoodstuff(Foodstuff foodstuff) {
-        foodstuffId = foodstuff.getId();
+        displayedFoodstuff = foodstuff;
         nameTextView.setText(foodstuff.getName());
         if (foodstuff.getWeight() != -1) {
             weightEditText.setText(String.valueOf(foodstuff.getWeight()));
@@ -93,7 +103,7 @@ public class NewCard {
     public void setOnAddFoodstuffButtonClickListener(OnAddFoodstuffButtonClickListener listener) {
         addFoodstuffButton.setOnClickListener(v -> {
             Foodstuff clickedFoodstuff = new Foodstuff(
-                    foodstuffId,
+                    displayedFoodstuff.getId(),
                     nameTextView.getText().toString(),
                     Double.valueOf(weightEditText.getText().toString()),
                     nutritionValuesWrapper.getFoodstuff().getProtein(),
@@ -102,5 +112,19 @@ public class NewCard {
                     nutritionValuesWrapper.getFoodstuff().getCalories());
             listener.onClick(clickedFoodstuff);
         });
+    }
+
+    public void setOnEditButtonClickListener(OnEditButtonClickListener listener) {
+        editButton.setOnClickListener(v -> {
+            listener.onClick(displayedFoodstuff);
+        });
+    }
+
+    public void prohibitEditing(boolean flag) {
+        if (flag) {
+            editButton.setVisibility(View.GONE);
+        } else {
+            editButton.setVisibility(View.VISIBLE);
+        }
     }
 }

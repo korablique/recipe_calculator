@@ -23,6 +23,8 @@ public class CardDialog extends DialogFragment {
     private static final String FOODSTUFF_CARD = "FOODSTUFF_CARD";
     private NewCard card;
     private NewCard.OnAddFoodstuffButtonClickListener onAddFoodstuffButtonClickListener;
+    private NewCard.OnEditButtonClickListener onEditButtonClickListener;
+    private boolean prohibitEditingFlag;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -30,8 +32,10 @@ public class CardDialog extends DialogFragment {
                              Bundle savedInstanceState) {
         card = new NewCard(getContext(), container);
         card.setOnAddFoodstuffButtonClickListener(onAddFoodstuffButtonClickListener);
+        card.setOnEditButtonClickListener(onEditButtonClickListener);
         Foodstuff foodstuff = getArguments().getParcelable(CLICKED_FOODSTUFF);
         card.setFoodstuff(foodstuff);
+        card.prohibitEditing(prohibitEditingFlag);
 
         return card.getCardLayout();
     }
@@ -54,20 +58,39 @@ public class CardDialog extends DialogFragment {
     }
 
     public void setOnAddFoodstuffButtonClickListener(NewCard.OnAddFoodstuffButtonClickListener listener) {
+        onAddFoodstuffButtonClickListener = listener;
         if (card != null) {
             card.setOnAddFoodstuffButtonClickListener(listener);
-        } else {
-            this.onAddFoodstuffButtonClickListener = listener;
+        }
+    }
+
+    public void setOnEditButtonClickListener(NewCard.OnEditButtonClickListener listener) {
+        onEditButtonClickListener = listener;
+        if (card != null) {
+            card.setOnEditButtonClickListener(listener);
         }
     }
 
     public static CardDialog showCard(FragmentActivity activity, Foodstuff foodstuff) {
+        CardDialog existingDialog = findCard(activity);
+        if (existingDialog != null) {
+            existingDialog.card.setFoodstuff(foodstuff);
+            existingDialog.card.prohibitEditing(false);
+            return existingDialog;
+        }
         Bundle bundle = new Bundle();
         bundle.putParcelable(CLICKED_FOODSTUFF, foodstuff);
         CardDialog dialog = new CardDialog();
         dialog.setArguments(bundle);
         dialog.show(activity.getSupportFragmentManager(), FOODSTUFF_CARD);
         return dialog;
+    }
+
+    public void prohibitEditing(boolean flag) {
+        prohibitEditingFlag = flag;
+        if (card != null) {
+            card.prohibitEditing(flag);
+        }
     }
 
     public static void hideCard(FragmentActivity activity) {

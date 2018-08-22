@@ -13,9 +13,8 @@ import java.util.List;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.model.Foodstuff;
-import korablique.recipecalculator.ui.addnewfoodstuff.AddNewFoodstuffActivity;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
-import korablique.recipecalculator.ui.card.NewCard;
+import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
 import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
 import korablique.recipecalculator.ui.history.HistoryActivity;
 import korablique.recipecalculator.ui.nestingadapters.AdapterParent;
@@ -23,6 +22,8 @@ import korablique.recipecalculator.ui.nestingadapters.FoodstuffsAdapterChild;
 import korablique.recipecalculator.ui.nestingadapters.SingleItemAdapterChild;
 
 import static android.app.Activity.RESULT_OK;
+import static korablique.recipecalculator.IntentConstants.EDIT_FOODSTUFF_REQUEST;
+import static korablique.recipecalculator.IntentConstants.EDIT_RESULT;
 import static korablique.recipecalculator.IntentConstants.FIND_FOODSTUFF_REQUEST;
 import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
 
@@ -78,13 +79,14 @@ public class MainScreenPresenterImpl extends ActivityCallbacks.Observer implemen
         adapterParent = new AdapterParent();
         view.setAdapter(adapterParent);
 
-        view.setCardDialogAddButtonClickListener(new NewCard.OnAddFoodstuffButtonClickListener() {
-            @Override
-            public void onClick(Foodstuff foodstuff) {
-                view.hideCard();
-                view.addSnackbarFoodstuff(foodstuff);
-                view.showSnackbar();
-            }
+        view.setCardDialogAddButtonClickListener(foodstuff -> {
+            view.hideCard();
+            view.addSnackbarFoodstuff(foodstuff);
+            view.showSnackbar();
+        });
+
+        view.setCardDialogOnEditButtonClickListener(foodstuff -> {
+            EditFoodstuffActivity.startForEditing(context, foodstuff);
         });
 
         view.setOnSearchQueryChangeListener(new MainScreenView.OnSearchQueryChangeListener() {
@@ -138,6 +140,11 @@ public class MainScreenPresenterImpl extends ActivityCallbacks.Observer implemen
                 Foodstuff foodstuff = data.getParcelableExtra(SEARCH_RESULT);
                 view.showCard(foodstuff);
             }
+        } else if (requestCode == EDIT_FOODSTUFF_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                Foodstuff editedFoodstuff = data.getParcelableExtra(EDIT_RESULT);
+                view.showCard(editedFoodstuff);
+            }
         }
     }
 
@@ -158,8 +165,7 @@ public class MainScreenPresenterImpl extends ActivityCallbacks.Observer implemen
             SingleItemAdapterChild.Observer observer = v -> {
                 View addNewFoodstuffButton = v.findViewById(R.id.add_new_foodstuff);
                 addNewFoodstuffButton.setOnClickListener(v1 -> {
-                    Intent intent = new Intent(context, AddNewFoodstuffActivity.class);
-                    context.startActivity(intent);
+                    EditFoodstuffActivity.startForCreation(context);
                 });
             };
             SingleItemAdapterChild foodstuffsTitle = new SingleItemAdapterChild(

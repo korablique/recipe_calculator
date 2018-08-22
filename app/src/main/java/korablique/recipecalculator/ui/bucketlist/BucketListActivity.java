@@ -77,6 +77,7 @@ public class BucketListActivity extends BaseActivity {
 
         BucketListAdapter.OnItemClickedObserver onItemClickedObserver = (foodstuff, position) -> {
             CardDialog cardDialog = CardDialog.showCard(BucketListActivity.this, foodstuff);
+            cardDialog.prohibitEditing(true);
             cardDialog.setOnAddFoodstuffButtonClickListener(newFoodstuff -> {
                 adapter.replaceItem(newFoodstuff, position);
                 CardDialog.hideCard(BucketListActivity.this);
