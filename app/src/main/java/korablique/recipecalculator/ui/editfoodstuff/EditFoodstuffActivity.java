@@ -23,6 +23,7 @@ import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.ui.NutritionProgressWrapper;
 
+import static korablique.recipecalculator.IntentConstants.EDITED_FOODSTUFF_ID;
 import static korablique.recipecalculator.IntentConstants.EDIT_FOODSTUFF_REQUEST;
 import static korablique.recipecalculator.IntentConstants.EDIT_RESULT;
 import static korablique.recipecalculator.ui.card.NewCard.EDITED_FOODSTUFF;
@@ -95,11 +96,11 @@ public class EditFoodstuffActivity extends BaseActivity {
             setDisplayingFoodstuff(editingFoodstuff);
 
             saveButton.setOnClickListener(v -> {
-                Intent intent = new Intent();
                 Foodstuff editedFoodstuff = parseFoodstuff();
-                databaseWorker.editFoodstuff(EditFoodstuffActivity.this, editingFoodstuff.getId(), editedFoodstuff);
+                long id = editingFoodstuff.getId();
+                databaseWorker.editFoodstuff(EditFoodstuffActivity.this, id, editedFoodstuff);
 
-                intent.putExtra(EDIT_RESULT, editedFoodstuff);
+                Intent intent = createEditingResultIntent(editedFoodstuff, id);
                 setResult(RESULT_OK, intent);
                 finish();
             });
@@ -131,6 +132,13 @@ public class EditFoodstuffActivity extends BaseActivity {
         intent.setAction(EDIT_FOODSTUFF_ACTION);
         intent.putExtra(EDITED_FOODSTUFF, foodstuff);
         context.startActivityForResult(intent, EDIT_FOODSTUFF_REQUEST);
+    }
+
+    public static Intent createEditingResultIntent(Foodstuff editedFoodstuff, long id) {
+        Intent intent = new Intent();
+        intent.putExtra(EDIT_RESULT, editedFoodstuff);
+        intent.putExtra(EDITED_FOODSTUFF_ID, id);
+        return intent;
     }
 
     private void setDisplayingFoodstuff(Foodstuff editingFoodstuff) {

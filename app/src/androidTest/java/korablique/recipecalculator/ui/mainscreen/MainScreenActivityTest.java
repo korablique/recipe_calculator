@@ -1,5 +1,6 @@
 package korablique.recipecalculator.ui.mainscreen;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
@@ -22,6 +23,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import korablique.recipecalculator.IntentConstants;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.FoodstuffsDbHelper;
@@ -30,13 +32,11 @@ import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.PopularProductsUtils;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
+import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
 import korablique.recipecalculator.util.DbUtil;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.SyncMainThreadExecutor;
-import korablique.recipecalculator.util.TestingInjector;
-import korablique.recipecalculator.util.TestingInjector.ActivitiesInjectionSource;
-import korablique.recipecalculator.util.TestingInjector.SingletonInjectionsSource;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
@@ -61,6 +61,7 @@ import static org.hamcrest.CoreMatchers.allOf;
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class MainScreenActivityTest {
+    private SyncMainThreadExecutor mainThreadExecutor = new SyncMainThreadExecutor();
     private DatabaseWorker databaseWorker;
     private HistoryWorker historyWorker;
     private Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
@@ -71,9 +72,9 @@ public class MainScreenActivityTest {
                 .withManualStart()
                 .withSingletones(() -> {
                     databaseWorker =
-                            new DatabaseWorker(new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
+                            new DatabaseWorker(mainThreadExecutor, new InstantDatabaseThreadExecutor());
                     historyWorker = new HistoryWorker(
-                            context, new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
+                            context, mainThreadExecutor, new InstantDatabaseThreadExecutor());
                     return Arrays.asList(databaseWorker, historyWorker);
                 })
                 .withActivityScoped((injectionTarget) -> {
@@ -222,6 +223,35 @@ public class MainScreenActivityTest {
                 hasAction(expectedIntent.getAction()),
                 hasComponent(expectedIntent.getComponent()),
                 hasExtras(hasValue(clickedFoodstuffs))));
+    }
+
+    @Test
+    public void editedFoodstuffReplacesInBothTopAndAllFoodstuffs() {
+        mActivityRule.launchActivity(null);
+        List<Foodstuff> topFoodstuffs = extractFoodstuffsTopFromDB();
+
+        long id = topFoodstuffs.get(0).getId();
+        Foodstuff edited = new Foodstuff(id, topFoodstuffs.get(0).getName() + "1", -1, 1, 2, 3, 4);
+        Intent data = EditFoodstuffActivity.createEditingResultIntent(edited, topFoodstuffs.get(0).getId());
+
+        // onActivityResult нельзя вызвать на потоке тестов,
+        // поэтому запускаем на главном потоке блокирующую операцию
+        mainThreadExecutor.execute(() -> {
+            mActivityRule.getActivity().onActivityResult(IntentConstants.EDIT_FOODSTUFF_REQUEST, Activity.RESULT_OK, data);
+        });
+
+        onView(withId(R.id.button_close)).perform(click());
+
+        Matcher<View> topMatcher = allOf(
+                withText(edited.getName()),
+                matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header))),
+                matches(isCompletelyBelow(withText(R.string.top_header))));
+        onView(topMatcher).check(matches(isDisplayed()));
+
+        Matcher<View> allFoodstuffsMatcher = allOf(
+                withText(edited.getName()),
+                matches(isCompletelyBelow(withText(R.string.all_foodstuffs_header))));
+        onView(allFoodstuffsMatcher).check(matches(isDisplayed()));
     }
 
     private List<Foodstuff> extractFoodstuffsTopFromDB() {

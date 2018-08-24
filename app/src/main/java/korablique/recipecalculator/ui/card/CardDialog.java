@@ -24,6 +24,7 @@ public class CardDialog extends DialogFragment {
     private NewCard card;
     private NewCard.OnAddFoodstuffButtonClickListener onAddFoodstuffButtonClickListener;
     private NewCard.OnEditButtonClickListener onEditButtonClickListener;
+    private NewCard.OnCloseButtonClickListener onCloseButtonClickListener;
     private boolean prohibitEditingFlag;
 
     @Override
@@ -33,6 +34,7 @@ public class CardDialog extends DialogFragment {
         card = new NewCard(getContext(), container);
         card.setOnAddFoodstuffButtonClickListener(onAddFoodstuffButtonClickListener);
         card.setOnEditButtonClickListener(onEditButtonClickListener);
+        card.setOnCloseButtonClickListener(onCloseButtonClickListener);
         Foodstuff foodstuff = getArguments().getParcelable(CLICKED_FOODSTUFF);
         card.setFoodstuff(foodstuff);
         card.prohibitEditing(prohibitEditingFlag);
@@ -68,6 +70,13 @@ public class CardDialog extends DialogFragment {
         onEditButtonClickListener = listener;
         if (card != null) {
             card.setOnEditButtonClickListener(listener);
+        }
+    }
+
+    public void setOnCloseButtonClickListener(NewCard.OnCloseButtonClickListener listener) {
+        onCloseButtonClickListener = listener;
+        if (card != null) {
+            card.setOnCloseButtonClickListener(listener);
         }
     }
 

@@ -19,6 +19,7 @@ import korablique.recipecalculator.ui.nestingadapters.FoodstuffsAdapterChild;
 import korablique.recipecalculator.ui.nestingadapters.SingleItemAdapterChild;
 
 import static android.app.Activity.RESULT_OK;
+import static korablique.recipecalculator.IntentConstants.EDITED_FOODSTUFF_ID;
 import static korablique.recipecalculator.IntentConstants.EDIT_FOODSTUFF_REQUEST;
 import static korablique.recipecalculator.IntentConstants.EDIT_RESULT;
 import static korablique.recipecalculator.IntentConstants.FIND_FOODSTUFF_REQUEST;
@@ -31,6 +32,7 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
     private final Activity context;
     private final MainScreenModel model;
     private AdapterParent adapterParent;
+    private FoodstuffsAdapterChild topAdapterChild;
     private FoodstuffsAdapterChild foodstuffAdapterChild;
     private List<Foodstuff> top;
     private List<Foodstuff> all;
@@ -154,7 +156,10 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
             }
         } else if (requestCode == EDIT_FOODSTUFF_REQUEST) {
             if (resultCode == RESULT_OK) {
-                Foodstuff editedFoodstuff = data.getParcelableExtra(EDIT_RESULT);
+                long editedFoodstuffId = data.getLongExtra(EDITED_FOODSTUFF_ID, -1);
+                Foodstuff editedFoodstuff = new Foodstuff(editedFoodstuffId, data.getParcelableExtra(EDIT_RESULT));
+                topAdapterChild.replaceItem(editedFoodstuff);
+                foodstuffAdapterChild.replaceItem(editedFoodstuff);
                 view.showCard(editedFoodstuff);
             }
         }
@@ -165,11 +170,13 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
             return;
         }
         if (!top.isEmpty()) {
-            FoodstuffsAdapterChild topAdapterChild = new FoodstuffsAdapterChild(context, clickObserver);
-            SingleItemAdapterChild topTitle = new SingleItemAdapterChild(R.layout.top_foodstuffs_header);
-            adapterParent.addChild(topTitle);
-            adapterParent.addChild(topAdapterChild);
-            topAdapterChild.addItems(top);
+            if (topAdapterChild == null) {
+                topAdapterChild = new FoodstuffsAdapterChild(context, clickObserver);
+                SingleItemAdapterChild topTitle = new SingleItemAdapterChild(R.layout.top_foodstuffs_header);
+                adapterParent.addChild(topTitle);
+                adapterParent.addChild(topAdapterChild);
+                topAdapterChild.addItems(top);
+            }
         }
         // если топ пустой, то топ-адаптер не нужно создавать, чтобы не было заголовка
 

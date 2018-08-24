@@ -81,4 +81,26 @@ public class FoodstuffsAdapterChild extends AdapterChild {
     public List<Foodstuff> getItems() {
         return new ArrayList<>(foodstuffs);
     }
+
+    /**
+     * Find the first occurrence of element with same id like new and replace it, if it is present
+     * (optional operation)
+     * @param newFoodstuff new element, contains id
+     * @return true if adapter contained the element
+     */
+    public boolean replaceItem(Foodstuff newFoodstuff) {
+        if (newFoodstuff.getId() == -1) {
+            throw new IllegalArgumentException("Foodstuff has no id");
+        }
+        for (int index = 0; index < foodstuffs.size(); index++) {
+            if (newFoodstuff.getId() == foodstuffs.get(index).getId()) {
+                foodstuffs.set(index, newFoodstuff);
+                for (Observer observer : getObservers()) {
+                    observer.notifyItemChangedInChild(index, this);
+                }
+                return true;
+            }
+        }
+        return false;
+    }
 }
