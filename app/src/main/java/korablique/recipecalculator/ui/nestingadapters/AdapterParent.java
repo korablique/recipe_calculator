@@ -30,6 +30,12 @@ public class AdapterParent extends RecyclerView.Adapter {
             int parentIndex = transformChildPositionIntoParentPosition(childIndex, child);
             notifyItemInserted(parentIndex);
         }
+
+        @Override
+        public void notifyItemChangedInChild(int childIndex, AdapterChild child) {
+            int parentIndex = transformChildPositionIntoParentPosition(childIndex, child);
+            notifyItemChanged(parentIndex);
+        }
     }
 
     @Override

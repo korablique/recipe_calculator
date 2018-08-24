@@ -95,11 +95,12 @@ public class EditFoodstuffActivity extends BaseActivity {
             setDisplayingFoodstuff(editingFoodstuff);
 
             saveButton.setOnClickListener(v -> {
-                Intent intent = new Intent();
                 Foodstuff editedFoodstuff = parseFoodstuff();
-                databaseWorker.editFoodstuff(EditFoodstuffActivity.this, editingFoodstuff.getId(), editedFoodstuff);
+                long id = editingFoodstuff.getId();
+                databaseWorker.editFoodstuff(EditFoodstuffActivity.this, id, editedFoodstuff);
 
-                intent.putExtra(EDIT_RESULT, editedFoodstuff);
+                Foodstuff editedFoodstuffWithId = new Foodstuff(id, editedFoodstuff);
+                Intent intent = createEditingResultIntent(editedFoodstuffWithId);
                 setResult(RESULT_OK, intent);
                 finish();
             });
@@ -131,6 +132,12 @@ public class EditFoodstuffActivity extends BaseActivity {
         intent.setAction(EDIT_FOODSTUFF_ACTION);
         intent.putExtra(EDITED_FOODSTUFF, foodstuff);
         context.startActivityForResult(intent, EDIT_FOODSTUFF_REQUEST);
+    }
+
+    public static Intent createEditingResultIntent(Foodstuff editedFoodstuff) {
+        Intent intent = new Intent();
+        intent.putExtra(EDIT_RESULT, editedFoodstuff);
+        return intent;
     }
 
     private void setDisplayingFoodstuff(Foodstuff editingFoodstuff) {

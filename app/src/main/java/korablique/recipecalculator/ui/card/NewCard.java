@@ -28,6 +28,10 @@ public class NewCard {
         void onClick(Foodstuff editingFoodstuff);
     }
 
+    public interface OnCloseButtonClickListener {
+        void onClick();
+    }
+
     public static final int DEFAULT_WEIGHT = 100;
     public static final String EDITED_FOODSTUFF = "EDITED_FOODSTUFF";
     private ViewGroup cardLayout;
@@ -36,7 +40,7 @@ public class NewCard {
     private TextView nameTextView;
     private Button addFoodstuffButton;
     private View editButton;
-
+    private View closeButton;
 
     private NutritionProgressWrapper nutritionProgressWrapper;
     private NutritionValuesWrapper nutritionValuesWrapper;
@@ -45,6 +49,7 @@ public class NewCard {
         cardLayout = (ViewGroup) LayoutInflater.from(context).inflate(R.layout.new_card_layout, parent);
         addFoodstuffButton = cardLayout.findViewById(R.id.add_foodstuff_button);
         editButton = cardLayout.findViewById(R.id.frame_layout_button_edit);
+        closeButton = cardLayout.findViewById(R.id.button_close);
         weightEditText = cardLayout.findViewById(R.id.weight_edit_text);
         weightEditText.setText(String.valueOf(DEFAULT_WEIGHT));
         updateAddButtonEnability(weightEditText.getText());
@@ -117,6 +122,12 @@ public class NewCard {
     public void setOnEditButtonClickListener(OnEditButtonClickListener listener) {
         editButton.setOnClickListener(v -> {
             listener.onClick(displayedFoodstuff);
+        });
+    }
+
+    public void setOnCloseButtonClickListener(OnCloseButtonClickListener listener) {
+        closeButton.setOnClickListener(v -> {
+            listener.onClick();
         });
     }
 

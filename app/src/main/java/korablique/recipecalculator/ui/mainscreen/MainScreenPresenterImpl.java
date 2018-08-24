@@ -34,6 +34,7 @@ public class MainScreenPresenterImpl extends ActivityCallbacks.Observer implemen
     private final Activity context;
     private final MainScreenModel model;
     private AdapterParent adapterParent;
+    private FoodstuffsAdapterChild topAdapterChild;
     private FoodstuffsAdapterChild foodstuffAdapterChild;
     private List<Foodstuff> top;
     private List<Foodstuff> all;
@@ -143,6 +144,8 @@ public class MainScreenPresenterImpl extends ActivityCallbacks.Observer implemen
         } else if (requestCode == EDIT_FOODSTUFF_REQUEST) {
             if (resultCode == RESULT_OK) {
                 Foodstuff editedFoodstuff = data.getParcelableExtra(EDIT_RESULT);
+                topAdapterChild.replaceItem(editedFoodstuff);
+                foodstuffAdapterChild.replaceItem(editedFoodstuff);
                 view.showCard(editedFoodstuff);
             }
         }
@@ -153,11 +156,13 @@ public class MainScreenPresenterImpl extends ActivityCallbacks.Observer implemen
             return;
         }
         if (!top.isEmpty()) {
-            FoodstuffsAdapterChild topAdapterChild = new FoodstuffsAdapterChild(context, clickObserver);
-            SingleItemAdapterChild topTitle = new SingleItemAdapterChild(R.layout.top_foodstuffs_header);
-            adapterParent.addChild(topTitle);
-            adapterParent.addChild(topAdapterChild);
-            topAdapterChild.addItems(top);
+            if (topAdapterChild == null) {
+                topAdapterChild = new FoodstuffsAdapterChild(context, clickObserver);
+                SingleItemAdapterChild topTitle = new SingleItemAdapterChild(R.layout.top_foodstuffs_header);
+                adapterParent.addChild(topTitle);
+                adapterParent.addChild(topAdapterChild);
+                topAdapterChild.addItems(top);
+            }
         }
         // если топ пустой, то топ-адаптер не нужно создавать, чтобы не было заголовка
 

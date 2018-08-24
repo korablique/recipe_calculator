@@ -29,15 +29,7 @@ public class Foodstuff implements Parcelable, Comparable<Foodstuff> {
         this.calories = calories;
     }
 
-    /**
-     * Копирует фудстафф в новый объект, но с айдишником.
-     * Если передаётся фудстафф, который уже имеет id, это значит, что мы пытаемся изменить id,
-     * что запрещено (приводит к выбросу исключения IllegalArgumentException).
-     */
     public Foodstuff(long id, Foodstuff foodstuff) {
-        if (foodstuff.getId() != -1) {
-            throw new IllegalArgumentException("Изменение id запрещено.");
-        }
         this.id = id;
         this.name = foodstuff.name;
         this.weight = foodstuff.weight;
