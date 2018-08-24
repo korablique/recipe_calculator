@@ -19,7 +19,6 @@ import korablique.recipecalculator.ui.nestingadapters.FoodstuffsAdapterChild;
 import korablique.recipecalculator.ui.nestingadapters.SingleItemAdapterChild;
 
 import static android.app.Activity.RESULT_OK;
-import static korablique.recipecalculator.IntentConstants.EDITED_FOODSTUFF_ID;
 import static korablique.recipecalculator.IntentConstants.EDIT_FOODSTUFF_REQUEST;
 import static korablique.recipecalculator.IntentConstants.EDIT_RESULT;
 import static korablique.recipecalculator.IntentConstants.FIND_FOODSTUFF_REQUEST;
@@ -156,8 +155,7 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
             }
         } else if (requestCode == EDIT_FOODSTUFF_REQUEST) {
             if (resultCode == RESULT_OK) {
-                long editedFoodstuffId = data.getLongExtra(EDITED_FOODSTUFF_ID, -1);
-                Foodstuff editedFoodstuff = new Foodstuff(editedFoodstuffId, data.getParcelableExtra(EDIT_RESULT));
+                Foodstuff editedFoodstuff = data.getParcelableExtra(EDIT_RESULT);
                 topAdapterChild.replaceItem(editedFoodstuff);
                 foodstuffAdapterChild.replaceItem(editedFoodstuff);
                 view.showCard(editedFoodstuff);

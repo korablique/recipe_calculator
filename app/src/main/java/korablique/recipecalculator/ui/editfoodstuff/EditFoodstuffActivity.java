@@ -23,7 +23,6 @@ import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.ui.NutritionProgressWrapper;
 
-import static korablique.recipecalculator.IntentConstants.EDITED_FOODSTUFF_ID;
 import static korablique.recipecalculator.IntentConstants.EDIT_FOODSTUFF_REQUEST;
 import static korablique.recipecalculator.IntentConstants.EDIT_RESULT;
 import static korablique.recipecalculator.ui.card.NewCard.EDITED_FOODSTUFF;
@@ -100,7 +99,8 @@ public class EditFoodstuffActivity extends BaseActivity {
                 long id = editingFoodstuff.getId();
                 databaseWorker.editFoodstuff(EditFoodstuffActivity.this, id, editedFoodstuff);
 
-                Intent intent = createEditingResultIntent(editedFoodstuff, id);
+                Foodstuff editedFoodstuffWithId = new Foodstuff(id, editedFoodstuff);
+                Intent intent = createEditingResultIntent(editedFoodstuffWithId);
                 setResult(RESULT_OK, intent);
                 finish();
             });
@@ -134,10 +134,9 @@ public class EditFoodstuffActivity extends BaseActivity {
         context.startActivityForResult(intent, EDIT_FOODSTUFF_REQUEST);
     }
 
-    public static Intent createEditingResultIntent(Foodstuff editedFoodstuff, long id) {
+    public static Intent createEditingResultIntent(Foodstuff editedFoodstuff) {
         Intent intent = new Intent();
         intent.putExtra(EDIT_RESULT, editedFoodstuff);
-        intent.putExtra(EDITED_FOODSTUFF_ID, id);
         return intent;
     }
 
