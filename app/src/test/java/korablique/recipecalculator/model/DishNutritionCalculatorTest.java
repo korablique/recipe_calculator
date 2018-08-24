@@ -18,9 +18,9 @@ import korablique.recipecalculator.FloatUtils;
 public class DishNutritionCalculatorTest {
     @Test
     public void dishNutritionCalculatesRight() {
-        ArrayList<Foodstuff> foodstuffs = new ArrayList<>();
-        foodstuffs.add(new Foodstuff("морковь", 310, 1.3, 0.1, 6.9, 32));
-        foodstuffs.add(new Foodstuff("масло подсолнечное", 13, 0, 99.9, 0, 899));
+        ArrayList<WeightedFoodstuff> foodstuffs = new ArrayList<>();
+        foodstuffs.add(Foodstuff.withName("морковь").withNutrition(1.3, 0.1, 6.9, 32).withWeight(310));
+        foodstuffs.add(Foodstuff.withName("масло подсолнечное").withNutrition(0, 99.9, 0, 899).withWeight(13));
         Nutrition withoutChangingWeight = DishNutritionCalculator.calculate(foodstuffs, 323);
         Assert.assertTrue(FloatUtils.areFloatsEquals(withoutChangingWeight.getProtein(), 1.2476));
         Assert.assertTrue(FloatUtils.areFloatsEquals(withoutChangingWeight.getFats(), 4.1167));

@@ -99,7 +99,10 @@ public class EditFoodstuffActivity extends BaseActivity {
                 long id = editingFoodstuff.getId();
                 databaseWorker.editFoodstuff(EditFoodstuffActivity.this, id, editedFoodstuff);
 
-                Foodstuff editedFoodstuffWithId = new Foodstuff(id, editedFoodstuff);
+                Foodstuff editedFoodstuffWithId =
+                        Foodstuff.withId(id)
+                                .withName(editedFoodstuff.getName())
+                                .withNutrition(Nutrition.of(editedFoodstuff));
                 Intent intent = createEditingResultIntent(editedFoodstuffWithId);
                 setResult(RESULT_OK, intent);
                 finish();
@@ -146,7 +149,7 @@ public class EditFoodstuffActivity extends BaseActivity {
         fatsEditText.setText(String.valueOf(editingFoodstuff.getFats()));
         carbsEditText.setText(String.valueOf(editingFoodstuff.getCarbs()));
         caloriesEditText.setText(String.valueOf(editingFoodstuff.getCalories()));
-        nutritionProgressWrapper.setNutrition(Nutrition.of100gramsOf(editingFoodstuff));
+        nutritionProgressWrapper.setNutrition(Nutrition.of(editingFoodstuff));
     }
 
     private Foodstuff parseFoodstuff() {
@@ -155,7 +158,7 @@ public class EditFoodstuffActivity extends BaseActivity {
         double fats = Double.parseDouble(fatsEditText.getText().toString());
         double carbs = Double.parseDouble(carbsEditText.getText().toString());
         double calories = Double.parseDouble(caloriesEditText.getText().toString());
-        return new Foodstuff(foodstuffName, -1, protein, fats, carbs, calories);
+        return Foodstuff.withName(foodstuffName).withNutrition(protein, fats, carbs, calories);
     }
 
     private double parseNutrient(EditText editText) {

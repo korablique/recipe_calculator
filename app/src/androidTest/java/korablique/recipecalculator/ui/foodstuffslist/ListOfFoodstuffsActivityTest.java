@@ -58,7 +58,7 @@ public class ListOfFoodstuffsActivityTest {
         Card.setAnimationDuration(0);
 
         Context context = InstrumentationRegistry.getTargetContext();
-        Foodstuff foodstuff1 = new Foodstuff("product1", -1, 10, 10, 10, 10);
+        Foodstuff foodstuff1 = Foodstuff.withName("product1").withNutrition(10, 10, 10, 10);
         databaseWorker.saveFoodstuff(
                 context,
                 foodstuff1,

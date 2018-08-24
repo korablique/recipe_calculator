@@ -6,7 +6,7 @@ public class Nutrition {
     private final double carbs;
     private final double calories;
 
-    public static Nutrition of(Foodstuff foodstuff) {
+    public static Nutrition of(WeightedFoodstuff foodstuff) {
         return new Nutrition(
                 foodstuff.getProtein() * foodstuff.getWeight() / 100,
                 foodstuff.getFats() * foodstuff.getWeight() / 100,
@@ -14,7 +14,11 @@ public class Nutrition {
                 foodstuff.getCalories() * foodstuff.getWeight() / 100);
     }
 
-    public static Nutrition of100gramsOf(Foodstuff foodstuff) {
+    public static Nutrition of100gramsOf(WeightedFoodstuff foodstuff) {
+        return Nutrition.of(foodstuff.withoutWeight());
+    }
+
+    public static Nutrition of(Foodstuff foodstuff) {
         return new Nutrition(
                 foodstuff.getProtein(),
                 foodstuff.getFats(),

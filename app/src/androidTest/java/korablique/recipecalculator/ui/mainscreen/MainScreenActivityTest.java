@@ -32,6 +32,7 @@ import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.PopularProductsUtils;
+import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
 import korablique.recipecalculator.util.DbUtil;
@@ -41,6 +42,7 @@ import korablique.recipecalculator.util.SyncMainThreadExecutor;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
+import static android.support.test.espresso.action.ViewActions.replaceText;
 import static android.support.test.espresso.action.ViewActions.typeText;
 import static android.support.test.espresso.assertion.PositionAssertions.isCompletelyAbove;
 import static android.support.test.espresso.assertion.PositionAssertions.isCompletelyBelow;
@@ -98,13 +100,13 @@ public class MainScreenActivityTest {
         dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
 
         Foodstuff[] foodstuffs = new Foodstuff[7];
-        foodstuffs[0] = new Foodstuff("apple", -1, 1, 1, 1, 1);
-        foodstuffs[1] = new Foodstuff("pineapple", -1, 1, 1, 1, 1);
-        foodstuffs[2] = new Foodstuff("plum", -1, 1, 1, 1, 1);
-        foodstuffs[3] = new Foodstuff("water", -1, 1, 1, 1, 1);
-        foodstuffs[4] = new Foodstuff("soup", -1, 1, 1, 1, 1);
-        foodstuffs[5] = new Foodstuff("bread", -1, 1, 1, 1, 1);
-        foodstuffs[6] = new Foodstuff("banana", -1, 1, 1, 1, 1);
+        foodstuffs[0] = Foodstuff.withName("apple").withNutrition(1, 1, 1, 1);
+        foodstuffs[1] = Foodstuff.withName("pineapple").withNutrition(1, 1, 1, 1);
+        foodstuffs[2] = Foodstuff.withName("plum").withNutrition(1, 1, 1, 1);
+        foodstuffs[3] = Foodstuff.withName("water").withNutrition(1, 1, 1, 1);
+        foodstuffs[4] = Foodstuff.withName("soup").withNutrition(1, 1, 1, 1);
+        foodstuffs[5] = Foodstuff.withName("bread").withNutrition(1, 1, 1, 1);
+        foodstuffs[6] = Foodstuff.withName("banana").withNutrition(1, 1, 1, 1);
         List<Long> foodstuffsIds = new ArrayList<>();
         databaseWorker.saveGroupOfFoodstuffs(context, foodstuffs, (ids) -> {
             foodstuffsIds.addAll(ids);
@@ -199,32 +201,37 @@ public class MainScreenActivityTest {
         onView(allOf(
                 withText(clickedFoodstuffs.get(0).getName()),
                 matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header))))).perform(click());
-        onView(withId(R.id.weight_edit_text)).perform(typeText("123"));
+        onView(withId(R.id.weight_edit_text)).perform(replaceText("123"));
         onView(withId(R.id.add_foodstuff_button)).perform(click());
 
         onView(allOf(
                 withText(clickedFoodstuffs.get(1).getName()),
                 matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header))))).perform(click());
-        onView(withId(R.id.weight_edit_text)).perform(typeText("123"));
+        onView(withId(R.id.weight_edit_text)).perform(replaceText("123"));
         onView(withId(R.id.add_foodstuff_button)).perform(click());
 
         onView(allOf(
                 withText(clickedFoodstuffs.get(2).getName()),
                 matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header))))).perform(click());
-        onView(withId(R.id.weight_edit_text)).perform(typeText("123"));
+        onView(withId(R.id.weight_edit_text)).perform(replaceText("123"));
         onView(withId(R.id.add_foodstuff_button)).perform(click());
 
         // Кликаем на корзинку в снэкбаре
         onView(withId(R.id.basket)).perform(click());
 
+        List<WeightedFoodstuff> clickedWeightedFoodstuffs = new ArrayList<>();
+        for (Foodstuff foodstuff : clickedFoodstuffs) {
+            clickedWeightedFoodstuffs.add(foodstuff.withWeight(123));
+        }
+
         // Проверяем, что была попытка стартовать активити по интенту от BucketListActivity,
         // также что этот интент содержит информацию о кликнутых продуктах.
         Intent expectedIntent =
-                BucketListActivity.createStartIntentFor(clickedFoodstuffs, mActivityRule.getActivity());
+                BucketListActivity.createStartIntentFor(clickedWeightedFoodstuffs, mActivityRule.getActivity());
         intended(allOf(
                 hasAction(expectedIntent.getAction()),
                 hasComponent(expectedIntent.getComponent()),
-                hasExtras(hasValue(clickedFoodstuffs))));
+                hasExtras(hasValue(clickedWeightedFoodstuffs))));
     }
 
     @Test
@@ -233,8 +240,9 @@ public class MainScreenActivityTest {
         List<Foodstuff> topFoodstuffs = extractFoodstuffsTopFromDB();
 
         long id = topFoodstuffs.get(0).getId();
-        Foodstuff edited = new Foodstuff(id, topFoodstuffs.get(0).getName() + "1", -1, 1, 2, 3, 4);
-        Intent data = EditFoodstuffActivity.createEditingResultIntent(edited, topFoodstuffs.get(0).getId());
+        Foodstuff edited = Foodstuff.withId(id).withName(topFoodstuffs.get(0).getName() + "1").withNutrition(1, 2, 3, 4);
+
+        Intent data = EditFoodstuffActivity.createEditingResultIntent(edited);
 
         // onActivityResult нельзя вызвать на потоке тестов,
         // поэтому запускаем на главном потоке блокирующую операцию

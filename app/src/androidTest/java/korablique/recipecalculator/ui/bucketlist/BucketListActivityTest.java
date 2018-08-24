@@ -27,6 +27,7 @@ import korablique.recipecalculator.database.FoodstuffsDbHelper;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.calculator.CalculatorActivity;
 import korablique.recipecalculator.ui.history.HistoryActivity;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
@@ -80,10 +81,10 @@ public class BucketListActivityTest {
 
     @Test
     public void containsGivenFoodstuffs() {
-        ArrayList<Foodstuff> foodstuffs = new ArrayList<>();
-        foodstuffs.add(new Foodstuff("apple", 123, 1, 2, 3, 4));
-        foodstuffs.add(new Foodstuff("water", 123, 1, 2, 3, 4));
-        foodstuffs.add(new Foodstuff("beer", 123, 1, 2, 3, 4));
+        ArrayList<WeightedFoodstuff> foodstuffs = new ArrayList<>();
+        foodstuffs.add(Foodstuff.withName("apple").withNutrition(1, 2, 3, 4).withWeight(123));
+        foodstuffs.add(Foodstuff.withName("water").withNutrition(1, 2, 3, 4).withWeight(123));
+        foodstuffs.add(Foodstuff.withName("beer").withNutrition(1, 2, 3, 4).withWeight(123));
 
         Intent startIntent =
                 BucketListActivity.createStartIntentFor(foodstuffs, InstrumentationRegistry.getTargetContext());
@@ -96,10 +97,10 @@ public class BucketListActivityTest {
 
     @Test
     public void addsFoodstuffsToHistory() {
-        ArrayList<Foodstuff> foodstuffs = new ArrayList<>();
-        foodstuffs.add(new Foodstuff("apple", 123, 1, 2, 3, 4));
-        foodstuffs.add(new Foodstuff("water", 123, 1, 2, 3, 4));
-        foodstuffs.add(new Foodstuff("beer", 123, 1, 2, 3, 4));
+        ArrayList<WeightedFoodstuff> foodstuffs = new ArrayList<>();
+        foodstuffs.add(Foodstuff.withName("apple").withNutrition(1, 2, 3, 4).withWeight(123));
+        foodstuffs.add(Foodstuff.withName("water").withNutrition(1, 2, 3, 4).withWeight(123));
+        foodstuffs.add(Foodstuff.withName("beer").withNutrition(1, 2, 3, 4).withWeight(123));
 
         Intent startIntent =
                 BucketListActivity.createStartIntentFor(foodstuffs, InstrumentationRegistry.getTargetContext());
@@ -117,9 +118,9 @@ public class BucketListActivityTest {
 
     @Test
     public void savesDishToFoodstuffsList() {
-        ArrayList<Foodstuff> ingredients = new ArrayList<>();
-        ingredients.add(new Foodstuff("carrot", 310, 1.3, 0.1, 6.9, 32));
-        ingredients.add(new Foodstuff("oil", 13, 0, 99.9, 0, 899));
+        ArrayList<WeightedFoodstuff> ingredients = new ArrayList<>();
+        ingredients.add(Foodstuff.withName("carrot").withNutrition(1.3, 0.1, 6.9, 32).withWeight(310));
+        ingredients.add(Foodstuff.withName("oil").withNutrition(0, 99.9, 0, 899).withWeight(13));
 
         Intent startIntent =
                 BucketListActivity.createStartIntentFor(ingredients, InstrumentationRegistry.getTargetContext());

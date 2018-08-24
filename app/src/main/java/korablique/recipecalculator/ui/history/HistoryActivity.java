@@ -3,7 +3,6 @@ package korablique.recipecalculator.ui.history;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.LinearLayoutManager;
@@ -25,11 +24,12 @@ import korablique.recipecalculator.FloatUtils;
 import korablique.recipecalculator.base.MainThreadExecutor;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
+import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.HistoryEntry;
 import korablique.recipecalculator.ui.Card;
 import korablique.recipecalculator.ui.CardDisplaySource;
 import korablique.recipecalculator.database.DatabaseWorker;
-import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.KeyboardHandler;
 import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
 import korablique.recipecalculator.base.BaseActivity;
@@ -71,7 +71,7 @@ public class HistoryActivity extends BaseActivity {
     private HistoryAdapter adapter;
     private HistoryAdapter.Observer adapterObserver = new HistoryAdapter.Observer() {
         @Override
-        public void onItemClicked(Foodstuff foodstuff, int position) {
+        public void onItemClicked(WeightedFoodstuff foodstuff, int position) {
             editedFoodstuffPosition = position;
             cardDisplaySource = CardDisplaySource.FoodstuffClicked;
             card.displayForFoodstuff(foodstuff, foodstuff);
@@ -110,7 +110,7 @@ public class HistoryActivity extends BaseActivity {
             return;
         }
 
-        List<Foodstuff> foodstuffs = intent.getParcelableArrayListExtra(EXTRA_FOODSTUFFS);
+        List<WeightedFoodstuff> foodstuffs = intent.getParcelableArrayListExtra(EXTRA_FOODSTUFFS);
         if (foodstuffs == null) {
             throw new IllegalArgumentException("Need " + EXTRA_FOODSTUFFS);
         }
@@ -119,7 +119,7 @@ public class HistoryActivity extends BaseActivity {
         intent.setAction(Intent.ACTION_DEFAULT);
 
         mainThreadExecutor.executeDelayed(DELAY_OF_ACTION_ADD_FOODSTUFFS, () -> {
-            for (Foodstuff foodstuff : foodstuffs) {
+            for (WeightedFoodstuff foodstuff : foodstuffs) {
                 if (foodstuff.getId() >= 0) {
                     addListedFoodstuffToHistory(foodstuff, foodstuff.getId());
                 } else {
@@ -181,12 +181,12 @@ public class HistoryActivity extends BaseActivity {
                     return;
                 }
 
-                final Foodstuff foodstuff = card.parseFoodstuff();
+                final WeightedFoodstuff foodstuff = card.parseFoodstuff();
 
                 if (cardDisplaySource == CardDisplaySource.PlusClicked) {
                     if (card.getCurrentCustomPayload() != null) { // значит, продукт добавлен из списка
                         // проверяем, был ли редактирован продукт
-                        Foodstuff foodstuffFromDatabase = (Foodstuff) card.getCurrentCustomPayload();
+                        WeightedFoodstuff foodstuffFromDatabase = (WeightedFoodstuff) card.getCurrentCustomPayload();
 
                         boolean areFoodstuffsSame = Foodstuff.haveSameNutrition(foodstuff, foodstuffFromDatabase)
                                 && foodstuff.getName().equals(foodstuffFromDatabase.getName());
@@ -203,7 +203,7 @@ public class HistoryActivity extends BaseActivity {
                     recyclerView.smoothScrollToPosition(1); //т к новый продукт добавляется в текущую дату
                 } else {
                     // значит, пользователь щёлкнул на уже добавленный продукт
-                    Foodstuff foodstuffFromDb = (Foodstuff) card.getCurrentCustomPayload();
+                    WeightedFoodstuff foodstuffFromDb = (WeightedFoodstuff) card.getCurrentCustomPayload();
                     double weight = foodstuffFromDb.getWeight();
                     double newWeight = foodstuff.getWeight();
                     double protein = foodstuffFromDb.getProtein();
@@ -228,7 +228,7 @@ public class HistoryActivity extends BaseActivity {
                         adapter.replaceItem(newEntry, editedFoodstuffPosition);
                         databaseWorker.saveUnlistedFoodstuff(
                                 HistoryActivity.this,
-                                foodstuff,
+                                foodstuff.withoutWeight(),
                                 new DatabaseWorker.SaveUnlistedFoodstuffCallback() {
                                     @Override
                                     public void onResult(long foodstuffId) {
@@ -283,7 +283,7 @@ public class HistoryActivity extends BaseActivity {
                     return;
                 }
 
-                Foodstuff savingFoodstuff = card.parseFoodstuff();
+                WeightedFoodstuff savingFoodstuff = card.parseFoodstuff();
 
                 if (savingFoodstuff.getProtein() + savingFoodstuff.getFats() + savingFoodstuff.getCarbs() > 100) {
                     Alerter.create(HistoryActivity.this)
@@ -298,7 +298,7 @@ public class HistoryActivity extends BaseActivity {
 
                 databaseWorker.saveFoodstuff(
                         HistoryActivity.this,
-                        savingFoodstuff,
+                        savingFoodstuff.withoutWeight(),
                         new DatabaseWorker.SaveFoodstuffCallback() {
                     @Override
                     public void onResult(long id) {
@@ -340,7 +340,7 @@ public class HistoryActivity extends BaseActivity {
         });
     }
 
-    private void addListedFoodstuffToHistory(final Foodstuff foodstuff, long foodstuffId) {
+    private void addListedFoodstuffToHistory(final WeightedFoodstuff foodstuff, long foodstuffId) {
         final Date date = new Date();
         historyWorker.saveFoodstuffToHistory(
                 date,
@@ -353,11 +353,11 @@ public class HistoryActivity extends BaseActivity {
         });
     }
 
-    private void addUnlistedFoodstuffToHistory(final Foodstuff foodstuff) {
+    private void addUnlistedFoodstuffToHistory(final WeightedFoodstuff foodstuff) {
         final Date date = new Date();
         databaseWorker.saveUnlistedFoodstuff(
                 HistoryActivity.this,
-                foodstuff,
+                foodstuff.withoutWeight(),
                 (foodstuffId) -> {
                     historyWorker.saveFoodstuffToHistory(
                             date,
@@ -375,7 +375,8 @@ public class HistoryActivity extends BaseActivity {
         if (requestCode == FIND_FOODSTUFF_REQUEST) {
             if (resultCode == RESULT_OK) {
                 Foodstuff foodstuff = data.getParcelableExtra(SEARCH_RESULT);
-                card.displayForFoodstuff(foodstuff, foodstuff);
+                WeightedFoodstuff weightedFoodstuff = foodstuff.withWeight(0);
+                card.displayForFoodstuff(foodstuff, weightedFoodstuff);
                 card.setButtonsVisible(false, Card.ButtonType.DELETE);
                 card.setButtonsVisible(true, Card.ButtonType.OK, Card.ButtonType.SAVE, Card.ButtonType.SEARCH);
                 card.setFocusableExceptWeight(false);
@@ -407,11 +408,11 @@ public class HistoryActivity extends BaseActivity {
         return card;
     }
 
-    public static void startAndAdd(List<Foodstuff> items, Context context) {
+    public static void startAndAdd(List<WeightedFoodstuff> items, Context context) {
         context.startActivity(createStartAndAddIntent(items, context));
     }
 
-    public static Intent createStartAndAddIntent(List<Foodstuff> items, Context context) {
+    public static Intent createStartAndAddIntent(List<WeightedFoodstuff> items, Context context) {
         Intent intent = new Intent(context, HistoryActivity.class);
         intent.setAction(ACTION_ADD_FOODSTUFFS);
         intent.putParcelableArrayListExtra(EXTRA_FOODSTUFFS, new ArrayList<>(items));

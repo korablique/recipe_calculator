@@ -26,6 +26,7 @@ import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
+import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.NutritionProgressWrapper;
 import korablique.recipecalculator.ui.NutritionValuesWrapper;
 import korablique.recipecalculator.ui.card.CardDialog;
@@ -51,7 +52,8 @@ public class BucketListActivity extends BaseActivity {
         nutritionProgressWrapper = new NutritionProgressWrapper(this, nutritionLayout);
         nutritionValuesWrapper = new NutritionValuesWrapper(this, nutritionLayout);
 
-        List<Foodstuff> foodstuffs = getIntent().getParcelableArrayListExtra(EXTRA_FOODSTUFFS_LIST);
+        List<WeightedFoodstuff> foodstuffs =
+                getIntent().getParcelableArrayListExtra(EXTRA_FOODSTUFFS_LIST);
         if (foodstuffs == null) {
             throw new IllegalArgumentException("Can't start without " + EXTRA_FOODSTUFFS_LIST);
         }
@@ -100,7 +102,7 @@ public class BucketListActivity extends BaseActivity {
             @Override
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
                 int position = viewHolder.getAdapterPosition();
-                Foodstuff deleting = adapter.getItem(position);
+                WeightedFoodstuff deleting = adapter.getItem(position);
                 adapter.deleteItem(position);
                 double newWeight = countTotalWeight(adapter.getItems());
                 totalWeightEditText.setText(String.valueOf(newWeight));
@@ -154,7 +156,7 @@ public class BucketListActivity extends BaseActivity {
         });
     }
 
-    private void updateNutritionWrappers(List<Foodstuff> foodstuffs, double totalWeight) {
+    private void updateNutritionWrappers(List<WeightedFoodstuff> foodstuffs, double totalWeight) {
         Nutrition totalNutrition = countTotalNutrition(foodstuffs);
         nutritionValuesWrapper.setNutrition(totalNutrition);
         // чтобы высчитать БЖУ на 100% для NutritionProgressWrapper'а
@@ -162,17 +164,17 @@ public class BucketListActivity extends BaseActivity {
         nutritionProgressWrapper.setNutrition(nutritionPer100Percent);
     }
 
-    private double countTotalWeight(List<Foodstuff> foodstuffs) {
+    private double countTotalWeight(List<WeightedFoodstuff> foodstuffs) {
         double result = 0;
-        for (Foodstuff foodstuff : foodstuffs) {
+        for (WeightedFoodstuff foodstuff : foodstuffs) {
             result += foodstuff.getWeight();
         }
         return result;
     }
 
-    private Nutrition countTotalNutrition(List<Foodstuff> foodstuffs) {
+    private Nutrition countTotalNutrition(List<WeightedFoodstuff> foodstuffs) {
         Nutrition totalNutrition = Nutrition.zero();
-        for (Foodstuff foodstuff : foodstuffs) {
+        for (WeightedFoodstuff foodstuff : foodstuffs) {
             totalNutrition = totalNutrition.plus(Nutrition.of(foodstuff));
         }
         return totalNutrition;
@@ -191,11 +193,11 @@ public class BucketListActivity extends BaseActivity {
         }
     }
 
-    public static void start(ArrayList<Foodstuff> foodstuffs, Context context) {
+    public static void start(ArrayList<WeightedFoodstuff> foodstuffs, Context context) {
         context.startActivity(createStartIntentFor(foodstuffs, context));
     }
 
-    public static Intent createStartIntentFor(List<Foodstuff> foodstuffs, Context context) {
+    public static Intent createStartIntentFor(List<WeightedFoodstuff> foodstuffs, Context context) {
         Intent intent = new Intent(context, BucketListActivity.class);
         intent.putParcelableArrayListExtra(EXTRA_FOODSTUFFS_LIST, new ArrayList<>(foodstuffs));
         return intent;

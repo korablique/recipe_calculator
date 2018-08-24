@@ -11,6 +11,7 @@ import org.robolectric.annotation.Config;
 
 import korablique.recipecalculator.BuildConfig;
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.FoodstuffsAdapter;
 
 import static junit.framework.Assert.*;
@@ -18,13 +19,13 @@ import static junit.framework.Assert.*;
 @RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class)
 public class FoodstuffsAdapterTest {
-    private FoodstuffsAdapter adapter;
+    private FoodstuffsAdapter<WeightedFoodstuff> adapter;
 
     @Before
     public void setUp() {
-        adapter = new FoodstuffsAdapter(RuntimeEnvironment.application, new FoodstuffsAdapter.Observer() {
+        adapter = FoodstuffsAdapter.forWeighedFoodstuffs(RuntimeEnvironment.application, new FoodstuffsAdapter.Observer<WeightedFoodstuff>() {
             @Override
-            public void onItemClicked(Foodstuff foodstuff, int position) {
+            public void onItemClicked(WeightedFoodstuff foodstuff, int position) {
             }
             @Override
             public void onItemsCountChanged(int count) {
@@ -40,9 +41,9 @@ public class FoodstuffsAdapterTest {
         String name1 = "name1";
         String name2 = "name2";
         String name3 = "asdasd";
-        adapter.addItem(new Foodstuff(name1, 1, 2, 3, 4, 5));
-        adapter.addItem(new Foodstuff(name2, 1, 2, 3, 4, 5));
-        adapter.addItem(new Foodstuff(name3, 1, 2, 3, 4, 5));
+        adapter.addItem(Foodstuff.withName(name1).withNutrition(1, 2, 3, 4).withWeight(5));
+        adapter.addItem(Foodstuff.withName(name2).withNutrition(1, 2, 3, 4).withWeight(5));
+        adapter.addItem(Foodstuff.withName(name3).withNutrition(1, 2, 3, 4).withWeight(5));
 
         // Проверим, что адаптер готов к тесту (имеет валидное состояние)
         assertEquals(3, adapter.getItemCount());
@@ -62,9 +63,9 @@ public class FoodstuffsAdapterTest {
         String name1 = "name1";
         String name2 = "name2";
         String name3 = "asdasd";
-        adapter.addItem(new Foodstuff(name1, 1, 2, 3, 4, 5));
-        adapter.addItem(new Foodstuff(name2, 1, 2, 3, 4, 5));
-        adapter.addItem(new Foodstuff(name3, 1, 2, 3, 4, 5));
+        adapter.addItem(Foodstuff.withName(name1).withNutrition(1, 2, 3, 4).withWeight(5));
+        adapter.addItem(Foodstuff.withName(name2).withNutrition(1, 2, 3, 4).withWeight(5));
+        adapter.addItem(Foodstuff.withName(name3).withNutrition(1, 2, 3, 4).withWeight(5));
 
         adapter.deleteItem(1);
         assertEquals(2, adapter.getItemCount());
@@ -77,11 +78,11 @@ public class FoodstuffsAdapterTest {
         String name1 = "name1";
         String name2 = "name2";
         String name3 = "asdasd";
-        adapter.addItem(new Foodstuff(name1, 1, 2, 3, 4, 5));
-        adapter.addItem(new Foodstuff(name2, 1, 2, 3, 4, 5));
-        adapter.addItem(new Foodstuff(name3, 1, 2, 3, 4, 5));
+        adapter.addItem(Foodstuff.withName(name1).withNutrition(1, 2, 3, 4).withWeight(5));
+        adapter.addItem(Foodstuff.withName(name2).withNutrition(1, 2, 3, 4).withWeight(5));
+        adapter.addItem(Foodstuff.withName(name3).withNutrition(1, 2, 3, 4).withWeight(5));
 
-        Foodstuff newFoodstuff = new Foodstuff("newName", 1, 2, 3, 4, 5);
+        WeightedFoodstuff newFoodstuff = Foodstuff.withName("newName").withNutrition(1, 2, 3, 4).withWeight(5);
         adapter.replaceItem(newFoodstuff, 0);
         assertEquals(3, adapter.getItemCount());
         assertEquals("newName", adapter.getItem(0).getName());

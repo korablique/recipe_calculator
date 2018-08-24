@@ -14,6 +14,7 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.R;
 
 public class Card {
@@ -134,12 +135,21 @@ public class Card {
         animator.start();
     }
 
+    public void displayForFoodstuff(WeightedFoodstuff foodstuff, Object customPayload) {
+        displayFor(customPayload);
+        setFoodstuff(foodstuff);
+    }
+
     public void displayForFoodstuff(Foodstuff foodstuff, Object customPayload) {
+        displayFor(customPayload);
+        setFoodstuff(foodstuff);
+    }
+
+    private void displayFor(Object customPayload) {
         this.customPayload = customPayload;
         this.clear();
         displayEmpty();
         getButtonDelete().setVisibility(View.VISIBLE);
-        setFoodstuff(foodstuff);
     }
 
     public void hide() {
@@ -186,7 +196,7 @@ public class Card {
         return true;
     }
 
-    public Foodstuff parseFoodstuff() {
+    public WeightedFoodstuff parseFoodstuff() {
         String productName = getName();
         double weight;
         if (getWeightEditText().getText().toString().isEmpty()) {
@@ -198,7 +208,10 @@ public class Card {
         double fats = Double.parseDouble(getFatsEditText().getText().toString());
         double carbs = Double.parseDouble(getCarbsEditText().getText().toString());
         double calories = Double.parseDouble(getCaloriesEditText().getText().toString());
-        return new Foodstuff(productName, weight, protein, fats, carbs, calories);
+        return Foodstuff
+                .withName(productName)
+                .withNutrition(protein, fats, carbs, calories)
+                .withWeight(weight);
     }
 
     public void setOnButtonOkClickedRunnable(final Runnable runnable) {
@@ -303,13 +316,14 @@ public class Card {
         return cardLayout.findViewById(R.id.search_icon_layout);
     }
 
+    private void setFoodstuff(WeightedFoodstuff newFoodstuff) {
+        setFoodstuff(newFoodstuff.withoutWeight());
+        getWeightEditText().setText(String.valueOf(newFoodstuff.getWeight()));
+    }
+
     private void setFoodstuff(Foodstuff newFoodstuff) {
         getNameEditText().setText(newFoodstuff.getName());
-        if (newFoodstuff.getWeight() > 0) {
-            getWeightEditText().setText(String.valueOf(newFoodstuff.getWeight()));
-        } else {
-            getWeightEditText().setText("");
-        }
+        getWeightEditText().setText("");
         Context context = cardLayout.getContext();
         // заменяем запятые на точки, т.к. context.getString() возвращает строку с запятыми
         getProteinEditText().setText(context.getString(R.string.one_digit_precision_float,

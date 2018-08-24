@@ -22,6 +22,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.ui.calculator.CalculatorActivity;
 import korablique.recipecalculator.util.DbUtil;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
@@ -46,10 +47,10 @@ public class DatabaseWorkerTest {
 
     @Test
     public void requestListedFoodstuffsFromDbWorks() throws InterruptedException {
-        Foodstuff foodstuff1 = new Foodstuff("продукт1", 1, 1, 1, 1, 1);
-        Foodstuff foodstuff2 = new Foodstuff("продукт2", 1, 1, 1, 1, 1);
-        Foodstuff foodstuff3 = new Foodstuff("продукт3", 1, 1, 1, 1, 1);
-        Foodstuff foodstuff4 = new Foodstuff("продукт4", 1, 1, 1, 1, 1);
+        Foodstuff foodstuff1 = Foodstuff.withName("продукт1").withNutrition(1, 1, 1, 1);
+        Foodstuff foodstuff2 = Foodstuff.withName("продукт2").withNutrition(1, 1, 1, 1);
+        Foodstuff foodstuff3 = Foodstuff.withName("продукт3").withNutrition(1, 1, 1, 1);
+        Foodstuff foodstuff4 = Foodstuff.withName("продукт4").withNutrition(1, 1, 1, 1);
         databaseWorker.saveFoodstuff(
                 context,
                 foodstuff1,
@@ -98,7 +99,7 @@ public class DatabaseWorkerTest {
 
     @Test
     public void canSaveListedProductSameAsUnlisted() throws InterruptedException {
-        Foodstuff foodstuff = new Foodstuff("falafel", -1, 10, 10, 10, 100);
+        Foodstuff foodstuff = Foodstuff.withName("falafel").withNutrition(10, 10, 10, 100);
         final long[] id = {-1};
         databaseWorker.saveUnlistedFoodstuff(
                 context,
@@ -136,7 +137,7 @@ public class DatabaseWorkerTest {
         int foodstuffsNumber = 10;
         final Foodstuff[] foodstuffs = new Foodstuff[foodstuffsNumber];
         for (int index = 0; index < foodstuffsNumber; index++) {
-            foodstuffs[index] = new Foodstuff("foodstuff" + index, -1, 5, 5, 5, 5);
+            foodstuffs[index] = Foodstuff.withName("foodstuff" + index).withNutrition(5, 5, 5, 5);
         }
 
         // сохраняем продукты в список
@@ -173,7 +174,7 @@ public class DatabaseWorkerTest {
         int foodstuffsNumber = 10;
         final Foodstuff[] foodstuffs = new Foodstuff[foodstuffsNumber];
         for (int index = 0; index < foodstuffsNumber; index++) {
-            foodstuffs[index] = new Foodstuff("foodstuff" + index, -1, 5, 5, 5, 5);
+            foodstuffs[index] = Foodstuff.withName("foodstuff" + index).withNutrition(5, 5, 5, 5);
         }
 
         // сохраняем продукты в список
@@ -219,9 +220,9 @@ public class DatabaseWorkerTest {
         int foodstuffsNumber = 3;
         final Foodstuff[] foodstuffs = new Foodstuff[foodstuffsNumber];
         String apple = "Яблоко";
-        foodstuffs[0] = new Foodstuff("абрикос", -1, 5, 5, 5, 5);
-        foodstuffs[1] = new Foodstuff("Абрикос", -1, 5, 5, 5, 5);
-        foodstuffs[2] = new Foodstuff(apple, -1, 5, 5, 5, 5);
+        foodstuffs[0] = Foodstuff.withName("абрикос").withNutrition(5, 5, 5, 5);
+        foodstuffs[1] = Foodstuff.withName("Абрикос").withNutrition(5, 5, 5, 5);
+        foodstuffs[2] = Foodstuff.withName(apple).withNutrition(5, 5, 5, 5);
 
         // сохраняем продукты в список
         final ArrayList<Long> foodstuffsIds = new ArrayList<>();
@@ -259,9 +260,9 @@ public class DatabaseWorkerTest {
     public void requestFoodstuffsByIdsReturnsRequestedNumberOfFoodstuffs() {
         int foodstuffsNumber = 3;
         final Foodstuff[] foodstuffs = new Foodstuff[foodstuffsNumber];
-        foodstuffs[0] = new Foodstuff("Абрикос", -1, 5, 5, 5, 5);
-        foodstuffs[1] = new Foodstuff("Банан", -1, 5, 5, 5, 5);
-        foodstuffs[2] = new Foodstuff("Яблоко", -1, 5, 5, 5, 5);
+        foodstuffs[0] = Foodstuff.withName("Абрикос").withNutrition(5, 5, 5, 5);
+        foodstuffs[1] = Foodstuff.withName("Банан").withNutrition(5, 5, 5, 5);
+        foodstuffs[2] = Foodstuff.withName("Яблоко").withNutrition(5, 5, 5, 5);
 
         // сохраняем продукты в список
         final ArrayList<Long> foodstuffsIds = new ArrayList<>();
@@ -296,9 +297,9 @@ public class DatabaseWorkerTest {
     public void requestFoodstuffsByIdsReturnsRequestedFoodstuffs() {
         int foodstuffsNumber = 3;
         final Foodstuff[] foodstuffs = new Foodstuff[foodstuffsNumber];
-        foodstuffs[0] = new Foodstuff("Абрикос", -1, 5, 5, 5, 5);
-        foodstuffs[1] = new Foodstuff("Банан", -1, 5, 5, 5, 5);
-        foodstuffs[2] = new Foodstuff("Яблоко", -1, 5, 5, 5, 5);
+        foodstuffs[0] = Foodstuff.withName("Абрикос").withNutrition(5, 5, 5, 5);
+        foodstuffs[1] = Foodstuff.withName("Банан").withNutrition(5, 5, 5, 5);
+        foodstuffs[2] = Foodstuff.withName("Яблоко").withNutrition(5, 5, 5, 5);
 
         // сохраняем продукты в список
         final ArrayList<Long> foodstuffsIds = new ArrayList<>();
@@ -312,9 +313,17 @@ public class DatabaseWorkerTest {
                     }
                 });
 
-        foodstuffs[0] = new Foodstuff(foodstuffsIds.get(0), foodstuffs[0]);
-        foodstuffs[1] = new Foodstuff(foodstuffsIds.get(1), foodstuffs[1]);
-        foodstuffs[2] = new Foodstuff(foodstuffsIds.get(2), foodstuffs[2]);
+        foodstuffs[0] = Foodstuff.withId(foodstuffsIds.get(0))
+                .withName(foodstuffs[0].getName())
+                .withNutrition(Nutrition.of(foodstuffs[0]));
+
+        foodstuffs[1] = Foodstuff.withId(foodstuffsIds.get(1))
+                .withName(foodstuffs[1].getName())
+                .withNutrition(Nutrition.of(foodstuffs[1]));
+
+        foodstuffs[2] = Foodstuff.withId(foodstuffsIds.get(2))
+                .withName(foodstuffs[2].getName())
+                .withNutrition(Nutrition.of(foodstuffs[2]));
 
         List<Foodstuff> returnedFoodstuffs = new ArrayList<>();
         databaseWorker.requestFoodstuffsByIds(
@@ -350,16 +359,16 @@ public class DatabaseWorkerTest {
     @Test
     public void requestFoodstuffsLikeWorks() throws IOException {
         Foodstuff[] foodstuffs = new Foodstuff[10];
-        foodstuffs[0] = new Foodstuff("варенье из абрикосов", -1, 1, 1, 1, 1);
-        foodstuffs[1] = new Foodstuff("вареники", -1, 1, 1, 1, 1);
-        foodstuffs[2] = new Foodstuff("вареная картошка", -1, 1, 1, 1, 1);
-        foodstuffs[3] = new Foodstuff("варенье из груш", -1, 1, 1, 1, 1);
-        foodstuffs[4] = new Foodstuff("абрикос", -1, 1, 1, 1, 1);
-        foodstuffs[5] = new Foodstuff("варенье из смородины", -1, 1, 1, 1, 1);
-        foodstuffs[6] = new Foodstuff("варенье из клубники", -1, 1, 1, 1, 1);
-        foodstuffs[7] = new Foodstuff("шоколад", -1, 1, 1, 1, 1);
-        foodstuffs[8] = new Foodstuff("хлеб", -1, 1, 1, 1, 1);
-        foodstuffs[9] = new Foodstuff("варенье из черники", -1, 1, 1, 1, 1);
+        foodstuffs[0] = Foodstuff.withName("варенье из абрикосов").withNutrition(1, 1, 1, 1);
+        foodstuffs[1] = Foodstuff.withName("вареники").withNutrition(1, 1, 1, 1);
+        foodstuffs[2] = Foodstuff.withName("вареная картошка").withNutrition(1, 1, 1, 1);
+        foodstuffs[3] = Foodstuff.withName("варенье из груш").withNutrition(1, 1, 1, 1);
+        foodstuffs[4] = Foodstuff.withName("абрикос").withNutrition(1, 1, 1, 1);
+        foodstuffs[5] = Foodstuff.withName("варенье из смородины").withNutrition(1, 1, 1, 1);
+        foodstuffs[6] = Foodstuff.withName("варенье из клубники").withNutrition(1, 1, 1, 1);
+        foodstuffs[7] = Foodstuff.withName("шоколад").withNutrition(1, 1, 1, 1);
+        foodstuffs[8] = Foodstuff.withName("хлеб").withNutrition(1, 1, 1, 1);
+        foodstuffs[9] = Foodstuff.withName("варенье из черники").withNutrition(1, 1, 1, 1);
 
         databaseWorker.saveGroupOfFoodstuffs(
                 context,
@@ -399,7 +408,7 @@ public class DatabaseWorkerTest {
             return foodstuffArrayList.get(0);
         }
 
-        Foodstuff foodstuff = new Foodstuff("apricot", -1, 10, 10, 10, 10);
+        Foodstuff foodstuff = Foodstuff.withName("apricot").withNutrition(10, 10, 10, 10);
         databaseWorker.saveFoodstuff(context, foodstuff, new DatabaseWorker.SaveFoodstuffCallback() {
             @Override
             public void onResult(long id) {}

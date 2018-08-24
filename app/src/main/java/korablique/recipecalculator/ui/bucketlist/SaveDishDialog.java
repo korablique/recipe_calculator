@@ -21,6 +21,7 @@ import korablique.recipecalculator.DishNutritionCalculator;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
+import korablique.recipecalculator.model.WeightedFoodstuff;
 
 public class SaveDishDialog extends DialogFragment {
     public static String SELECTED_FOODSTUFFS = "SELECTED_FOODSTUFFS";
@@ -61,7 +62,7 @@ public class SaveDishDialog extends DialogFragment {
         return dialog;
     }
 
-    public static SaveDishDialog showDialog(FragmentActivity activity, List<Foodstuff> foodstuffs, double resultWeight) {
+    public static SaveDishDialog showDialog(FragmentActivity activity, List<WeightedFoodstuff> foodstuffs, double resultWeight) {
         Bundle bundle = new Bundle();
         bundle.putParcelableArrayList(SELECTED_FOODSTUFFS, new ArrayList<>(foodstuffs));
         bundle.putDouble(RESULT_WEIGHT, resultWeight);
@@ -89,13 +90,12 @@ public class SaveDishDialog extends DialogFragment {
      * Создает фудстафф для блюда, рассчитанного из ингридиентов, выбранных в BucketListActivity
      */
     private Foodstuff extractFoodstuff() {
-        ArrayList<Foodstuff> savedFoodstuffs = getArguments().getParcelableArrayList(SELECTED_FOODSTUFFS);
+        ArrayList<WeightedFoodstuff> savedFoodstuffs = getArguments().getParcelableArrayList(SELECTED_FOODSTUFFS);
         double resultWeight = getArguments().getDouble(RESULT_WEIGHT);
         Nutrition nutrition = DishNutritionCalculator.calculate(savedFoodstuffs, resultWeight);
         EditText nameEditText = getView().findViewById(R.id.dish_name_edit_text);
         String name = nameEditText.getText().toString();
-        return new Foodstuff(
-                name, -1, nutrition.getProtein(), nutrition.getFats(), nutrition.getCarbs(), nutrition.getCalories());
+        return Foodstuff.withName(name).withNutrition(nutrition);
     }
 
     @Nullable

@@ -250,14 +250,16 @@ public class DatabaseWorker {
             ArrayList<Foodstuff> batchOfFoodstuffs = new ArrayList<>();
             int index = 0;
             while (cursor.moveToNext()) {
-                Foodstuff foodstuff = new Foodstuff(
-                        cursor.getLong(cursor.getColumnIndex(ID)),
-                        cursor.getString(cursor.getColumnIndex(COLUMN_NAME_FOODSTUFF_NAME)),
-                        -1,
-                        cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_PROTEIN)),
-                        cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_FATS)),
-                        cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CARBS)),
-                        cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CALORIES)));
+                long id = cursor.getLong(cursor.getColumnIndex(ID));
+                String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_FOODSTUFF_NAME));
+                double protein = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_PROTEIN));
+                double fats = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_FATS));
+                double carbs = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CARBS));
+                double calories = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CALORIES));
+                Foodstuff foodstuff = Foodstuff
+                        .withId(id)
+                        .withName(name)
+                        .withNutrition(protein, fats, carbs, calories);
                 batchOfFoodstuffs.add(foodstuff);
                 ++index;
                 if (index >= batchSize) {
@@ -311,7 +313,11 @@ public class DatabaseWorker {
                     double fats = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_FATS));
                     double carbs = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CARBS));
                     double calories = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CALORIES));
-                    Foodstuff foodstuff = new Foodstuff(id, name, -1, protein, fats, carbs, calories);
+                    Foodstuff foodstuff =
+                            Foodstuff
+                                    .withId(id)
+                                    .withName(name)
+                                    .withNutrition(protein, fats, carbs, calories);
                     result.add(foodstuff);
                 }
                 cursor.close();
@@ -354,7 +360,9 @@ public class DatabaseWorker {
                 double fats = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_FATS));
                 double carbs = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CARBS));
                 double calories = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CALORIES));
-                Foodstuff foodstuff = new Foodstuff(id, name, -1, protein, fats, carbs, calories);
+                Foodstuff foodstuff =
+                        Foodstuff.withId(id).withName(name)
+                                .withNutrition(protein, fats, carbs, calories);
                 result.add(foodstuff);
             }
             cursor.close();

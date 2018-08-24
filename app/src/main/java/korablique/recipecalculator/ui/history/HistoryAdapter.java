@@ -17,15 +17,15 @@ import java.util.Formatter;
 import java.util.List;
 
 import korablique.recipecalculator.R;
-import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.HistoryEntry;
 import korablique.recipecalculator.model.Rates;
+import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.MyViewHolder;
 
 
 public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public interface Observer {
-        void onItemClicked(Foodstuff foodstuff, int displayedPosition);
+        void onItemClicked(WeightedFoodstuff foodstuff, int displayedPosition);
     }
     private static final int ITEM_TYPE_PROGRESS = 0;
     private static final int ITEM_TYPE_FOODSTUFF = 1;
@@ -101,7 +101,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         int itemType = getItemViewType(position);
         if (itemType == ITEM_TYPE_FOODSTUFF) {
             ViewGroup item = ((MyViewHolder)holder).getItem();
-            final Foodstuff foodstuff = ((FoodstuffData) getItem(position)).getHistoryEntry().getFoodstuff();
+            final WeightedFoodstuff foodstuff = ((FoodstuffData) getItem(position)).getHistoryEntry().getFoodstuff();
             double weight = foodstuff.getWeight();
             setTextViewText(item, R.id.name, context.getString(
                     R.string.foodstuff_name_and_weight, foodstuff.getName(), foodstuff.getWeight()));
@@ -140,7 +140,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             // сложить с остальными
             double ateProtein = 0, ateFats = 0, ateCarbs = 0, ateCalories = 0;
             for (FoodstuffData foodstuffData : dailyFood) {
-                Foodstuff foodstuff = foodstuffData.getHistoryEntry().getFoodstuff();
+                WeightedFoodstuff foodstuff = foodstuffData.getHistoryEntry().getFoodstuff();
                 double weight = foodstuff.getWeight();
                 ateProtein += foodstuff.getProtein() * weight * 0.01;
                 ateFats += foodstuff.getFats() * weight * 0.01;

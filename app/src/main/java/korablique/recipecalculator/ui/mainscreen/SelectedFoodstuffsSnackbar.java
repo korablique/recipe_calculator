@@ -13,6 +13,7 @@ import java.util.List;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.WeightedFoodstuff;
 
 public class SelectedFoodstuffsSnackbar {
     private static final long DURATION = 250L;
@@ -21,7 +22,7 @@ public class SelectedFoodstuffsSnackbar {
     private boolean isShown;
     private ViewGroup snackbarLayout;
     private TextView selectedFoodstuffsCounter;
-    private List<Foodstuff> selectedFoodstuffs = new ArrayList<>();
+    private List<WeightedFoodstuff> selectedFoodstuffs = new ArrayList<>();
 
     public SelectedFoodstuffsSnackbar(Activity activity) {
         snackbarLayout = activity.findViewById(R.id.snackbar);
@@ -55,7 +56,7 @@ public class SelectedFoodstuffsSnackbar {
         animator.start();
     }
 
-    public void addFoodstuff(Foodstuff foodstuff) {
+    public void addFoodstuff(WeightedFoodstuff foodstuff) {
         selectedFoodstuffs.add(foodstuff);
         updateSelectedFoodstuffsCounter();
     }
@@ -78,11 +79,11 @@ public class SelectedFoodstuffsSnackbar {
         });
     }
 
-    public List<Foodstuff> getSelectedFoodstuffs() {
+    public List<WeightedFoodstuff> getSelectedFoodstuffs() {
         return selectedFoodstuffs;
     }
 
-    private void setSelectedFoodstuffs(List<Foodstuff> selectedFoodstuffs) {
+    private void setSelectedFoodstuffs(List<WeightedFoodstuff> selectedFoodstuffs) {
         this.selectedFoodstuffs = selectedFoodstuffs;
         updateSelectedFoodstuffsCounter();
     }
