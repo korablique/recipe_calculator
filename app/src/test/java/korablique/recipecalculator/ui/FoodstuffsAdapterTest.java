@@ -12,7 +12,6 @@ import org.robolectric.annotation.Config;
 import korablique.recipecalculator.BuildConfig;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.WeightedFoodstuff;
-import korablique.recipecalculator.ui.FoodstuffsAdapter;
 
 import static junit.framework.Assert.*;
 
@@ -23,7 +22,7 @@ public class FoodstuffsAdapterTest {
 
     @Before
     public void setUp() {
-        adapter = FoodstuffsAdapter.forWeighedFoodstuffs(RuntimeEnvironment.application, new FoodstuffsAdapter.Observer<WeightedFoodstuff>() {
+        adapter = FoodstuffsAdapter.forWeightedFoodstuffs(RuntimeEnvironment.application, new FoodstuffsAdapter.Observer<WeightedFoodstuff>() {
             @Override
             public void onItemClicked(WeightedFoodstuff foodstuff, int position) {
             }

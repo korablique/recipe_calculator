@@ -70,19 +70,22 @@ public class NewCard {
     }
 
     public void setFoodstuff(WeightedFoodstuff weightedFoodstuff) {
-        setFoodstuff(weightedFoodstuff.withoutWeight());
-        // Этот вызов setNutrition перетрёт то, что было записано в вызове выше
+        setFoodstuffImpl(weightedFoodstuff.withoutWeight());
         nutritionValuesWrapper.setNutrition(Nutrition.of(weightedFoodstuff));
         weightEditText.setText(String.valueOf(weightedFoodstuff.getWeight()));
         weightEditText.setSelection(weightEditText.getText().length());
     }
 
     public void setFoodstuff(Foodstuff foodstuff) {
+        setFoodstuffImpl(foodstuff);
+        nutritionValuesWrapper.setNutrition(Nutrition.of100gramsOf(foodstuff));
+    }
+
+    private void setFoodstuffImpl(Foodstuff foodstuff) {
         displayedFoodstuff = foodstuff;
         nameTextView.setText(foodstuff.getName());
-        nutritionProgressWrapper.setNutrition(Nutrition.of(foodstuff));
+        nutritionProgressWrapper.setNutrition(Nutrition.of100gramsOf(foodstuff));
         nutritionValuesWrapper.setFoodstuff(foodstuff);
-        nutritionValuesWrapper.setNutrition(Nutrition.of(foodstuff));
 
         weightEditText.addTextChangedListener(new TextWatcherAdapter() {
             @Override

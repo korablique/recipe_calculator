@@ -315,15 +315,15 @@ public class DatabaseWorkerTest {
 
         foodstuffs[0] = Foodstuff.withId(foodstuffsIds.get(0))
                 .withName(foodstuffs[0].getName())
-                .withNutrition(Nutrition.of(foodstuffs[0]));
+                .withNutrition(Nutrition.of100gramsOf(foodstuffs[0]));
 
         foodstuffs[1] = Foodstuff.withId(foodstuffsIds.get(1))
                 .withName(foodstuffs[1].getName())
-                .withNutrition(Nutrition.of(foodstuffs[1]));
+                .withNutrition(Nutrition.of100gramsOf(foodstuffs[1]));
 
         foodstuffs[2] = Foodstuff.withId(foodstuffsIds.get(2))
                 .withName(foodstuffs[2].getName())
-                .withNutrition(Nutrition.of(foodstuffs[2]));
+                .withNutrition(Nutrition.of100gramsOf(foodstuffs[2]));
 
         List<Foodstuff> returnedFoodstuffs = new ArrayList<>();
         databaseWorker.requestFoodstuffsByIds(

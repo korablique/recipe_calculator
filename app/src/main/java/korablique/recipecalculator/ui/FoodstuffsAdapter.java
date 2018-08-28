@@ -17,7 +17,7 @@ import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 
 /**
- * @param <T> must be either Foodstuff or WeighedFoodstuff. This is enforced by the constructor
+ * @param <T> must be either Foodstuff or WeightedFoodstuff. This is enforced by the constructor
  * being private and 2 public factory methods playing the role of the constructor.
  */
 public class FoodstuffsAdapter<T> extends RecyclerView.Adapter<MyViewHolder> {
@@ -35,7 +35,7 @@ public class FoodstuffsAdapter<T> extends RecyclerView.Adapter<MyViewHolder> {
         return new FoodstuffsAdapter<>(context, observer);
     }
 
-    public static FoodstuffsAdapter<WeightedFoodstuff> forWeighedFoodstuffs(
+    public static FoodstuffsAdapter<WeightedFoodstuff> forWeightedFoodstuffs(
             Context context, Observer observer) {
         return new FoodstuffsAdapter<>(context, observer);
     }

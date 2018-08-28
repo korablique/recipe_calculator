@@ -19,7 +19,7 @@ import korablique.recipecalculator.model.WeightedFoodstuff;
 
 public class CardDialog extends DialogFragment {
     private static final String CLICKED_FOODSTUFF = "CLICKED_FOODSTUFF";
-    private static final String CLICKED_WEIGHED_FOODSTUFF = "CLICKED_WEIGHED_FOODSTUFF";
+    private static final String CLICKED_WEIGHTED_FOODSTUFF = "CLICKED_WEIGHTED_FOODSTUFF";
     private static final String FOODSTUFF_CARD = "FOODSTUFF_CARD";
     private NewCard card;
     private NewCard.OnAddFoodstuffButtonClickListener onAddFoodstuffButtonClickListener;
@@ -38,8 +38,8 @@ public class CardDialog extends DialogFragment {
         card.prohibitEditing(prohibitEditingFlag);
 
         Bundle args = getArguments();
-        if (args.containsKey(CLICKED_WEIGHED_FOODSTUFF)) {
-            WeightedFoodstuff foodstuff = args.getParcelable(CLICKED_WEIGHED_FOODSTUFF);
+        if (args.containsKey(CLICKED_WEIGHTED_FOODSTUFF)) {
+            WeightedFoodstuff foodstuff = args.getParcelable(CLICKED_WEIGHTED_FOODSTUFF);
             card.setFoodstuff(foodstuff);
         } else {
             Foodstuff foodstuff = args.getParcelable(CLICKED_FOODSTUFF);
@@ -89,7 +89,7 @@ public class CardDialog extends DialogFragment {
 
     public static CardDialog showCard(FragmentActivity activity, WeightedFoodstuff foodstuff) {
         Bundle bundle = new Bundle();
-        bundle.putParcelable(CLICKED_WEIGHED_FOODSTUFF, foodstuff);
+        bundle.putParcelable(CLICKED_WEIGHTED_FOODSTUFF, foodstuff);
         return createDialogWith(activity, bundle);
     }
 

@@ -67,7 +67,7 @@ public class CalculatorActivity extends BaseActivity {
         }
     };
     private FoodstuffsAdapter<WeightedFoodstuff> foodstuffsAdapter =
-            FoodstuffsAdapter.forWeighedFoodstuffs(this, adapterObserver);
+            FoodstuffsAdapter.forWeightedFoodstuffs(this, adapterObserver);
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
