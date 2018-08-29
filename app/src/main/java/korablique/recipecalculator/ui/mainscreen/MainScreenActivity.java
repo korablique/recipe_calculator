@@ -8,7 +8,7 @@ import korablique.recipecalculator.base.BaseActivity;
 
 public class MainScreenActivity extends BaseActivity {
     @Inject
-    MainScreenPresenter presenter;
+    MainScreenActivityController controller;
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {

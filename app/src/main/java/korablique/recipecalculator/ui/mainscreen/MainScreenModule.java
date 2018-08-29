@@ -1,7 +1,5 @@
 package korablique.recipecalculator.ui.mainscreen;
 
-import android.arch.lifecycle.Lifecycle;
-
 import dagger.Module;
 import dagger.Provides;
 import korablique.recipecalculator.base.ActivityCallbacks;
@@ -19,20 +17,11 @@ public class MainScreenModule {
 
     @ActivityScope
     @Provides
-    MainScreenModel provideModel(DatabaseWorker databaseWorker, HistoryWorker historyWorker) {
-        return new MainScreenModelImpl(databaseWorker, historyWorker);
-    }
-
-    @ActivityScope
-    @Provides
-    MainScreenPresenter providePresenter(
-            MainScreenView view, MainScreenModel model, MainScreenActivity activity, ActivityCallbacks callbacks) {
-        return new MainScreenPresenterImpl(view, model, activity, callbacks);
-    }
-
-    @ActivityScope
-    @Provides
-    MainScreenView provideView(MainScreenActivity activity, ActivityCallbacks callbacks) {
-        return new MainScreenViewImpl(activity, callbacks);
+    MainScreenActivityController providePresenter(
+            MainScreenActivity activity,
+            DatabaseWorker databaseWorker,
+            HistoryWorker historyWorker,
+            ActivityCallbacks callbacks) {
+        return new MainScreenActivityController(activity, databaseWorker, historyWorker, callbacks);
     }
 }
