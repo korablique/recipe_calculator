@@ -15,6 +15,7 @@ import java.util.List;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.card.NewCard;
 
@@ -88,7 +89,7 @@ public class MainScreenViewImpl extends ActivityCallbacks.Observer implements Ma
     }
 
     @Override
-    public void addSnackbarFoodstuff(Foodstuff foodstuff) {
+    public void addSnackbarFoodstuff(WeightedFoodstuff foodstuff) {
         snackbar.addFoodstuff(foodstuff);
     }
 
@@ -103,7 +104,6 @@ public class MainScreenViewImpl extends ActivityCallbacks.Observer implements Ma
             CardDialog cardDialog = CardDialog.showCard(activity, foodstuff);
             cardDialog.setOnAddFoodstuffButtonClickListener(cardDialogListener);
             cardDialog.setOnEditButtonClickListener(cardDialogOnEditButtonClickListener);
-            cardDialog.setOnCloseButtonClickListener(cardDialog::dismiss);
             dialogAction = null;
         };
         if (!isUiHidden) {

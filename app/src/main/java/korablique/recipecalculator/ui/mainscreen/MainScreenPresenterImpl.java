@@ -13,6 +13,7 @@ import java.util.List;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
 import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
@@ -62,7 +63,7 @@ public class MainScreenPresenterImpl extends ActivityCallbacks.Observer implemen
 
         view.setOnSnackbarClickListener(new MainScreenView.OnSnackbarBasketClickListener() {
             @Override
-            public void onClick(List<Foodstuff> selectedFoodstuffs) {
+            public void onClick(List<WeightedFoodstuff> selectedFoodstuffs) {
                 BucketListActivity.start(new ArrayList<>(selectedFoodstuffs), context);
             }
         });
@@ -79,7 +80,6 @@ public class MainScreenPresenterImpl extends ActivityCallbacks.Observer implemen
 
         adapterParent = new AdapterParent();
         view.setAdapter(adapterParent);
-
         view.setCardDialogAddButtonClickListener(foodstuff -> {
             view.hideCard();
             view.addSnackbarFoodstuff(foodstuff);

@@ -5,12 +5,13 @@ import android.support.v7.widget.RecyclerView;
 import java.util.List;
 
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.card.NewCard;
 
 public interface MainScreenView {
     void initActivity();
     void showSnackbar();
-    void addSnackbarFoodstuff(Foodstuff foodstuff);
+    void addSnackbarFoodstuff(WeightedFoodstuff foodstuff);
     void setOnSnackbarClickListener(OnSnackbarBasketClickListener listener);
     void showCard(Foodstuff foodstuff);
     void hideCard();
@@ -23,7 +24,7 @@ public interface MainScreenView {
     void setOnSearchListener(OnSearchListener listener);
 
     interface OnSnackbarBasketClickListener {
-        void onClick(List<Foodstuff> selectedFoodstuffs);
+        void onClick(List<WeightedFoodstuff> selectedFoodstuffs);
     }
 
     interface OnNavigationItemSelectedListener {

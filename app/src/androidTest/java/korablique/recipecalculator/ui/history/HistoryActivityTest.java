@@ -28,6 +28,7 @@ import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.UserParameters;
+import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.Card;
 import korablique.recipecalculator.util.DbUtil;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
@@ -200,7 +201,7 @@ public class HistoryActivityTest {
 
         Foodstuff[] foodstuffs = new Foodstuff[BATCH_SIZE + 1];
         for (int index = 0; index < foodstuffs.length; index++) {
-            foodstuffs[index] = new Foodstuff("foodstuff" + index, -1, 5, 5, 5, 5);
+            foodstuffs[index] = Foodstuff.withName("foodstuff" + index).withNutrition(5, 5, 5, 5);
         }
         ArrayList<Long> foodstuffIds = new ArrayList<>();
         databaseWorker.saveGroupOfFoodstuffs(
@@ -230,7 +231,7 @@ public class HistoryActivityTest {
         // добавить батч продуктов с интервалом в минуту
         Foodstuff[] foodstuffs = new Foodstuff[BATCH_SIZE + 1];
         for (int index = 0; index < foodstuffs.length; index++) {
-            foodstuffs[index] = new Foodstuff("foodstuff" + index, -1, 5, 5, 5, 5);
+            foodstuffs[index] = Foodstuff.withName("foodstuff" + index).withNutrition(5, 5, 5, 5);
         }
         ArrayList<Long> foodstuffIds = new ArrayList<>();
         databaseWorker.saveGroupOfFoodstuffs(
@@ -256,10 +257,10 @@ public class HistoryActivityTest {
     public void containsGivenFoodstuffs() {
         // Проверяем, что если запустить HistoryActivity с интентом на добавление продуктов,
         // HistoryActivity после открытия будет содержать в себе эти добавленные продукты.
-        ArrayList<Foodstuff> foodstuffs = new ArrayList<>();
-        foodstuffs.add(new Foodstuff("apple", 123, 1, 2, 3, 4));
-        foodstuffs.add(new Foodstuff("water", 123, 1, 2, 3, 4));
-        foodstuffs.add(new Foodstuff("beer", 123, 1, 2, 3, 4));
+        ArrayList<WeightedFoodstuff> foodstuffs = new ArrayList<>();
+        foodstuffs.add(Foodstuff.withName("apple").withNutrition(1, 2, 3, 4).withWeight(123));
+        foodstuffs.add(Foodstuff.withName("water").withNutrition(1, 2, 3, 4).withWeight(123));
+        foodstuffs.add(Foodstuff.withName("beer").withNutrition(1, 2, 3, 4).withWeight(123));
 
         Intent startIntent =
                 HistoryActivity.createStartAndAddIntent(foodstuffs, InstrumentationRegistry.getTargetContext());

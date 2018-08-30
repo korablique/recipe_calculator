@@ -19,6 +19,7 @@ import java.util.ArrayList;
 
 import javax.inject.Inject;
 
+import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.Card;
 import korablique.recipecalculator.ui.CardDisplaySource;
 import korablique.recipecalculator.database.DatabaseWorker;
@@ -31,7 +32,6 @@ import korablique.recipecalculator.R;
 import korablique.recipecalculator.ui.RecyclerViewUtils;
 
 import static korablique.recipecalculator.IntentConstants.FIND_FOODSTUFF_REQUEST;
-import static korablique.recipecalculator.IntentConstants.NAME;
 import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
 
 @Deprecated
@@ -49,9 +49,9 @@ public class CalculatorActivity extends BaseActivity {
     private Card card;
     private int editedFoodstuffPosition;
     private CardDisplaySource cardSource;
-    private FoodstuffsAdapter.Observer adapterObserver = new FoodstuffsAdapter.Observer() {
+    private FoodstuffsAdapter.Observer adapterObserver = new FoodstuffsAdapter.Observer<WeightedFoodstuff>() {
         @Override
-        public void onItemClicked(Foodstuff foodstuff, int position) {
+        public void onItemClicked(WeightedFoodstuff foodstuff, int position) {
             editedFoodstuffPosition = position;
             cardSource = CardDisplaySource.FoodstuffClicked;
             card.displayForFoodstuff(foodstuff, foodstuff.getId());
@@ -66,7 +66,8 @@ public class CalculatorActivity extends BaseActivity {
             }
         }
     };
-    private FoodstuffsAdapter foodstuffsAdapter = new FoodstuffsAdapter(this, adapterObserver);
+    private FoodstuffsAdapter<WeightedFoodstuff> foodstuffsAdapter =
+            FoodstuffsAdapter.forWeightedFoodstuffs(this, adapterObserver);
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -141,7 +142,7 @@ public class CalculatorActivity extends BaseActivity {
                     return;
                 }
 
-                Foodstuff savingFoodstuff = card.parseFoodstuff();
+                WeightedFoodstuff savingFoodstuff = card.parseFoodstuff();
 
                 if (savingFoodstuff.getProtein() + savingFoodstuff.getFats() + savingFoodstuff.getCarbs() > 100) {
                     Alerter.create(CalculatorActivity.this)
@@ -156,7 +157,7 @@ public class CalculatorActivity extends BaseActivity {
 
                 databaseWorker.saveFoodstuff(
                         CalculatorActivity.this,
-                        savingFoodstuff,
+                        savingFoodstuff.withoutWeight(),
                         new DatabaseWorker.SaveFoodstuffCallback() {
                     @Override
                     public void onResult(long id) {
@@ -211,7 +212,7 @@ public class CalculatorActivity extends BaseActivity {
 
     private void onCalculateButtonClicked() {
         //получить все Foodstuff'ы
-        ArrayList<Foodstuff> foodstuffs = new ArrayList<>();
+        ArrayList<WeightedFoodstuff> foodstuffs = new ArrayList<>();
         for (int index = 0; index < foodstuffsAdapter.getItemCount(); index++) {
             foodstuffs.add(foodstuffsAdapter.getItem(index));
         }
@@ -220,7 +221,7 @@ public class CalculatorActivity extends BaseActivity {
         // пройти циклом по всем фудстаффам и умножить Б, Ж, У и К (указанные в карточке на 100 г)
         // на массу продукта
         double allProtein = 0, allFats = 0, allCarbs = 0, allCalories = 0, totalWeight = 0;
-        for (Foodstuff foodstuff : foodstuffs) {
+        for (WeightedFoodstuff foodstuff : foodstuffs) {
             productWeight = foodstuff.getWeight();
             proteinPer100Gram = foodstuff.getProtein();
             fatsPer100Gram = foodstuff.getFats();
@@ -273,7 +274,7 @@ public class CalculatorActivity extends BaseActivity {
             return;
         }
 
-        Foodstuff foodstuff = card.parseFoodstuff();
+        WeightedFoodstuff foodstuff = card.parseFoodstuff();
         if (foodstuff.getProtein() + foodstuff.getFats() + foodstuff.getCarbs() > 100) {
             Alerter.create(CalculatorActivity.this)
                     .setBackgroundColorRes(R.color.colorAccent)
@@ -316,7 +317,7 @@ public class CalculatorActivity extends BaseActivity {
             return;
         }
         for (Parcelable foodstuff : foodstuffs) {
-            foodstuffsAdapter.addItem((Foodstuff) foodstuff);
+            foodstuffsAdapter.addItem((WeightedFoodstuff) foodstuff);
         }
     }
 

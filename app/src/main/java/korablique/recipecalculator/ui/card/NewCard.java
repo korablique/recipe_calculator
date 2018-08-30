@@ -16,12 +16,13 @@ import com.arlib.floatingsearchview.util.adapter.TextWatcherAdapter;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
+import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.NutritionProgressWrapper;
 import korablique.recipecalculator.ui.NutritionValuesWrapper;
 
 public class NewCard {
     public interface OnAddFoodstuffButtonClickListener {
-        void onClick(Foodstuff foodstuff);
+        void onClick(WeightedFoodstuff foodstuff);
     }
 
     public interface OnEditButtonClickListener {
@@ -68,22 +69,24 @@ public class NewCard {
         }
     }
 
+    public void setFoodstuff(WeightedFoodstuff weightedFoodstuff) {
+        setFoodstuffImpl(weightedFoodstuff.withoutWeight());
+        nutritionValuesWrapper.setNutrition(Nutrition.of(weightedFoodstuff));
+        weightEditText.setText(String.valueOf(weightedFoodstuff.getWeight()));
+        weightEditText.setSelection(weightEditText.getText().length());
+    }
+
     public void setFoodstuff(Foodstuff foodstuff) {
+        setFoodstuffImpl(foodstuff);
+        nutritionValuesWrapper.setNutrition(Nutrition.of100gramsOf(foodstuff));
+    }
+
+    private void setFoodstuffImpl(Foodstuff foodstuff) {
         displayedFoodstuff = foodstuff;
         nameTextView.setText(foodstuff.getName());
-        if (foodstuff.getWeight() != -1) {
-            weightEditText.setText(String.valueOf(foodstuff.getWeight()));
-            weightEditText.setSelection(weightEditText.getText().length());
-        }
         nutritionProgressWrapper.setNutrition(Nutrition.of100gramsOf(foodstuff));
         nutritionValuesWrapper.setFoodstuff(foodstuff);
-        if (foodstuff.getWeight() == -1) {
-            // когда фудстафф только задали - показываем БЖУ на 100 г
-            nutritionValuesWrapper.setNutrition(Nutrition.of100gramsOf(foodstuff));
-        } else {
-            // если у него уже есть масса - показываем БЖУ на эту массу
-            nutritionValuesWrapper.setNutrition(Nutrition.of(foodstuff));
-        }
+
         weightEditText.addTextChangedListener(new TextWatcherAdapter() {
             @Override
             public void afterTextChanged(Editable s) {
@@ -94,7 +97,7 @@ public class NewCard {
                 if (!s.toString().isEmpty()) {
                     newWeight = Double.parseDouble(s.toString());
                 }
-                Foodstuff foodstuffWithNewWeight = foodstuff.recreateWithWeight(newWeight);
+                WeightedFoodstuff foodstuffWithNewWeight = foodstuff.withWeight(newWeight);
                 Nutrition newNutrition = Nutrition.of(foodstuffWithNewWeight);
                 nutritionValuesWrapper.setNutrition(newNutrition);
             }
@@ -107,14 +110,14 @@ public class NewCard {
 
     public void setOnAddFoodstuffButtonClickListener(OnAddFoodstuffButtonClickListener listener) {
         addFoodstuffButton.setOnClickListener(v -> {
-            Foodstuff clickedFoodstuff = new Foodstuff(
-                    displayedFoodstuff.getId(),
-                    nameTextView.getText().toString(),
-                    Double.valueOf(weightEditText.getText().toString()),
-                    nutritionValuesWrapper.getFoodstuff().getProtein(),
-                    nutritionValuesWrapper.getFoodstuff().getFats(),
-                    nutritionValuesWrapper.getFoodstuff().getCarbs(),
-                    nutritionValuesWrapper.getFoodstuff().getCalories());
+            WeightedFoodstuff clickedFoodstuff = Foodstuff
+                    .withId(displayedFoodstuff.getId())
+                    .withName(nameTextView.getText().toString())
+                    .withNutrition(nutritionValuesWrapper.getFoodstuff().getProtein(),
+                            nutritionValuesWrapper.getFoodstuff().getFats(),
+                            nutritionValuesWrapper.getFoodstuff().getCarbs(),
+                            nutritionValuesWrapper.getFoodstuff().getCalories())
+                    .withWeight(Double.valueOf(weightEditText.getText().toString()));
             listener.onClick(clickedFoodstuff);
         });
     }

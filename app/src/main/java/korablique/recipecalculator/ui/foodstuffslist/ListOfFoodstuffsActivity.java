@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -14,17 +13,16 @@ import android.support.v7.widget.SearchView;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.ViewGroup;
 import android.widget.EditText;
 
 import com.crashlytics.android.Crashlytics;
 import com.tapadoo.alerter.Alerter;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
 
+import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.Card;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.model.Foodstuff;
@@ -43,10 +41,10 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
 
     public static final String FIND_FOODSTUFF_ACTION = "korablique.recipecalculator.FIND_FOODSTUFF_ACTION";
     private Card card;
-    private FoodstuffsAdapter recyclerViewAdapter;
+    private FoodstuffsAdapter<Foodstuff> recyclerViewAdapter;
     private int editedFoodstuffPosition;
     private long editedFoodstuffId; //id из базы данных
-    private FoodstuffsAdapter.Observer defaultObserver = new FoodstuffsAdapter.Observer() {
+    private FoodstuffsAdapter.Observer defaultObserver = new FoodstuffsAdapter.Observer<Foodstuff>() {
         @Override
         public void onItemClicked(Foodstuff foodstuff, int position) {
             editedFoodstuffPosition = position;
@@ -57,7 +55,7 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
         @Override
         public void onItemsCountChanged(int count) {}
     };
-    private FoodstuffsAdapter.Observer findFoodstuffObserver = new FoodstuffsAdapter.Observer() {
+    private FoodstuffsAdapter.Observer findFoodstuffObserver = new FoodstuffsAdapter.Observer<Foodstuff>() {
         @Override
         public void onItemClicked(Foodstuff foodstuff, int position) {
             Intent intent = new Intent();
@@ -94,7 +92,7 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
                                 .show();
                         return;
                     }
-                    Foodstuff newFoodstuff = card.parseFoodstuff();
+                    WeightedFoodstuff newFoodstuff = card.parseFoodstuff();
                     if (newFoodstuff.getProtein() + newFoodstuff.getFats() + newFoodstuff.getCarbs() > 100) {
                         Alerter.create(ListOfFoodstuffsActivity.this)
                                 .setTitle("Опаньки...")
@@ -106,8 +104,9 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
                         return;
                     }
                     //сохраняем новые значения в базу данных
-                    databaseWorker.editFoodstuff(ListOfFoodstuffsActivity.this, editedFoodstuffId, newFoodstuff);
-                    recyclerViewAdapter.replaceItem(newFoodstuff, editedFoodstuffPosition);
+                    databaseWorker.editFoodstuff(ListOfFoodstuffsActivity.this, editedFoodstuffId,
+                            newFoodstuff.withoutWeight());
+                    recyclerViewAdapter.replaceItem(newFoodstuff.withoutWeight(), editedFoodstuffPosition);
                     KeyboardHandler keyboardHandler = new KeyboardHandler(ListOfFoodstuffsActivity.this);
                     keyboardHandler.hideKeyBoard();
                     card.hide();
@@ -136,7 +135,7 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(layoutManager);
 
-        recyclerViewAdapter = new FoodstuffsAdapter(this, observer);
+        recyclerViewAdapter = FoodstuffsAdapter.forFoodstuffs(this, observer);
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(),
                 layoutManager.getOrientation());
         recyclerView.addItemDecoration(dividerItemDecoration);

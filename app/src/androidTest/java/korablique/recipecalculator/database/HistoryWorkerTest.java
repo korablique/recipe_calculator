@@ -107,7 +107,7 @@ public class HistoryWorkerTest {
         int foodstuffsNumber = HistoryWorker.BATCH_SIZE * 3 + HistoryWorker.BATCH_SIZE / 2; // 3.5 батча
         Foodstuff[] foodstuffs = new Foodstuff[foodstuffsNumber];
         for (int index = 0; index < foodstuffsNumber; index++) {
-            foodstuffs[index] = new Foodstuff("foodstuff" + index, -1, 5, 5, 5, 5);
+            foodstuffs[index] = Foodstuff.withName("foodstuff" + index).withNutrition(5, 5, 5, 5);
         }
         ArrayList<Long> foodstuffsIds = new ArrayList<>();
         databaseWorker.saveGroupOfFoodstuffs(
@@ -166,8 +166,8 @@ public class HistoryWorkerTest {
     @Test
     public void updatesFoodstuffIdInHistory() throws InterruptedException {
         // вставить в таблицу foodstuffs 2 фудстаффа
-        final Foodstuff foodstuff1 = new Foodstuff("продукт1", 1, 1, 1, 1, 1);
-        Foodstuff foodstuff2 = new Foodstuff("продукт2", 1, 1, 1, 1, 1);
+        final Foodstuff foodstuff1 = Foodstuff.withName("продукт1").withNutrition(1, 1, 1, 1);
+        Foodstuff foodstuff2 = Foodstuff.withName("продукт2").withNutrition(1, 1, 1, 1);
         final long[] foodstuff1Id = {-1};
         final long[] foodstuff2Id = {-1};
         databaseWorker.saveFoodstuff(context, foodstuff1, new DatabaseWorker.SaveFoodstuffCallback() {
@@ -225,7 +225,7 @@ public class HistoryWorkerTest {
         int foodstuffsNumber = 20;
         final Foodstuff[] foodstuffs = new Foodstuff[foodstuffsNumber];
         for (int index = 0; index < foodstuffsNumber; index++) {
-            foodstuffs[index] = new Foodstuff("foodstuff" + index, -1, 5, 5, 5, 5);
+            foodstuffs[index] = Foodstuff.withName("foodstuff" + index).withNutrition(5, 5, 5, 5);
         }
 
         // сохраняем продукты в список
@@ -274,7 +274,7 @@ public class HistoryWorkerTest {
             return foodstuffArrayList.get(0);
         }
 
-        Foodstuff foodstuff = new Foodstuff("apricot", -1, 10, 10, 10, 10);
+        Foodstuff foodstuff = Foodstuff.withName("apricot").withNutrition(10, 10, 10, 10);
         databaseWorker.saveFoodstuff(context, foodstuff);
         return getAnyFoodstuffFromDb();
     }

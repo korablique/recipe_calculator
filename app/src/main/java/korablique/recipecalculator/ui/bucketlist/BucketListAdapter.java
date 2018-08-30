@@ -14,7 +14,7 @@ import java.util.Collections;
 import java.util.List;
 
 import korablique.recipecalculator.R;
-import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.MyViewHolder;
 
 
@@ -23,9 +23,9 @@ public class BucketListAdapter extends RecyclerView.Adapter<MyViewHolder> {
         void onItemsCountChange(int count);
     }
     public interface OnItemClickedObserver {
-        void onItemClicked(Foodstuff foodstuff, int position);
+        void onItemClicked(WeightedFoodstuff foodstuff, int position);
     }
-    private List<Foodstuff> allFoodstuffs = new ArrayList<>();
+    private List<WeightedFoodstuff> allFoodstuffs = new ArrayList<>();
     @LayoutRes
     private int itemLayoutRes;
     private OnItemsCountChangeListener listener;
@@ -51,7 +51,7 @@ public class BucketListAdapter extends RecyclerView.Adapter<MyViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull final MyViewHolder holder, int displayedPosition) {
         ViewGroup item = holder.getItem();
-        final Foodstuff foodstuff = getItem(displayedPosition);
+        final WeightedFoodstuff foodstuff = getItem(displayedPosition);
 
         setTextViewText(item, R.id.name, foodstuff.getName());
         setTextViewText(item, R.id.extra_info_block, foodstuff.getWeight());
@@ -66,7 +66,7 @@ public class BucketListAdapter extends RecyclerView.Adapter<MyViewHolder> {
         return allFoodstuffs.size();
     }
 
-    public void addItems(List<Foodstuff> foodstuffs) {
+    public void addItems(List<WeightedFoodstuff> foodstuffs) {
         int allFoodstuffsSizeBefore = allFoodstuffs.size();
         allFoodstuffs.addAll(foodstuffs);
         for (int index = 0; index < foodstuffs.size(); index++) {
@@ -75,11 +75,11 @@ public class BucketListAdapter extends RecyclerView.Adapter<MyViewHolder> {
         listener.onItemsCountChange(getItemCount());
     }
 
-    public void addItem(Foodstuff foodstuff) {
+    public void addItem(WeightedFoodstuff foodstuff) {
         addItems(Collections.singletonList(foodstuff));
     }
 
-    public void addItem(Foodstuff foodstuff, int position) {
+    public void addItem(WeightedFoodstuff foodstuff, int position) {
         allFoodstuffs.add(position, foodstuff);
         notifyItemInserted(position);
         listener.onItemsCountChange(getItemCount());
@@ -91,16 +91,16 @@ public class BucketListAdapter extends RecyclerView.Adapter<MyViewHolder> {
         listener.onItemsCountChange(getItemCount());
     }
 
-    public void replaceItem(Foodstuff newFoodstuff, int displayedPosition) {
+    public void replaceItem(WeightedFoodstuff newFoodstuff, int displayedPosition) {
         allFoodstuffs.set(displayedPosition, newFoodstuff);
         notifyItemChanged(displayedPosition);
     }
 
-    public Foodstuff getItem(int displayedPosition) {
+    public WeightedFoodstuff getItem(int displayedPosition) {
         return allFoodstuffs.get(displayedPosition);
     }
 
-    public List<Foodstuff> getItems() {
+    public List<WeightedFoodstuff> getItems() {
         return Collections.unmodifiableList(allFoodstuffs);
     }
 

@@ -6,10 +6,10 @@ import korablique.recipecalculator.model.Foodstuff;
 
 public class HistoryEntry {
     private long historyId;
-    private Foodstuff foodstuff;
+    private WeightedFoodstuff foodstuff;
     private Date time;
 
-    public HistoryEntry(long historyId, Foodstuff foodstuff, Date time) {
+    public HistoryEntry(long historyId, WeightedFoodstuff foodstuff, Date time) {
         this.historyId = historyId;
         this.foodstuff = foodstuff;
         this.time = time;
@@ -19,7 +19,7 @@ public class HistoryEntry {
         return historyId;
     }
 
-    public Foodstuff getFoodstuff() {
+    public WeightedFoodstuff getFoodstuff() {
         return foodstuff;
     }
 

@@ -14,6 +14,7 @@ import korablique.recipecalculator.base.MainThreadExecutor;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.HistoryEntry;
 import korablique.recipecalculator.model.NewHistoryEntry;
+import korablique.recipecalculator.model.WeightedFoodstuff;
 
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_CALORIES;
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_CARBS;
@@ -133,7 +134,12 @@ public class HistoryWorker {
             double fats = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_FATS));
             double carbs = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CARBS));
             double calories = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CALORIES));
-            Foodstuff foodstuff = new Foodstuff(foodstuffId, name, weight, protein, fats, carbs, calories);
+
+            WeightedFoodstuff foodstuff = Foodstuff
+                    .withId(foodstuffId)
+                    .withName(name)
+                    .withNutrition(protein, fats, carbs, calories)
+                    .withWeight(weight);
 
             long time = cursor.getLong(cursor.getColumnIndex(COLUMN_NAME_DATE));
             long historyId = cursor.getLong(cursor.getColumnIndex(HistoryContract.ID));
