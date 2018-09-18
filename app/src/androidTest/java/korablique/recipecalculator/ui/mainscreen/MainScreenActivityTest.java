@@ -88,7 +88,7 @@ public class MainScreenActivityTest {
                     MainScreenActivity activity = (MainScreenActivity) injectionTarget;
                     ActivityCallbacks activityCallbacks = activity.getActivityCallbacks();
                     MainScreenActivityController controller = new MainScreenActivityController(
-                            activity, databaseWorker, historyWorker, activityCallbacks);
+                            activity, databaseWorker, historyWorker, activityCallbacks, activity.getLifecycle());
                     return Collections.singletonList(controller);
                 })
                 .build();

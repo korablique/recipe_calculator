@@ -1,5 +1,6 @@
 package korablique.recipecalculator.ui.mainscreen;
 
+import android.arch.lifecycle.Lifecycle;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -44,6 +45,7 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
     private final FragmentActivity context;
     private final DatabaseWorker databaseWorker;
     private final HistoryWorker historyWorker;
+    private final Lifecycle lifecycle;
     private AdapterParent adapterParent;
     private FoodstuffsAdapterChild topAdapterChild;
     private FoodstuffsAdapterChild foodstuffAdapterChild;
@@ -56,7 +58,8 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
     private FloatingSearchView searchView;
     private NewCard.OnAddFoodstuffButtonClickListener cardDialogListener;
     private NewCard.OnEditButtonClickListener cardDialogOnEditButtonClickListener;
-    // Этот флаг нужен, чтобы приложение не крешило при показе диалога, когда тот показывается в момент,
+    // Действие, которое нужно выполнить с диалогом после savedInstanceState (показ или скрытие диалога)
+    // Поле нужно, чтобы приложение не крешило при показе диалога, когда тот показывается в момент,
     // когда активити в фоне (запаузена).
     // fragment manager не позваляет выполнять никакие операции с фрагментами, пока активити запаузена -
     // ведь fragment manager уже сохранил состояние всех фрагментов,
@@ -67,18 +70,18 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
     // (Тут иерархичное подчинение - ОС требует от Активити сохранение стейта,
     // Активти требует от всех своих компонентов, в т.ч. от fm,
     // а fm требует сохранение стейта от всех своих компонентов, и т.д.)
-    private boolean isUiHidden;
-    // Действие, которое нужно выполнить с диалогом после savedInstanceState (показ или скрытие диалога)
     private Runnable dialogAction;
 
     public MainScreenActivityController(
             MainScreenActivity context,
             DatabaseWorker databaseWorker,
             HistoryWorker historyWorker,
-            ActivityCallbacks activityCallbacks) {
+            ActivityCallbacks activityCallbacks,
+            Lifecycle lifecycle) {
         this.context = context;
         this.databaseWorker = databaseWorker;
         this.historyWorker = historyWorker;
+        this.lifecycle = lifecycle;
         activityCallbacks.addObserver(this);
     }
 
@@ -232,15 +235,9 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
 
     @Override
     public void onActivityResume() {
-        isUiHidden = false;
         if (dialogAction != null) {
             dialogAction.run();
         }
-    }
-
-    @Override
-    public void onActivityPause() {
-        isUiHidden = true;
     }
 
     @Override
@@ -277,7 +274,7 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
             cardDialog.setOnEditButtonClickListener(cardDialogOnEditButtonClickListener);
             dialogAction = null;
         };
-        if (!isUiHidden) {
+        if (lifecycle.getCurrentState() == Lifecycle.State.RESUMED) {
             dialogAction.run();
         }
     }
@@ -287,7 +284,7 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
             CardDialog.hideCard(context);
             dialogAction = null;
         };
-        if (!isUiHidden) {
+        if (lifecycle.getCurrentState() == Lifecycle.State.RESUMED) {
             dialogAction.run();
         }
     }
