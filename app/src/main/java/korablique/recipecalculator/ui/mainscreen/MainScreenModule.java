@@ -19,20 +19,18 @@ public class MainScreenModule {
 
     @ActivityScope
     @Provides
-    MainScreenModel provideModel(DatabaseWorker databaseWorker, HistoryWorker historyWorker) {
-        return new MainScreenModelImpl(databaseWorker, historyWorker);
+    Lifecycle provideLifecycle(MainScreenActivity activity) {
+        return activity.getLifecycle();
     }
 
     @ActivityScope
     @Provides
-    MainScreenPresenter providePresenter(
-            MainScreenView view, MainScreenModel model, MainScreenActivity activity, ActivityCallbacks callbacks) {
-        return new MainScreenPresenterImpl(view, model, activity, callbacks);
-    }
-
-    @ActivityScope
-    @Provides
-    MainScreenView provideView(MainScreenActivity activity, ActivityCallbacks callbacks) {
-        return new MainScreenViewImpl(activity, callbacks);
+    MainScreenActivityController provideController(
+            MainScreenActivity activity,
+            DatabaseWorker databaseWorker,
+            HistoryWorker historyWorker,
+            ActivityCallbacks callbacks,
+            Lifecycle lifecycle) {
+        return new MainScreenActivityController(activity, databaseWorker, historyWorker, callbacks, lifecycle);
     }
 }

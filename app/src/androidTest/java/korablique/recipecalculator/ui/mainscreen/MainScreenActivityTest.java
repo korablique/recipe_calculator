@@ -44,6 +44,7 @@ import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.action.ViewActions.replaceText;
 import static android.support.test.espresso.action.ViewActions.typeText;
+import static android.support.test.espresso.action.ViewActions.replaceText;
 import static android.support.test.espresso.assertion.PositionAssertions.isCompletelyAbove;
 import static android.support.test.espresso.assertion.PositionAssertions.isCompletelyBelow;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
@@ -85,11 +86,10 @@ public class MainScreenActivityTest {
                         return Collections.emptyList();
                     }
                     MainScreenActivity activity = (MainScreenActivity) injectionTarget;
-                    MainScreenModel model = new MainScreenModelImpl(databaseWorker, historyWorker);
                     ActivityCallbacks activityCallbacks = activity.getActivityCallbacks();
-                    MainScreenView view = new MainScreenViewImpl(activity, activityCallbacks);
-                    MainScreenPresenter presenter = new MainScreenPresenterImpl(view, model, activity, activityCallbacks);
-                    return Collections.singletonList(presenter);
+                    MainScreenActivityController controller = new MainScreenActivityController(
+                            activity, databaseWorker, historyWorker, activityCallbacks, activity.getLifecycle());
+                    return Collections.singletonList(controller);
                 })
                 .build();
 
