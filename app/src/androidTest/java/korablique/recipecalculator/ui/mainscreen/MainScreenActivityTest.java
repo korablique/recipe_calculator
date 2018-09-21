@@ -1,6 +1,7 @@
 package korablique.recipecalculator.ui.mainscreen;
 
 import android.app.Activity;
+import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
@@ -9,6 +10,8 @@ import android.support.test.filters.LargeTest;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 import android.view.View;
+
+import junit.framework.Assert;
 
 import org.hamcrest.Matcher;
 import org.junit.After;
@@ -33,6 +36,7 @@ import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.PopularProductsUtils;
 import korablique.recipecalculator.model.WeightedFoodstuff;
+import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
 import korablique.recipecalculator.util.DbUtil;
@@ -42,8 +46,6 @@ import korablique.recipecalculator.util.SyncMainThreadExecutor;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
-import static android.support.test.espresso.action.ViewActions.replaceText;
-import static android.support.test.espresso.action.ViewActions.typeText;
 import static android.support.test.espresso.action.ViewActions.replaceText;
 import static android.support.test.espresso.assertion.PositionAssertions.isCompletelyAbove;
 import static android.support.test.espresso.assertion.PositionAssertions.isCompletelyBelow;
@@ -61,6 +63,7 @@ import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.
 import static korablique.recipecalculator.database.HistoryContract.HISTORY_TABLE_NAME;
 import static korablique.recipecalculator.util.EspressoUtils.matches;
 import static org.hamcrest.CoreMatchers.allOf;
+import static org.hamcrest.Matchers.not;
 
 @RunWith(AndroidJUnit4.class)
 @LargeTest
@@ -69,6 +72,8 @@ public class MainScreenActivityTest {
     private DatabaseWorker databaseWorker;
     private HistoryWorker historyWorker;
     private Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+    private Foodstuff[] foodstuffs;
+    private BucketList bucketList = BucketList.getInstance();
 
     @Rule
     public ActivityTestRule<MainScreenActivity> mActivityRule =
@@ -99,7 +104,9 @@ public class MainScreenActivityTest {
         FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
         dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
 
-        Foodstuff[] foodstuffs = new Foodstuff[7];
+        bucketList.clear();
+
+        foodstuffs = new Foodstuff[7];
         foodstuffs[0] = Foodstuff.withName("apple").withNutrition(1, 1, 1, 1);
         foodstuffs[1] = Foodstuff.withName("pineapple").withNutrition(1, 1, 1, 1);
         foodstuffs[2] = Foodstuff.withName("plum").withNutrition(1, 1, 1, 1);
@@ -107,6 +114,7 @@ public class MainScreenActivityTest {
         foodstuffs[4] = Foodstuff.withName("soup").withNutrition(1, 1, 1, 1);
         foodstuffs[5] = Foodstuff.withName("bread").withNutrition(1, 1, 1, 1);
         foodstuffs[6] = Foodstuff.withName("banana").withNutrition(1, 1, 1, 1);
+
         List<Long> foodstuffsIds = new ArrayList<>();
         databaseWorker.saveGroupOfFoodstuffs(context, foodstuffs, (ids) -> {
             foodstuffsIds.addAll(ids);
@@ -262,6 +270,32 @@ public class MainScreenActivityTest {
                 withText(edited.getName()),
                 matches(isCompletelyBelow(withText(R.string.all_foodstuffs_header))));
         onView(allFoodstuffsMatcher).check(matches(isDisplayed()));
+    }
+
+    @Test
+    public void snackbarUpdatesAfterChangingBucketList() {
+        // добавляем в bucket list продукты, запускаем активити, в снекбаре должно быть 3 фудстаффа
+        WeightedFoodstuff wf0 = foodstuffs[0].withWeight(100);
+        WeightedFoodstuff wf1 = foodstuffs[1].withWeight(100);
+        WeightedFoodstuff wf2 = foodstuffs[2].withWeight(100);
+        bucketList.add(wf0);
+        bucketList.add(wf1);
+        bucketList.add(wf2);
+        mActivityRule.launchActivity(null);
+        onView(withId(R.id.selected_foodstuffs_counter)).check(matches(withText("3")));
+
+        // убираем один продукт, перезапускаем активити, в снекбаре должно быть 2 фудстаффа
+        bucketList.remove(foodstuffs[0].withWeight(100));
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
+        onView(withId(R.id.selected_foodstuffs_counter)).check(matches(withText("2")));
+        Assert.assertTrue(bucketList.getList().contains(wf1));
+        Assert.assertTrue(bucketList.getList().contains(wf2));
+
+        // убираем все продукты, перезапускаем активити, снекбара быть не должно
+        bucketList.clear();
+        instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
+        onView(withId(R.id.selected_foodstuffs_counter)).check(matches(not(isDisplayed())));
     }
 
     private List<Foodstuff> extractFoodstuffsTopFromDB() {

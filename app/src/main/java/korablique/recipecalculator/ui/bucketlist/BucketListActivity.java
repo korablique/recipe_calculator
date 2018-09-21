@@ -42,6 +42,7 @@ public class BucketListActivity extends BaseActivity {
     private EditText totalWeightEditText;
     private Button saveToHistoryButton;
     private Button saveAsSingleFoodstuffButton;
+    private BucketList bucketList;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -97,6 +98,8 @@ public class BucketListActivity extends BaseActivity {
         RecyclerView foodstuffsListRecyclerView = findViewById(R.id.foodstuffs_list);
         foodstuffsListRecyclerView.setAdapter(adapter);
 
+        bucketList = BucketList.getInstance();
+
         OnSwipeItemCallback onSwipeItemCallback = new OnSwipeItemCallback(
                 0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
@@ -104,6 +107,7 @@ public class BucketListActivity extends BaseActivity {
                 int position = viewHolder.getAdapterPosition();
                 WeightedFoodstuff deleting = adapter.getItem(position);
                 adapter.deleteItem(position);
+                bucketList.remove(deleting);
                 double newWeight = countTotalWeight(adapter.getItems());
                 totalWeightEditText.setText(String.valueOf(newWeight));
                 updateNutritionWrappers(adapter.getItems(), newWeight);
@@ -146,11 +150,13 @@ public class BucketListActivity extends BaseActivity {
         }
 
         saveAsSingleFoodstuffButton.setOnClickListener((view) -> {
+            bucketList.clear();
             SaveDishDialog dialog = SaveDishDialog.showDialog(BucketListActivity.this, foodstuffs, totalWeight);
             dialog.setOnSaveDishButtonClickListener(saveDishButtonClickListener);
         });
 
         saveToHistoryButton.setOnClickListener((view) -> {
+            bucketList.clear();
             HistoryActivity.startAndAdd(adapter.getItems(), BucketListActivity.this);
             finish();
         });

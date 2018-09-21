@@ -44,6 +44,7 @@ public class SelectedFoodstuffsSnackbar {
         float startValue = snackbarLayout.getTranslationY();
         float endValue = getParentHeight();
         animateSnackbar(startValue, endValue);
+        isShown = false;
     }
 
     private void animateSnackbar(float startValue, float endValue) {
@@ -56,8 +57,22 @@ public class SelectedFoodstuffsSnackbar {
         animator.start();
     }
 
+    public void update(List<WeightedFoodstuff> newSelectedFoodstuffs) {
+        selectedFoodstuffs.clear();
+        if (newSelectedFoodstuffs.isEmpty()) {
+            hide();
+        } else {
+            addFoodstuffs(newSelectedFoodstuffs);
+        }
+    }
+
     public void addFoodstuff(WeightedFoodstuff foodstuff) {
         selectedFoodstuffs.add(foodstuff);
+        updateSelectedFoodstuffsCounter();
+    }
+
+    public void addFoodstuffs(List<WeightedFoodstuff> foodstuffs) {
+        selectedFoodstuffs.addAll(foodstuffs);
         updateSelectedFoodstuffsCounter();
     }
 
