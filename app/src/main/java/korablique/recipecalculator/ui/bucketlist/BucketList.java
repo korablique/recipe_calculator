@@ -1,6 +1,7 @@
 package korablique.recipecalculator.ui.bucketlist;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import korablique.recipecalculator.model.WeightedFoodstuff;
@@ -19,7 +20,7 @@ public class BucketList {
     }
 
     public List<WeightedFoodstuff> getList() {
-        return bucketList;
+        return Collections.unmodifiableList(bucketList);
     }
 
     public void add(WeightedFoodstuff wf) {

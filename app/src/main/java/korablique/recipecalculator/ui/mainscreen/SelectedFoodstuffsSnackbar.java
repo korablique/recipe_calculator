@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import korablique.recipecalculator.R;
@@ -67,8 +68,7 @@ public class SelectedFoodstuffsSnackbar {
     }
 
     public void addFoodstuff(WeightedFoodstuff foodstuff) {
-        selectedFoodstuffs.add(foodstuff);
-        updateSelectedFoodstuffsCounter();
+        addFoodstuffs(Collections.singletonList(foodstuff));
     }
 
     public void addFoodstuffs(List<WeightedFoodstuff> foodstuffs) {
