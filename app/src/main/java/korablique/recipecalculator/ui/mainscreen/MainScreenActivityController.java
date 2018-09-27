@@ -23,6 +23,7 @@ import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.PopularProductsUtils;
+import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.card.NewCard;
@@ -108,6 +109,8 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
 
         cardDialogListener = foodstuff -> {
             hideCard();
+            BucketList bucketList = BucketList.getInstance();
+            bucketList.add(foodstuff);
             snackbar.addFoodstuff(foodstuff);
             snackbar.show();
         };
@@ -238,6 +241,9 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
         if (dialogAction != null) {
             dialogAction.run();
         }
+
+        BucketList bucketList = BucketList.getInstance();
+        snackbar.update(bucketList.getList());
     }
 
     @Override
