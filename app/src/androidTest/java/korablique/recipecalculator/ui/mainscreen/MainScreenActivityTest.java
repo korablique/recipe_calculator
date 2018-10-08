@@ -104,7 +104,10 @@ public class MainScreenActivityTest {
         FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
         dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
 
-        bucketList.clear();
+        SyncMainThreadExecutor executor = new SyncMainThreadExecutor();
+        executor.execute(() -> {
+            bucketList.clear();
+        });
 
         foodstuffs = new Foodstuff[7];
         foodstuffs[0] = Foodstuff.withName("apple").withNutrition(1, 1, 1, 1);
@@ -278,14 +281,22 @@ public class MainScreenActivityTest {
         WeightedFoodstuff wf0 = foodstuffs[0].withWeight(100);
         WeightedFoodstuff wf1 = foodstuffs[1].withWeight(100);
         WeightedFoodstuff wf2 = foodstuffs[2].withWeight(100);
-        bucketList.add(wf0);
-        bucketList.add(wf1);
-        bucketList.add(wf2);
+
+        SyncMainThreadExecutor executor = new SyncMainThreadExecutor();
+        executor.execute(() -> {
+            bucketList.add(wf0);
+            bucketList.add(wf1);
+            bucketList.add(wf2);
+        });
+
         mActivityRule.launchActivity(null);
         onView(withId(R.id.selected_foodstuffs_counter)).check(matches(withText("3")));
 
         // убираем один продукт, перезапускаем активити, в снекбаре должно быть 2 фудстаффа
-        bucketList.remove(foodstuffs[0].withWeight(100));
+        executor.execute(() -> {
+            bucketList.remove(foodstuffs[0].withWeight(100));
+        });
+
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
         instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
         onView(withId(R.id.selected_foodstuffs_counter)).check(matches(withText("2")));
@@ -293,7 +304,9 @@ public class MainScreenActivityTest {
         Assert.assertTrue(bucketList.getList().contains(wf2));
 
         // убираем все продукты, перезапускаем активити, снекбара быть не должно
-        bucketList.clear();
+        executor.execute(() -> {
+            bucketList.clear();
+        });
         instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
         onView(withId(R.id.selected_foodstuffs_counter)).check(matches(not(isDisplayed())));
     }

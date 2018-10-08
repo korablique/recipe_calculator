@@ -5,7 +5,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.BottomNavigationView;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -28,7 +30,6 @@ import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.card.NewCard;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
-import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
 import korablique.recipecalculator.ui.history.HistoryActivity;
 import korablique.recipecalculator.ui.nestingadapters.AdapterParent;
 import korablique.recipecalculator.ui.nestingadapters.FoodstuffsAdapterChild;
@@ -39,6 +40,8 @@ import static korablique.recipecalculator.IntentConstants.EDIT_FOODSTUFF_REQUEST
 import static korablique.recipecalculator.IntentConstants.EDIT_RESULT;
 import static korablique.recipecalculator.IntentConstants.FIND_FOODSTUFF_REQUEST;
 import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
+import static korablique.recipecalculator.ui.mainscreen.SearchResultsFragment.REQUEST;
+import static korablique.recipecalculator.ui.mainscreen.SearchResultsFragment.SEARCH_RESULTS;
 
 public class MainScreenActivityController extends ActivityCallbacks.Observer {
     private static final int SEARCH_SUGGESTIONS_NUMBER = 3;
@@ -90,6 +93,12 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
     public void onActivityCreate(Bundle savedInstanceState) {
         initActivity();
 
+        BucketList bucketList = BucketList.getInstance();
+        bucketList.addObserver(foodstuff -> {
+            snackbar.addFoodstuff(foodstuff);
+            snackbar.show();
+        });
+
         snackbar.setOnBasketClickRunnable(() -> {
             BucketListActivity.start(new ArrayList<>(snackbar.getSelectedFoodstuffs()), context);
         });
@@ -109,9 +118,7 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
 
         cardDialogListener = foodstuff -> {
             hideCard();
-            BucketList bucketList = BucketList.getInstance();
             bucketList.add(foodstuff);
-            snackbar.addFoodstuff(foodstuff);
             snackbar.show();
         };
         cardDialogOnEditButtonClickListener = foodstuff -> {
@@ -147,13 +154,13 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
             // когда пользователь нажал на клавиатуре enter
             @Override
             public void onSearchAction(String currentQuery) {
-                ListOfFoodstuffsActivity.performSearch(context, currentQuery.trim());
+                performSearch();
             }
         });
 
         // когда пользователь нажал кнопку лупы в searchView
         searchView.setOnMenuItemClickListener(item -> {
-            ListOfFoodstuffsActivity.performSearch(context, searchView.getQuery().trim());
+            performSearch();
         });
 
         requestTopFoodstuffs(context, TOP_LIMIT, (foodstuffs) -> {
@@ -293,5 +300,25 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
         if (lifecycle.getCurrentState() == Lifecycle.State.RESUMED) {
             dialogAction.run();
         }
+    }
+
+    private void performSearch() {
+        String wanted = searchView.getQuery().toLowerCase().trim();
+        List<Foodstuff> searchResults = new ArrayList<>();
+        for (Foodstuff f : all) {
+            if (f.getName().toLowerCase().contains(wanted)) {
+                searchResults.add(f);
+            }
+        }
+
+        Fragment searchResultsFragment = new SearchResultsFragment();
+        Bundle args = new Bundle();
+        args.putString(REQUEST, wanted);
+        args.putParcelableArrayList(SEARCH_RESULTS, new ArrayList<>(searchResults));
+        searchResultsFragment.setArguments(args);
+        FragmentTransaction transaction = context.getSupportFragmentManager().beginTransaction();
+        transaction.add(R.id.fragment_container, searchResultsFragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
     }
 }
