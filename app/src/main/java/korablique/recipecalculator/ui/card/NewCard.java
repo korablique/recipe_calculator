@@ -19,6 +19,7 @@ import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.NutritionProgressWrapper;
 import korablique.recipecalculator.ui.NutritionValuesWrapper;
+import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
 
 public class NewCard {
     public interface OnAddFoodstuffButtonClickListener {
@@ -57,7 +58,8 @@ public class NewCard {
 
         nameTextView = cardLayout.findViewById(R.id.foodstuff_name_text_view);
         ViewGroup nutritionLayout = cardLayout.findViewById(R.id.nutrition_progress_with_values);
-        nutritionProgressWrapper = new NutritionProgressWrapper(context, nutritionLayout);
+        PluralProgressBar progressBar = nutritionLayout.findViewById(R.id.new_nutrition_progress_bar);
+        nutritionProgressWrapper = new NutritionProgressWrapper(progressBar);
         nutritionValuesWrapper = new NutritionValuesWrapper(context, nutritionLayout);
     }
 

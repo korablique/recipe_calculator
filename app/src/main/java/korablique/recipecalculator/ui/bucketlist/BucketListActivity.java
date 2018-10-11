@@ -31,6 +31,7 @@ import korablique.recipecalculator.ui.NutritionProgressWrapper;
 import korablique.recipecalculator.ui.NutritionValuesWrapper;
 import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.history.HistoryActivity;
+import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
 
 public class BucketListActivity extends BaseActivity {
     public static final String EXTRA_FOODSTUFFS_LIST = "EXTRA_FOODSTUFFS_LIST";
@@ -50,7 +51,8 @@ public class BucketListActivity extends BaseActivity {
         setContentView(R.layout.activity_bucket_list);
 
         ViewGroup nutritionLayout = findViewById(R.id.nutrition_progress_with_values);
-        nutritionProgressWrapper = new NutritionProgressWrapper(this, nutritionLayout);
+        PluralProgressBar progressBar = findViewById(R.id.new_nutrition_progress_bar);
+        nutritionProgressWrapper = new NutritionProgressWrapper(progressBar);
         nutritionValuesWrapper = new NutritionValuesWrapper(this, nutritionLayout);
 
         List<WeightedFoodstuff> foodstuffs =

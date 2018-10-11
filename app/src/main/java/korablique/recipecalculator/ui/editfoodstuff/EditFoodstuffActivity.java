@@ -54,7 +54,7 @@ public class EditFoodstuffActivity extends BaseActivity {
         caloriesEditText = findViewById(R.id.calories_value);
         saveButton = findViewById(R.id.save_button);
 
-        nutritionProgressWrapper = new NutritionProgressWrapper(this, findViewById(R.id.nutrition_progress_bar));
+        nutritionProgressWrapper = new NutritionProgressWrapper(findViewById(R.id.new_nutrition_progress_bar));
         nutritionProgressWrapper.setNutrition(Nutrition.zero());
         updateSaveButtonEnability();
         TextWatcher nutritionChangeWatcher = new TextWatcherAdapter() {
@@ -63,6 +63,16 @@ public class EditFoodstuffActivity extends BaseActivity {
                 double protein = parseNutrient(proteinEditText);
                 double fats = parseNutrient(fatsEditText);
                 double carbs = parseNutrient(carbsEditText);
+                // Sum of nutrition bigger that 100 is not allowed
+                if (protein > 100) {
+                    protein = 100;
+                }
+                if (protein + fats > 100) {
+                    fats = 100 - protein;
+                }
+                if (protein + fats + carbs > 100) {
+                    carbs = 100 - protein - fats;
+                }
                 nutritionProgressWrapper.setNutrition(protein, fats, carbs);
             }
         };

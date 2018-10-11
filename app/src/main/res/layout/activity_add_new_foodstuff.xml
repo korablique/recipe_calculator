@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:custom="http://schemas.android.com/apk/res-auto"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -210,22 +212,26 @@
             android:layout_height="wrap_content"
             style="@style/RobotoMonoHintText"
             android:text="@string/nutrition_per_100_g"
-            app:layout_constraintBottom_toTopOf="@id/nutrition_progress_bar"
+            app:layout_constraintBottom_toTopOf="@id/new_nutrition_progress_bar"
             android:layout_marginBottom="10dp"
             android:layout_marginLeft="9dp"
             android:layout_marginRight="9dp"/>
 
-        <include
-            android:id="@+id/nutrition_progress_bar"
-            layout="@layout/nutrition_progress"
+        <korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar
+            android:id="@+id/new_nutrition_progress_bar"
             android:layout_width="match_parent"
             android:layout_height="30dp"
             android:layout_marginBottom="20dp"
             android:layout_marginLeft="9dp"
             android:layout_marginRight="9dp"
+            custom:color0="#FFFF8E77"
+            custom:color1="#FFFFE982"
+            custom:color2="#FF5768E9"
+            custom:corners_radii="10dp"
+            custom:background_bar_color="#EFF1F6"
             app:layout_constraintBottom_toTopOf="@+id/save_button"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintStart_toStartOf="parent"/>
 
         <Button
             android:id="@+id/save_button"
