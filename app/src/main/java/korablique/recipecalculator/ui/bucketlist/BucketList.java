@@ -11,7 +11,7 @@ import korablique.recipecalculator.model.WeightedFoodstuff;
 
 public class BucketList {
     public interface Observer {
-        void onAddButtonClicked(WeightedFoodstuff foodstuff);
+        void onFoodstuffAdded(WeightedFoodstuff wf);
     }
     private static BucketList instance;
     private List<WeightedFoodstuff> bucketList = new ArrayList<>();
@@ -34,7 +34,7 @@ public class BucketList {
         checkCurrentThread();
         bucketList.add(wf);
         for (Observer observer : observers) {
-            observer.onAddButtonClicked(wf);
+            observer.onFoodstuffAdded(wf);
         }
     }
 
@@ -49,6 +49,7 @@ public class BucketList {
     }
 
     public void addObserver(Observer o) {
+        checkCurrentThread();
         observers.add(o);
     }
 

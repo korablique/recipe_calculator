@@ -25,6 +25,7 @@ import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.PopularProductsUtils;
+import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.card.CardDialog;
@@ -94,8 +95,8 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
         initActivity();
 
         BucketList bucketList = BucketList.getInstance();
-        bucketList.addObserver(foodstuff -> {
-            snackbar.addFoodstuff(foodstuff);
+        bucketList.addObserver(weightedFoodstuff -> {
+            snackbar.addFoodstuff(weightedFoodstuff);
             snackbar.show();
         });
 
@@ -131,37 +132,7 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
             cardDialog.setOnEditButtonClickListener(cardDialogOnEditButtonClickListener);
         }
 
-        searchView.setOnQueryChangeListener((oldQuery, newQuery) -> {
-            //get suggestions based on newQuery
-            databaseWorker.requestFoodstuffsLike(context, newQuery, SEARCH_SUGGESTIONS_NUMBER, foodstuffs -> {
-                //pass them on to the search view
-                List<FoodstuffSearchSuggestion> newSuggestions = new ArrayList<>();
-                for (Foodstuff foodstuff : foodstuffs) {
-                    FoodstuffSearchSuggestion suggestion = new FoodstuffSearchSuggestion(foodstuff);
-                    newSuggestions.add(suggestion);
-                }
-                searchView.swapSuggestions(newSuggestions);
-            });
-        });
 
-        searchView.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
-            @Override
-            public void onSuggestionClicked(SearchSuggestion searchSuggestion) {
-                FoodstuffSearchSuggestion suggestion = (FoodstuffSearchSuggestion) searchSuggestion;
-                showCard(suggestion.getFoodstuff());
-            }
-
-            // когда пользователь нажал на клавиатуре enter
-            @Override
-            public void onSearchAction(String currentQuery) {
-                performSearch();
-            }
-        });
-
-        // когда пользователь нажал кнопку лупы в searchView
-        searchView.setOnMenuItemClickListener(item -> {
-            performSearch();
-        });
 
         requestTopFoodstuffs(context, TOP_LIMIT, (foodstuffs) -> {
             top = new ArrayList<>();
@@ -176,6 +147,38 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
             }
             all.addAll(foodstuffs);
             attemptToAddElementsToAdapters();
+        }, () -> {
+            searchView.setOnQueryChangeListener((oldQuery, newQuery) -> {
+                //get suggestions based on newQuery
+                databaseWorker.requestFoodstuffsLike(context, newQuery, SEARCH_SUGGESTIONS_NUMBER, foodstuffs -> {
+                    //pass them on to the search view
+                    List<FoodstuffSearchSuggestion> newSuggestions = new ArrayList<>();
+                    for (Foodstuff foodstuff : foodstuffs) {
+                        FoodstuffSearchSuggestion suggestion = new FoodstuffSearchSuggestion(foodstuff);
+                        newSuggestions.add(suggestion);
+                    }
+                    searchView.swapSuggestions(newSuggestions);
+                });
+            });
+
+            searchView.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
+                @Override
+                public void onSuggestionClicked(SearchSuggestion searchSuggestion) {
+                    FoodstuffSearchSuggestion suggestion = (FoodstuffSearchSuggestion) searchSuggestion;
+                    showCard(suggestion.getFoodstuff());
+                }
+
+                // когда пользователь нажал на клавиатуре enter
+                @Override
+                public void onSearchAction(String currentQuery) {
+                    performSearch();
+                }
+            });
+
+            // когда пользователь нажал кнопку лупы в searchView
+            searchView.setOnMenuItemClickListener(item -> {
+                performSearch();
+            });
         });
     }
 
@@ -310,15 +313,6 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
                 searchResults.add(f);
             }
         }
-
-        Fragment searchResultsFragment = new SearchResultsFragment();
-        Bundle args = new Bundle();
-        args.putString(REQUEST, wanted);
-        args.putParcelableArrayList(SEARCH_RESULTS, new ArrayList<>(searchResults));
-        searchResultsFragment.setArguments(args);
-        FragmentTransaction transaction = context.getSupportFragmentManager().beginTransaction();
-        transaction.add(R.id.fragment_container, searchResultsFragment);
-        transaction.addToBackStack(null);
-        transaction.commit();
+        SearchResultsFragment.show(wanted, searchResults, context);
     }
 }

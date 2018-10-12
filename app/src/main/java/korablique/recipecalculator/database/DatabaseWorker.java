@@ -5,14 +5,14 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import korablique.recipecalculator.base.MainThreadExecutor;
 import korablique.recipecalculator.model.Foodstuff;
-import korablique.recipecalculator.model.UserParameters;
+import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
 
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_CALORIES;
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_CARBS;
@@ -23,14 +23,6 @@ import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAM
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_PROTEIN;
 import static korablique.recipecalculator.database.FoodstuffsContract.FOODSTUFFS_TABLE_NAME;
 import static korablique.recipecalculator.database.FoodstuffsContract.ID;
-import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_AGE;
-import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_COEFFICIENT;
-import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_FORMULA;
-import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_GENDER;
-import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_GOAL;
-import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_HEIGHT;
-import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_USER_WEIGHT;
-import static korablique.recipecalculator.database.UserParametersContract.USER_PARAMETERS_TABLE_NAME;
 
 public class DatabaseWorker {
     public static final int NO_LIMIT = -1;
@@ -39,6 +31,10 @@ public class DatabaseWorker {
 
     public interface FoodstuffsRequestCallback {
         void onResult(List<Foodstuff> foodstuffs);
+    }
+
+    public interface FinishCallback {
+        void onFinish();
     }
 
     public interface SaveFoodstuffCallback {
@@ -235,7 +231,8 @@ public class DatabaseWorker {
     public void requestListedFoodstuffsFromDb(
             final Context context,
             final int batchSize,
-            @NonNull final FoodstuffsRequestCallback callback) {
+            @NonNull final FoodstuffsRequestCallback foodstuffsRequestCallback,
+            @Nullable FinishCallback finishCallback) {
         databaseThreadExecutor.execute(() -> {
             FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
             SQLiteDatabase db = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
@@ -264,16 +261,26 @@ public class DatabaseWorker {
                 ++index;
                 if (index >= batchSize) {
                     ArrayList<Foodstuff> batchCopy = new ArrayList<>(batchOfFoodstuffs);
-                    mainThreadExecutor.execute(() -> callback.onResult(batchCopy));
+                    mainThreadExecutor.execute(() -> foodstuffsRequestCallback.onResult(batchCopy));
                     batchOfFoodstuffs.clear();
                     index = 0;
                 }
             }
             if (batchOfFoodstuffs.size() > 0) {
-                mainThreadExecutor.execute(() -> callback.onResult(batchOfFoodstuffs));
+                mainThreadExecutor.execute(() -> foodstuffsRequestCallback.onResult(batchOfFoodstuffs));
             }
             cursor.close();
+            if (finishCallback != null) {
+                finishCallback.onFinish();
+            }
         });
+    }
+
+    public void requestListedFoodstuffsFromDb(
+            final Context context,
+            final int batchSize,
+            @NonNull final FoodstuffsRequestCallback foodstuffsRequestCallback) {
+        requestListedFoodstuffsFromDb(context, batchSize, foodstuffsRequestCallback, null);
     }
 
     /**

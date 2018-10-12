@@ -79,12 +79,7 @@ public class DatabaseWorkerTest {
         databaseWorker.requestListedFoodstuffsFromDb(
                 context,
                 20,
-                new DatabaseWorker.FoodstuffsRequestCallback() {
-            @Override
-            public void onResult(List<Foodstuff> foodstuffs) {
-                listedFoodstuffsCount[0] = foodstuffs.size();
-            }
-        });
+                foodstuffs -> listedFoodstuffsCount[0] = foodstuffs.size());
 
         FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
         SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
@@ -159,12 +154,7 @@ public class DatabaseWorkerTest {
         databaseWorker.requestListedFoodstuffsFromDb(
                 context,
                 batchSize,
-                new DatabaseWorker.FoodstuffsRequestCallback() {
-                    @Override
-                    public void onResult(List<Foodstuff> foodstuffs) {
-                        ++counter[0];
-                    }
-                });
+                unused -> ++counter[0]);
         Assert.assertEquals(4, counter[0]);
     }
 
@@ -196,12 +186,7 @@ public class DatabaseWorkerTest {
         databaseWorker.requestListedFoodstuffsFromDb(
                 context,
                 batchSize,
-                new DatabaseWorker.FoodstuffsRequestCallback() {
-                    @Override
-                    public void onResult(List<Foodstuff> foodstuffs) {
-                        returnedFoodstuffs.addAll(foodstuffs);
-                    }
-                });
+                foodstuffs1 -> returnedFoodstuffs.addAll(foodstuffs1));
         Collections.sort(foodstuffsIds);
         Collections.sort(returnedFoodstuffs, new Comparator<Foodstuff>() {
             @Override
@@ -243,12 +228,7 @@ public class DatabaseWorkerTest {
         databaseWorker.requestListedFoodstuffsFromDb(
                 context,
                 batchSize,
-                new DatabaseWorker.FoodstuffsRequestCallback() {
-                    @Override
-                    public void onResult(List<Foodstuff> foodstuffs) {
-                        returnedFoodstuffs.addAll(foodstuffs);
-                    }
-                });
+                foodstuffs1 -> returnedFoodstuffs.addAll(foodstuffs1));
         Assert.assertEquals(apple, returnedFoodstuffs.get(2).getName());
     }
 
@@ -397,12 +377,7 @@ public class DatabaseWorkerTest {
         databaseWorker.requestListedFoodstuffsFromDb(
                 context,
                 20,
-                new DatabaseWorker.FoodstuffsRequestCallback() {
-            @Override
-            public void onResult(List<Foodstuff> foodstuffs) {
-                foodstuffArrayList.addAll(foodstuffs);
-            }
-        });
+                foodstuffs -> foodstuffArrayList.addAll(foodstuffs));
 
         if (foodstuffArrayList.size() != 0) {
             return foodstuffArrayList.get(0);

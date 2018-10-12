@@ -104,8 +104,7 @@ public class MainScreenActivityTest {
         FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
         dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
 
-        SyncMainThreadExecutor executor = new SyncMainThreadExecutor();
-        executor.execute(() -> {
+        mainThreadExecutor.execute(() -> {
             bucketList.clear();
         });
 
@@ -282,8 +281,7 @@ public class MainScreenActivityTest {
         WeightedFoodstuff wf1 = foodstuffs[1].withWeight(100);
         WeightedFoodstuff wf2 = foodstuffs[2].withWeight(100);
 
-        SyncMainThreadExecutor executor = new SyncMainThreadExecutor();
-        executor.execute(() -> {
+        mainThreadExecutor.execute(() -> {
             bucketList.add(wf0);
             bucketList.add(wf1);
             bucketList.add(wf2);
@@ -293,7 +291,7 @@ public class MainScreenActivityTest {
         onView(withId(R.id.selected_foodstuffs_counter)).check(matches(withText("3")));
 
         // убираем один продукт, перезапускаем активити, в снекбаре должно быть 2 фудстаффа
-        executor.execute(() -> {
+        mainThreadExecutor.execute(() -> {
             bucketList.remove(foodstuffs[0].withWeight(100));
         });
 
@@ -304,7 +302,7 @@ public class MainScreenActivityTest {
         Assert.assertTrue(bucketList.getList().contains(wf2));
 
         // убираем все продукты, перезапускаем активити, снекбара быть не должно
-        executor.execute(() -> {
+        mainThreadExecutor.execute(() -> {
             bucketList.clear();
         });
         instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
