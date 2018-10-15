@@ -56,6 +56,10 @@ class PluralProgressBar : View {
             bars.add(Bar(colors[index], cornersRadii, corners))
             // We need to change the paint mode of all (except for background) bars to SRC_IN so that
             // they will never be drawn outside of the background.
+            //
+            // This is needed for cases when some of the bars wouldn't be round (because they're not first or last),
+            // but are drawn above of the round background (because first or last bar is <1%).
+            //
             // See https://stackoverflow.com/questions/22690237/draw-intersection-of-paths-or-shapes-on-android-canvas
             bars.last().paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
         }
@@ -64,7 +68,12 @@ class PluralProgressBar : View {
     }
 
     private fun extractColors(styledAttrs: TypedArray): MutableList<Int> {
-        // Convenience array
+        // Convenience array - so that it would be convenient to iterate over all
+        // R.styleable.PluralProgressBar_colorX in a loop (instead of dozens of if..else).
+        //
+        // The purpose of the array is to store all R.styleable.PluralProgressBar_colorX values.
+        // styledAttrs in fact is a map, constants R.styleable.PluralProgressBar_colorX are its keys,
+        // used to retrieve colors values.
         val colorsKeys =
                 intArrayOf(R.styleable.PluralProgressBar_color0,
                         R.styleable.PluralProgressBar_color1,
@@ -148,10 +157,10 @@ class PluralProgressBar : View {
         bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
         bitmapCanvas = Canvas(bitmap)
 
-        val left = paddingLeft.toFloat()
-        val top = paddingTop.toFloat()
-        val right = width.toFloat() - paddingRight
-        val bottom = height.toFloat() - paddingBottom
+        val left = 0f
+        val top = 0f
+        val right = width.toFloat()
+        val bottom = height.toFloat()
         bounds.set(left, top, right, bottom)
         recalculateAllBounds()
     }

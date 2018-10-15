@@ -12,12 +12,12 @@ class Bar {
     val rect = RectF()
     val path = Path()
     val paint: Paint = Paint(Paint.ANTI_ALIAS_FLAG)
-    val corners: Int
+    val roundCornersMask: Int
 
     constructor(color: Int, radii: Float, roundCorners: Int) {
         cornersRadii = radii
         paint.color = color
-        corners = roundCorners
+        roundCornersMask = roundCorners
     }
 
     fun setBounds(bounds: RectF) {
@@ -29,13 +29,13 @@ class Bar {
         path.reset()
 
         val radiiArray = FloatArray(8)
-        if (corners and ROUND_CORNERS_LEFT != 0) {
+        if (roundCornersMask and ROUND_CORNERS_LEFT != 0) {
             radiiArray[0] = cornersRadii
             radiiArray[1] = cornersRadii
             radiiArray[6] = cornersRadii
             radiiArray[7] = cornersRadii
         }
-        if (corners and ROUND_CORNERS_RIGHT != 0) {
+        if (roundCornersMask and ROUND_CORNERS_RIGHT != 0) {
             radiiArray[2] = cornersRadii
             radiiArray[3] = cornersRadii
             radiiArray[4] = cornersRadii
