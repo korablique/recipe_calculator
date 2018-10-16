@@ -59,6 +59,8 @@
     <string name="undo">Отмена</string>
     <string name="deleted">Продукт удалён</string>
     <string name="change_foodstuff">Изменить продукт</string>
+    <string name="search_results">Результаты поиска \"%s\"</string>
+    <string name="add_new_foodstuff">Добавить новый продукт</string>
 
     <string-array name="goals_array">
         <item name="losing_weight">Похудение</item>

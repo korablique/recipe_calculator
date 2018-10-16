@@ -5,7 +5,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.BottomNavigationView;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -23,12 +25,12 @@ import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.PopularProductsUtils;
+import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.card.NewCard;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
-import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
 import korablique.recipecalculator.ui.history.HistoryActivity;
 import korablique.recipecalculator.ui.nestingadapters.AdapterParent;
 import korablique.recipecalculator.ui.nestingadapters.FoodstuffsAdapterChild;
@@ -39,6 +41,8 @@ import static korablique.recipecalculator.IntentConstants.EDIT_FOODSTUFF_REQUEST
 import static korablique.recipecalculator.IntentConstants.EDIT_RESULT;
 import static korablique.recipecalculator.IntentConstants.FIND_FOODSTUFF_REQUEST;
 import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
+import static korablique.recipecalculator.ui.mainscreen.SearchResultsFragment.REQUEST;
+import static korablique.recipecalculator.ui.mainscreen.SearchResultsFragment.SEARCH_RESULTS;
 
 public class MainScreenActivityController extends ActivityCallbacks.Observer {
     private static final int SEARCH_SUGGESTIONS_NUMBER = 3;
@@ -90,6 +94,12 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
     public void onActivityCreate(Bundle savedInstanceState) {
         initActivity();
 
+        BucketList bucketList = BucketList.getInstance();
+        bucketList.addObserver(weightedFoodstuff -> {
+            snackbar.addFoodstuff(weightedFoodstuff);
+            snackbar.show();
+        });
+
         snackbar.setOnBasketClickRunnable(() -> {
             BucketListActivity.start(new ArrayList<>(snackbar.getSelectedFoodstuffs()), context);
         });
@@ -109,9 +119,7 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
 
         cardDialogListener = foodstuff -> {
             hideCard();
-            BucketList bucketList = BucketList.getInstance();
             bucketList.add(foodstuff);
-            snackbar.addFoodstuff(foodstuff);
             snackbar.show();
         };
         cardDialogOnEditButtonClickListener = foodstuff -> {
@@ -124,37 +132,7 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
             cardDialog.setOnEditButtonClickListener(cardDialogOnEditButtonClickListener);
         }
 
-        searchView.setOnQueryChangeListener((oldQuery, newQuery) -> {
-            //get suggestions based on newQuery
-            databaseWorker.requestFoodstuffsLike(context, newQuery, SEARCH_SUGGESTIONS_NUMBER, foodstuffs -> {
-                //pass them on to the search view
-                List<FoodstuffSearchSuggestion> newSuggestions = new ArrayList<>();
-                for (Foodstuff foodstuff : foodstuffs) {
-                    FoodstuffSearchSuggestion suggestion = new FoodstuffSearchSuggestion(foodstuff);
-                    newSuggestions.add(suggestion);
-                }
-                searchView.swapSuggestions(newSuggestions);
-            });
-        });
 
-        searchView.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
-            @Override
-            public void onSuggestionClicked(SearchSuggestion searchSuggestion) {
-                FoodstuffSearchSuggestion suggestion = (FoodstuffSearchSuggestion) searchSuggestion;
-                showCard(suggestion.getFoodstuff());
-            }
-
-            // когда пользователь нажал на клавиатуре enter
-            @Override
-            public void onSearchAction(String currentQuery) {
-                ListOfFoodstuffsActivity.performSearch(context, currentQuery.trim());
-            }
-        });
-
-        // когда пользователь нажал кнопку лупы в searchView
-        searchView.setOnMenuItemClickListener(item -> {
-            ListOfFoodstuffsActivity.performSearch(context, searchView.getQuery().trim());
-        });
 
         requestTopFoodstuffs(context, TOP_LIMIT, (foodstuffs) -> {
             top = new ArrayList<>();
@@ -169,6 +147,38 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
             }
             all.addAll(foodstuffs);
             attemptToAddElementsToAdapters();
+        }, () -> {
+            searchView.setOnQueryChangeListener((oldQuery, newQuery) -> {
+                //get suggestions based on newQuery
+                databaseWorker.requestFoodstuffsLike(context, newQuery, SEARCH_SUGGESTIONS_NUMBER, foodstuffs -> {
+                    //pass them on to the search view
+                    List<FoodstuffSearchSuggestion> newSuggestions = new ArrayList<>();
+                    for (Foodstuff foodstuff : foodstuffs) {
+                        FoodstuffSearchSuggestion suggestion = new FoodstuffSearchSuggestion(foodstuff);
+                        newSuggestions.add(suggestion);
+                    }
+                    searchView.swapSuggestions(newSuggestions);
+                });
+            });
+
+            searchView.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
+                @Override
+                public void onSuggestionClicked(SearchSuggestion searchSuggestion) {
+                    FoodstuffSearchSuggestion suggestion = (FoodstuffSearchSuggestion) searchSuggestion;
+                    showCard(suggestion.getFoodstuff());
+                }
+
+                // когда пользователь нажал на клавиатуре enter
+                @Override
+                public void onSearchAction(String currentQuery) {
+                    performSearch();
+                }
+            });
+
+            // когда пользователь нажал кнопку лупы в searchView
+            searchView.setOnMenuItemClickListener(item -> {
+                performSearch();
+            });
         });
     }
 
@@ -293,5 +303,16 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
         if (lifecycle.getCurrentState() == Lifecycle.State.RESUMED) {
             dialogAction.run();
         }
+    }
+
+    private void performSearch() {
+        String wanted = searchView.getQuery().toLowerCase().trim();
+        List<Foodstuff> searchResults = new ArrayList<>();
+        for (Foodstuff f : all) {
+            if (f.getName().toLowerCase().contains(wanted)) {
+                searchResults.add(f);
+            }
+        }
+        SearchResultsFragment.show(wanted, searchResults, context);
     }
 }

@@ -145,12 +145,7 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
         databaseWorker.requestListedFoodstuffsFromDb(
                 this,
                 batchSize,
-                new DatabaseWorker.FoodstuffsRequestCallback() {
-            @Override
-            public void onResult(final List<Foodstuff> foodstuffs) {
-                recyclerViewAdapter.addItems(foodstuffs);
-            }
-        });
+                foodstuffs -> recyclerViewAdapter.addItems(foodstuffs));
     }
 
     @Override

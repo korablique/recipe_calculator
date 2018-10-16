@@ -13,6 +13,7 @@
         android:layout_height="match_parent">
 
         <View
+            android:id="@+id/search_view"
             android:layout_width="match_parent"
             android:layout_height="78dp"
             android:background="#FF5768E9" />
@@ -50,6 +51,12 @@
             android:layout_above="@id/navigation"
             android:visibility="invisible" />
 
+        <FrameLayout
+            android:id="@+id/fragment_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/search_view"
+            android:layout_above="@id/navigation"/>
     </RelativeLayout>
 
 </FrameLayout>
