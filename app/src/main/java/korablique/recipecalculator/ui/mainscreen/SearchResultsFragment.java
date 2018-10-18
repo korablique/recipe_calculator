@@ -1,6 +1,7 @@
 package korablique.recipecalculator.ui.mainscreen;
 
 
+import android.arch.lifecycle.Lifecycle;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -15,7 +16,11 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.dagger.InjectorHolder;
+import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.card.CardDialog;
@@ -24,6 +29,20 @@ public class SearchResultsFragment extends Fragment {
     public static final String SEARCH_RESULTS = "SEARCH_RESULTS";
     public static final String REQUEST = "REQUEST";
 
+    @Inject
+    DatabaseWorker databaseWorker;
+    @Inject
+    Lifecycle lifecycle;
+    @Inject
+    MainScreenActivity mainScreenActivity;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        InjectorHolder.getInjector().inject(this);
+    }
+
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container,
                              Bundle savedInstanceState) {

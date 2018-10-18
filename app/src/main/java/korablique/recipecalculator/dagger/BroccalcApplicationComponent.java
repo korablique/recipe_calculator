@@ -6,16 +6,13 @@ import javax.inject.Singleton;
 
 import dagger.BindsInstance;
 import dagger.Component;
-import dagger.android.AndroidInjectionModule;
 import dagger.android.AndroidInjector;
 import korablique.recipecalculator.BroccalcApplication;
-import korablique.recipecalculator.ui.mainscreen.MainScreenModule;
+import korablique.recipecalculator.ui.mainscreen.MainScreenActivityModule;
 
 @Singleton
 @Component(modules = {
-        AndroidInjectionModule.class,
-        BroccalcApplicationModule.class,
-        MainScreenModule.class })
+        BroccalcApplicationModule.class })
 public interface BroccalcApplicationComponent extends AndroidInjector<BroccalcApplication> {
     @Component.Builder
     interface Builder {

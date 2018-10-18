@@ -1,17 +1,23 @@
 package korablique.recipecalculator.ui.mainscreen;
 
-import android.content.Intent;
+import android.support.v4.app.Fragment;
 
 import javax.inject.Inject;
 
+import dagger.android.AndroidInjector;
+import dagger.android.DispatchingAndroidInjector;
+import dagger.android.support.HasSupportFragmentInjector;
 import korablique.recipecalculator.base.BaseActivity;
 
-public class MainScreenActivity extends BaseActivity {
+public class MainScreenActivity extends BaseActivity implements HasSupportFragmentInjector {
     @Inject
     MainScreenActivityController controller;
 
+    @Inject
+    DispatchingAndroidInjector<Fragment> fragmentInjector;
+
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    public AndroidInjector<Fragment> supportFragmentInjector() {
+        return fragmentInjector;
     }
 }

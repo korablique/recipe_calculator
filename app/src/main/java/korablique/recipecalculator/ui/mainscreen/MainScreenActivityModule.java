@@ -4,28 +4,30 @@ import android.arch.lifecycle.Lifecycle;
 
 import dagger.Module;
 import dagger.Provides;
+import dagger.android.ContributesAndroidInjector;
 import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.dagger.ActivityScope;
+import korablique.recipecalculator.dagger.FragmentScope;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.HistoryWorker;
 
 @Module
-public class MainScreenModule {
+public abstract class MainScreenActivityModule {
     @ActivityScope
     @Provides
-    ActivityCallbacks provideCallbacks(MainScreenActivity activity) {
+    static ActivityCallbacks provideCallbacks(MainScreenActivity activity) {
         return activity.getActivityCallbacks();
     }
 
     @ActivityScope
     @Provides
-    Lifecycle provideLifecycle(MainScreenActivity activity) {
+    static Lifecycle provideLifecycle(MainScreenActivity activity) {
         return activity.getLifecycle();
     }
 
     @ActivityScope
     @Provides
-    MainScreenActivityController provideController(
+    static MainScreenActivityController provideController(
             MainScreenActivity activity,
             DatabaseWorker databaseWorker,
             HistoryWorker historyWorker,
@@ -33,4 +35,8 @@ public class MainScreenModule {
             Lifecycle lifecycle) {
         return new MainScreenActivityController(activity, databaseWorker, historyWorker, callbacks, lifecycle);
     }
+
+    @FragmentScope
+    @ContributesAndroidInjector
+    abstract SearchResultsFragment searchResultsFragmentInjector();
 }

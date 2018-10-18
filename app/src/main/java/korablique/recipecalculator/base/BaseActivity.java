@@ -19,8 +19,8 @@ import korablique.recipecalculator.BuildConfig;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.dagger.InjectorHolder;
 import korablique.recipecalculator.ui.calculator.CalculatorActivity;
-import korablique.recipecalculator.ui.history.HistoryActivity;
 import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
+import korablique.recipecalculator.ui.history.HistoryActivity;
 import korablique.recipecalculator.ui.mainscreen.MainScreenActivity;
 
 public abstract class BaseActivity extends AppCompatActivity {
