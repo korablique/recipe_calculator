@@ -67,6 +67,12 @@ public class SearchResultsFragment extends Fragment {
         List<Foodstuff> searchResults = getArguments().getParcelableArrayList(SEARCH_RESULTS);
         adapter.addItems(searchResults);
 
+        if (adapter.getItemCount() == 0) {
+            fragmentView.findViewById(R.id.nothing_found_view).setVisibility(View.VISIBLE);
+        } else {
+            fragmentView.findViewById(R.id.nothing_found_view).setVisibility(View.GONE);
+        }
+
         return fragmentView;
     }
 

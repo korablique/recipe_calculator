@@ -61,6 +61,7 @@
     <string name="change_foodstuff">Изменить продукт</string>
     <string name="search_results">Результаты поиска \"%s\"</string>
     <string name="add_new_foodstuff">Добавить новый продукт</string>
+    <string name="nothing_found">Ничего не найдено</string>
 
     <string-array name="goals_array">
         <item name="losing_weight">Похудение</item>
