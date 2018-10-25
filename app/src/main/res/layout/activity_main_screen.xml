@@ -37,13 +37,7 @@
             app:itemBackground="@drawable/navigation_item_background"
             app:itemIconTint="@drawable/navigation_item_selector"
             app:itemTextColor="@drawable/navigation_item_selector" />
-
-        <include
-            android:id="@+id/search_layout"
-            layout="@layout/search_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-
+        
         <include
             android:id="@+id/snackbar"
             layout="@layout/selected_foodstuffs_snackbar"
@@ -58,6 +52,12 @@
             android:layout_height="match_parent"
             android:layout_below="@id/search_view"
             android:layout_above="@id/navigation"/>
+
+        <include
+            android:id="@+id/search_layout"
+            layout="@layout/search_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
     </RelativeLayout>
 
 </FrameLayout>
