@@ -13,8 +13,9 @@ import java.util.Collections;
 import java.util.List;
 
 import korablique.recipecalculator.R;
-import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.WeightedFoodstuff;
+
+import static korablique.recipecalculator.FloatUtils.areFloatsEquals;
 
 public class SelectedFoodstuffsSnackbar {
     private static final long DURATION = 250L;
@@ -53,6 +54,9 @@ public class SelectedFoodstuffsSnackbar {
         animator.addUpdateListener(animation -> {
             float animatedValue = (float) animation.getAnimatedValue();
             snackbarLayout.setTranslationY(animatedValue);
+            if (areFloatsEquals(startValue, endValue)) {
+                snackbarLayout.setVisibility(View.INVISIBLE);
+            }
         });
         animator.start();
     }
@@ -63,6 +67,8 @@ public class SelectedFoodstuffsSnackbar {
             hide();
         } else {
             addFoodstuffs(newSelectedFoodstuffs);
+            isShown = true; // чтобы не анимировался
+            show();
         }
     }
 

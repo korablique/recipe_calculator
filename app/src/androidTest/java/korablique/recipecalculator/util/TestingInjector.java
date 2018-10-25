@@ -1,6 +1,7 @@
 package korablique.recipecalculator.util;
 
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import dagger.android.DispatchingAndroidInjector;
 import korablique.recipecalculator.BroccalcApplication;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.dagger.Injector;
@@ -21,6 +23,9 @@ public class TestingInjector implements Injector {
     private final ActivitiesInjectionSource activitiesInjectionSource;
     private final List<Object> singletonInjections;
 
+    /**
+     * Объект, предоставляющий @Singleton-зависимости
+     */
     public interface SingletonInjectionsSource {
         List<Object> create();
     }
@@ -51,25 +56,40 @@ public class TestingInjector implements Injector {
 
     @Override
     public void inject(BaseActivity activity) {
+        injectImpl(activity);
+    }
+
+    @Override
+    public void inject(Fragment fragment) {
+        injectImpl(fragment);
+    }
+
+    private <T> void injectImpl(T target) {
         List<Object> injectedObjects = new ArrayList<>(singletonInjections);
         if (activitiesInjectionSource != null) {
-            injectedObjects.addAll(activitiesInjectionSource.createFor(activity));
+            injectedObjects.addAll(activitiesInjectionSource.createFor(target));
         }
 
-        for (Field field : activity.getClass().getDeclaredFields()) {
-            if (field.isAnnotationPresent(Inject.class)) {
-                injectInto(activity, field, injectedObjects);
+        for (Field field : target.getClass().getDeclaredFields()) {
+            if (field.getType() != DispatchingAndroidInjector.class && field.isAnnotationPresent(Inject.class)) {
+                injectInto(target, field, injectedObjects);
             }
         }
     }
 
-    private void injectInto(BaseActivity activity, Field field, List<Object> injectedObjects) {
+    /**
+     * @param target содержит поле
+     * @param field поле, в которое нужно инжектить
+     * @param injectedObjects объекты, которые требуется въинжектить (все)
+     * @param <T> активити или фрагмент
+     */
+    private <T> void injectInto(T target, Field field, List<Object> injectedObjects) {
         // Если поле не public - без вызова setAccessible мы получим тут SecurityException.
         field.setAccessible(true);
 
         Object fieldValue;
         try {
-            fieldValue = field.get(activity);
+            fieldValue = field.get(target);
         } catch (IllegalAccessException e) {
             throw new IllegalStateException(
                     "Couldn't check @Inject field value", e);
@@ -78,7 +98,7 @@ public class TestingInjector implements Injector {
         if (fieldValue != null) {
             throw new IllegalStateException(String.format(
                     "Target %s has its field %s already initialized",
-                    activity.getClass().getName(),
+                    target.getClass().getName(),
                     field.getName()));
         }
 
@@ -86,7 +106,7 @@ public class TestingInjector implements Injector {
         for (Object injectedObject : injectedObjects) {
             if (field.getType().isAssignableFrom(injectedObject.getClass())) {
                 try {
-                    field.set(activity, injectedObject);
+                    field.set(target, injectedObject);
                     valueSet = true;
                     break;
                 } catch (IllegalAccessException e) {
