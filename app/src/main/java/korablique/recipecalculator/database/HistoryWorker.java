@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import korablique.recipecalculator.base.MainThreadExecutor;
+import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.HistoryEntry;
 import korablique.recipecalculator.model.NewHistoryEntry;

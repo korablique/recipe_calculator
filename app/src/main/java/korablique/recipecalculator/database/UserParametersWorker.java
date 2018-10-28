@@ -5,7 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-import korablique.recipecalculator.base.MainThreadExecutor;
+import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.model.UserParameters;
 
 import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_AGE;

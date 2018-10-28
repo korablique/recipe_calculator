@@ -21,7 +21,7 @@ import java.util.Date;
 import java.util.List;
 
 import korablique.recipecalculator.R;
-import korablique.recipecalculator.base.MainThreadExecutor;
+import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
