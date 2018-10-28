@@ -13,6 +13,7 @@ public class ActivityCallbacks {
         public void onActivityCreate(Bundle savedInstanceState) {}
         public void onActivityResume() {}
         public void onActivityPause() {}
+        public void onActivityDestroy() {}
         public void onActivityResult(int requestCode, int resultCode, Intent data) {}
         public void onActivitySaveInstanceState(Bundle outState) {}
         public void onActivityRestoreInstanceState(Bundle savedInstanceState) {}
@@ -41,6 +42,12 @@ public class ActivityCallbacks {
     void dispatchActivityPause() {
         for (Observer observer : observers) {
             observer.onActivityPause();
+        }
+    }
+
+    void dispatchActivityDestroy() {
+        for (Observer observer : observers) {
+            observer.onActivityDestroy();
         }
     }
 
