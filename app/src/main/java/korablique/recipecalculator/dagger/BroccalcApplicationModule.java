@@ -8,6 +8,7 @@ import dagger.Module;
 import dagger.Provides;
 import dagger.android.ContributesAndroidInjector;
 import dagger.android.support.AndroidSupportInjectionModule;
+import korablique.recipecalculator.base.BaseActivityModule;
 import korablique.recipecalculator.base.MainThreadExecutor;
 import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
@@ -86,7 +87,7 @@ public abstract class BroccalcApplicationModule {
     abstract UserGoalActivity contributeUserGoalActivityInjector();
 
     @ActivityScope
-    @ContributesAndroidInjector(modules = MainScreenActivityModule.class)
+    @ContributesAndroidInjector(modules = { BaseActivityModule.class, MainScreenActivityModule.class })
     abstract MainScreenActivity contributeMainScreenActivityInjector();
 
     @BroadcastReceiverScope
