@@ -26,6 +26,7 @@ import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.PopularProductsUtils;
 import korablique.recipecalculator.model.WeightedFoodstuff;
+import korablique.recipecalculator.ui.KeyboardHandler;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.card.CardDialog;
@@ -121,6 +122,8 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
             hideCard();
             bucketList.add(foodstuff);
             snackbar.show();
+            new KeyboardHandler(context).hideKeyBoard();
+            searchView.clearQuery();
         };
         cardDialogOnEditButtonClickListener = foodstuff -> {
             EditFoodstuffActivity.startForEditing(context, foodstuff);
