@@ -135,6 +135,12 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        activityCallbacks.dispatchActivityDestroy();
+    }
+
+    @Override
     protected void onSaveInstanceState(Bundle outState) {
         activityCallbacks.dispatchSaveInstanceState(outState);
         outState = drawer.saveInstanceState(outState);
