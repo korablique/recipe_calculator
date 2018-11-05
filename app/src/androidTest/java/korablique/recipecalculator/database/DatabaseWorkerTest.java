@@ -5,13 +5,11 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.LargeTest;
-import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
 import junit.framework.Assert;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -23,7 +21,6 @@ import java.util.List;
 
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
-import korablique.recipecalculator.ui.calculator.CalculatorActivity;
 import korablique.recipecalculator.util.DbUtil;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.InstantMainThreadExecutor;
@@ -260,11 +257,8 @@ public class DatabaseWorkerTest {
         databaseWorker.requestFoodstuffsByIds(
                 context,
                 foodstuffsIds,
-                new DatabaseWorker.FoodstuffsRequestCallback() {
-                    @Override
-                    public void onResult(List<Foodstuff> foodstuffs) {
-                        returnedFoodstuffs.addAll(foodstuffs);
-                    }
+                foodstuffs1 -> {
+                    returnedFoodstuffs.addAll(foodstuffs1);
                 });
         Assert.assertEquals(foodstuffsNumber, returnedFoodstuffs.size());
     }
@@ -309,11 +303,8 @@ public class DatabaseWorkerTest {
         databaseWorker.requestFoodstuffsByIds(
                 context,
                 foodstuffsIds,
-                new DatabaseWorker.FoodstuffsRequestCallback() {
-                    @Override
-                    public void onResult(List<Foodstuff> foodstuffs) {
-                        returnedFoodstuffs.addAll(foodstuffs);
-                    }
+                foodstuffs1 -> {
+                    returnedFoodstuffs.addAll(foodstuffs1);
                 });
         Assert.assertEquals(returnedFoodstuffs.get(0), foodstuffs[0]);
         Assert.assertEquals(returnedFoodstuffs.get(1), foodstuffs[1]);
@@ -325,12 +316,7 @@ public class DatabaseWorkerTest {
         databaseWorker.requestFoodstuffsByIds(
                 context,
                 foodstuffsIds,
-                new DatabaseWorker.FoodstuffsRequestCallback() {
-                    @Override
-                    public void onResult(List<Foodstuff> foodstuffs) {
-                        returnedFoodstuffs.addAll(foodstuffs);
-                    }
-                });
+                foodstuffs1 -> returnedFoodstuffs.addAll(foodstuffs1));
         Assert.assertEquals(returnedFoodstuffs.get(0), foodstuffs[2]);
         Assert.assertEquals(returnedFoodstuffs.get(1), foodstuffs[1]);
         Assert.assertEquals(returnedFoodstuffs.get(2), foodstuffs[0]);
@@ -361,12 +347,7 @@ public class DatabaseWorkerTest {
                 context,
                 query,
                 3,
-                new DatabaseWorker.FoodstuffsRequestCallback() {
-                    @Override
-                    public void onResult(List<Foodstuff> foodstuffs) {
-                        searchResult.addAll(foodstuffs);
-                    }
-                });
+                foodstuffs1 -> searchResult.addAll(foodstuffs1));
         Assert.assertEquals(searchResult.get(0).getName(), "варенье из абрикосов");
         Assert.assertEquals(searchResult.get(1).getName(), "варенье из груш");
         Assert.assertEquals(searchResult.get(2).getName(), "варенье из клубники");
