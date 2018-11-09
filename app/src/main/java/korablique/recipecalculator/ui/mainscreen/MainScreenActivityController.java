@@ -24,6 +24,7 @@ import korablique.recipecalculator.base.Callback;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.FoodstuffsList;
 import korablique.recipecalculator.model.PopularProductsUtils;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.KeyboardHandler;
@@ -51,6 +52,7 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
     private final FragmentActivity context;
     private final DatabaseWorker databaseWorker;
     private final HistoryWorker historyWorker;
+    private final FoodstuffsList foodstuffsList;
     private final Lifecycle lifecycle;
     private AdapterParent adapterParent;
     private FoodstuffsAdapterChild topAdapterChild;
@@ -82,11 +84,13 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
             MainScreenActivity context,
             DatabaseWorker databaseWorker,
             HistoryWorker historyWorker,
+            FoodstuffsList foodstuffsList,
             ActivityCallbacks activityCallbacks,
             Lifecycle lifecycle) {
         this.context = context;
         this.databaseWorker = databaseWorker;
         this.historyWorker = historyWorker;
+        this.foodstuffsList = foodstuffsList;
         this.lifecycle = lifecycle;
         activityCallbacks.addObserver(this);
     }
@@ -143,14 +147,53 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
             attemptToAddElementsToAdapters();
         });
 
-        int batchSize = 100;
-        databaseWorker.requestListedFoodstuffsFromDb(context, batchSize, (foodstuffs) -> {
+//        int batchSize = 100;
+//        databaseWorker.requestListedFoodstuffsFromDb(context, batchSize, (foodstuffs) -> {
+//            if (all == null) {
+//                all = new ArrayList<>();
+//            }
+//            all.addAll(foodstuffs);
+//            attemptToAddElementsToAdapters();
+//        }, () -> {
+//            searchView.setOnQueryChangeListener((oldQuery, newQuery) -> {
+//                //get suggestions based on newQuery
+//                databaseWorker.requestFoodstuffsLike(context, newQuery, SEARCH_SUGGESTIONS_NUMBER, foodstuffs -> {
+//                    //pass them on to the search view
+//                    List<FoodstuffSearchSuggestion> newSuggestions = new ArrayList<>();
+//                    for (Foodstuff foodstuff : foodstuffs) {
+//                        FoodstuffSearchSuggestion suggestion = new FoodstuffSearchSuggestion(foodstuff);
+//                        newSuggestions.add(suggestion);
+//                    }
+//                    searchView.swapSuggestions(newSuggestions);
+//                });
+//            });
+//
+//            searchView.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
+//                @Override
+//                public void onSuggestionClicked(SearchSuggestion searchSuggestion) {
+//                    FoodstuffSearchSuggestion suggestion = (FoodstuffSearchSuggestion) searchSuggestion;
+//                    showCard(suggestion.getFoodstuff());
+//                }
+//
+//                // когда пользователь нажал на клавиатуре enter
+//                @Override
+//                public void onSearchAction(String currentQuery) {
+//                    performSearch();
+//                }
+//            });
+//
+//            // когда пользователь нажал кнопку лупы в searchView
+//            searchView.setOnMenuItemClickListener(item -> {
+//                performSearch();
+//            });
+//        });
+        foodstuffsList.getAllFoodstuffs( foodstuffs -> {
             if (all == null) {
                 all = new ArrayList<>();
             }
             all.addAll(foodstuffs);
             attemptToAddElementsToAdapters();
-        }, () -> {
+        }, unused -> {
             searchView.setOnQueryChangeListener((oldQuery, newQuery) -> {
                 //get suggestions based on newQuery
                 databaseWorker.requestFoodstuffsLike(context, newQuery, SEARCH_SUGGESTIONS_NUMBER, foodstuffs -> {

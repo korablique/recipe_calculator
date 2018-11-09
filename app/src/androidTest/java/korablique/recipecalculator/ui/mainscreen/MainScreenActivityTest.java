@@ -33,6 +33,7 @@ import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.FoodstuffsDbHelper;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.FoodstuffsList;
 import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.PopularProductsUtils;
 import korablique.recipecalculator.model.WeightedFoodstuff;
@@ -71,6 +72,7 @@ public class MainScreenActivityTest {
     private SyncMainThreadExecutor mainThreadExecutor = new SyncMainThreadExecutor();
     private DatabaseWorker databaseWorker;
     private HistoryWorker historyWorker;
+    private FoodstuffsList foodstuffsList;
     private Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
     private Foodstuff[] foodstuffs;
     private BucketList bucketList = BucketList.getInstance();
@@ -84,6 +86,7 @@ public class MainScreenActivityTest {
                             new DatabaseWorker(mainThreadExecutor, new InstantDatabaseThreadExecutor());
                     historyWorker = new HistoryWorker(
                             context, mainThreadExecutor, new InstantDatabaseThreadExecutor());
+                    foodstuffsList = new FoodstuffsList(context, databaseWorker, historyWorker);
                     return Arrays.asList(databaseWorker, historyWorker);
                 })
                 .withActivityScoped((injectionTarget) -> {
@@ -93,7 +96,7 @@ public class MainScreenActivityTest {
                     MainScreenActivity activity = (MainScreenActivity) injectionTarget;
                     ActivityCallbacks activityCallbacks = activity.getActivityCallbacks();
                     MainScreenActivityController controller = new MainScreenActivityController(
-                            activity, databaseWorker, historyWorker, activityCallbacks, activity.getLifecycle());
+                            activity, databaseWorker, historyWorker, foodstuffsList, activityCallbacks, activity.getLifecycle());
                     return Collections.singletonList(controller);
                 })
                 .build();
