@@ -10,8 +10,8 @@ import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.dagger.ActivityScope;
 import korablique.recipecalculator.dagger.FragmentScope;
 import korablique.recipecalculator.database.DatabaseWorker;
-import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.model.FoodstuffsList;
+import korablique.recipecalculator.model.TopList;
 
 @Module
 public abstract class MainScreenActivityModule {
@@ -20,11 +20,11 @@ public abstract class MainScreenActivityModule {
     static MainScreenActivityController provideController(
             MainScreenActivity activity,
             DatabaseWorker databaseWorker,
-            HistoryWorker historyWorker,
             FoodstuffsList foodstuffsList,
+            TopList topList,
             ActivityCallbacks callbacks,
             Lifecycle lifecycle) {
-        return new MainScreenActivityController(activity, databaseWorker, historyWorker, foodstuffsList, callbacks, lifecycle);
+        return new MainScreenActivityController(activity, databaseWorker, foodstuffsList, topList, callbacks, lifecycle);
     }
 
     @FragmentScope
