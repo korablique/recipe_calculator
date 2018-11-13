@@ -86,8 +86,8 @@ public class MainScreenActivityTest {
                             new DatabaseWorker(mainThreadExecutor, new InstantDatabaseThreadExecutor());
                     historyWorker = new HistoryWorker(
                             context, mainThreadExecutor, new InstantDatabaseThreadExecutor());
-                    foodstuffsList = new FoodstuffsList(context, databaseWorker, historyWorker);
-                    return Arrays.asList(databaseWorker, historyWorker);
+                    foodstuffsList = new FoodstuffsList(context, databaseWorker);
+                    return Arrays.asList(databaseWorker, historyWorker, foodstuffsList);
                 })
                 .withActivityScoped((injectionTarget) -> {
                     if (!(injectionTarget instanceof MainScreenActivity)) {

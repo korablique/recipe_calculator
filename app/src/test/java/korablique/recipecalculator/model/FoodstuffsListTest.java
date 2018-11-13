@@ -18,7 +18,6 @@ import korablique.recipecalculator.BuildConfig;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.DatabaseWorker.FinishCallback;
 import korablique.recipecalculator.database.DatabaseWorker.FoodstuffsBatchReceiveCallback;
-import korablique.recipecalculator.database.HistoryWorker;
 
 import static korablique.recipecalculator.model.FoodstuffsList.BATCH_SIZE;
 import static org.mockito.Matchers.any;
@@ -33,9 +32,10 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 @RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class)
 public class FoodstuffsListTest {
+    // используется, когда нужно несколько батчей (здесь 2)
+    private static final int FOODSTUFFS_NUMBER = 2 * BATCH_SIZE;
     private FoodstuffsList foodstuffsList;
     private DatabaseWorker databaseWorker;
-    private HistoryWorker historyWorker;
     private Context context;
 
     private List<Foodstuff> dbFoodstuffs;
@@ -43,7 +43,6 @@ public class FoodstuffsListTest {
     @Before
     public void setUp() {
         databaseWorker = mock(DatabaseWorker.class);
-        historyWorker = mock(HistoryWorker.class);
         context = mock(Context.class);
         dbFoodstuffs = new ArrayList<>();
 
@@ -56,7 +55,7 @@ public class FoodstuffsListTest {
                 // индексы идут от 1, т.к. 0 % 100 == 0
                 for (int index = 1; index <= dbFoodstuffs.size(); index++) {
                     batch.add(dbFoodstuffs.get(index - 1));
-                    if (index % 100 == 0) {
+                    if (index % BATCH_SIZE == 0) {
                         c1.onReceive(batch);
                         batch.clear();
                     }
@@ -73,7 +72,7 @@ public class FoodstuffsListTest {
                 any(FoodstuffsBatchReceiveCallback.class),
                 any(FinishCallback.class));
 
-        foodstuffsList = new FoodstuffsList(context, databaseWorker, historyWorker);
+        foodstuffsList = new FoodstuffsList(context, databaseWorker);
     }
 
     // Если клиент вызвал метод, в его коллбек через неопределенное время придут фудстафы.
@@ -103,8 +102,7 @@ public class FoodstuffsListTest {
 
     @Test
     public void foodstuffsReturningInBatches() {
-        // добавляем 200 фудстаффов, чтобы батча было 2
-        for (int index = 0; index < 200; index++) {
+        for (int index = 0; index < FOODSTUFFS_NUMBER; index++) {
             dbFoodstuffs.add(new Foodstuff("a" + index, 1, 2, 3, 4 + index));
         }
 
@@ -155,7 +153,6 @@ public class FoodstuffsListTest {
         foodstuffsList.getAllFoodstuffs(unused -> {}, foodstuffs -> {
             receivedFoodstuffs.addAll(foodstuffs);
         });
-        // TODO: 07.11.18 здесь надо вызывать этот коллбэк второй раз?
         for (FoodstuffsBatchReceiveCallback batchReceiveCallback : batchReceiveCallbacks) {
             batchReceiveCallback.onReceive(dbFoodstuffs);
         }
@@ -178,8 +175,7 @@ public class FoodstuffsListTest {
     // через неопределенное время.
     @Test
     public void ifSecondClientCallMethodDuringLoadingItGetAlreadyLoadedFoodstuffsAndThanOtherBatches() {
-        // добавляем 200 фудстаффов, чтобы батча было 2
-        for (int index = 0; index < 200; index++) {
+        for (int index = 0; index < FOODSTUFFS_NUMBER; index++) {
             dbFoodstuffs.add(new Foodstuff("a" + index, 1, 2, 3, 4 + index));
         }
         List<FoodstuffsBatchReceiveCallback> batchReceiveCallbacks = new ArrayList<>();
@@ -201,36 +197,50 @@ public class FoodstuffsListTest {
 
         List<Foodstuff> gettingFoodstuffs = new ArrayList<>();
 
+        List<Foodstuff> firstBatchDetector1 = new ArrayList<>();
+        List<Foodstuff> secondBatchDetector1 = new ArrayList<>();
         // первый вызов метода
-        List<Foodstuff> firstBatchForFirstClient = new ArrayList<>();
         foodstuffsList.getAllFoodstuffs(batch -> {
-                    firstBatchForFirstClient.addAll(batch);
+                    if (firstBatchDetector1.isEmpty()) {
+                        firstBatchDetector1.addAll(batch);
+                    } else if (secondBatchDetector1.isEmpty()) {
+                        secondBatchDetector1.addAll(batch);
+                    } else {
+                        throw new AssertionError("Third batch is not expected!");
+                    }
                 }, foodstuffs -> {});
         // получение первого батча
         List<Foodstuff> firstBatch = new ArrayList<>();
-        for (int index = 0; index < 100; index++) {
+        for (int index = 0; index < BATCH_SIZE; index++) {
             firstBatch.add(dbFoodstuffs.get(index));
         }
         for (FoodstuffsBatchReceiveCallback batchReceiveCallback : batchReceiveCallbacks) {
             batchReceiveCallback.onReceive(firstBatch);
         }
+        List<Foodstuff> firstBatchDetector2 = new ArrayList<>();
+        List<Foodstuff> secondBatchDetector2 = new ArrayList<>();
         // второй вызов метода
-        List<Foodstuff> firstBatchForSecondClient = new ArrayList<>();
         foodstuffsList.getAllFoodstuffs(batch -> {
-                    firstBatchForSecondClient.addAll(batch);
+                    if (firstBatchDetector2.isEmpty()) {
+                        firstBatchDetector2.addAll(batch);
+                    } else if (secondBatchDetector2.isEmpty()) {
+                        secondBatchDetector2.addAll(batch);
+                    } else {
+                        throw new AssertionError("Third batch is not expected!");
+                    }
                 }, foodstuffs -> {
                     gettingFoodstuffs.addAll(foodstuffs);
                 });
         // проверяем, что 2-ой клиент сразу получил загруженную часть
-        Assert.assertEquals(BATCH_SIZE, firstBatchForSecondClient.size());
-        Assert.assertEquals(firstBatchForSecondClient, firstBatchForFirstClient);
+        Assert.assertEquals(BATCH_SIZE, firstBatchDetector2.size());
+        Assert.assertEquals(firstBatchDetector2, firstBatchDetector1);
 
         List<Foodstuff> secondBatch = new ArrayList<>(dbFoodstuffs);
         secondBatch.removeAll(firstBatch);
         for (FoodstuffsBatchReceiveCallback batchReceiveCallback : batchReceiveCallbacks) {
             batchReceiveCallback.onReceive(secondBatch);
         }
-        // TODO: 08.11.18 проверить что пришел второй батч
+        Assert.assertFalse(secondBatchDetector2.isEmpty());
 
         // проверяем, что второй клиент в итоге получил все фудстаффы из БД
         for (FinishCallback finishCallback : finishCallbacks) {

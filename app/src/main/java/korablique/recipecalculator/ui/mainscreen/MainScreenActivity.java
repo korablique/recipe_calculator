@@ -8,13 +8,10 @@ import dagger.android.AndroidInjector;
 import dagger.android.DispatchingAndroidInjector;
 import dagger.android.support.HasSupportFragmentInjector;
 import korablique.recipecalculator.base.BaseActivity;
-import korablique.recipecalculator.model.FoodstuffsList;
 
 public class MainScreenActivity extends BaseActivity implements HasSupportFragmentInjector {
     @Inject
     MainScreenActivityController controller;
-    @Inject
-    FoodstuffsList foodstuffsList;
     @Inject
     DispatchingAndroidInjector<Fragment> fragmentInjector;
 
