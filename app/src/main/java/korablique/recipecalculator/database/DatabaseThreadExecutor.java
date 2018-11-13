@@ -1,12 +1,7 @@
 package korablique.recipecalculator.database;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import korablique.recipecalculator.base.executors.Executor;
 
-public class DatabaseThreadExecutor {
-    private ExecutorService executorService = Executors.newSingleThreadExecutor();
-
-    public void execute(Runnable runnable) {
-        executorService.execute(runnable);
-    }
+public interface DatabaseThreadExecutor extends Executor {
+    void execute(Runnable runnable);
 }

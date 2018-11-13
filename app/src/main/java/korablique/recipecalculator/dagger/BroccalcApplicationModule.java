@@ -8,8 +8,10 @@ import dagger.Module;
 import dagger.Provides;
 import dagger.android.ContributesAndroidInjector;
 import dagger.android.support.AndroidSupportInjectionModule;
-import korablique.recipecalculator.base.MainThreadExecutor;
+import korablique.recipecalculator.base.executors.MainThreadExecutor;
+import korablique.recipecalculator.base.executors.MainThreadExecutorImpl;
 import korablique.recipecalculator.database.DatabaseThreadExecutor;
+import korablique.recipecalculator.database.DatabaseThreadExecutorImpl;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
@@ -29,13 +31,13 @@ public abstract class BroccalcApplicationModule {
     @Provides
     @Singleton
     public static MainThreadExecutor provideMainThreadExecutor() {
-        return new MainThreadExecutor();
+        return new MainThreadExecutorImpl();
     }
 
     @Provides
     @Singleton
     public static DatabaseThreadExecutor provideDatabaseThreadExecutor() {
-        return new DatabaseThreadExecutor();
+        return new DatabaseThreadExecutorImpl();
     }
 
     @Provides

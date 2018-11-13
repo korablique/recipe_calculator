@@ -1,15 +1,27 @@
 package korablique.recipecalculator.util;
 
-import korablique.recipecalculator.base.MainThreadExecutor;
+import io.reactivex.Scheduler;
+import io.reactivex.schedulers.Schedulers;
+import korablique.recipecalculator.base.executors.MainThreadExecutor;
 
-public class InstantMainThreadExecutor extends MainThreadExecutor {
+/**
+ * Использует {@link Schedulers#trampoline()} для синхронного выполнения задач в вызывающем потоке.
+ */
+public class InstantMainThreadExecutor implements MainThreadExecutor {
+    private final Scheduler scheduler = Schedulers.trampoline();
+
     @Override
     public void execute(Runnable runnable) {
-        runnable.run();
+        scheduler.scheduleDirect(runnable);
     }
 
     @Override
     public void executeDelayed(long delayMillis, Runnable runnable) {
-        runnable.run();
+        throw new IllegalStateException("Instant executor doesn't support delayed execution");
+    }
+
+    @Override
+    public Scheduler asScheduler() {
+        return scheduler;
     }
 }
