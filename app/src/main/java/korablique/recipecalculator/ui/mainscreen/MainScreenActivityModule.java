@@ -6,6 +6,7 @@ import dagger.Module;
 import dagger.Provides;
 import dagger.android.ContributesAndroidInjector;
 import korablique.recipecalculator.base.ActivityCallbacks;
+import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.dagger.ActivityScope;
 import korablique.recipecalculator.dagger.FragmentScope;
 import korablique.recipecalculator.database.DatabaseWorker;
@@ -14,18 +15,6 @@ import korablique.recipecalculator.model.FoodstuffsList;
 
 @Module
 public abstract class MainScreenActivityModule {
-    @ActivityScope
-    @Provides
-    static ActivityCallbacks provideCallbacks(MainScreenActivity activity) {
-        return activity.getActivityCallbacks();
-    }
-
-    @ActivityScope
-    @Provides
-    static Lifecycle provideLifecycle(MainScreenActivity activity) {
-        return activity.getLifecycle();
-    }
-
     @ActivityScope
     @Provides
     static MainScreenActivityController provideController(
@@ -41,4 +30,10 @@ public abstract class MainScreenActivityModule {
     @FragmentScope
     @ContributesAndroidInjector
     abstract SearchResultsFragment searchResultsFragmentInjector();
+
+    @ActivityScope
+    @Provides
+    static BaseActivity provideBaseActivity(MainScreenActivity activity) {
+        return activity;
+    }
 }
