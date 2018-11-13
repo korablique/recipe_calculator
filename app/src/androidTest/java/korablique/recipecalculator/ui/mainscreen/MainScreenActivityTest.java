@@ -36,6 +36,7 @@ import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.FoodstuffsList;
 import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.PopularProductsUtils;
+import korablique.recipecalculator.model.TopList;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
@@ -73,6 +74,7 @@ public class MainScreenActivityTest {
     private DatabaseWorker databaseWorker;
     private HistoryWorker historyWorker;
     private FoodstuffsList foodstuffsList;
+    private TopList topList;
     private Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
     private Foodstuff[] foodstuffs;
     private BucketList bucketList = BucketList.getInstance();
@@ -87,6 +89,7 @@ public class MainScreenActivityTest {
                     historyWorker = new HistoryWorker(
                             context, mainThreadExecutor, new InstantDatabaseThreadExecutor());
                     foodstuffsList = new FoodstuffsList(context, databaseWorker);
+                    topList = new TopList(context, databaseWorker, historyWorker);
                     return Arrays.asList(databaseWorker, historyWorker, foodstuffsList);
                 })
                 .withActivityScoped((injectionTarget) -> {
@@ -96,7 +99,7 @@ public class MainScreenActivityTest {
                     MainScreenActivity activity = (MainScreenActivity) injectionTarget;
                     ActivityCallbacks activityCallbacks = activity.getActivityCallbacks();
                     MainScreenActivityController controller = new MainScreenActivityController(
-                            activity, databaseWorker, historyWorker, foodstuffsList, activityCallbacks, activity.getLifecycle());
+                            activity, databaseWorker, foodstuffsList, topList, activityCallbacks, activity.getLifecycle());
                     return Collections.singletonList(controller);
                 })
                 .build();

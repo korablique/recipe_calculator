@@ -1,13 +1,10 @@
 package korablique.recipecalculator.ui.mainscreen;
 
 import android.arch.lifecycle.Lifecycle;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.BottomNavigationView;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -20,13 +17,10 @@ import java.util.List;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.ActivityCallbacks;
-import korablique.recipecalculator.base.Callback;
 import korablique.recipecalculator.database.DatabaseWorker;
-import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.FoodstuffsList;
-import korablique.recipecalculator.model.PopularProductsUtils;
-import korablique.recipecalculator.model.WeightedFoodstuff;
+import korablique.recipecalculator.model.TopList;
 import korablique.recipecalculator.ui.KeyboardHandler;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
@@ -43,16 +37,13 @@ import static korablique.recipecalculator.IntentConstants.EDIT_FOODSTUFF_REQUEST
 import static korablique.recipecalculator.IntentConstants.EDIT_RESULT;
 import static korablique.recipecalculator.IntentConstants.FIND_FOODSTUFF_REQUEST;
 import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
-import static korablique.recipecalculator.ui.mainscreen.SearchResultsFragment.REQUEST;
-import static korablique.recipecalculator.ui.mainscreen.SearchResultsFragment.SEARCH_RESULTS;
 
 public class MainScreenActivityController extends ActivityCallbacks.Observer {
     private static final int SEARCH_SUGGESTIONS_NUMBER = 3;
-    private static final int TOP_LIMIT = 5;
     private final FragmentActivity context;
     private final DatabaseWorker databaseWorker;
-    private final HistoryWorker historyWorker;
     private final FoodstuffsList foodstuffsList;
+    private final TopList topList;
     private final Lifecycle lifecycle;
     private AdapterParent adapterParent;
     private FoodstuffsAdapterChild topAdapterChild;
@@ -83,14 +74,14 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
     public MainScreenActivityController(
             MainScreenActivity context,
             DatabaseWorker databaseWorker,
-            HistoryWorker historyWorker,
             FoodstuffsList foodstuffsList,
+            TopList topList,
             ActivityCallbacks activityCallbacks,
             Lifecycle lifecycle) {
         this.context = context;
         this.databaseWorker = databaseWorker;
-        this.historyWorker = historyWorker;
         this.foodstuffsList = foodstuffsList;
+        this.topList = topList;
         this.lifecycle = lifecycle;
         activityCallbacks.addObserver(this);
     }
@@ -140,8 +131,7 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
         }
 
 
-
-        requestTopFoodstuffs(context, TOP_LIMIT, (foodstuffs) -> {
+        topList.getTopList(foodstuffs -> {
             top = new ArrayList<>();
             top.addAll(foodstuffs);
             attemptToAddElementsToAdapters();
@@ -198,27 +188,6 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
         recyclerView = context.findViewById(R.id.main_screen_recycler_view);
         LinearLayoutManager layoutManager = new LinearLayoutManager(context);
         recyclerView.setLayoutManager(layoutManager);
-    }
-
-    private void requestTopFoodstuffs(Context context, int limit, Callback<List<Foodstuff>> callback) {
-        // Сначала делаем запросы в БД, в коллбеках сохраняем результаты,
-        // а затем уже добавляем в адаптеры элементы.
-        // Это нужно для того, чтобы элементы на экране загружались все сразу
-        List<Long> foodstuffsIds = new ArrayList<>(); // это айдишники всех продуктов за период
-        historyWorker.requestFoodstuffsIdsFromHistoryForPeriod(
-                0,
-                Long.MAX_VALUE,
-                (ids) -> {
-                    foodstuffsIds.addAll(ids);
-                    List<PopularProductsUtils.FoodstuffFrequency> topList = PopularProductsUtils.getTop(foodstuffsIds); // это топ из них
-                    List<Long> topFoodstuffIds = new ArrayList<>(); // это айдишники топа
-                    for (int index = 0; index < topList.size() && index < limit; ++index) {
-                        topFoodstuffIds.add(topList.get(index).getFoodstuffId());
-                    }
-                    databaseWorker.requestFoodstuffsByIds(context, topFoodstuffIds, (foodstuffs) -> {
-                        callback.onResult(foodstuffs);
-                    });
-                });
     }
 
     private void attemptToAddElementsToAdapters() {
