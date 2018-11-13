@@ -1,27 +1,38 @@
 package korablique.recipecalculator.util;
 
-import android.os.Looper;
-import android.support.test.InstrumentationRegistry;
+import java.util.concurrent.TimeUnit;
 
-import korablique.recipecalculator.base.MainThreadExecutor;
+import io.reactivex.Scheduler;
+import io.reactivex.disposables.Disposable;
+import korablique.recipecalculator.base.executors.MainThreadExecutor;
 
 /**
  * Выполняет переданный Runnable на главном потоке, но синхронно
  * (не возвращает управление, пока Runnable не окажется выполненным).
  */
-public class SyncMainThreadExecutor extends MainThreadExecutor {
+public class SyncMainThreadExecutor implements MainThreadExecutor {
+    private final Scheduler scheduler = new SyncMainThreadScheduler();
+
     @Override
     public void execute(Runnable runnable) {
-        if (Looper.getMainLooper().getThread().getId() == Thread.currentThread().getId()) {
-            // Instrumentation.runOnMainSync выбрасывает исключение, если вызван на главном потоке
-            runnable.run();
-            return;
-        }
-        InstrumentationRegistry.getInstrumentation().runOnMainSync(runnable);
+        scheduler.scheduleDirect(runnable);
     }
 
     @Override
     public void executeDelayed(long delayMillis, Runnable runnable) {
-        execute(runnable);
+        scheduler.scheduleDirect(runnable, delayMillis, TimeUnit.MILLISECONDS);
+    }
+
+    @Override
+    public Scheduler asScheduler() {
+        return scheduler;
+    }
+
+    private static class SyncMainThreadScheduler extends Scheduler {
+        @Override
+        public Worker createWorker() {
+            return new SyncMainThreadRxWorker();
+        }
+
     }
 }

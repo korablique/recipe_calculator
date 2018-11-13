@@ -12,7 +12,6 @@ import korablique.recipecalculator.base.BaseActivity;
 public class MainScreenActivity extends BaseActivity implements HasSupportFragmentInjector {
     @Inject
     MainScreenActivityController controller;
-
     @Inject
     DispatchingAndroidInjector<Fragment> fragmentInjector;
 

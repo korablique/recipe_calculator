@@ -24,8 +24,10 @@ import korablique.recipecalculator.base.Callback;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.FoodstuffsList;
 import korablique.recipecalculator.model.PopularProductsUtils;
 import korablique.recipecalculator.model.WeightedFoodstuff;
+import korablique.recipecalculator.ui.KeyboardHandler;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.card.CardDialog;
@@ -50,6 +52,7 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
     private final FragmentActivity context;
     private final DatabaseWorker databaseWorker;
     private final HistoryWorker historyWorker;
+    private final FoodstuffsList foodstuffsList;
     private final Lifecycle lifecycle;
     private AdapterParent adapterParent;
     private FoodstuffsAdapterChild topAdapterChild;
@@ -81,11 +84,13 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
             MainScreenActivity context,
             DatabaseWorker databaseWorker,
             HistoryWorker historyWorker,
+            FoodstuffsList foodstuffsList,
             ActivityCallbacks activityCallbacks,
             Lifecycle lifecycle) {
         this.context = context;
         this.databaseWorker = databaseWorker;
         this.historyWorker = historyWorker;
+        this.foodstuffsList = foodstuffsList;
         this.lifecycle = lifecycle;
         activityCallbacks.addObserver(this);
     }
@@ -121,6 +126,8 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
             hideCard();
             bucketList.add(foodstuff);
             snackbar.show();
+            new KeyboardHandler(context).hideKeyBoard();
+            searchView.clearQuery();
         };
         cardDialogOnEditButtonClickListener = foodstuff -> {
             EditFoodstuffActivity.startForEditing(context, foodstuff);
@@ -140,14 +147,13 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
             attemptToAddElementsToAdapters();
         });
 
-        int batchSize = 100;
-        databaseWorker.requestListedFoodstuffsFromDb(context, batchSize, (foodstuffs) -> {
+        foodstuffsList.getAllFoodstuffs( foodstuffs -> {
             if (all == null) {
                 all = new ArrayList<>();
             }
             all.addAll(foodstuffs);
             attemptToAddElementsToAdapters();
-        }, () -> {
+        }, unused -> {
             searchView.setOnQueryChangeListener((oldQuery, newQuery) -> {
                 //get suggestions based on newQuery
                 databaseWorker.requestFoodstuffsLike(context, newQuery, SEARCH_SUGGESTIONS_NUMBER, foodstuffs -> {

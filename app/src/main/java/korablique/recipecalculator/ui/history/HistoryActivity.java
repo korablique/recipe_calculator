@@ -21,7 +21,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import korablique.recipecalculator.FloatUtils;
-import korablique.recipecalculator.base.MainThreadExecutor;
+import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.model.Foodstuff;

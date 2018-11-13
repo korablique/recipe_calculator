@@ -18,7 +18,9 @@ apply plugin: 'kotlin-android'
 apply plugin: 'io.fabric'
 
 repositories {
-    maven { url 'https://maven.fabric.io/public' }
+    maven {
+        url 'https://maven.fabric.io/public'
+    }
     google()
     mavenCentral()
 }
@@ -96,4 +98,5 @@ dependencies {
     testCompile 'org.mockito:mockito-android:2.19.0'
     testCompile 'org.robolectric:robolectric:3.8'
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    testCompile "com.android.support.test:runner:1.0.2"
 }

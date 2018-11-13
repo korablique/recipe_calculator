@@ -10,9 +10,8 @@ import android.support.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-import korablique.recipecalculator.base.MainThreadExecutor;
+import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.model.Foodstuff;
-import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
 
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_CALORIES;
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_CARBS;
@@ -29,8 +28,8 @@ public class DatabaseWorker {
     private DatabaseThreadExecutor databaseThreadExecutor;
     private MainThreadExecutor mainThreadExecutor;
 
-    public interface FoodstuffsRequestCallback {
-        void onResult(List<Foodstuff> foodstuffs);
+    public interface FoodstuffsBatchReceiveCallback {
+        void onReceive(List<Foodstuff> foodstuffs);
     }
 
     public interface FinishCallback {
@@ -231,7 +230,7 @@ public class DatabaseWorker {
     public void requestListedFoodstuffsFromDb(
             final Context context,
             final int batchSize,
-            @NonNull final FoodstuffsRequestCallback foodstuffsRequestCallback,
+            @NonNull final FoodstuffsBatchReceiveCallback foodstuffsBatchReceiveCallback,
             @Nullable FinishCallback finishCallback) {
         databaseThreadExecutor.execute(() -> {
             FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
@@ -261,13 +260,13 @@ public class DatabaseWorker {
                 ++index;
                 if (index >= batchSize) {
                     ArrayList<Foodstuff> batchCopy = new ArrayList<>(batchOfFoodstuffs);
-                    mainThreadExecutor.execute(() -> foodstuffsRequestCallback.onResult(batchCopy));
+                    mainThreadExecutor.execute(() -> foodstuffsBatchReceiveCallback.onReceive(batchCopy));
                     batchOfFoodstuffs.clear();
                     index = 0;
                 }
             }
             if (batchOfFoodstuffs.size() > 0) {
-                mainThreadExecutor.execute(() -> foodstuffsRequestCallback.onResult(batchOfFoodstuffs));
+                mainThreadExecutor.execute(() -> foodstuffsBatchReceiveCallback.onReceive(batchOfFoodstuffs));
             }
             cursor.close();
             if (finishCallback != null) {
@@ -279,8 +278,8 @@ public class DatabaseWorker {
     public void requestListedFoodstuffsFromDb(
             final Context context,
             final int batchSize,
-            @NonNull final FoodstuffsRequestCallback foodstuffsRequestCallback) {
-        requestListedFoodstuffsFromDb(context, batchSize, foodstuffsRequestCallback, null);
+            @NonNull final FoodstuffsBatchReceiveCallback foodstuffsBatchReceiveCallback) {
+        requestListedFoodstuffsFromDb(context, batchSize, foodstuffsBatchReceiveCallback, null);
     }
 
     /**
@@ -295,7 +294,7 @@ public class DatabaseWorker {
     public void requestFoodstuffsByIds(
             Context context,
             List<Long> ids,
-            FoodstuffsRequestCallback callback) {
+            FoodstuffsBatchReceiveCallback callback) {
         databaseThreadExecutor.execute(() -> {
             FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
             SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
@@ -330,7 +329,7 @@ public class DatabaseWorker {
                 cursor.close();
             }
             if (callback != null) {
-                mainThreadExecutor.execute(() -> callback.onResult(result));
+                mainThreadExecutor.execute(() -> callback.onReceive(result));
             }
         });
     }
@@ -342,7 +341,7 @@ public class DatabaseWorker {
      * @param limit - требуемое количество результатов поиска
      * @param callback
      */
-    public void requestFoodstuffsLike(Context context, String nameQuery, int limit, FoodstuffsRequestCallback callback) {
+    public void requestFoodstuffsLike(Context context, String nameQuery, int limit, FoodstuffsBatchReceiveCallback callback) {
         databaseThreadExecutor.execute(() -> {
             FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
             SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
@@ -373,7 +372,7 @@ public class DatabaseWorker {
                 result.add(foodstuff);
             }
             cursor.close();
-            mainThreadExecutor.execute(() -> callback.onResult(result));
+            mainThreadExecutor.execute(() -> callback.onReceive(result));
         });
     }
 }

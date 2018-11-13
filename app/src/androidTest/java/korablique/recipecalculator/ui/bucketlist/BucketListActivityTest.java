@@ -12,7 +12,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
@@ -20,7 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import korablique.recipecalculator.R;
-import korablique.recipecalculator.base.MainThreadExecutor;
+import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.FoodstuffsDbHelper;
@@ -28,7 +27,6 @@ import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.WeightedFoodstuff;
-import korablique.recipecalculator.ui.calculator.CalculatorActivity;
 import korablique.recipecalculator.ui.history.HistoryActivity;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
@@ -136,12 +134,9 @@ public class BucketListActivityTest {
                 activityRule.getActivity(),
                 dishName,
                 DatabaseWorker.NO_LIMIT,
-                new DatabaseWorker.FoodstuffsRequestCallback() {
-            @Override
-            public void onResult(List<Foodstuff> foodstuffs) {
-                saved[0] = foodstuffs.size() == 1;
-            }
-        });
+                foodstuffs -> {
+                    saved[0] = foodstuffs.size() == 1;
+                });
         Assert.assertTrue(saved[0]);
     }
 }
