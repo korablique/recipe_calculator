@@ -270,7 +270,7 @@ public class DatabaseWorker {
             }
             cursor.close();
             if (finishCallback != null) {
-                finishCallback.onFinish();
+                mainThreadExecutor.execute(finishCallback::onFinish);
             }
         });
     }
