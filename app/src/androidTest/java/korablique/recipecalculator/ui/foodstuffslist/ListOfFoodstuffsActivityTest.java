@@ -17,10 +17,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.Collections;
+import java.util.Arrays;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.database.DatabaseWorker;
+import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.ui.Card;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
@@ -41,6 +42,8 @@ import static org.hamcrest.Matchers.not;
 public class ListOfFoodstuffsActivityTest {
     private DatabaseWorker databaseWorker =
             new DatabaseWorker(new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
+    private Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+    private FoodstuffsList foodstuffsList = new FoodstuffsList(context, databaseWorker);
     private Long savedFoodstuffId;
 
 
@@ -49,7 +52,7 @@ public class ListOfFoodstuffsActivityTest {
             InjectableActivityTestRule.forActivity(ListOfFoodstuffsActivity.class)
                     .withManualStart()
                     .withSingletones(() -> {
-                        return Collections.singletonList(databaseWorker);
+                        return Arrays.asList(databaseWorker, foodstuffsList);
                     })
                     .build();
 
@@ -59,14 +62,15 @@ public class ListOfFoodstuffsActivityTest {
 
         Context context = InstrumentationRegistry.getTargetContext();
         Foodstuff foodstuff1 = Foodstuff.withName("product1").withNutrition(10, 10, 10, 10);
-        databaseWorker.saveFoodstuff(
+        foodstuffsList.saveFoodstuff(
                 context,
                 foodstuff1,
-                new DatabaseWorker.SaveFoodstuffCallback() {
+                new FoodstuffsList.SaveFoodstuffCallback() {
             @Override
             public void onResult(long id) {
                 savedFoodstuffId = id;
             }
+
             @Override
             public void onDuplication() {
                 throw new RuntimeException("Видимо, продукт уже существует");

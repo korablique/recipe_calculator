@@ -69,6 +69,14 @@ public class FoodstuffsAdapterChild extends AdapterChild {
         }
     }
 
+    public void removeItem(Foodstuff foodstuff) {
+        int index = foodstuffs.indexOf(foodstuff);
+        foodstuffs.remove(foodstuff);
+        for (Observer observer : getObservers()) {
+            observer.notifyItemRemoved(index, this);
+        }
+    }
+
     private void setTextViewText(View parent, int viewId, String text) {
         ((TextView) parent.findViewById(viewId)).setText(text);
     }

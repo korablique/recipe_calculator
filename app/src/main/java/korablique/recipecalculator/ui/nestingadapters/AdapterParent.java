@@ -36,6 +36,12 @@ public class AdapterParent extends RecyclerView.Adapter {
             int parentIndex = transformChildPositionIntoParentPosition(childIndex, child);
             notifyItemChanged(parentIndex);
         }
+
+        @Override
+        public void notifyItemRemoved(int childIndex, AdapterChild child) {
+            int parentIndex = transformChildPositionIntoParentPosition(childIndex, child);
+            AdapterParent.this.notifyItemRemoved(parentIndex);
+        }
     }
 
     @Override

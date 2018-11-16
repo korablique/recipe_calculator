@@ -16,13 +16,13 @@ import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.FoodstuffsDbHelper;
+import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.model.Foodstuff;
@@ -59,6 +59,7 @@ public class BucketListActivityTest {
             new HistoryWorker(context, mainThreadExecutor, databaseThreadExecutor);
     private UserParametersWorker userParametersWorker =
             new UserParametersWorker(context, mainThreadExecutor, databaseThreadExecutor);
+    private FoodstuffsList foodstuffsList = new FoodstuffsList(context, databaseWorker);
 
     @Rule
     public ActivityTestRule<BucketListActivity> activityRule =
@@ -66,7 +67,7 @@ public class BucketListActivityTest {
                     .withManualStart()
                     .withSingletones(() -> {
                         return Arrays.asList(mainThreadExecutor, databaseWorker,
-                                historyWorker, userParametersWorker);
+                                historyWorker, userParametersWorker, foodstuffsList);
                     })
                     .build();
 
@@ -130,13 +131,11 @@ public class BucketListActivityTest {
         onView(withId(R.id.save_button)).perform(click());
 
         final boolean[] saved = new boolean[1];
-        databaseWorker.requestFoodstuffsLike(
-                activityRule.getActivity(),
+        foodstuffsList.requestFoodstuffsLike(
+                context,
                 dishName,
                 DatabaseWorker.NO_LIMIT,
-                foodstuffs -> {
-                    saved[0] = foodstuffs.size() == 1;
-                });
+                foodstuffs -> saved[0] = foodstuffs.size() == 1);
         Assert.assertTrue(saved[0]);
     }
 }

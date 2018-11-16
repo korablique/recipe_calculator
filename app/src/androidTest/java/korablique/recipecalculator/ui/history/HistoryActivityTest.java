@@ -23,6 +23,7 @@ import java.util.List;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
+import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.model.Foodstuff;
@@ -60,6 +61,8 @@ public class HistoryActivityTest {
             new DatabaseWorker(mainThreadExecutor, new InstantDatabaseThreadExecutor());
     private HistoryWorker historyWorker;
     private UserParametersWorker userParametersWorker;
+    private Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+    private FoodstuffsList foodstuffsList = new FoodstuffsList(context, databaseWorker);
 
 
     @Rule
@@ -74,7 +77,7 @@ public class HistoryActivityTest {
                         context, new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
 
                 return Arrays.asList(mainThreadExecutor, databaseWorker,
-                        historyWorker, userParametersWorker);
+                        historyWorker, userParametersWorker, foodstuffsList);
             })
             .build();
 

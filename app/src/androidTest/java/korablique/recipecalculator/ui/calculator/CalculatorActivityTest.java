@@ -1,6 +1,7 @@
 package korablique.recipecalculator.ui.calculator;
 
 import android.app.Instrumentation;
+import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.Espresso;
 import android.support.test.espresso.matcher.ViewMatchers;
@@ -19,10 +20,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.Collections;
+import java.util.Arrays;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.database.DatabaseWorker;
+import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.ui.Card;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
@@ -41,14 +43,17 @@ import static org.hamcrest.Matchers.not;
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class CalculatorActivityTest {
+    private Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
     private DatabaseWorker databaseWorker = new DatabaseWorker(
             new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
+    private FoodstuffsList foodstuffsList = new FoodstuffsList(context, databaseWorker);
+
 
     @Rule
     public ActivityTestRule<CalculatorActivity> mActivityRule =
             InjectableActivityTestRule.forActivity(CalculatorActivity.class)
                     .withSingletones(() -> {
-                        return Collections.singletonList(databaseWorker);
+                        return Arrays.asList(databaseWorker, foodstuffsList);
                     })
                     .build();
 
