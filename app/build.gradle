@@ -30,7 +30,7 @@ android {
     buildToolsVersion '28.0.2'
     defaultConfig {
         applicationId "korablique.recipecalculator"
-        minSdkVersion 16
+        minSdkVersion 21
         targetSdkVersion 27
         versionCode 12
         versionName "18.02.04"
