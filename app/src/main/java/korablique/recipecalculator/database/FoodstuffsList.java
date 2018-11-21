@@ -3,6 +3,7 @@ package korablique.recipecalculator.database;
 import android.content.Context;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -15,7 +16,7 @@ import korablique.recipecalculator.model.Nutrition;
 @Singleton
 public class FoodstuffsList {
     public interface Observer {
-        void onFoodstuffSaved(Foodstuff savedFoodstuff);
+        void onFoodstuffSaved(Foodstuff savedFoodstuff, int index);
         void onFoodstuffEdited(Foodstuff edited);
         void onFoodstuffDeleted(Foodstuff deleted);
     }
@@ -77,7 +78,7 @@ public class FoodstuffsList {
                 () -> {
                     allLoaded = true;
                     for (Callback<List<Foodstuff>> callback : finishCallbacks) {
-                        callback.onResult(all);
+                        callback.onResult(Collections.unmodifiableList(all));
                     }
                     batchCallbacks.clear();
                     finishCallbacks.clear();
@@ -86,81 +87,85 @@ public class FoodstuffsList {
     }
 
     public void saveFoodstuff(Context context, Foodstuff foodstuff, SaveFoodstuffCallback callback) {
-        databaseWorker.saveFoodstuff(context, foodstuff, new DatabaseWorker.SaveFoodstuffCallback() {
-            @Override
-            public void onResult(long id) {
-                Foodstuff foodstuffWithId = Foodstuff.withId(id).withName(foodstuff.getName()).withNutrition(
-                        foodstuff.getProtein(), foodstuff.getFats(), foodstuff.getCarbs(), foodstuff.getCalories());
-                all.add(foodstuffWithId);
-                callback.onResult(id);
-                for (Observer observer : observers) {
-                    observer.onFoodstuffSaved(foodstuffWithId);
+        getAllFoodstuffs(unused -> {}, unused -> {
+            databaseWorker.saveFoodstuff(context, foodstuff, new DatabaseWorker.SaveFoodstuffCallback() {
+                @Override
+                public void onResult(long id) {
+                    Foodstuff foodstuffWithId = Foodstuff.withId(id).withName(foodstuff.getName()).withNutrition(
+                            foodstuff.getProtein(), foodstuff.getFats(), foodstuff.getCarbs(), foodstuff.getCalories());
+                    int index = addLexicographically(foodstuffWithId);
+                    callback.onResult(id);
+                    for (Observer observer : observers) {
+                        observer.onFoodstuffSaved(foodstuffWithId, index);
+                    }
                 }
-            }
 
-            @Override
-            public void onDuplication() {
-                callback.onDuplication();
-            }
+                @Override
+                public void onDuplication() {
+                    callback.onDuplication();
+                }
+            });
         });
     }
 
+    /**
+     * @param context
+     * @param id id редактированного фудстаффа (не меняется при редактировании)
+     * @param editedFoodstuff отредактированный фудстафф
+     */
     public void editFoodstuff(Context context, long id, Foodstuff editedFoodstuff) {
-        databaseWorker.editFoodstuff(context, id, editedFoodstuff, new Runnable() {
-            @Override
-            public void run() {
-                Foodstuff editingFoodstuff = null;
-                for (Foodstuff foodstuff : all) {
+        getAllFoodstuffs(foodstuffs -> {}, foodstuffs -> {
+            databaseWorker.editFoodstuff(context, id, editedFoodstuff, () -> {
+                int editingFoodstuffIndex = -1;
+                for (int index = 0; index < all.size(); index++) {
+                    Foodstuff foodstuff = all.get(index);
                     if (foodstuff.getId() == id) {
-                        editingFoodstuff = foodstuff;
+                        editingFoodstuffIndex = index;
                         break;
                     }
                 }
                 Foodstuff editedFoodstuffWithId = Foodstuff.withId(id).withName(editedFoodstuff.getName())
                         .withNutrition(Nutrition.of100gramsOf(editedFoodstuff));
-                all.set(all.indexOf(editingFoodstuff), editedFoodstuffWithId);
+                all.set(editingFoodstuffIndex, editedFoodstuffWithId);
                 for (Observer observer : observers) {
                     observer.onFoodstuffEdited(editedFoodstuffWithId);
                 }
-            }
+            });
         });
     }
 
-    public void requestListedFoodstuffsFromDb(Context context, int batchSize, Callback<List<Foodstuff>> batchCallback) {
-        databaseWorker.requestListedFoodstuffsFromDb(context, batchSize, new DatabaseWorker.FoodstuffsBatchReceiveCallback() {
-            @Override
-            public void onReceive(List<Foodstuff> foodstuffs) {
-                batchCallback.onResult(foodstuffs);
+    public void requestFoodstuffsLike(String nameQuery, int limit, Callback<List<Foodstuff>> callback) {
+        getAllFoodstuffs(foodstuffs -> {}, foodstuffs -> {
+            List<Foodstuff> result = new ArrayList<>();
+            for (Foodstuff foodstuff : all) {
+                if (foodstuff.getName().toLowerCase().contains(nameQuery.toLowerCase())) {
+                    result.add(foodstuff);
+                    if (result.size() == limit) {
+                        break;
+                    }
+                }
             }
-        });
-    }
-
-    public void requestFoodstuffsLike(Context context, String nameQuery, int limit, Callback<List<Foodstuff>> callback) {
-        databaseWorker.requestFoodstuffsLike(context, nameQuery, limit, new DatabaseWorker.FoodstuffsBatchReceiveCallback() {
-            @Override
-            public void onReceive(List<Foodstuff> foodstuffs) {
-                callback.onResult(foodstuffs);
-            }
+            callback.onResult(result);
         });
     }
 
     public void removeFoodstuff(Context context, long foodstuffId, Runnable callback) {
-        Foodstuff deleted = null;
-        for (Foodstuff f : all) {
-            if (f.getId() == foodstuffId) {
-                deleted = f;
-                break;
+        getAllFoodstuffs(unused -> {}, unused -> {
+            Foodstuff deleted = null;
+            for (Foodstuff f : all) {
+                if (f.getId() == foodstuffId) {
+                    deleted = f;
+                    break;
+                }
             }
-        }
-        Foodstuff finalDeleted = deleted;
-        databaseWorker.makeFoodstuffUnlisted(context, foodstuffId, new Runnable() {
-            @Override
-            public void run() {
+            Foodstuff finalDeleted = deleted;
+            databaseWorker.makeFoodstuffUnlisted(context, foodstuffId, () -> {
                 all.remove(finalDeleted);
+                callback.run();
                 for (Observer observer : observers) {
                     observer.onFoodstuffDeleted(finalDeleted);
                 }
-            }
+            });
         });
     }
 
@@ -170,5 +175,17 @@ public class FoodstuffsList {
 
     public void removeObserver(Observer o) {
         observers.remove(o);
+    }
+
+    private int addLexicographically(Foodstuff newFoodstuff) {
+        for (int index = 0; index < all.size(); index++) {
+            Foodstuff f = all.get(index);
+            if (f.getName().toLowerCase().compareTo(newFoodstuff.getName().toLowerCase()) > 0) {
+                all.add(index, newFoodstuff);
+                return index;
+            }
+        }
+        all.add(newFoodstuff);
+        return (all.size() - 1);
     }
 }

@@ -132,7 +132,6 @@ public class BucketListActivityTest {
 
         final boolean[] saved = new boolean[1];
         foodstuffsList.requestFoodstuffsLike(
-                context,
                 dishName,
                 DatabaseWorker.NO_LIMIT,
                 foodstuffs -> saved[0] = foodstuffs.size() == 1);

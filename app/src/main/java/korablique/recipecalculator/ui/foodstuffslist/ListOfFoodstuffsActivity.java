@@ -18,10 +18,13 @@ import android.widget.EditText;
 import com.crashlytics.android.Crashlytics;
 import com.tapadoo.alerter.Alerter;
 
+import java.util.List;
+
 import javax.inject.Inject;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
+import korablique.recipecalculator.base.Callback;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.WeightedFoodstuff;
@@ -138,11 +141,9 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
         recyclerView.addItemDecoration(dividerItemDecoration);
         recyclerView.setAdapter(recyclerViewAdapter);
 
-        int batchSize = 100;
-        foodstuffsList.requestListedFoodstuffsFromDb(
-                this,
-                batchSize,
-                foodstuffs -> recyclerViewAdapter.addItems(foodstuffs));
+        foodstuffsList.getAllFoodstuffs(foodstuffs -> {
+            recyclerViewAdapter.addItems(foodstuffs);
+        }, foodstuffs -> {});
     }
 
     @Override

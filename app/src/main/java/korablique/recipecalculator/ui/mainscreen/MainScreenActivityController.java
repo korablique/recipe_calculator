@@ -89,8 +89,8 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
 
         foodstuffsList.addObserver(new FoodstuffsList.Observer() {
             @Override
-            public void onFoodstuffSaved(Foodstuff savedFoodstuff) {
-                foodstuffAdapterChild.addItems(Collections.singletonList(savedFoodstuff));
+            public void onFoodstuffSaved(Foodstuff savedFoodstuff, int index) {
+                foodstuffAdapterChild.addItem(savedFoodstuff, index);
             }
 
             @Override
@@ -160,7 +160,7 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
         }, unused -> {
             searchView.setOnQueryChangeListener((oldQuery, newQuery) -> {
                 //get suggestions based on newQuery
-                foodstuffsList.requestFoodstuffsLike(context, newQuery, SEARCH_SUGGESTIONS_NUMBER, foodstuffs -> {
+                foodstuffsList.requestFoodstuffsLike(newQuery, SEARCH_SUGGESTIONS_NUMBER, foodstuffs -> {
                     //pass them on to the search view
                     List<FoodstuffSearchSuggestion> newSuggestions = new ArrayList<>();
                     for (Foodstuff foodstuff : foodstuffs) {
