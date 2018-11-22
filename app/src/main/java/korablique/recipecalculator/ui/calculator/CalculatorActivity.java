@@ -19,10 +19,10 @@ import java.util.ArrayList;
 
 import javax.inject.Inject;
 
+import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.Card;
 import korablique.recipecalculator.ui.CardDisplaySource;
-import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.ui.FoodstuffsAdapter;
 import korablique.recipecalculator.ui.KeyboardHandler;
@@ -43,7 +43,7 @@ public class CalculatorActivity extends BaseActivity {
     public static final String CALORIES = "CALORIES";
 
     @Inject
-    DatabaseWorker databaseWorker;
+    FoodstuffsList foodstuffsList;
 
     private RecyclerView ingredients;
     private Card card;
@@ -154,11 +154,11 @@ public class CalculatorActivity extends BaseActivity {
                             .show();
                     return;
                 }
-
-                databaseWorker.saveFoodstuff(
+                
+                foodstuffsList.saveFoodstuff(
                         CalculatorActivity.this,
                         savingFoodstuff.withoutWeight(),
-                        new DatabaseWorker.SaveFoodstuffCallback() {
+                        new FoodstuffsList.SaveFoodstuffCallback() {
                     @Override
                     public void onResult(long id) {
                         new KeyboardHandler(CalculatorActivity.this).hideKeyBoard();

@@ -13,13 +13,13 @@ import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.ActivityCallbacks;
-import korablique.recipecalculator.database.DatabaseWorker;
+import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
-import korablique.recipecalculator.model.FoodstuffsList;
 import korablique.recipecalculator.model.TopList;
 import korablique.recipecalculator.ui.KeyboardHandler;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
@@ -41,7 +41,6 @@ import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
 public class MainScreenActivityController extends ActivityCallbacks.Observer {
     private static final int SEARCH_SUGGESTIONS_NUMBER = 3;
     private final FragmentActivity context;
-    private final DatabaseWorker databaseWorker;
     private final FoodstuffsList foodstuffsList;
     private final TopList topList;
     private final Lifecycle lifecycle;
@@ -73,13 +72,11 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
 
     public MainScreenActivityController(
             MainScreenActivity context,
-            DatabaseWorker databaseWorker,
             FoodstuffsList foodstuffsList,
             TopList topList,
             ActivityCallbacks activityCallbacks,
             Lifecycle lifecycle) {
         this.context = context;
-        this.databaseWorker = databaseWorker;
         this.foodstuffsList = foodstuffsList;
         this.topList = topList;
         this.lifecycle = lifecycle;
@@ -89,6 +86,23 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
     @Override
     public void onActivityCreate(Bundle savedInstanceState) {
         initActivity();
+
+        foodstuffsList.addObserver(new FoodstuffsList.Observer() {
+            @Override
+            public void onFoodstuffSaved(Foodstuff savedFoodstuff, int index) {
+                foodstuffAdapterChild.addItem(savedFoodstuff, index);
+            }
+
+            @Override
+            public void onFoodstuffEdited(Foodstuff edited) {
+                foodstuffAdapterChild.replaceItem(edited);
+            }
+
+            @Override
+            public void onFoodstuffDeleted(Foodstuff deleted) {
+                foodstuffAdapterChild.removeItem(deleted);
+            }
+        });
 
         BucketList bucketList = BucketList.getInstance();
         bucketList.addObserver(weightedFoodstuff -> {
@@ -146,7 +160,7 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
         }, unused -> {
             searchView.setOnQueryChangeListener((oldQuery, newQuery) -> {
                 //get suggestions based on newQuery
-                databaseWorker.requestFoodstuffsLike(context, newQuery, SEARCH_SUGGESTIONS_NUMBER, foodstuffs -> {
+                foodstuffsList.requestFoodstuffsLike(newQuery, SEARCH_SUGGESTIONS_NUMBER, foodstuffs -> {
                     //pass them on to the search view
                     List<FoodstuffSearchSuggestion> newSuggestions = new ArrayList<>();
                     for (Foodstuff foodstuff : foodstuffs) {

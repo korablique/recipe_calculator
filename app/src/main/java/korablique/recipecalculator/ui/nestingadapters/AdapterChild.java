@@ -14,6 +14,7 @@ public abstract class AdapterChild {
     public interface Observer {
         void notifyItemInsertedToChild(int index, AdapterChild child);
         void notifyItemChangedInChild(int index, AdapterChild child);
+        void notifyItemRemoved(int index, AdapterChild child);
     }
 
     public AdapterChild() {

@@ -23,8 +23,7 @@ import korablique.recipecalculator.DishNutritionCalculator;
 import korablique.recipecalculator.FloatUtils;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
-import korablique.recipecalculator.database.DatabaseWorker;
-import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.NutritionProgressWrapper;
@@ -38,7 +37,7 @@ public class BucketListActivity extends BaseActivity {
     private NutritionProgressWrapper nutritionProgressWrapper;
     private NutritionValuesWrapper nutritionValuesWrapper;
     @Inject
-    DatabaseWorker databaseWorker;
+    FoodstuffsList foodstuffsList;
     private BucketListAdapter adapter;
     private EditText totalWeightEditText;
     private Button saveToHistoryButton;
@@ -129,7 +128,7 @@ public class BucketListActivity extends BaseActivity {
 
         // диалог, появляющийся при сохранении блюда
         SaveDishDialog.OnSaveDishButtonClickListener saveDishButtonClickListener = (foodstuff) -> {
-            databaseWorker.saveFoodstuff(this, foodstuff, new DatabaseWorker.SaveFoodstuffCallback() {
+            foodstuffsList.saveFoodstuff(this, foodstuff, new FoodstuffsList.SaveFoodstuffCallback() {
                 @Override
                 public void onResult(long id) {
                     SaveDishDialog dialog = SaveDishDialog.findDialog(BucketListActivity.this);

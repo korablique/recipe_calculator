@@ -18,8 +18,9 @@ import korablique.recipecalculator.BuildConfig;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.DatabaseWorker.FinishCallback;
 import korablique.recipecalculator.database.DatabaseWorker.FoodstuffsBatchReceiveCallback;
+import korablique.recipecalculator.database.FoodstuffsList;
 
-import static korablique.recipecalculator.model.FoodstuffsList.BATCH_SIZE;
+import static korablique.recipecalculator.database.FoodstuffsList.BATCH_SIZE;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.doAnswer;

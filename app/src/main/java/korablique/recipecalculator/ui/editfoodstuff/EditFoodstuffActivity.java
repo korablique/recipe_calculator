@@ -18,7 +18,7 @@ import javax.inject.Inject;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
-import korablique.recipecalculator.database.DatabaseWorker;
+import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.ui.NutritionProgressWrapper;
@@ -30,7 +30,7 @@ import static korablique.recipecalculator.ui.card.NewCard.EDITED_FOODSTUFF;
 public class EditFoodstuffActivity extends BaseActivity {
     public static final String EDIT_FOODSTUFF_ACTION = "korablique.recipecalculator.EDIT_FOODSTUFF_ACTION";
     @Inject
-    DatabaseWorker databaseWorker;
+    FoodstuffsList foodstuffsList;
     private NutritionProgressWrapper nutritionProgressWrapper;
     private EditText foodstuffNameEditText;
     private EditText proteinEditText;
@@ -107,7 +107,7 @@ public class EditFoodstuffActivity extends BaseActivity {
             saveButton.setOnClickListener(v -> {
                 Foodstuff editedFoodstuff = parseFoodstuff();
                 long id = editingFoodstuff.getId();
-                databaseWorker.editFoodstuff(EditFoodstuffActivity.this, id, editedFoodstuff);
+                foodstuffsList.editFoodstuff(EditFoodstuffActivity.this, id, editedFoodstuff);
 
                 Foodstuff editedFoodstuffWithId =
                         Foodstuff.withId(id)
@@ -119,7 +119,10 @@ public class EditFoodstuffActivity extends BaseActivity {
             });
         } else {
             saveButton.setOnClickListener(v -> {
-                databaseWorker.saveFoodstuff(EditFoodstuffActivity.this, parseFoodstuff(), new DatabaseWorker.SaveFoodstuffCallback() {
+                foodstuffsList.saveFoodstuff(
+                        EditFoodstuffActivity.this,
+                        parseFoodstuff(),
+                        new FoodstuffsList.SaveFoodstuffCallback() {
                     @Override
                     public void onResult(long id) {
                         Toast.makeText(EditFoodstuffActivity.this, R.string.saved, Toast.LENGTH_SHORT).show();

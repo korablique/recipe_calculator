@@ -59,6 +59,13 @@ public class FoodstuffsAdapterChild extends AdapterChild {
         return 0;
     }
 
+    public void addItem(Foodstuff foodstuff, int index) {
+        foodstuffs.add(index, foodstuff);
+        for (Observer observer : getObservers()) {
+            observer.notifyItemInsertedToChild(index, this);
+        }
+    }
+
     public void addItems(List<Foodstuff> items) {
         int allFoodstuffsSizeBefore = foodstuffs.size();
         foodstuffs.addAll(items);
@@ -66,6 +73,14 @@ public class FoodstuffsAdapterChild extends AdapterChild {
             for (Observer observer : getObservers()) {
                 observer.notifyItemInsertedToChild(allFoodstuffsSizeBefore + index, this);
             }
+        }
+    }
+
+    public void removeItem(Foodstuff foodstuff) {
+        int index = foodstuffs.indexOf(foodstuff);
+        foodstuffs.remove(foodstuff);
+        for (Observer observer : getObservers()) {
+            observer.notifyItemRemoved(index, this);
         }
     }
 

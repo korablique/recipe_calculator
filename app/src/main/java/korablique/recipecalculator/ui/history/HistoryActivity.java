@@ -22,13 +22,14 @@ import javax.inject.Inject;
 
 import korablique.recipecalculator.FloatUtils;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
+import korablique.recipecalculator.database.DatabaseWorker;
+import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.HistoryEntry;
 import korablique.recipecalculator.ui.Card;
 import korablique.recipecalculator.ui.CardDisplaySource;
-import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.KeyboardHandler;
 import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
@@ -59,6 +60,8 @@ public class HistoryActivity extends BaseActivity {
     DatabaseWorker databaseWorker;
     @Inject
     HistoryWorker historyWorker;
+    @Inject
+    FoodstuffsList foodstuffsList;
     @Inject
     UserParametersWorker userParametersWorker;
     @Inject
@@ -296,24 +299,20 @@ public class HistoryActivity extends BaseActivity {
                     return;
                 }
 
-                databaseWorker.saveFoodstuff(
+                foodstuffsList.saveFoodstuff(
                         HistoryActivity.this,
                         savingFoodstuff.withoutWeight(),
-                        new DatabaseWorker.SaveFoodstuffCallback() {
+                        new FoodstuffsList.SaveFoodstuffCallback() {
                     @Override
                     public void onResult(long id) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                new KeyboardHandler(HistoryActivity.this).hideKeyBoard();
-                                Snackbar.make(
-                                        findViewById(android.R.id.content),
-                                        "Продукт сохранён",
-                                        Snackbar.LENGTH_SHORT)
-                                        .show();
-                            }
-                        });
+                        new KeyboardHandler(HistoryActivity.this).hideKeyBoard();
+                        Snackbar.make(
+                                findViewById(android.R.id.content),
+                                "Продукт сохранён",
+                                Snackbar.LENGTH_SHORT)
+                                .show();
                     }
+
                     @Override
                     public void onDuplication() {
                         Alerter.create(HistoryActivity.this)

@@ -22,24 +22,24 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import korablique.recipecalculator.R;
+import korablique.recipecalculator.base.BaseActivity;
+import korablique.recipecalculator.base.Callback;
+import korablique.recipecalculator.database.FoodstuffsList;
+import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.Card;
-import korablique.recipecalculator.database.DatabaseWorker;
-import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.ui.FoodstuffsAdapter;
 import korablique.recipecalculator.ui.KeyboardHandler;
-import korablique.recipecalculator.base.BaseActivity;
-import korablique.recipecalculator.R;
 
 import static korablique.recipecalculator.IntentConstants.FIND_FOODSTUFF_REQUEST;
 import static korablique.recipecalculator.IntentConstants.NAME;
 import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
 
 public class ListOfFoodstuffsActivity extends BaseActivity {
-    @Inject
-    DatabaseWorker databaseWorker;
-
     public static final String FIND_FOODSTUFF_ACTION = "korablique.recipecalculator.FIND_FOODSTUFF_ACTION";
+    @Inject
+    FoodstuffsList foodstuffsList;
     private Card card;
     private FoodstuffsAdapter<Foodstuff> recyclerViewAdapter;
     private int editedFoodstuffPosition;
@@ -104,7 +104,7 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
                         return;
                     }
                     //сохраняем новые значения в базу данных
-                    databaseWorker.editFoodstuff(ListOfFoodstuffsActivity.this, editedFoodstuffId,
+                    foodstuffsList.editFoodstuff(ListOfFoodstuffsActivity.this, editedFoodstuffId,
                             newFoodstuff.withoutWeight());
                     recyclerViewAdapter.replaceItem(newFoodstuff.withoutWeight(), editedFoodstuffPosition);
                     KeyboardHandler keyboardHandler = new KeyboardHandler(ListOfFoodstuffsActivity.this);
@@ -117,7 +117,7 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
             card.setOnButtonDeleteClickedRunnable(new Runnable() {
                 @Override
                 public void run() {
-                    databaseWorker.makeFoodstuffUnlisted(ListOfFoodstuffsActivity.this, editedFoodstuffId, null);
+                    foodstuffsList.removeFoodstuff(ListOfFoodstuffsActivity.this, editedFoodstuffId, null);
                     recyclerViewAdapter.deleteItem(editedFoodstuffPosition);
                     new KeyboardHandler(ListOfFoodstuffsActivity.this).hideKeyBoard();
                     card.hide();
@@ -141,11 +141,9 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
         recyclerView.addItemDecoration(dividerItemDecoration);
         recyclerView.setAdapter(recyclerViewAdapter);
 
-        int batchSize = 100;
-        databaseWorker.requestListedFoodstuffsFromDb(
-                this,
-                batchSize,
-                foodstuffs -> recyclerViewAdapter.addItems(foodstuffs));
+        foodstuffsList.getAllFoodstuffs(foodstuffs -> {
+            recyclerViewAdapter.addItems(foodstuffs);
+        }, foodstuffs -> {});
     }
 
     @Override

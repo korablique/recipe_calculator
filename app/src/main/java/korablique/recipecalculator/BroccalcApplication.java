@@ -13,7 +13,6 @@ import dagger.android.DispatchingAndroidInjector;
 import dagger.android.HasActivityInjector;
 import dagger.android.HasBroadcastReceiverInjector;
 import io.fabric.sdk.android.Fabric;
-import korablique.recipecalculator.dagger.DaggerBroccalcApplicationComponent;
 import korablique.recipecalculator.dagger.Injector;
 import korablique.recipecalculator.dagger.InjectorHolder;
 import korablique.recipecalculator.database.HistoryWorker;

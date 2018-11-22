@@ -33,7 +33,7 @@ import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.FoodstuffsDbHelper;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.model.Foodstuff;
-import korablique.recipecalculator.model.FoodstuffsList;
+import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.PopularProductsUtils;
 import korablique.recipecalculator.model.TopList;
@@ -99,7 +99,7 @@ public class MainScreenActivityTest {
                     MainScreenActivity activity = (MainScreenActivity) injectionTarget;
                     ActivityCallbacks activityCallbacks = activity.getActivityCallbacks();
                     MainScreenActivityController controller = new MainScreenActivityController(
-                            activity, databaseWorker, foodstuffsList, topList, activityCallbacks, activity.getLifecycle());
+                            activity, foodstuffsList, topList, activityCallbacks, activity.getLifecycle());
                     return Collections.singletonList(controller);
                 })
                 .build();

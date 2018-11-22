@@ -10,6 +10,7 @@ import android.support.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import korablique.recipecalculator.base.Callback;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.model.Foodstuff;
 
@@ -177,6 +178,14 @@ public class DatabaseWorker {
     }
 
     public void editFoodstuff(final Context context, final long editedFoodstuffId, final Foodstuff newFoodstuff) {
+        editFoodstuff(context, editedFoodstuffId, newFoodstuff, null);
+    }
+
+    public void editFoodstuff(
+            final Context context,
+            final long editedFoodstuffId,
+            final Foodstuff newFoodstuff,
+            Runnable callback) {
         databaseThreadExecutor.execute(new Runnable() {
             @Override
             public void run() {
@@ -195,9 +204,13 @@ public class DatabaseWorker {
                         contentValues,
                         FoodstuffsContract.ID + " = ?",
                         new String[]{String.valueOf(editedFoodstuffId)});
+                if (callback != null) {
+                    mainThreadExecutor.execute(callback);
+                }
             }
         });
     }
+
 
     public void deleteFoodstuff(final Context context, final long foodstuffsId) {
         databaseThreadExecutor.execute(() -> {
