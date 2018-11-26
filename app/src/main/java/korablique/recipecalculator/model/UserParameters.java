@@ -1,5 +1,9 @@
 package korablique.recipecalculator.model;
 
+import java.util.Objects;
+
+import korablique.recipecalculator.FloatUtils;
+
 public class UserParameters {
     private final String goal;
     private final String gender;
@@ -18,6 +22,7 @@ public class UserParameters {
             float physicalActivityCoefficient,
             String formula) {
         this.goal = goal;
+
         this.gender = gender;
         this.age = age;
         this.height = height;
@@ -55,24 +60,22 @@ public class UserParameters {
     }
 
     @Override
-    public boolean equals(Object other) {
-        if (!(other instanceof UserParameters)) {
-            return false;
-        }
-
-        UserParameters otherParams = (UserParameters) other;
-        return goal.equals(otherParams.goal)
-                && gender.equals(otherParams.gender)
-                && age == otherParams.age
-                && height == otherParams.height
-                && weight == otherParams.weight
-                && physicalActivityCoefficient == otherParams.physicalActivityCoefficient
-                && formula.equals(otherParams.formula);
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UserParameters that = (UserParameters) o;
+        return age == that.age &&
+                height == that.height &&
+                weight == that.weight &&
+                FloatUtils.areFloatsEquals(that.physicalActivityCoefficient, physicalActivityCoefficient) &&
+                Objects.equals(goal, that.goal) &&
+                Objects.equals(gender, that.gender) &&
+                Objects.equals(formula, that.formula);
     }
 
     @Override
     public int hashCode() {
-        // NOTE: hash code is terrible, but the class is not stored in collections.
-        return age;
+        return Objects.hash(goal, gender, age, height, weight, physicalActivityCoefficient, formula);
     }
 }
+

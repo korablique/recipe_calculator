@@ -98,9 +98,9 @@ public class HistoryActivity extends BaseActivity {
         ViewGroup parentLayout = findViewById(R.id.history_parent);
         card = new Card(this, parentLayout);
 
-        Single<Optional<UserParameters>> obs =
+        Single<Optional<UserParameters>> paramsSingle =
                 userParametersWorker.requestCurrentUserParameters();
-        subscriptions.subscribe(obs, (Optional<UserParameters> parameters) -> {
+        subscriptions.subscribe(paramsSingle, (Optional<UserParameters> parameters) -> {
             if (parameters.isPresent()) {
                 initializeActivity(parameters.get());
                 tryToAddFoodstuffsFrom(getIntent());

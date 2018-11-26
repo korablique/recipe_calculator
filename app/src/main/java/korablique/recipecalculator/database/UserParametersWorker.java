@@ -24,10 +24,10 @@ import static korablique.recipecalculator.database.UserParametersContract.COLUMN
 import static korablique.recipecalculator.database.UserParametersContract.USER_PARAMETERS_TABLE_NAME;
 
 public class UserParametersWorker {
-    private Context context;
-    private DatabaseThreadExecutor databaseThreadExecutor;
-    private MainThreadExecutor mainThreadExecutor;
-    private Single<Optional<UserParameters>> cachedUserParameters;
+    private final Context context;
+    private final DatabaseThreadExecutor databaseThreadExecutor;
+    private final MainThreadExecutor mainThreadExecutor;
+    private volatile Single<Optional<UserParameters>> cachedUserParameters;
 
     public UserParametersWorker(
             Context context,
@@ -40,7 +40,7 @@ public class UserParametersWorker {
 
     public void initCache() {
         cachedUserParameters = requestCurrentUserParametersObservable();
-        // Форсируем моментальный старт иначе ленивого запроса, чтобы запрос в БД фактически стартовал.
+        // Форсируем моментальный старт ленивого запроса, чтобы запрос в БД фактически стартовал.
         cachedUserParameters.subscribe();
     }
 
@@ -128,7 +128,8 @@ public class UserParametersWorker {
 
         // Сразу подписываемся на получивщийся Completable, чтобы форсировать немедленный
         // старт операции без ожидания подписчиков (кажется естественным, что клиенты могут вызывать
-        // saveUserParameters и не особо интересоваться моментом, когда сохранение будет завершено).
+        // saveUserParameters и не особо интересоваться моментом, когда сохранение будет завершено,
+        // т.е. вообще не подписываться на Completable).
         result.subscribe();
 
         return result;
