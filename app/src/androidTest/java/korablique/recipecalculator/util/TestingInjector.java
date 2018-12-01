@@ -6,7 +6,9 @@ import android.support.v4.app.Fragment;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -21,7 +23,12 @@ import korablique.recipecalculator.dagger.Injector;
 public class TestingInjector implements Injector {
     @Nullable
     private final ActivitiesInjectionSource activitiesInjectionSource;
+    @Nullable
+    private final FragmentInjectionSource fragmentInjectionSource;
     private final List<Object> singletonInjections;
+
+    private final Map<BaseActivity, List<Object>> cachedActivityInjections = new HashMap<>();
+    private final Map<Fragment, List<Object>> cachedFragmentInjections = new HashMap<>();
 
     /**
      * Объект, предоставляющий @Singleton-зависимости
@@ -34,9 +41,14 @@ public class TestingInjector implements Injector {
         List<Object> createFor(Object injectionTarget);
     }
 
+    public interface FragmentInjectionSource {
+        List<Object> createFor(Object injectionTarget);
+    }
+
     public TestingInjector(
             @Nullable SingletonInjectionsSource singletonInjectionsSource,
-            @Nullable ActivitiesInjectionSource activitiesInjectionSource) {
+            @Nullable ActivitiesInjectionSource activitiesInjectionSource,
+            @Nullable FragmentInjectionSource fragmentInjectionSource) {
         if (singletonInjectionsSource == null && activitiesInjectionSource == null) {
             throw new IllegalStateException("All injections sources are null");
         }
@@ -46,6 +58,7 @@ public class TestingInjector implements Injector {
             this.singletonInjections = Collections.emptyList();
         }
         this.activitiesInjectionSource = activitiesInjectionSource;
+        this.fragmentInjectionSource = fragmentInjectionSource;
     }
 
     @Override
@@ -56,20 +69,40 @@ public class TestingInjector implements Injector {
 
     @Override
     public void inject(BaseActivity activity) {
-        injectImpl(activity);
+        ensureCacheExistence(activity);
+        injectImpl(activity, cachedActivityInjections.get(activity));
+    }
+
+    private void ensureCacheExistence(BaseActivity activity) {
+        if (!cachedActivityInjections.containsKey(activity)) {
+            List<Object> injectedObjects = new ArrayList<>(singletonInjections);
+            if (activitiesInjectionSource != null) {
+                injectedObjects.addAll(activitiesInjectionSource.createFor(activity));
+            }
+            cachedActivityInjections.put(activity, injectedObjects);
+        }
     }
 
     @Override
     public void inject(Fragment fragment) {
-        injectImpl(fragment);
+        ensureCacheExistence(fragment);
+        injectImpl(fragment, cachedFragmentInjections.get(fragment));
     }
 
-    private <T> void injectImpl(T target) {
-        List<Object> injectedObjects = new ArrayList<>(singletonInjections);
-        if (activitiesInjectionSource != null) {
-            injectedObjects.addAll(activitiesInjectionSource.createFor(target));
-        }
+    private void ensureCacheExistence(Fragment fragment) {
+        BaseActivity activity = (BaseActivity) fragment.getActivity();
+        ensureCacheExistence(activity);
 
+        if (!cachedFragmentInjections.containsKey(fragment)) {
+            List<Object> injectedObjects = new ArrayList<>(cachedActivityInjections.get(activity));
+            if (fragmentInjectionSource != null) {
+                injectedObjects.addAll(fragmentInjectionSource.createFor(fragment));
+            }
+            cachedFragmentInjections.put(fragment, injectedObjects);
+        }
+    }
+
+    private <T> void injectImpl(T target, List<Object> injectedObjects) {
         for (Field field : target.getClass().getDeclaredFields()) {
             if (field.getType() != DispatchingAndroidInjector.class && field.isAnnotationPresent(Inject.class)) {
                 injectInto(target, field, injectedObjects);

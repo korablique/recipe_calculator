@@ -6,25 +6,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#EFF1F6"
-    tools:context="korablique.recipecalculator.ui.mainscreen.MainScreenActivity"
+    tools:context="korablique.recipecalculator.ui.mainscreen.MainActivity"
     xmlns:custom="http://schemas.android.com/apk/res-auto">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <View
-            android:id="@+id/search_view"
-            android:layout_width="match_parent"
-            android:layout_height="78dp"
-            android:background="#FF5768E9" />
-
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/main_screen_recycler_view"
+        <FrameLayout
+            android:id="@+id/main_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="78dp">
-        </android.support.v7.widget.RecyclerView>
+            android:layout_above="@id/navigation">
+        </FrameLayout>
 
         <android.support.design.widget.BottomNavigationView
             android:id="@+id/navigation"
@@ -37,27 +31,6 @@
             app:itemBackground="@drawable/navigation_item_background"
             app:itemIconTint="@drawable/navigation_item_selector"
             app:itemTextColor="@drawable/navigation_item_selector" />
-        
-        <include
-            android:id="@+id/snackbar"
-            layout="@layout/selected_foodstuffs_snackbar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_above="@id/navigation"
-            android:visibility="invisible" />
-
-        <FrameLayout
-            android:id="@+id/fragment_container"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@id/search_view"
-            android:layout_above="@id/navigation"/>
-
-        <include
-            android:id="@+id/search_layout"
-            layout="@layout/search_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
     </RelativeLayout>
 
 </FrameLayout>

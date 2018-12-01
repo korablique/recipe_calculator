@@ -118,4 +118,13 @@ public class FoodstuffsAdapterChild extends AdapterChild {
         }
         return false;
     }
+
+    public boolean containsFoodstuffWithId(long id) {
+        for (Foodstuff f : foodstuffs) {
+            if (f.getId() == id) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

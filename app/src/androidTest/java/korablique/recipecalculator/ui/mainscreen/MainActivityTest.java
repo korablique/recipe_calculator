@@ -2,6 +2,7 @@ package korablique.recipecalculator.ui.mainscreen;
 
 import android.app.Activity;
 import android.app.Instrumentation;
+import android.arch.lifecycle.Lifecycle;
 import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
@@ -9,6 +10,7 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.LargeTest;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
+import android.support.v4.app.Fragment;
 import android.view.View;
 
 import junit.framework.Assert;
@@ -29,11 +31,12 @@ import java.util.List;
 import korablique.recipecalculator.IntentConstants;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.ActivityCallbacks;
+import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.FoodstuffsDbHelper;
+import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.model.Foodstuff;
-import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.PopularProductsUtils;
 import korablique.recipecalculator.model.TopList;
@@ -69,7 +72,7 @@ import static org.hamcrest.Matchers.not;
 
 @RunWith(AndroidJUnit4.class)
 @LargeTest
-public class MainScreenActivityTest {
+public class MainActivityTest {
     private SyncMainThreadExecutor mainThreadExecutor = new SyncMainThreadExecutor();
     private DatabaseWorker databaseWorker;
     private HistoryWorker historyWorker;
@@ -80,8 +83,8 @@ public class MainScreenActivityTest {
     private BucketList bucketList = BucketList.getInstance();
 
     @Rule
-    public ActivityTestRule<MainScreenActivity> mActivityRule =
-            InjectableActivityTestRule.forActivity(MainScreenActivity.class)
+    public ActivityTestRule<MainActivity> mActivityRule =
+            InjectableActivityTestRule.forActivity(MainActivity.class)
                 .withManualStart()
                 .withSingletones(() -> {
                     databaseWorker =
@@ -93,15 +96,23 @@ public class MainScreenActivityTest {
                     return Arrays.asList(databaseWorker, historyWorker, foodstuffsList);
                 })
                 .withActivityScoped((injectionTarget) -> {
-                    if (!(injectionTarget instanceof MainScreenActivity)) {
+                    if (!(injectionTarget instanceof MainActivity)) {
                         return Collections.emptyList();
                     }
-                    MainScreenActivity activity = (MainScreenActivity) injectionTarget;
+                    MainActivity activity = (MainActivity) injectionTarget;
                     ActivityCallbacks activityCallbacks = activity.getActivityCallbacks();
-                    MainScreenActivityController controller = new MainScreenActivityController(
-                            activity, foodstuffsList, topList, activityCallbacks, activity.getLifecycle());
+                    MainActivityController controller = new MainActivityController(
+                            activity, activityCallbacks);
                     return Collections.singletonList(controller);
                 })
+                .withFragmentScoped((injectionTarget -> {
+                    MainScreenFragment fragment = (MainScreenFragment) injectionTarget;
+                    BaseActivity activity = (BaseActivity) fragment.getActivity();
+                    Lifecycle lifecycle = activity.getLifecycle();
+                    MainScreenController controller = new MainScreenController(
+                            activity, fragment, fragment.getFragmentCallbacks(), lifecycle, topList, foodstuffsList);
+                    return Collections.singletonList(controller);
+                }))
                 .build();
 
     @Before
@@ -263,7 +274,10 @@ public class MainScreenActivityTest {
         // onActivityResult нельзя вызвать на потоке тестов,
         // поэтому запускаем на главном потоке блокирующую операцию
         mainThreadExecutor.execute(() -> {
-            mActivityRule.getActivity().onActivityResult(IntentConstants.EDIT_FOODSTUFF_REQUEST, Activity.RESULT_OK, data);
+            List<Fragment> fragments = mActivityRule.getActivity().getSupportFragmentManager().getFragments();
+            for (Fragment fragment : fragments) {
+                fragment.onActivityResult(IntentConstants.EDIT_FOODSTUFF_REQUEST, Activity.RESULT_OK, data);
+            }
         });
 
         onView(withId(R.id.button_close)).perform(click());

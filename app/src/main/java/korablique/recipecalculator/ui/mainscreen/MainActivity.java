@@ -9,9 +9,9 @@ import dagger.android.DispatchingAndroidInjector;
 import dagger.android.support.HasSupportFragmentInjector;
 import korablique.recipecalculator.base.BaseActivity;
 
-public class MainScreenActivity extends BaseActivity implements HasSupportFragmentInjector {
+public class MainActivity extends BaseActivity implements HasSupportFragmentInjector {
     @Inject
-    MainScreenActivityController controller;
+    MainActivityController controller;
     @Inject
     DispatchingAndroidInjector<Fragment> fragmentInjector;
 

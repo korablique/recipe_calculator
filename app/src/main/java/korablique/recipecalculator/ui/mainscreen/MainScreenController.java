@@ -3,21 +3,25 @@ package korablique.recipecalculator.ui.mainscreen;
 import android.arch.lifecycle.Lifecycle;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.BottomNavigationView;
-import android.support.v4.app.FragmentActivity;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import korablique.recipecalculator.R;
-import korablique.recipecalculator.base.ActivityCallbacks;
+import korablique.recipecalculator.base.BaseActivity;
+import korablique.recipecalculator.base.FragmentCallbacks;
+import korablique.recipecalculator.dagger.FragmentScope;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.TopList;
@@ -27,7 +31,6 @@ import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.card.NewCard;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
-import korablique.recipecalculator.ui.history.HistoryActivity;
 import korablique.recipecalculator.ui.nestingadapters.AdapterParent;
 import korablique.recipecalculator.ui.nestingadapters.FoodstuffsAdapterChild;
 import korablique.recipecalculator.ui.nestingadapters.SingleItemAdapterChild;
@@ -38,23 +41,20 @@ import static korablique.recipecalculator.IntentConstants.EDIT_RESULT;
 import static korablique.recipecalculator.IntentConstants.FIND_FOODSTUFF_REQUEST;
 import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
 
-public class MainScreenActivityController extends ActivityCallbacks.Observer {
+@FragmentScope
+public class MainScreenController extends FragmentCallbacks.Observer {
     private static final int SEARCH_SUGGESTIONS_NUMBER = 3;
-    private final FragmentActivity context;
+    private BaseActivity context;
+    private MainScreenFragment fragment;
+    private Lifecycle lifecycle;
     private final FoodstuffsList foodstuffsList;
     private final TopList topList;
-    private final Lifecycle lifecycle;
     private AdapterParent adapterParent;
     private FoodstuffsAdapterChild topAdapterChild;
     private FoodstuffsAdapterChild foodstuffAdapterChild;
-    private List<Foodstuff> top;
-    private List<Foodstuff> all;
-
-    private SelectedFoodstuffsSnackbar snackbar;
-    private BottomNavigationView bottomNavigationView;
-    private RecyclerView recyclerView;
     private FloatingSearchView searchView;
-    private NewCard.OnAddFoodstuffButtonClickListener cardDialogListener;
+    private SelectedFoodstuffsSnackbar snackbar;
+    private NewCard.OnAddFoodstuffButtonClickListener cardDialogOnAddFoodstuffButtonClickListener;
     private NewCard.OnEditButtonClickListener cardDialogOnEditButtonClickListener;
     // Действие, которое нужно выполнить с диалогом после savedInstanceState (показ или скрытие диалога)
     // Поле нужно, чтобы приложение не крешило при показе диалога, когда тот показывается в момент,
@@ -70,22 +70,30 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
     // а fm требует сохранение стейта от всех своих компонентов, и т.д.)
     private Runnable dialogAction;
 
-    public MainScreenActivityController(
-            MainScreenActivity context,
-            FoodstuffsList foodstuffsList,
+    @Inject
+    MainScreenController(
+            BaseActivity context,
+            MainScreenFragment fragment,
+            FragmentCallbacks fragmentCallbacks,
+            Lifecycle lifecycle,
             TopList topList,
-            ActivityCallbacks activityCallbacks,
-            Lifecycle lifecycle) {
+            FoodstuffsList foodstuffsList) {
         this.context = context;
-        this.foodstuffsList = foodstuffsList;
-        this.topList = topList;
+        this.fragment = fragment;
         this.lifecycle = lifecycle;
-        activityCallbacks.addObserver(this);
+        this.topList = topList;
+        this.foodstuffsList = foodstuffsList;
+        fragmentCallbacks.addObserver(this);
     }
 
     @Override
-    public void onActivityCreate(Bundle savedInstanceState) {
-        initActivity();
+    public void onFragmentViewCreated(View fragmentView) {
+        snackbar = new SelectedFoodstuffsSnackbar(fragmentView);
+        searchView = fragmentView.findViewById(R.id.floating_search_view);
+
+        RecyclerView recyclerView = fragmentView.findViewById(R.id.main_screen_recycler_view);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(context);
+        recyclerView.setLayoutManager(layoutManager);
 
         foodstuffsList.addObserver(new FoodstuffsList.Observer() {
             @Override
@@ -95,6 +103,9 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
 
             @Override
             public void onFoodstuffEdited(Foodstuff edited) {
+                if (topAdapterChild.containsFoodstuffWithId(edited.getId())) {
+                    topAdapterChild.replaceItem(edited);
+                }
                 foodstuffAdapterChild.replaceItem(edited);
             }
 
@@ -114,20 +125,10 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
             BucketListActivity.start(new ArrayList<>(snackbar.getSelectedFoodstuffs()), context);
         });
 
-        bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
-            switch (item.getItemId()) {
-                case R.id.menu_item_history:
-                    Intent historyIntent = new Intent(context, HistoryActivity.class);
-                    context.startActivity(historyIntent);
-                    break;
-            }
-            return false;
-        });
-
         adapterParent = new AdapterParent();
         recyclerView.setAdapter(adapterParent);
 
-        cardDialogListener = foodstuff -> {
+        cardDialogOnAddFoodstuffButtonClickListener = foodstuff -> {
             hideCard();
             bucketList.add(foodstuff);
             snackbar.show();
@@ -135,90 +136,29 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
             searchView.clearQuery();
         };
         cardDialogOnEditButtonClickListener = foodstuff -> {
-            EditFoodstuffActivity.startForEditing(context, foodstuff);
+            EditFoodstuffActivity.startForEditing(fragment, foodstuff);
         };
 
         CardDialog cardDialog = CardDialog.findCard(context);
         if (cardDialog != null) {
-            cardDialog.setOnAddFoodstuffButtonClickListener(cardDialogListener);
+            cardDialog.setOnAddFoodstuffButtonClickListener(cardDialogOnAddFoodstuffButtonClickListener);
             cardDialog.setOnEditButtonClickListener(cardDialogOnEditButtonClickListener);
         }
 
-
         topList.getTopList(foodstuffs -> {
-            top = new ArrayList<>();
-            top.addAll(foodstuffs);
-            attemptToAddElementsToAdapters();
-        });
+            fillTop(foodstuffs);
 
-        foodstuffsList.getAllFoodstuffs( foodstuffs -> {
-            if (all == null) {
-                all = new ArrayList<>();
-            }
-            all.addAll(foodstuffs);
-            attemptToAddElementsToAdapters();
-        }, unused -> {
-            searchView.setOnQueryChangeListener((oldQuery, newQuery) -> {
-                //get suggestions based on newQuery
-                foodstuffsList.requestFoodstuffsLike(newQuery, SEARCH_SUGGESTIONS_NUMBER, foodstuffs -> {
-                    //pass them on to the search view
-                    List<FoodstuffSearchSuggestion> newSuggestions = new ArrayList<>();
-                    for (Foodstuff foodstuff : foodstuffs) {
-                        FoodstuffSearchSuggestion suggestion = new FoodstuffSearchSuggestion(foodstuff);
-                        newSuggestions.add(suggestion);
-                    }
-                    searchView.swapSuggestions(newSuggestions);
-                });
-            });
+            foodstuffsList.getAllFoodstuffs(batch -> {
+                fillAllFoodstuffsList(batch);
+            }, unused -> {
+                configureSuggesionsDisplaying();
 
-            searchView.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
-                @Override
-                public void onSuggestionClicked(SearchSuggestion searchSuggestion) {
-                    FoodstuffSearchSuggestion suggestion = (FoodstuffSearchSuggestion) searchSuggestion;
-                    showCard(suggestion.getFoodstuff());
-                }
-
-                // когда пользователь нажал на клавиатуре enter
-                @Override
-                public void onSearchAction(String currentQuery) {
-                    performSearch();
-                }
-            });
-
-            // когда пользователь нажал кнопку лупы в searchView
-            searchView.setOnMenuItemClickListener(item -> {
-                performSearch();
+                configureSearch();
             });
         });
     }
 
-    private void initActivity() {
-        context.setContentView(R.layout.activity_main_screen);
-
-        snackbar = new SelectedFoodstuffsSnackbar(context);
-        bottomNavigationView = context.findViewById(R.id.navigation);
-        searchView = context.findViewById(R.id.floating_search_view);
-
-        recyclerView = context.findViewById(R.id.main_screen_recycler_view);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(context);
-        recyclerView.setLayoutManager(layoutManager);
-    }
-
-    private void attemptToAddElementsToAdapters() {
-        if (top == null || all == null) {
-            return;
-        }
-        if (!top.isEmpty()) {
-            if (topAdapterChild == null) {
-                topAdapterChild = new FoodstuffsAdapterChild(context, (foodstuff, pos) -> showCard(foodstuff));
-                SingleItemAdapterChild topTitle = new SingleItemAdapterChild(R.layout.top_foodstuffs_header);
-                adapterParent.addChild(topTitle);
-                adapterParent.addChild(topAdapterChild);
-                topAdapterChild.addItems(top);
-            }
-        }
-        // если топ пустой, то топ-адаптер не нужно создавать, чтобы не было заголовка
-
+    private void fillAllFoodstuffsList(List<Foodstuff> batch) {
         if (foodstuffAdapterChild == null) {
             SingleItemAdapterChild.Observer observer = v -> {
                 View addNewFoodstuffButton = v.findViewById(R.id.add_new_foodstuff);
@@ -232,27 +172,78 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
             adapterParent.addChild(foodstuffsTitle);
             adapterParent.addChild(foodstuffAdapterChild);
         }
-        foodstuffAdapterChild.addItems(all);
+        foodstuffAdapterChild.addItems(batch);
+    }
+
+    private void fillTop(List<Foodstuff> foodstuffs) {
+        if (!foodstuffs.isEmpty()) {
+            if (topAdapterChild == null) {
+                topAdapterChild = new FoodstuffsAdapterChild(context, (foodstuff, pos) -> showCard(foodstuff));
+                SingleItemAdapterChild topTitle = new SingleItemAdapterChild(R.layout.top_foodstuffs_header);
+                adapterParent.addChild(topTitle);
+                adapterParent.addChild(topAdapterChild);
+                topAdapterChild.addItems(foodstuffs);
+            }
+        }
+    }
+
+    private void configureSearch() {
+        searchView.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
+            // действие при нажатии на подсказку
+            @Override
+            public void onSuggestionClicked(SearchSuggestion searchSuggestion) {
+                FoodstuffSearchSuggestion suggestion = (FoodstuffSearchSuggestion) searchSuggestion;
+                showCard(suggestion.getFoodstuff());
+            }
+
+            // когда пользователь нажал на клавиатуре enter
+            @Override
+            public void onSearchAction(String currentQuery) {
+                SearchResultsFragment.show(currentQuery, context);
+            }
+        });
+
+        // когда пользователь нажал кнопку лупы в searchView
+        searchView.setOnMenuItemClickListener(item -> {
+            SearchResultsFragment.show(searchView.getQuery(), context);
+        });
+    }
+
+    private void configureSuggesionsDisplaying() {
+        searchView.setOnQueryChangeListener((oldQuery, newQuery) -> {
+            //get suggestions based on newQuery
+            foodstuffsList.requestFoodstuffsLike(newQuery, SEARCH_SUGGESTIONS_NUMBER, result -> {
+                //pass them on to the search view
+                List<FoodstuffSearchSuggestion> newSuggestions = new ArrayList<>();
+                for (Foodstuff foodstuff : result) {
+                    FoodstuffSearchSuggestion suggestion = new FoodstuffSearchSuggestion(foodstuff);
+                    newSuggestions.add(suggestion);
+                }
+                searchView.swapSuggestions(newSuggestions);
+            });
+        });
     }
 
     @Override
-    public void onActivityResume() {
+    public void onFragmentSaveInstanceState(Bundle outState) {
+        snackbar.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onFragmentRestoreInstanceState(Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            snackbar.onRestoreInstanceState(savedInstanceState);
+        }
+    }
+
+    @Override
+    public void onFragmentResume() {
         if (dialogAction != null) {
             dialogAction.run();
         }
 
         BucketList bucketList = BucketList.getInstance();
         snackbar.update(bucketList.getList());
-    }
-
-    @Override
-    public void onActivitySaveInstanceState(Bundle outState) {
-        snackbar.onSaveInstanceState(outState);
-    }
-
-    @Override
-    public void onActivityRestoreInstanceState(Bundle savedInstanceState) {
-        snackbar.onRestoreInstanceState(savedInstanceState);
     }
 
     @Override
@@ -275,7 +266,7 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
     private void showCard(Foodstuff foodstuff) {
         dialogAction = () -> {
             CardDialog cardDialog = CardDialog.showCard(context, foodstuff);
-            cardDialog.setOnAddFoodstuffButtonClickListener(cardDialogListener);
+            cardDialog.setOnAddFoodstuffButtonClickListener(cardDialogOnAddFoodstuffButtonClickListener);
             cardDialog.setOnEditButtonClickListener(cardDialogOnEditButtonClickListener);
             dialogAction = null;
         };
@@ -294,14 +285,5 @@ public class MainScreenActivityController extends ActivityCallbacks.Observer {
         }
     }
 
-    private void performSearch() {
-        String wanted = searchView.getQuery().toLowerCase().trim();
-        List<Foodstuff> searchResults = new ArrayList<>();
-        for (Foodstuff f : all) {
-            if (f.getName().toLowerCase().contains(wanted)) {
-                searchResults.add(f);
-            }
-        }
-        SearchResultsFragment.show(wanted, searchResults, context);
-    }
+
 }

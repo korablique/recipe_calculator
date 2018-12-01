@@ -21,7 +21,7 @@ import korablique.recipecalculator.dagger.InjectorHolder;
 import korablique.recipecalculator.ui.calculator.CalculatorActivity;
 import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
 import korablique.recipecalculator.ui.history.HistoryActivity;
-import korablique.recipecalculator.ui.mainscreen.MainScreenActivity;
+import korablique.recipecalculator.ui.mainscreen.MainActivity;
 
 public abstract class BaseActivity extends AppCompatActivity {
     private final ActivityCallbacks activityCallbacks = new ActivityCallbacks();
@@ -98,12 +98,12 @@ public abstract class BaseActivity extends AppCompatActivity {
         IDrawerItem itemPrimary4 = null;
         if (BuildConfig.DEBUG) {
             itemPrimary4 = new PrimaryDrawerItem()
-                    .withName("MainScreenActivity")
+                    .withName("MainActivity")
                     .withSelectable(false)
                     .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
                         @Override
                         public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
-                            Intent intent = new Intent(BaseActivity.this, MainScreenActivity.class);
+                            Intent intent = new Intent(BaseActivity.this, MainActivity.class);
                             BaseActivity.this.startActivity(intent);
                             return true;
                         }
