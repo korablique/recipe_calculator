@@ -2,7 +2,6 @@ package korablique.recipecalculator.ui.mainscreen;
 
 
 import android.animation.ValueAnimator;
-import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,9 +25,9 @@ public class SelectedFoodstuffsSnackbar {
     private TextView selectedFoodstuffsCounter;
     private List<WeightedFoodstuff> selectedFoodstuffs = new ArrayList<>();
 
-    public SelectedFoodstuffsSnackbar(Activity activity) {
-        snackbarLayout = activity.findViewById(R.id.snackbar);
-        selectedFoodstuffsCounter = activity.findViewById(R.id.selected_foodstuffs_counter);
+    public SelectedFoodstuffsSnackbar(View fragmentView) {
+        snackbarLayout = fragmentView.findViewById(R.id.snackbar);
+        selectedFoodstuffsCounter = fragmentView.findViewById(R.id.selected_foodstuffs_counter);
     }
 
     public void show() {

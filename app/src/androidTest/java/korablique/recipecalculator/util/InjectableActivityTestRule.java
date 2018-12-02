@@ -11,7 +11,9 @@ import org.junit.runners.model.Statement;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.dagger.InjectorHolder;
 import korablique.recipecalculator.util.TestingInjector.ActivitiesInjectionSource;
+import korablique.recipecalculator.util.TestingInjector.FragmentInjectionSource;
 import korablique.recipecalculator.util.TestingInjector.SingletonInjectionsSource;
+
 
 /**
  * Rule для Espresso, которое необходимо использовать вместо ActivityTestRule, если Активити
@@ -23,6 +25,8 @@ public class InjectableActivityTestRule<T extends BaseActivity> extends Activity
     private final SingletonInjectionsSource singletonInjectionsSource;
     @Nullable
     private final ActivitiesInjectionSource activitiesInjectionSource;
+    @Nullable
+    private final FragmentInjectionSource fragmentInjectionSource;
 
     public static <BT extends BaseActivity> Builder<BT> forActivity(Class<BT> activityClass) {
         return new Builder<>(activityClass);
@@ -32,13 +36,14 @@ public class InjectableActivityTestRule<T extends BaseActivity> extends Activity
         super(builder.activityClass, false /* initialTouchMode */, builder.shouldStartImmediately);
         this.singletonInjectionsSource = builder.singletonInjectionsSource;
         this.activitiesInjectionSource = builder.activitiesInjectionSource;
+        this.fragmentInjectionSource = builder.fragmentInjectionSource;
     }
 
     private void onTestStarted() {
         // Initializing espresso-intents
         Intents.init();
         InjectorHolder.setInjector(
-                new TestingInjector(singletonInjectionsSource, activitiesInjectionSource));
+                new TestingInjector(singletonInjectionsSource, activitiesInjectionSource, fragmentInjectionSource));
     }
 
     private void onTestEnded() {
@@ -58,6 +63,8 @@ public class InjectableActivityTestRule<T extends BaseActivity> extends Activity
         private SingletonInjectionsSource singletonInjectionsSource;
         @Nullable
         private ActivitiesInjectionSource activitiesInjectionSource;
+        @Nullable
+        private FragmentInjectionSource fragmentInjectionSource;
         private boolean shouldStartImmediately = true;
 
         private Builder(Class<BT> activityClass) {
@@ -86,6 +93,11 @@ public class InjectableActivityTestRule<T extends BaseActivity> extends Activity
          */
         public Builder<BT> withActivityScoped(ActivitiesInjectionSource source) {
             this.activitiesInjectionSource = source;
+            return this;
+        }
+
+        public Builder<BT> withFragmentScoped(FragmentInjectionSource source) {
+            this.fragmentInjectionSource = source;
             return this;
         }
 

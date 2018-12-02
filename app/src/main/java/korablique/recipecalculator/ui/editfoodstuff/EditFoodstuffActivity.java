@@ -1,9 +1,9 @@
 package korablique.recipecalculator.ui.editfoodstuff;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -143,11 +143,11 @@ public class EditFoodstuffActivity extends BaseActivity {
         context.startActivity(intent);
     }
 
-    public static void startForEditing(Activity context, Foodstuff foodstuff) {
-        Intent intent = new Intent(context, EditFoodstuffActivity.class);
+    public static void startForEditing(Fragment fragment, Foodstuff foodstuff) {
+        Intent intent = new Intent(fragment.getContext(), EditFoodstuffActivity.class);
         intent.setAction(EDIT_FOODSTUFF_ACTION);
         intent.putExtra(EDITED_FOODSTUFF, foodstuff);
-        context.startActivityForResult(intent, EDIT_FOODSTUFF_REQUEST);
+        fragment.startActivityForResult(intent, EDIT_FOODSTUFF_REQUEST);
     }
 
     public static Intent createEditingResultIntent(Foodstuff editedFoodstuff) {

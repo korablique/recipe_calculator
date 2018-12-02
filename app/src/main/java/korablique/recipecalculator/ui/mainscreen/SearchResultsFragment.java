@@ -19,22 +19,24 @@ import java.util.List;
 import javax.inject.Inject;
 
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.base.Callback;
 import korablique.recipecalculator.dagger.InjectorHolder;
 import korablique.recipecalculator.database.DatabaseWorker;
+import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.card.CardDialog;
 
 public class SearchResultsFragment extends Fragment {
-    public static final String SEARCH_RESULTS = "SEARCH_RESULTS";
     public static final String REQUEST = "REQUEST";
-
     @Inject
     DatabaseWorker databaseWorker;
     @Inject
     Lifecycle lifecycle;
     @Inject
-    MainScreenActivity mainScreenActivity;
+    MainActivity mainActivity;
+    @Inject
+    FoodstuffsList foodstuffsList;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -47,10 +49,10 @@ public class SearchResultsFragment extends Fragment {
                              ViewGroup container,
                              Bundle savedInstanceState) {
         View fragmentView = inflater.inflate(R.layout.search_results_layout, container, false);
-        String request = getArguments().getString(REQUEST);
+        String query = getArguments().getString(REQUEST);
 
         TextView searchRequestTextView = fragmentView.findViewById(R.id.search_results_text_view);
-        searchRequestTextView.setText(getResources().getString(R.string.search_results, request));
+        searchRequestTextView.setText(getResources().getString(R.string.search_results, query));
 
         RecyclerView searchResultsRecyclerView = fragmentView.findViewById(R.id.search_results_recycler_view);
         SearchResultsAdapter adapter = new SearchResultsAdapter((foodstuff, position) -> {
@@ -64,27 +66,38 @@ public class SearchResultsFragment extends Fragment {
             });
         });
         searchResultsRecyclerView.setAdapter(adapter);
-        List<Foodstuff> searchResults = getArguments().getParcelableArrayList(SEARCH_RESULTS);
-        adapter.addItems(searchResults);
+        performSearch(query, results -> {
+            adapter.addItems(results);
 
-        if (adapter.getItemCount() == 0) {
-            fragmentView.findViewById(R.id.nothing_found_view).setVisibility(View.VISIBLE);
-        } else {
-            fragmentView.findViewById(R.id.nothing_found_view).setVisibility(View.GONE);
-        }
-
+            if (adapter.getItemCount() == 0) {
+                fragmentView.findViewById(R.id.nothing_found_view).setVisibility(View.VISIBLE);
+            } else {
+                fragmentView.findViewById(R.id.nothing_found_view).setVisibility(View.GONE);
+            }
+        });
         return fragmentView;
     }
 
-    public static void show(String request, List<Foodstuff> searchResults, FragmentActivity context) {
+    public static void show(String request, FragmentActivity context) {
         Fragment searchResultsFragment = new SearchResultsFragment();
         Bundle args = new Bundle();
         args.putString(REQUEST, request);
-        args.putParcelableArrayList(SEARCH_RESULTS, new ArrayList<>(searchResults));
         searchResultsFragment.setArguments(args);
         FragmentTransaction transaction = context.getSupportFragmentManager().beginTransaction();
         transaction.add(R.id.fragment_container, searchResultsFragment);
         transaction.addToBackStack(null);
         transaction.commit();
+    }
+
+    private void performSearch(String query, Callback<List<Foodstuff>> callback) {
+        List<Foodstuff> searchResults = new ArrayList<>();
+        foodstuffsList.getAllFoodstuffs(unused -> {}, foodstuffs -> {
+            for (Foodstuff f : foodstuffs) {
+                if (f.getName().toLowerCase().contains(query)) {
+                    searchResults.add(f);
+                }
+            }
+            callback.onResult(searchResults);
+        });
     }
 }
