@@ -32,7 +32,6 @@ public class SelectedFoodstuffsSnackbar {
 
     public void show() {
         snackbarLayout.setVisibility(View.VISIBLE);
-        snackbarLayout.bringToFront();
         float startValue = snackbarLayout.getHeight();
         float endValue = 0;
         if (!isShown) {
