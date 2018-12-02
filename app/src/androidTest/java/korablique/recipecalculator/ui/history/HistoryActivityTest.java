@@ -17,10 +17,12 @@ import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.base.BaseActivity;
+import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.FoodstuffsList;
@@ -35,7 +37,6 @@ import korablique.recipecalculator.util.DbUtil;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.SyncMainThreadExecutor;
-import korablique.recipecalculator.util.TestingInjector;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
@@ -52,6 +53,7 @@ import static korablique.recipecalculator.database.HistoryContract.HISTORY_TABLE
 import static korablique.recipecalculator.database.HistoryWorker.BATCH_SIZE;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
+import static org.mockito.Mockito.mock;
 
 @RunWith(AndroidJUnit4.class)
 @LargeTest
@@ -63,7 +65,6 @@ public class HistoryActivityTest {
     private UserParametersWorker userParametersWorker;
     private Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
     private FoodstuffsList foodstuffsList = new FoodstuffsList(context, databaseWorker);
-
 
     @Rule
     public ActivityTestRule<HistoryActivity> mActivityRule =
@@ -78,6 +79,12 @@ public class HistoryActivityTest {
 
                 return Arrays.asList(mainThreadExecutor, databaseWorker,
                         historyWorker, userParametersWorker, foodstuffsList);
+            })
+            .withActivityScoped(target -> {
+                BaseActivity activity = (BaseActivity) target;
+                RxActivitySubscriptions subscriptions =
+                        new RxActivitySubscriptions(activity.getActivityCallbacks());
+                return Collections.singletonList(subscriptions);
             })
             .build();
 
@@ -98,7 +105,7 @@ public class HistoryActivityTest {
         String defaultFormula = resources.getStringArray(R.array.formula_array)[0];
         UserParameters userParameters = new UserParameters(
                 goal, gender, age, height, weight, coefficient, defaultFormula);
-        userParametersWorker.saveUserParameters(context, userParameters, null);
+        userParametersWorker.saveUserParameters(userParameters);
     }
 
     @After

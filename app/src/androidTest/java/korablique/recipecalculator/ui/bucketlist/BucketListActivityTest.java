@@ -16,8 +16,12 @@ import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.base.BaseActivity;
+import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
@@ -68,6 +72,11 @@ public class BucketListActivityTest {
                     .withSingletones(() -> {
                         return Arrays.asList(mainThreadExecutor, databaseWorker,
                                 historyWorker, userParametersWorker, foodstuffsList);
+                    })
+                    .withActivityScoped((target) -> {
+                        BaseActivity activity = (BaseActivity) target;
+                        return Collections.singletonList(
+                                new RxActivitySubscriptions(activity.getActivityCallbacks()));
                     })
                     .build();
 

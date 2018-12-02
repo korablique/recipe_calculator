@@ -20,7 +20,12 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import io.reactivex.Single;
 import korablique.recipecalculator.FloatUtils;
+import korablique.recipecalculator.R;
+import korablique.recipecalculator.base.BaseActivity;
+import korablique.recipecalculator.base.Optional;
+import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.FoodstuffsList;
@@ -28,17 +33,16 @@ import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.HistoryEntry;
+import korablique.recipecalculator.model.RateCalculator;
+import korablique.recipecalculator.model.Rates;
+import korablique.recipecalculator.model.UserParameters;
+import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.Card;
 import korablique.recipecalculator.ui.CardDisplaySource;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.KeyboardHandler;
 import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
-import korablique.recipecalculator.base.BaseActivity;
-import korablique.recipecalculator.R;
-import korablique.recipecalculator.model.RateCalculator;
-import korablique.recipecalculator.model.Rates;
 import korablique.recipecalculator.ui.usergoal.UserGoalActivity;
-import korablique.recipecalculator.model.UserParameters;
 
 import static korablique.recipecalculator.IntentConstants.FIND_FOODSTUFF_REQUEST;
 import static korablique.recipecalculator.IntentConstants.NAME;
@@ -66,6 +70,8 @@ public class HistoryActivity extends BaseActivity {
     UserParametersWorker userParametersWorker;
     @Inject
     MainThreadExecutor mainThreadExecutor;
+    @Inject
+    RxActivitySubscriptions subscriptions;
 
     private Card card;
     private int editedFoodstuffPosition;
@@ -92,18 +98,16 @@ public class HistoryActivity extends BaseActivity {
         ViewGroup parentLayout = findViewById(R.id.history_parent);
         card = new Card(this, parentLayout);
 
-        userParametersWorker.requestCurrentUserParameters(
-                HistoryActivity.this, new UserParametersWorker.RequestCurrentUserParametersCallback() {
-            @Override
-            public void onResult(final UserParameters userParameters) {
-                if (userParameters == null) {
-                    Intent intent = new Intent(HistoryActivity.this, UserGoalActivity.class);
-                    startActivity(intent);
-                    finish();
-                } else {
-                    initializeActivity(userParameters);
-                    tryToAddFoodstuffsFrom(getIntent());
-                }
+        Single<Optional<UserParameters>> paramsSingle =
+                userParametersWorker.requestCurrentUserParameters();
+        subscriptions.subscribe(paramsSingle, (Optional<UserParameters> parameters) -> {
+            if (parameters.isPresent()) {
+                initializeActivity(parameters.get());
+                tryToAddFoodstuffsFrom(getIntent());
+            } else {
+                Intent intent = new Intent(HistoryActivity.this, UserGoalActivity.class);
+                startActivity(intent);
+                finish();
             }
         });
     }

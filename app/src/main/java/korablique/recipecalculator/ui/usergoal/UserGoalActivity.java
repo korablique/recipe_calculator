@@ -14,8 +14,13 @@ import com.crashlytics.android.Crashlytics;
 
 import javax.inject.Inject;
 
-import korablique.recipecalculator.R;
+import io.reactivex.Completable;
+import io.reactivex.Single;
+import io.reactivex.disposables.Disposable;
+import korablique.recipecalculator.base.RxActivitySubscriptions;
+import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.base.BaseActivity;
+import korablique.recipecalculator.R;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.ui.history.HistoryActivity;
@@ -23,6 +28,8 @@ import korablique.recipecalculator.ui.history.HistoryActivity;
 public class UserGoalActivity extends BaseActivity {
     @Inject
     UserParametersWorker userParametersWorker;
+    @Inject
+    RxActivitySubscriptions subscriptions;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,20 +85,12 @@ public class UserGoalActivity extends BaseActivity {
                 String defaultFormula = getResources().getStringArray(R.array.formula_array)[0];
                 UserParameters userParameters = new UserParameters(
                         selectedGoal, selectedGender, age, height, weight, coefficient, defaultFormula);
-                userParametersWorker.saveUserParameters(
-                        UserGoalActivity.this, userParameters, new Runnable() {
-                            @Override
-                            public void run() {
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        Intent intent = new Intent(UserGoalActivity.this, HistoryActivity.class);
-                                        startActivity(intent);
-                                        finish();
-                                    }
-                                });
-                            }
-                        });
+                Completable callback = userParametersWorker.saveUserParameters(userParameters);
+                subscriptions.subscribe(callback, () -> {
+                    Intent intent = new Intent(UserGoalActivity.this, HistoryActivity.class);
+                    startActivity(intent);
+                    finish();
+                });
             }
         });
     }
