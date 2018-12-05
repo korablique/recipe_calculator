@@ -8,7 +8,7 @@
 
     <TextView
         android:id="@+id/all_foodstuffs_header_text"
-        style="@style/MontserratText"
+        style="@style/MontserratHeaderText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"

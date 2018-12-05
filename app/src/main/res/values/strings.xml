@@ -62,6 +62,17 @@
     <string name="search_results">Результаты поиска \"%s\"</string>
     <string name="add_new_foodstuff">Добавить новый продукт</string>
     <string name="nothing_found">Ничего не найдено</string>
+    <string name="calorie_intake">Норма калорий:</string>
+    <string name="set_current_weight">Изменить текущий вес</string>
+    <string name="recommended_nutrition_ratio">Рекомендуемое БЖУ</string>
+    <string name="how_it_is_calculated">Рассчитывается по формуле</string>
+    <string name="last_measurements_date">Дата последних измерений</string>
+    <string name="user_weight">Вес:</string>
+    <string name="hips">Бёдра:</string>
+    <string name="chest">Грудь:</string>
+    <string name="waist">Талия:</string>
+    <string name="reached">Достигнуто</string>
+    <string name="percent">%</string>
 
     <string-array name="goals_array">
         <item name="losing_weight">Похудение</item>

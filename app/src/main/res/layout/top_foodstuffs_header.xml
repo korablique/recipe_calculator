@@ -9,7 +9,7 @@
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
         android:paddingLeft="16dp"
-        style="@style/MontserratText"
+        style="@style/MontserratHeaderText"
         android:text="@string/top_header"
         android:layout_marginTop="19dp"/>
 

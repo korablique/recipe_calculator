@@ -13,7 +13,7 @@
 
     <TextView
         android:id="@+id/title_text"
-        style="@style/MontserratText"
+        style="@style/MontserratHeaderText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
