@@ -17,6 +17,7 @@ public class FragmentCallbacks {
         public void onActivityResult(int requestCode, int resultCode, Intent data) {}
         public void onFragmentSaveInstanceState(Bundle outState) {}
         public void onFragmentRestoreInstanceState(Bundle savedInstanceState) {}
+        public void onFragmentDestroy() {}
     }
 
     public void addObserver(Observer observer) {
@@ -60,6 +61,12 @@ public class FragmentCallbacks {
     void dispatchFragmentRestoreInstanceState(Bundle savedInstanceState) {
         for (Observer observer : observers) {
             observer.onFragmentRestoreInstanceState(savedInstanceState);
+        }
+    }
+
+    void dispatchFragmentDestroy() {
+        for (Observer observer : observers) {
+            observer.onFragmentDestroy();
         }
     }
 }
