@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:custom="http://schemas.android.com/apk/res-auto"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="#FFFFFF">
 
     <!--прогресс-бар-->
     <korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar
@@ -17,9 +15,9 @@
         custom:color1="#FFFFE982"
         custom:color2="#FF5768E9"
         custom:corners_radii="10dp"
-        custom:background_bar_color="#EFF1F6"/>
+        custom:background_bar_color="#EFF1F6" />
 
-    <!--табличка БЖУК-->
+    <!--табличка БЖУ-->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -43,14 +41,6 @@
 
         <include
             android:id="@+id/carbs_layout"
-            layout="@layout/nutrition_layout_with_color"
-            android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"/>
-
-        <include
-            android:id="@+id/calories_layout"
             layout="@layout/nutrition_layout_with_color"
             android:layout_weight="1"
             android:layout_width="0dp"

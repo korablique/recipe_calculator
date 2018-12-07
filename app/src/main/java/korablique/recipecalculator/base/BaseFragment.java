@@ -57,6 +57,12 @@ public abstract class BaseFragment extends Fragment {
         fragmentCallbacks.dispatchActivityResult(requestCode, resultCode, data);
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        fragmentCallbacks.dispatchFragmentDestroy();
+    }
+
     public FragmentCallbacks getFragmentCallbacks() {
         return fragmentCallbacks;
     }

@@ -42,6 +42,7 @@ import korablique.recipecalculator.model.HistoryEntry;
  * сохраняет полученные объекты Disposable и вызывает у них dispose, как только получает сигнал
  * об уничтожении своей Activity.
  */
+// короче управляет подписками на Observable'ы
 @ActivityScope
 public class RxActivitySubscriptions extends ActivityCallbacks.Observer {
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
