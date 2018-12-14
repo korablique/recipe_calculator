@@ -81,7 +81,8 @@ public class UserGoalActivity extends BaseActivity {
 
                 String physicalActivityString = (String) physicalActivitySpinner.getSelectedItem();
                 String coefficientString = physicalActivityString.replace(',', '.');
-                float coefficient = Float.parseFloat(coefficientString);
+                float coefficient = getCoefficient(coefficientString);
+
                 String defaultFormula = getResources().getStringArray(R.array.formula_array)[0];
                 UserParameters userParameters = new UserParameters(
                         selectedGoal, selectedGender, age, height, weight, coefficient, defaultFormula);
@@ -93,6 +94,21 @@ public class UserGoalActivity extends BaseActivity {
                 });
             }
         });
+    }
+
+    private float getCoefficient(String coefficientString) {
+        String[] lifestyleValues = getResources().getStringArray(R.array.physical_activity_array);
+        if (coefficientString.equals(lifestyleValues[0])) {
+            return 1.2f;
+        } else if (coefficientString.equals(lifestyleValues[1])) {
+            return 1.375f;
+        } else if (coefficientString.equals(lifestyleValues[2])) {
+            return 1.55f;
+        } else if (coefficientString.equals(lifestyleValues[3])) {
+            return 1.725f;
+        } else {
+            return 1.9f;
+        }
     }
 
     @Override

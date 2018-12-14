@@ -18,15 +18,15 @@
     <string name="list_of_foodstuffs">Продукты</string>
     <string name="per_100_g">(на 100 грамм)</string>
     <string name="history">История</string>
-    <string name="pref_first_start_of_history">is it the first start of HistoryActivity</string>
+    <string name="pref_first_start">is it the first start</string>
     <string name="welcome">Добро пожаловать! Для начала укажите информацию о себе для рассчёта нормы калорий и БЖУ.</string>
-    <string name="goal">Цель:</string>
-    <string name="gender">Пол:</string>
-    <string name="age">Возраст:</string>
-    <string name="height">Рост (см):</string>
-    <string name="weight">Вес (кг):</string>
+    <string name="goal">Цель</string>
+    <string name="gender">Пол</string>
+    <string name="age">Возраст</string>
+    <string name="height">Рост</string>
+    <string name="weight">Вес</string>
     <string name="physical_activity">Коэффициент физ. активности:</string>
-    <string name="formula">Формула:</string>
+    <string name="formula">Формула рассчета калорий</string>
     <string name="set_goal">Настройка цели</string>
     <string name="calc_result_dialog_text">Масса готового продукта - %1$.1f грамм\n
         Белки - %2$.1f\n
@@ -73,31 +73,39 @@
     <string name="waist">Талия:</string>
     <string name="reached">Достигнуто</string>
     <string name="percent">%</string>
+    <string name="set_user_params">Изменить данные</string>
+    <string name="personal_data">Личные данные</string>
+    <string name="user_name">Имя</string>
+    <string name="user_surname">Фамилия</string>
+    <string name="information">Информация</string>
+    <string name="user_goal">Цель</string>
+    <string name="lifestyle">Образ жизни</string>
+    <string name="statistics">Статистические данные</string>
 
     <string-array name="goals_array">
-        <item name="losing_weight">Похудение</item>
-        <item name="maintaining_current_weight">Поддержка</item>
-        <item name="mass_gathering">Массонабор</item>
+        <item name="losing_weight">Снижение веса</item>
+        <item name="maintaining_current_weight">Сохранение веса</item>
+        <item name="mass_gathering">Набор веса</item>
     </string-array>
 
     <string-array name="gender_array">
-        <item name="male">М</item>
-        <item name="female">Ж</item>
+        <item name="male">Мужской</item>
+        <item name="female">Женский</item>
     </string-array>
 
     <string-array name="physical_activity_array">
-        <item name="passive_lifestyle">1,2</item>
-        <item name="insignificant_activity">1,375</item>
-        <item name="medium_loads">1,55</item>
-        <item name="active_lifestyle">1,725</item>
-        <item name="professional_sports">1,9</item>
+        <item name="passive_lifestyle">Сидячий образ жизни</item>
+        <item name="insignificant_activity">Умеренная активность</item>
+        <item name="medium_loads">Средняя активность</item>
+        <item name="active_lifestyle">Высокая активность</item>
+        <item name="professional_sports">Очень высокая активность</item>
     </string-array>
 
     <string-array name="physical_activity_description_array">
-        <item name="passive_lifestyle">Cидячий образ жизни</item>
-        <item name="insignificant_activity">Умеренная активность (легкие физические нагрузки либо занятия 1–3 раз в неделю)</item>
-        <item name="medium_loads">Средняя активность (занятия 3–5 раз в неделю)</item>
-        <item name="active_lifestyle">Высокая активность (интенсивные нагрузки, занятия 6–7 раз в неделю)</item>
+        <item name="passive_lifestyle">Без физических нагрузок</item>
+        <item name="insignificant_activity">Легкие физические нагрузки либо занятия 1–3 раза в неделю</item>
+        <item name="medium_loads">Занятия 3–5 раз в неделю</item>
+        <item name="active_lifestyle">Интенсивные нагрузки, занятия 6–7 раз в неделю</item>
         <item name="professional_sports">Спортсмены и работники тяжелого физического труда</item>
     </string-array>
 

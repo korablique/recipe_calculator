@@ -28,6 +28,7 @@ import korablique.recipecalculator.ui.notifications.FoodReminder;
 import korablique.recipecalculator.ui.notifications.FoodReminderReceiver;
 import korablique.recipecalculator.ui.usergoal.UserGoalActivity;
 import korablique.recipecalculator.ui.usergoal.UserGoalModule;
+import korablique.recipecalculator.ui.usergoal.UserParametersActivity;
 
 @Module(includes = {AndroidSupportInjectionModule.class})
 public abstract class BroccalcApplicationModule {
@@ -105,4 +106,8 @@ public abstract class BroccalcApplicationModule {
     @ActivityScope
     @ContributesAndroidInjector
     abstract EditFoodstuffActivity contributeEditFoodstuffActivityInjector();
+
+    @ActivityScope
+    @ContributesAndroidInjector
+    abstract UserParametersActivity contributeUserParametersActivityInjector();
 }

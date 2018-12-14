@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <include
+        android:id="@+id/toolbar_layout"
+        layout="@layout/toolbar_layout" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <android.support.constraint.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <FrameLayout
+                android:id="@+id/user_params_header_parent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#EFF1F6"
+                app:layout_constraintTop_toTopOf="parent"
+                android:paddingTop="24dp"
+                android:paddingBottom="16dp"
+                android:paddingStart="16dp">
+
+                <TextView
+                    style="@style/MontserratHeaderText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/personal_data" />
+            </FrameLayout>
+
+            <!--layout margin 11dp + textview margin 4.5dp == ~16dp-->
+            <!--because of default edittext margin-->
+            <android.support.constraint.ConstraintLayout
+                android:id="@+id/user_data_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/user_params_header_parent"
+                android:layout_marginTop="8dp"
+                android:layout_marginStart="11dp"
+                android:layout_marginEnd="11dp">
+
+                <!--view for shifting edittext up-->
+                <View
+                    android:id="@+id/row_fake_top_1"
+                    android:layout_width="0dp"
+                    android:layout_height="9dp"
+                    android:layout_marginTop="12dp" />
+
+                <!--user name-->
+                <TextView
+                    android:id="@+id/user_name_text_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4.5dp"
+                    style="@style/RobotoMonoHintText"
+                    android:text="@string/user_name" />
+
+                <EditText
+                    android:id="@+id/name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textCapSentences"
+                    android:backgroundTint="@color/colorAccent"
+                    style="@style/RobotoMonoText"
+                    app:layout_constraintTop_toBottomOf="@+id/row_fake_top_1" />
+
+                <View
+                    android:id="@+id/row_fake_top_2"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_marginTop="16dp"
+                    app:layout_constraintTop_toBottomOf="@+id/name" />
+
+                <!--surname-->
+                <TextView
+                    android:id="@+id/surname_text_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/name"
+                    android:layout_marginStart="4.5dp"
+                    android:layout_marginTop="8dp"
+                    style="@style/RobotoMonoHintText"
+                    android:text="@string/user_surname" />
+
+                <EditText
+                    android:id="@+id/surname"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/row_fake_top_2"
+                    android:backgroundTint="@color/colorAccent"
+                    style="@style/RobotoMonoText"
+                    android:inputType="textCapSentences" />
+
+                <!--gender-->
+                <TextView
+                    android:id="@+id/gender_text_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/surname"
+                    android:layout_marginStart="4.5dp"
+                    android:layout_marginTop="8dp"
+                    style="@style/RobotoMonoHintText"
+                    android:text="@string/gender" />
+
+                <Spinner
+                    android:id="@+id/gender_spinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:entries="@array/gender_array"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/gender_text_view" />
+
+                <ImageView
+                    android:id="@+id/line1"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="4dp"
+                    android:src="@drawable/line"
+                    app:layout_constraintTop_toBottomOf="@id/gender_spinner" />
+
+                <View
+                    android:id="@+id/row_fake_top_3"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_marginTop="16dp"
+                    app:layout_constraintTop_toBottomOf="@+id/line1" />
+
+                <!--age-->
+                <TextView
+                    android:id="@+id/age_text_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/line1"
+                    android:layout_marginStart="4.5dp"
+                    android:layout_marginTop="13dp"
+                    style="@style/RobotoMonoHintText"
+                    android:text="@string/age" />
+
+                <EditText
+                    android:id="@+id/age"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/row_fake_top_3"
+                    android:layout_marginTop="5dp"
+                    android:backgroundTint="@color/colorAccent"
+                    style="@style/RobotoMonoText"
+                    android:inputType="number" />
+            </android.support.constraint.ConstraintLayout>
+
+            <FrameLayout
+                android:id="@+id/information_header_parent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#EFF1F6"
+                app:layout_constraintTop_toBottomOf="@+id/user_data_layout"
+                android:layout_marginTop="8dp"
+                android:paddingTop="24dp"
+                android:paddingBottom="16dp"
+                android:paddingStart="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/MontserratHeaderText"
+                    android:text="@string/information" />
+            </FrameLayout>
+
+            <android.support.constraint.ConstraintLayout
+                android:id="@+id/information_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/information_header_parent"
+                android:layout_marginStart="11dp"
+                android:layout_marginEnd="11dp">
+
+                <!--goal-->
+                <TextView
+                    android:id="@+id/goal_text_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:layout_marginStart="4.5dp"
+                    android:layout_marginTop="8dp"
+                    style="@style/RobotoMonoHintText"
+                    android:text="@string/user_goal" />
+
+                <Spinner
+                    android:id="@+id/goal_spinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:entries="@array/goals_array"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/goal_text_view" />
+
+                <ImageView
+                    android:id="@+id/line2"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="4dp"
+                    android:src="@drawable/line"
+                    app:layout_constraintTop_toBottomOf="@id/goal_spinner" />
+
+                <!--lifestyle-->
+                <TextView
+                    android:id="@+id/lifestyle_text_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/line2"
+                    android:layout_marginStart="4.5dp"
+                    android:layout_marginTop="13dp"
+                    style="@style/RobotoMonoHintText"
+                    android:text="@string/lifestyle" />
+
+                <Spinner
+                    android:id="@+id/lifestyle_spinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:entries="@array/physical_activity_array"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/lifestyle_text_view" />
+
+                <ImageView
+                    android:id="@+id/line3"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="4dp"
+                    android:src="@drawable/line"
+                    app:layout_constraintTop_toBottomOf="@id/lifestyle_spinner" />
+
+                <TextView
+                    android:id="@+id/description"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintTop_toBottomOf="@id/line3"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginStart="4.5dp"
+                    android:layout_marginBottom="18dp"
+                    style="@style/RobotoMonoHintText" />
+            </android.support.constraint.ConstraintLayout>
+
+            <FrameLayout
+                android:id="@+id/statistics_header_parent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#EFF1F6"
+                app:layout_constraintTop_toBottomOf="@id/information_layout"
+                android:layout_marginTop="8dp"
+                android:paddingTop="24dp"
+                android:paddingBottom="16dp"
+                android:paddingStart="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/MontserratHeaderText"
+                    android:text="@string/statistics" />
+            </FrameLayout>
+
+            <android.support.constraint.ConstraintLayout
+                android:id="@+id/statistics_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/statistics_header_parent"
+                android:layout_marginStart="11dp"
+                android:layout_marginEnd="11dp"
+                android:layout_marginTop="8dp">
+
+                <View
+                    android:id="@+id/row_fake_top_4"
+                    android:layout_width="0dp"
+                    android:layout_height="9dp"
+                    android:layout_marginTop="12dp" />
+
+                <!--height-->
+                <TextView
+                    android:id="@+id/height_text_view"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4.5dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintWidth_percent="0.5"
+                    style="@style/RobotoMonoHintText"
+                    android:text="@string/height" />
+
+                <EditText
+                    android:id="@+id/height"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:backgroundTint="@color/colorAccent"
+                    style="@style/RobotoMonoText"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/row_fake_top_4"
+                    app:layout_constraintWidth_percent="0.5" />
+
+                <!--weight-->
+                <TextView
+                    android:id="@+id/weight_text_view"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4.5dp"
+                    app:layout_constraintStart_toEndOf="@id/height"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintWidth_percent="0.5"
+                    style="@style/RobotoMonoHintText"
+                    android:text="@string/weight" />
+
+                <EditText
+                    android:id="@+id/weight"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:backgroundTint="@color/colorAccent"
+                    style="@style/RobotoMonoText"
+                    app:layout_constraintStart_toEndOf="@id/height"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/row_fake_top_4"
+                    app:layout_constraintWidth_percent="0.5" />
+
+                <TextView
+                    android:id="@+id/formula_text_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4.5dp"
+                    android:layout_marginTop="8dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/height"
+                    style="@style/RobotoMonoHintText"
+                    android:text="@string/formula" />
+
+                <Spinner
+                    android:id="@+id/formula_spinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:entries="@array/formula_array"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/formula_text_view" />
+
+                <ImageView
+                    android:id="@+id/line4"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="4dp"
+                    android:src="@drawable/line"
+                    app:layout_constraintTop_toBottomOf="@id/formula_spinner" />
+            </android.support.constraint.ConstraintLayout>
+
+            <!--need for paddingBottom-->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/statistics_layout"
+                android:padding="20dp">
+
+                <Button
+                    android:id="@+id/button_save"
+                    android:layout_width="match_parent"
+                    android:layout_height="36dp"
+                    style="@style/VioletButton"
+                    android:text="@string/save" />
+            </FrameLayout>
+
+        </android.support.constraint.ConstraintLayout>
+    </ScrollView>
+</LinearLayout>
