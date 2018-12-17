@@ -89,6 +89,7 @@
     </string-array>
 
     <string-array name="gender_array">
+        <item name="not_selected">—</item>
         <item name="male">Мужской</item>
         <item name="female">Женский</item>
     </string-array>

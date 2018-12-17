@@ -100,10 +100,12 @@ public class RateCalculator {
     }
 
     private static Gender convertGenderStringToGenderEnum(Context context, String genderString) {
-        if (genderString.equals(context.getResources().getStringArray(R.array.gender_array)[0])) {
+        if (genderString.equals(context.getResources().getStringArray(R.array.gender_array)[1])) {
             return Gender.MALE;
-        } else {
+        } else if (genderString.equals(context.getResources().getStringArray(R.array.gender_array)[2])) {
             return Gender.FEMALE;
+        } else {
+            throw new IllegalStateException("Gender was not selected");
         }
     }
 

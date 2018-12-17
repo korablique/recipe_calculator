@@ -12,15 +12,16 @@ import android.widget.TextView;
 
 import com.crashlytics.android.Crashlytics;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import javax.inject.Inject;
 
 import io.reactivex.Completable;
-import io.reactivex.Single;
-import io.reactivex.disposables.Disposable;
-import korablique.recipecalculator.base.RxActivitySubscriptions;
-import korablique.recipecalculator.database.DatabaseWorker;
-import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.base.BaseActivity;
+import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.ui.history.HistoryActivity;
@@ -43,10 +44,12 @@ public class UserGoalActivity extends BaseActivity {
         goalSpinner.setAdapter(goalAdapter);
 
         final Spinner genderSpinner = findViewById(R.id.gender_spinner);
-        ArrayAdapter<CharSequence> genderAdapter = ArrayAdapter.createFromResource(this,
-                R.array.gender_array, android.R.layout.simple_spinner_item);
+        List<String> genderList = new ArrayList<>(Arrays.asList(getResources().getStringArray(R.array.gender_array)));
+        int hidingItemIndex = 0;
+        GenderAdapter genderAdapter = new GenderAdapter(this, android.R.layout.simple_spinner_item, genderList, hidingItemIndex);
         genderAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         genderSpinner.setAdapter(genderAdapter);
+
 
         final Spinner physicalActivitySpinner = findViewById(R.id.physical_activity_spinner);
         ArrayAdapter<CharSequence> physicalActivityAdapter = ArrayAdapter.createFromResource(this,
