@@ -28,7 +28,6 @@ public abstract class BaseActivity extends AppCompatActivity {
     private Drawer drawer;
 
     @Override
-    @SuppressWarnings("unchecked")
     protected void onCreate(Bundle savedInstanceState) {
         InjectorHolder.getInjector().inject(this);
         super.onCreate(savedInstanceState);
@@ -47,7 +46,7 @@ public abstract class BaseActivity extends AppCompatActivity {
                 .withHeader(R.layout.drawer_header)
                 .withSavedInstance(savedInstanceState)
                 .withTranslucentStatusBar(true)
-                .withActionBarDrawerToggle(true)
+                .withActionBarDrawerToggle(false)
                 .withToolbar(toolbar)
                 .withSelectedItem(-1)
                 .withOnDrawerNavigationListener(new Drawer.OnDrawerNavigationListener() {

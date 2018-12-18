@@ -12,15 +12,18 @@ import android.widget.TextView;
 
 import com.crashlytics.android.Crashlytics;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import javax.inject.Inject;
 
 import io.reactivex.Completable;
-import io.reactivex.Single;
-import io.reactivex.disposables.Disposable;
-import korablique.recipecalculator.base.RxActivitySubscriptions;
-import korablique.recipecalculator.database.DatabaseWorker;
-import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.model.PhysicalActivityCoefficients;
+import korablique.recipecalculator.ui.ArrayAdapterWithDisabledItem;
+import korablique.recipecalculator.base.BaseActivity;
+import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.ui.history.HistoryActivity;
@@ -43,10 +46,13 @@ public class UserGoalActivity extends BaseActivity {
         goalSpinner.setAdapter(goalAdapter);
 
         final Spinner genderSpinner = findViewById(R.id.gender_spinner);
-        ArrayAdapter<CharSequence> genderAdapter = ArrayAdapter.createFromResource(this,
-                R.array.gender_array, android.R.layout.simple_spinner_item);
+        List<String> genderList = new ArrayList<>(Arrays.asList(getResources().getStringArray(R.array.gender_array)));
+        int disableItemIndex = 0;
+        ArrayAdapterWithDisabledItem genderAdapter = new ArrayAdapterWithDisabledItem(
+                this, android.R.layout.simple_spinner_item, genderList, disableItemIndex);
         genderAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         genderSpinner.setAdapter(genderAdapter);
+
 
         final Spinner physicalActivitySpinner = findViewById(R.id.physical_activity_spinner);
         ArrayAdapter<CharSequence> physicalActivityAdapter = ArrayAdapter.createFromResource(this,
@@ -81,7 +87,8 @@ public class UserGoalActivity extends BaseActivity {
 
                 String physicalActivityString = (String) physicalActivitySpinner.getSelectedItem();
                 String coefficientString = physicalActivityString.replace(',', '.');
-                float coefficient = Float.parseFloat(coefficientString);
+                float coefficient = getCoefficient(coefficientString);
+
                 String defaultFormula = getResources().getStringArray(R.array.formula_array)[0];
                 UserParameters userParameters = new UserParameters(
                         selectedGoal, selectedGender, age, height, weight, coefficient, defaultFormula);
@@ -93,6 +100,21 @@ public class UserGoalActivity extends BaseActivity {
                 });
             }
         });
+    }
+
+    private float getCoefficient(String coefficientString) {
+        String[] lifestyleValues = getResources().getStringArray(R.array.physical_activity_array);
+        if (coefficientString.equals(lifestyleValues[0])) {
+            return PhysicalActivityCoefficients.PASSIVE_LIFESTYLE;
+        } else if (coefficientString.equals(lifestyleValues[1])) {
+            return PhysicalActivityCoefficients.INSIGNIFICANT_ACTIVITY;
+        } else if (coefficientString.equals(lifestyleValues[2])) {
+            return PhysicalActivityCoefficients.MEDIUM_ACTIVITY;
+        } else if (coefficientString.equals(lifestyleValues[3])) {
+            return PhysicalActivityCoefficients.ACTIVE_LIFESTYLE;
+        } else {
+            return PhysicalActivityCoefficients.PROFESSIONAL_SPORTS;
+        }
     }
 
     @Override
