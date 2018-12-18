@@ -6,8 +6,10 @@ import dagger.android.ContributesAndroidInjector;
 import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.BaseFragmentModule;
+import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.dagger.ActivityScope;
 import korablique.recipecalculator.dagger.FragmentScope;
+import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.ui.profile.ProfileFragment;
 import korablique.recipecalculator.ui.profile.ProfileFragmentModule;
 
@@ -17,8 +19,10 @@ public abstract class MainScreenActivityModule {
     @Provides
     static MainActivityController provideMainActivityController(
             MainActivity mainActivity,
-            ActivityCallbacks activityCallbacks) {
-        return new MainActivityController(mainActivity, activityCallbacks);
+            ActivityCallbacks activityCallbacks,
+            UserParametersWorker userParametersWorker,
+            RxActivitySubscriptions subscriptions) {
+        return new MainActivityController(mainActivity, activityCallbacks, userParametersWorker, subscriptions);
     }
 
     @FragmentScope

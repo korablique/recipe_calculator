@@ -32,10 +32,12 @@ import korablique.recipecalculator.IntentConstants;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.base.BaseActivity;
+import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.FoodstuffsDbHelper;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.database.HistoryWorker;
+import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.PopularProductsUtils;
@@ -76,6 +78,7 @@ public class MainActivityTest {
     private SyncMainThreadExecutor mainThreadExecutor = new SyncMainThreadExecutor();
     private DatabaseWorker databaseWorker;
     private HistoryWorker historyWorker;
+    private UserParametersWorker userParametersWorker;
     private FoodstuffsList foodstuffsList;
     private TopList topList;
     private Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
@@ -91,9 +94,11 @@ public class MainActivityTest {
                             new DatabaseWorker(mainThreadExecutor, new InstantDatabaseThreadExecutor());
                     historyWorker = new HistoryWorker(
                             context, mainThreadExecutor, new InstantDatabaseThreadExecutor());
+                    userParametersWorker = new UserParametersWorker(
+                            context, mainThreadExecutor, new InstantDatabaseThreadExecutor());
                     foodstuffsList = new FoodstuffsList(context, databaseWorker);
                     topList = new TopList(context, databaseWorker, historyWorker);
-                    return Arrays.asList(databaseWorker, historyWorker, foodstuffsList);
+                    return Arrays.asList(databaseWorker, historyWorker, userParametersWorker, foodstuffsList);
                 })
                 .withActivityScoped((injectionTarget) -> {
                     if (!(injectionTarget instanceof MainActivity)) {
@@ -101,8 +106,9 @@ public class MainActivityTest {
                     }
                     MainActivity activity = (MainActivity) injectionTarget;
                     ActivityCallbacks activityCallbacks = activity.getActivityCallbacks();
+                    RxActivitySubscriptions subscriptions = new RxActivitySubscriptions(activityCallbacks);
                     MainActivityController controller = new MainActivityController(
-                            activity, activityCallbacks);
+                            activity, activityCallbacks, userParametersWorker, subscriptions);
                     return Collections.singletonList(controller);
                 })
                 .withFragmentScoped((injectionTarget -> {

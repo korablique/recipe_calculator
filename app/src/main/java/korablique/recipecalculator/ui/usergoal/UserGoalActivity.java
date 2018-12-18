@@ -20,6 +20,8 @@ import javax.inject.Inject;
 
 import io.reactivex.Completable;
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.model.PhysicalActivityCoefficients;
+import korablique.recipecalculator.ui.ArrayAdapterWithDisabledItem;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.database.UserParametersWorker;
@@ -45,8 +47,9 @@ public class UserGoalActivity extends BaseActivity {
 
         final Spinner genderSpinner = findViewById(R.id.gender_spinner);
         List<String> genderList = new ArrayList<>(Arrays.asList(getResources().getStringArray(R.array.gender_array)));
-        int hidingItemIndex = 0;
-        GenderAdapter genderAdapter = new GenderAdapter(this, android.R.layout.simple_spinner_item, genderList, hidingItemIndex);
+        int disableItemIndex = 0;
+        ArrayAdapterWithDisabledItem genderAdapter = new ArrayAdapterWithDisabledItem(
+                this, android.R.layout.simple_spinner_item, genderList, disableItemIndex);
         genderAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         genderSpinner.setAdapter(genderAdapter);
 
@@ -102,15 +105,15 @@ public class UserGoalActivity extends BaseActivity {
     private float getCoefficient(String coefficientString) {
         String[] lifestyleValues = getResources().getStringArray(R.array.physical_activity_array);
         if (coefficientString.equals(lifestyleValues[0])) {
-            return 1.2f;
+            return PhysicalActivityCoefficients.PASSIVE_LIFESTYLE;
         } else if (coefficientString.equals(lifestyleValues[1])) {
-            return 1.375f;
+            return PhysicalActivityCoefficients.INSIGNIFICANT_ACTIVITY;
         } else if (coefficientString.equals(lifestyleValues[2])) {
-            return 1.55f;
+            return PhysicalActivityCoefficients.MEDIUM_ACTIVITY;
         } else if (coefficientString.equals(lifestyleValues[3])) {
-            return 1.725f;
+            return PhysicalActivityCoefficients.ACTIVE_LIFESTYLE;
         } else {
-            return 1.9f;
+            return PhysicalActivityCoefficients.PROFESSIONAL_SPORTS;
         }
     }
 

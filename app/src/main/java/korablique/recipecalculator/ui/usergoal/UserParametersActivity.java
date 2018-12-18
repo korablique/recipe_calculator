@@ -1,10 +1,7 @@
 package korablique.recipecalculator.ui.usergoal;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -27,7 +24,10 @@ import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.database.UserParametersWorker;
+import korablique.recipecalculator.model.PhysicalActivityCoefficients;
+import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
+import korablique.recipecalculator.ui.ArrayAdapterWithDisabledItem;
 import korablique.recipecalculator.ui.mainscreen.MainActivity;
 
 public class UserParametersActivity extends BaseActivity {
@@ -35,6 +35,8 @@ public class UserParametersActivity extends BaseActivity {
     UserParametersWorker userParametersWorker;
     @Inject
     RxActivitySubscriptions subscriptions;
+    @Inject
+    UserNameProvider userNameProvider;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,8 +45,9 @@ public class UserParametersActivity extends BaseActivity {
 
         // гендер
         List<String> genderList = new ArrayList<>(Arrays.asList(getResources().getStringArray(R.array.gender_array)));
-        int hidingItemIndex = 0;
-        GenderAdapter genderAdapter = new GenderAdapter(this, android.R.layout.simple_spinner_item, genderList, hidingItemIndex);
+        int disableItemIndex = 0;
+        ArrayAdapterWithDisabledItem genderAdapter = new ArrayAdapterWithDisabledItem(
+                this, android.R.layout.simple_spinner_item, genderList, disableItemIndex);
         genderAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         Spinner genderSpinner = findViewById(R.id.gender_spinner);
         genderSpinner.setAdapter(genderAdapter);
@@ -76,19 +79,19 @@ public class UserParametersActivity extends BaseActivity {
                 String name = ((EditText) findViewById(R.id.name)).getText().toString();
                 String surname = ((EditText) findViewById(R.id.surname)).getText().toString();
                 String gender = (String) ((Spinner) findViewById(R.id.gender_spinner)).getSelectedItem();
-                int age = Integer.parseInt(((EditText) findViewById(R.id.age)).getText().toString());
 
                 String goal = (String) ((Spinner) findViewById(R.id.goal_spinner)).getSelectedItem();
                 String physicalActivityString = (String) ((Spinner) findViewById(R.id.lifestyle_spinner)).getSelectedItem();
-                String coefficientString = physicalActivityString.replace(',', '.');
-                float coefficient = getCoefficient(coefficientString);
+                float coefficient = getCoefficient(physicalActivityString);
 
-                int height = Integer.parseInt(((EditText) findViewById(R.id.height)).getText().toString());
-                int weight = Integer.parseInt(((EditText) findViewById(R.id.weight)).getText().toString());
                 String formula = (String) ((Spinner) findViewById(R.id.formula_spinner)).getSelectedItem();
 
                 if (allFieldsFilled()) {
-                    saveUserName(name, surname);
+                    userNameProvider.saveUserName(name, surname);
+
+                    int age = Integer.parseInt(((EditText) findViewById(R.id.age)).getText().toString());
+                    int height = Integer.parseInt(((EditText) findViewById(R.id.height)).getText().toString());
+                    int weight = Integer.parseInt(((EditText) findViewById(R.id.weight)).getText().toString());
 
                     UserParameters userParameters = new UserParameters(
                             goal, gender, age, height, weight, coefficient, formula);
@@ -99,7 +102,7 @@ public class UserParametersActivity extends BaseActivity {
                         finish();
                     });
                 } else {
-                    Toast.makeText(UserParametersActivity.this, "Заполните все поля", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(UserParametersActivity.this, R.string.fill_all_fields, Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -112,31 +115,28 @@ public class UserParametersActivity extends BaseActivity {
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle(R.string.set_user_params);
         } else {
-            Crashlytics.log("getSupportActionBar вернул null");
+            Crashlytics.log("getSupportActionBar returned null");
         }
+    }
+
+    public static void start(BaseActivity context) {
+        Intent intent = new Intent(context, UserParametersActivity.class);
+        context.startActivity(intent);
     }
 
     private float getCoefficient(String coefficientString) {
         String[] lifestyleValues = getResources().getStringArray(R.array.physical_activity_array);
         if (coefficientString.equals(lifestyleValues[0])) {
-            return 1.2f;
+            return PhysicalActivityCoefficients.PASSIVE_LIFESTYLE;
         } else if (coefficientString.equals(lifestyleValues[1])) {
-            return 1.375f;
+            return PhysicalActivityCoefficients.INSIGNIFICANT_ACTIVITY;
         } else if (coefficientString.equals(lifestyleValues[2])) {
-            return 1.55f;
+            return PhysicalActivityCoefficients.MEDIUM_ACTIVITY;
         } else if (coefficientString.equals(lifestyleValues[3])) {
-            return 1.725f;
+            return PhysicalActivityCoefficients.ACTIVE_LIFESTYLE;
         } else {
-            return 1.9f;
+            return PhysicalActivityCoefficients.PROFESSIONAL_SPORTS;
         }
-    }
-
-    private void saveUserName(String name, String surname) {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(getString(R.string.user_name), name);
-        editor.putString(getString(R.string.user_surname), surname);
-        editor.apply();
     }
 
     private boolean allFieldsFilled() {

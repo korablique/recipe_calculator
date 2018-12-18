@@ -1,8 +1,6 @@
 package korablique.recipecalculator.ui.profile;
 
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -21,6 +19,7 @@ import korablique.recipecalculator.base.Optional;
 import korablique.recipecalculator.base.RxFragmentSubscriptions;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.model.UserParameters;
+import korablique.recipecalculator.model.UserNameProvider;
 
 public class ProfileFragment extends BaseFragment {
     @Inject
@@ -29,6 +28,8 @@ public class ProfileFragment extends BaseFragment {
     UserParametersWorker userParametersWorker;
     @Inject
     RxFragmentSubscriptions subscriptions;
+    @Inject
+    UserNameProvider userNameProvider;
 
     @Override
     protected View createView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -56,10 +57,7 @@ public class ProfileFragment extends BaseFragment {
         ((TextView) fragmentView.findViewById(R.id.height)).setText(String.valueOf(userParameters.getHeight()));
         ((TextView) fragmentView.findViewById(R.id.goal)).setText(userParameters.getGoal());
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
-        String userName = prefs.getString(getString(R.string.user_name), "");
-        String userSurname = prefs.getString(getString(R.string.user_surname), "");
-        String nameStr = userName + " " + userSurname;
-        ((TextView) fragmentView.findViewById(R.id.user_name)).setText(nameStr);
+        String userNameAndSurname = userNameProvider.getUserName();
+        ((TextView) fragmentView.findViewById(R.id.user_name)).setText(userNameAndSurname);
     }
 }

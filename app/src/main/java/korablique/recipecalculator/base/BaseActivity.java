@@ -1,9 +1,7 @@
 package korablique.recipecalculator.base;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
@@ -24,7 +22,6 @@ import korablique.recipecalculator.ui.calculator.CalculatorActivity;
 import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
 import korablique.recipecalculator.ui.history.HistoryActivity;
 import korablique.recipecalculator.ui.mainscreen.MainActivity;
-import korablique.recipecalculator.ui.usergoal.UserParametersActivity;
 
 public abstract class BaseActivity extends AppCompatActivity {
     private final ActivityCallbacks activityCallbacks = new ActivityCallbacks();
@@ -35,17 +32,6 @@ public abstract class BaseActivity extends AppCompatActivity {
         InjectorHolder.getInjector().inject(this);
         super.onCreate(savedInstanceState);
         activityCallbacks.dispatchActivityCreate(savedInstanceState);
-
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        boolean firstStart = prefs.getBoolean(getString(R.string.pref_first_start), true);
-        if (firstStart) {
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.putBoolean(getString(R.string.pref_first_start), false);
-            editor.apply();
-            Intent intent = new Intent(this, UserParametersActivity.class);
-            startActivity(intent);
-            finish();
-        }
     }
 
     @Override
