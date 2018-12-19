@@ -37,6 +37,18 @@ public class RateCalculator {
         return calculate(goal, gender, age, height, weight, physicalActivityCoefficient, formula);
     }
 
+    public static Rates calculate(Context context, UserParameters userParameters) {
+        return calculate(
+                context,
+                userParameters.getGoal(),
+                userParameters.getGender(),
+                userParameters.getAge(),
+                userParameters.getHeight(),
+                userParameters.getWeight(),
+                userParameters.getPhysicalActivityCoefficient(),
+                userParameters.getFormula());
+    }
+
     public static Rates calculate(
             Goal goal,
             Gender gender,

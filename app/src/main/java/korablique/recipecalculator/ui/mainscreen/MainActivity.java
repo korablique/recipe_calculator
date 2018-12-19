@@ -1,5 +1,7 @@
 package korablique.recipecalculator.ui.mainscreen;
 
+import android.content.Context;
+import android.content.Intent;
 import android.support.v4.app.Fragment;
 
 import javax.inject.Inject;
@@ -18,5 +20,10 @@ public class MainActivity extends BaseActivity implements HasSupportFragmentInje
     @Override
     public AndroidInjector<Fragment> supportFragmentInjector() {
         return fragmentInjector;
+    }
+
+    public static void start(Context context) {
+        Intent intent = new Intent(context, MainActivity.class);
+        context.startActivity(intent);
     }
 }

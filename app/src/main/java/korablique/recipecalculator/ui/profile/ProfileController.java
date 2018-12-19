@@ -1,5 +1,6 @@
 package korablique.recipecalculator.ui.profile;
 
+import android.content.Context;
 import android.view.View;
 import android.widget.TextView;
 
@@ -12,42 +13,78 @@ import korablique.recipecalculator.base.Optional;
 import korablique.recipecalculator.base.RxFragmentSubscriptions;
 import korablique.recipecalculator.dagger.FragmentScope;
 import korablique.recipecalculator.database.UserParametersWorker;
+import korablique.recipecalculator.model.Nutrition;
+import korablique.recipecalculator.model.RateCalculator;
+import korablique.recipecalculator.model.Rates;
+import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
+import korablique.recipecalculator.ui.NutritionProgressWrapper;
+import korablique.recipecalculator.ui.NutritionValuesWrapper;
 
 @FragmentScope
 public class ProfileController extends FragmentCallbacks.Observer {
+    private Context context;
     private UserParametersWorker userParametersWorker;
-    private RxFragmentSubscriptions rxFragmentSubscriptions;
+    private RxFragmentSubscriptions subscriptions;
+    private UserNameProvider userNameProvider;
 
     @Inject
-    ProfileController(FragmentCallbacks fragmentCallbacks,
-                      UserParametersWorker userParametersWorker,
-                      RxFragmentSubscriptions rxFragmentSubscriptions) {
+    ProfileController(
+            Context context,
+            FragmentCallbacks fragmentCallbacks,
+            UserParametersWorker userParametersWorker,
+            RxFragmentSubscriptions subscriptions,
+            UserNameProvider userNameProvider) {
+        this.context = context;
         fragmentCallbacks.addObserver(this);
         this.userParametersWorker = userParametersWorker;
-        this.rxFragmentSubscriptions = rxFragmentSubscriptions;
+        this.subscriptions = subscriptions;
+        this.userNameProvider = userNameProvider;
     }
 
     @Override
     public void onFragmentViewCreated(View fragmentView) {
+        String userNameAndSurname = userNameProvider.getUserName();
+        fillUserName(fragmentView, userNameAndSurname);
+
+        Single<Optional<UserParameters>> paramsSingle =
+                userParametersWorker.requestCurrentUserParameters();
+        subscriptions.subscribe(paramsSingle, (Optional<UserParameters> parameters) -> {
+            UserParameters userParameters = parameters.get();
+            fillUserData(fragmentView, userParameters);
+
+            Rates rates = RateCalculator.calculate(context, userParameters);
+            fillNutritionRates(fragmentView, rates);
+        });
+    }
+
+    private void fillUserData(View fragmentView, UserParameters userParameters) {
         TextView ageTextView = fragmentView.findViewById(R.id.age);
         TextView heightTextView = fragmentView.findViewById(R.id.height);
-        TextView goaltextView = fragmentView.findViewById(R.id.goal);
+        TextView goalTextView = fragmentView.findViewById(R.id.goal);
         TextView weightTextView = fragmentView.findViewById(R.id.weight_value);
 
-        Single<Optional<UserParameters>> userParamsSingle =
-                userParametersWorker.requestCurrentUserParameters();
-        rxFragmentSubscriptions.subscribe(userParamsSingle, userParametersOptional -> {
-            if (userParametersOptional.isPresent()) {
-                UserParameters userParameters = userParametersOptional.get();
-                if (userParameters != null) {
-                    ageTextView.setText(String.valueOf(userParameters.getAge()));
-                    heightTextView.setText(String.valueOf(userParameters.getHeight()));
-                    goaltextView.setText(userParameters.getGoal());
-                    weightTextView.setText(String.valueOf(userParameters.getWeight()));
-                }
-            }
+        ageTextView.setText(String.valueOf(userParameters.getAge()));
+        heightTextView.setText(String.valueOf(userParameters.getHeight()));
+        goalTextView.setText(userParameters.getGoal());
+        weightTextView.setText(String.valueOf(userParameters.getWeight()));
+    }
 
-        });
+    private void fillNutritionRates(View fragmentView, Rates rates) {
+        NutritionValuesWrapper nutritionValues = new NutritionValuesWrapper(context, fragmentView.findViewById(R.id.nutrition_parent_layout));
+        Nutrition nutrition = Nutrition.from(rates);
+        nutritionValues.setNutrition(nutrition);
+
+        TextView calorieIntakeView = fragmentView.findViewById(R.id.calorie_intake);
+        calorieIntakeView.setText(String.valueOf(Math.round(rates.getCalories())));
+
+        NutritionProgressWrapper nutritionProgress = new NutritionProgressWrapper(fragmentView.findViewById(R.id.new_nutrition_progress_bar));
+        Nutrition nutritionPercentage = Nutrition.inPercentFrom(rates);
+        nutritionProgress.setNutrition(nutritionPercentage);
+    }
+
+    private void fillUserName(View fragmentView, String userNameAndSurname) {
+        TextView nameView = fragmentView.findViewById(R.id.user_name);
+        nameView.setText(userNameAndSurname);
     }
 }

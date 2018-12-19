@@ -76,37 +76,22 @@ public class UserParametersActivity extends BaseActivity {
         saveUserParamsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (!allFieldsFilled()) {
+                    Toast.makeText(UserParametersActivity.this, R.string.fill_all_fields, Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 String name = ((EditText) findViewById(R.id.name)).getText().toString();
                 String surname = ((EditText) findViewById(R.id.surname)).getText().toString();
-                String gender = (String) ((Spinner) findViewById(R.id.gender_spinner)).getSelectedItem();
+                userNameProvider.saveUserName(name, surname);
 
-                String goal = (String) ((Spinner) findViewById(R.id.goal_spinner)).getSelectedItem();
-                String physicalActivityString = (String) ((Spinner) findViewById(R.id.lifestyle_spinner)).getSelectedItem();
-                float coefficient = getCoefficient(physicalActivityString);
-
-                String formula = (String) ((Spinner) findViewById(R.id.formula_spinner)).getSelectedItem();
-
-                if (allFieldsFilled()) {
-                    userNameProvider.saveUserName(name, surname);
-
-                    int age = Integer.parseInt(((EditText) findViewById(R.id.age)).getText().toString());
-                    int height = Integer.parseInt(((EditText) findViewById(R.id.height)).getText().toString());
-                    int weight = Integer.parseInt(((EditText) findViewById(R.id.weight)).getText().toString());
-
-                    UserParameters userParameters = new UserParameters(
-                            goal, gender, age, height, weight, coefficient, formula);
-                    Completable callback = userParametersWorker.saveUserParameters(userParameters);
-                    subscriptions.subscribe(callback, () -> {
-                        Intent intent = new Intent(UserParametersActivity.this, MainActivity.class);
-                        startActivity(intent);
-                        finish();
-                    });
-                } else {
-                    Toast.makeText(UserParametersActivity.this, R.string.fill_all_fields, Toast.LENGTH_SHORT).show();
-                }
+                UserParameters userParameters = extractUserParameters();
+                Completable callback = userParametersWorker.saveUserParameters(userParameters);
+                subscriptions.subscribe(callback, () -> {
+                    MainActivity.start(UserParametersActivity.this);
+                    finish();
+                });
             }
         });
-
     }
 
     @Override
@@ -152,5 +137,20 @@ public class UserParametersActivity extends BaseActivity {
                 && !heightView.getText().toString().isEmpty()
                 && !weightView.getText().toString().isEmpty()
                 && genderSpinner.getSelectedItemPosition() != 0;
+    }
+
+    private UserParameters extractUserParameters() {
+        String goal = (String) ((Spinner) findViewById(R.id.goal_spinner)).getSelectedItem();
+        String gender = (String) ((Spinner) findViewById(R.id.gender_spinner)).getSelectedItem();
+        int age = Integer.parseInt(((EditText) findViewById(R.id.age)).getText().toString());
+        int height = Integer.parseInt(((EditText) findViewById(R.id.height)).getText().toString());
+        int weight = Integer.parseInt(((EditText) findViewById(R.id.weight)).getText().toString());
+
+        String physicalActivityString = (String) ((Spinner) findViewById(R.id.lifestyle_spinner)).getSelectedItem();
+        float coefficient = getCoefficient(physicalActivityString);
+
+        String formula = (String) ((Spinner) findViewById(R.id.formula_spinner)).getSelectedItem();
+
+        return new UserParameters(goal, gender, age, height, weight, coefficient, formula);
     }
 }
