@@ -21,7 +21,7 @@ import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
-import korablique.recipecalculator.ui.NutritionProgressWrapper;
+import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
 
 import static korablique.recipecalculator.IntentConstants.EDIT_FOODSTUFF_REQUEST;
 import static korablique.recipecalculator.IntentConstants.EDIT_RESULT;
@@ -31,7 +31,7 @@ public class EditFoodstuffActivity extends BaseActivity {
     public static final String EDIT_FOODSTUFF_ACTION = "korablique.recipecalculator.EDIT_FOODSTUFF_ACTION";
     @Inject
     FoodstuffsList foodstuffsList;
-    private NutritionProgressWrapper nutritionProgressWrapper;
+    private PluralProgressBar pluralProgressBar;
     private EditText foodstuffNameEditText;
     private EditText proteinEditText;
     private EditText fatsEditText;
@@ -54,8 +54,8 @@ public class EditFoodstuffActivity extends BaseActivity {
         caloriesEditText = findViewById(R.id.calories_value);
         saveButton = findViewById(R.id.save_button);
 
-        nutritionProgressWrapper = new NutritionProgressWrapper(findViewById(R.id.new_nutrition_progress_bar));
-        nutritionProgressWrapper.setNutrition(Nutrition.zero());
+        pluralProgressBar = findViewById(R.id.new_nutrition_progress_bar);
+        pluralProgressBar.setProgress(0, 0, 0);
         updateSaveButtonEnability();
         TextWatcher nutritionChangeWatcher = new TextWatcherAdapter() {
             @Override
@@ -73,7 +73,7 @@ public class EditFoodstuffActivity extends BaseActivity {
                 if (protein + fats + carbs > 100) {
                     carbs = 100 - protein - fats;
                 }
-                nutritionProgressWrapper.setNutrition(protein, fats, carbs);
+                pluralProgressBar.setProgress((float) protein, (float) fats, (float) carbs);
             }
         };
         proteinEditText.addTextChangedListener(nutritionChangeWatcher);
@@ -162,7 +162,12 @@ public class EditFoodstuffActivity extends BaseActivity {
         fatsEditText.setText(String.valueOf(editingFoodstuff.getFats()));
         carbsEditText.setText(String.valueOf(editingFoodstuff.getCarbs()));
         caloriesEditText.setText(String.valueOf(editingFoodstuff.getCalories()));
-        nutritionProgressWrapper.setNutrition(Nutrition.of100gramsOf(editingFoodstuff));
+
+        Nutrition editingFoodstuffNutrition = Nutrition.of100gramsOf(editingFoodstuff);
+        pluralProgressBar.setProgress(
+                (float) editingFoodstuffNutrition.getProtein(),
+                (float) editingFoodstuffNutrition.getFats(),
+                (float) editingFoodstuffNutrition.getCarbs());
     }
 
     private Foodstuff parseFoodstuff() {

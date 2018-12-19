@@ -18,8 +18,8 @@ import korablique.recipecalculator.model.RateCalculator;
 import korablique.recipecalculator.model.Rates;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
-import korablique.recipecalculator.ui.NutritionProgressWrapper;
 import korablique.recipecalculator.ui.NutritionValuesWrapper;
+import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
 
 @FragmentScope
 public class ProfileController extends FragmentCallbacks.Observer {
@@ -78,9 +78,12 @@ public class ProfileController extends FragmentCallbacks.Observer {
         TextView calorieIntakeView = fragmentView.findViewById(R.id.calorie_intake);
         calorieIntakeView.setText(String.valueOf(Math.round(rates.getCalories())));
 
-        NutritionProgressWrapper nutritionProgress = new NutritionProgressWrapper(fragmentView.findViewById(R.id.new_nutrition_progress_bar));
-        Nutrition nutritionPercentage = Nutrition.inPercentFrom(rates);
-        nutritionProgress.setNutrition(nutritionPercentage);
+        PluralProgressBar progressBar = fragmentView.findViewById(R.id.new_nutrition_progress_bar);
+        float nutritionSum = (float) (nutrition.getProtein() + nutrition.getFats() + nutrition.getCarbs());
+        float proteinPercentage = (float) nutrition.getProtein() / nutritionSum * 100;
+        float fatsPercentage = (float) nutrition.getFats() / nutritionSum * 100;
+        float carbsPercentage = (float) nutrition.getCarbs() / nutritionSum * 100;
+        progressBar.setProgress(proteinPercentage, fatsPercentage, carbsPercentage);
     }
 
     private void fillUserName(View fragmentView, String userNameAndSurname) {

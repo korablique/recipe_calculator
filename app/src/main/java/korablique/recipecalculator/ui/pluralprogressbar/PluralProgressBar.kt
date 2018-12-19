@@ -135,6 +135,12 @@ class PluralProgressBar : View {
         recalculateAllBounds()
     }
 
+    fun setProgress(vararg progress: Float) {
+        progress.forEachIndexed { index, value ->
+            setProgress(index, value)
+        }
+    }
+
     private fun recalculateAllBounds() {
         // Background takes entire view's size
         backgroundBar.setBounds(bounds)
