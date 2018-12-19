@@ -26,7 +26,6 @@ import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.model.WeightedFoodstuff;
-import korablique.recipecalculator.ui.NutritionProgressWrapper;
 import korablique.recipecalculator.ui.NutritionValuesWrapper;
 import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.history.HistoryActivity;
@@ -34,7 +33,7 @@ import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
 
 public class BucketListActivity extends BaseActivity {
     public static final String EXTRA_FOODSTUFFS_LIST = "EXTRA_FOODSTUFFS_LIST";
-    private NutritionProgressWrapper nutritionProgressWrapper;
+    private PluralProgressBar pluralProgressBar;
     private NutritionValuesWrapper nutritionValuesWrapper;
     @Inject
     FoodstuffsList foodstuffsList;
@@ -50,8 +49,7 @@ public class BucketListActivity extends BaseActivity {
         setContentView(R.layout.activity_bucket_list);
 
         ViewGroup nutritionLayout = findViewById(R.id.nutrition_progress_with_values);
-        PluralProgressBar progressBar = findViewById(R.id.new_nutrition_progress_bar);
-        nutritionProgressWrapper = new NutritionProgressWrapper(progressBar);
+        pluralProgressBar = findViewById(R.id.new_nutrition_progress_bar);
         nutritionValuesWrapper = new NutritionValuesWrapper(this, nutritionLayout);
 
         List<WeightedFoodstuff> foodstuffs =
@@ -166,9 +164,12 @@ public class BucketListActivity extends BaseActivity {
     private void updateNutritionWrappers(List<WeightedFoodstuff> foodstuffs, double totalWeight) {
         Nutrition totalNutrition = countTotalNutrition(foodstuffs);
         nutritionValuesWrapper.setNutrition(totalNutrition);
-        // чтобы высчитать БЖУ на 100% для NutritionProgressWrapper'а
+        // чтобы высчитать БЖУ на 100% для PluralProgressBar'а
         Nutrition nutritionPer100Percent = DishNutritionCalculator.calculate(foodstuffs, totalWeight);
-        nutritionProgressWrapper.setNutrition(nutritionPer100Percent);
+        pluralProgressBar.setProgress(
+                (float) nutritionPer100Percent.getProtein(),
+                (float) nutritionPer100Percent.getFats(),
+                (float) nutritionPer100Percent.getCarbs());
     }
 
     private double countTotalWeight(List<WeightedFoodstuff> foodstuffs) {

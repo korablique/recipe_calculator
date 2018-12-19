@@ -17,7 +17,6 @@ import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.model.WeightedFoodstuff;
-import korablique.recipecalculator.ui.NutritionProgressWrapper;
 import korablique.recipecalculator.ui.NutritionValuesWrapper;
 import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
 
@@ -44,7 +43,7 @@ public class NewCard {
     private View editButton;
     private View closeButton;
 
-    private NutritionProgressWrapper nutritionProgressWrapper;
+    private PluralProgressBar pluralProgressBar;
     private NutritionValuesWrapper nutritionValuesWrapper;
 
     public NewCard(Context context, ViewGroup parent) {
@@ -58,8 +57,7 @@ public class NewCard {
 
         nameTextView = cardLayout.findViewById(R.id.foodstuff_name_text_view);
         ViewGroup nutritionLayout = cardLayout.findViewById(R.id.nutrition_progress_with_values);
-        PluralProgressBar progressBar = nutritionLayout.findViewById(R.id.new_nutrition_progress_bar);
-        nutritionProgressWrapper = new NutritionProgressWrapper(progressBar);
+        pluralProgressBar = nutritionLayout.findViewById(R.id.new_nutrition_progress_bar);
         nutritionValuesWrapper = new NutritionValuesWrapper(context, nutritionLayout);
     }
 
@@ -86,7 +84,11 @@ public class NewCard {
     private void setFoodstuffImpl(Foodstuff foodstuff) {
         displayedFoodstuff = foodstuff;
         nameTextView.setText(foodstuff.getName());
-        nutritionProgressWrapper.setNutrition(Nutrition.of100gramsOf(foodstuff));
+        Nutrition foodstuffNutrition = Nutrition.of100gramsOf(foodstuff);
+        pluralProgressBar.setProgress(
+                (float) foodstuffNutrition.getProtein(),
+                (float) foodstuffNutrition.getFats(),
+                (float) foodstuffNutrition.getCarbs());
         nutritionValuesWrapper.setFoodstuff(foodstuff);
 
         weightEditText.addTextChangedListener(new TextWatcherAdapter() {

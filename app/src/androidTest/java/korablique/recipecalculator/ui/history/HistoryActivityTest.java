@@ -53,7 +53,6 @@ import static korablique.recipecalculator.database.HistoryContract.HISTORY_TABLE
 import static korablique.recipecalculator.database.HistoryWorker.BATCH_SIZE;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
-import static org.mockito.Mockito.mock;
 
 @RunWith(AndroidJUnit4.class)
 @LargeTest
@@ -99,7 +98,7 @@ public class HistoryActivityTest {
         DbUtil.clearTable(context, HISTORY_TABLE_NAME);
 
         String goal = resources.getStringArray(R.array.goals_array)[0];
-        String gender = resources.getStringArray(R.array.gender_array)[0];
+        String gender = resources.getStringArray(R.array.gender_array)[1];
         int age = 24, height = 165, weight = 63;
         float coefficient = 1.2f;
         String defaultFormula = resources.getStringArray(R.array.formula_array)[0];
