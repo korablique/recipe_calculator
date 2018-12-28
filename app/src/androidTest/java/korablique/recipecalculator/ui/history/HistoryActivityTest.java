@@ -29,6 +29,10 @@ import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.Formula;
+import korablique.recipecalculator.model.Gender;
+import korablique.recipecalculator.model.Goal;
+import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.model.WeightedFoodstuff;
@@ -91,19 +95,15 @@ public class HistoryActivityTest {
     public void setUp() {
         Card.setAnimationDuration(0);
 
-        Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-
-        Resources resources = context.getResources();
-
         DbUtil.clearTable(context, HISTORY_TABLE_NAME);
 
-        String goal = resources.getStringArray(R.array.goals_array)[0];
-        String gender = resources.getStringArray(R.array.gender_array)[1];
+        Goal goal = Goal.LOSING_WEIGHT;
+        Gender gender = Gender.MALE;
         int age = 24, height = 165, weight = 63;
-        float coefficient = 1.2f;
-        String defaultFormula = resources.getStringArray(R.array.formula_array)[0];
+        Lifestyle lifestyle = Lifestyle.PASSIVE_LIFESTYLE;
+        Formula formula = Formula.HARRIS_BENEDICT;
         UserParameters userParameters = new UserParameters(
-                goal, gender, age, height, weight, coefficient, defaultFormula);
+                goal, gender, age, height, weight, lifestyle, formula);
         userParametersWorker.saveUserParameters(userParameters);
     }
 

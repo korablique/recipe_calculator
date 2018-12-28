@@ -138,13 +138,12 @@ public class HistoryActivity extends BaseActivity {
 
     private void initializeActivity(UserParameters userParameters) {
         final Rates rates = RateCalculator.calculate(
-                HistoryActivity.this,
                 userParameters.getGoal(),
                 userParameters.getGender(),
                 userParameters.getAge(),
                 userParameters.getHeight(),
                 userParameters.getWeight(),
-                userParameters.getPhysicalActivityCoefficient(),
+                userParameters.getLifestyle(),
                 userParameters.getFormula());
         recyclerView = findViewById(R.id.recycler_view);
         adapter = new HistoryAdapter(

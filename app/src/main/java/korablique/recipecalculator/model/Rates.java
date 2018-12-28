@@ -53,7 +53,7 @@ public class Rates implements Parcelable {
 
     @Override
     public int describeContents() {
-        return hashCode();
+        return 0;
     }
 
     @Override

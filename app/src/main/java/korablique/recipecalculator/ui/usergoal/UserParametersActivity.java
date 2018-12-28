@@ -1,5 +1,6 @@
 package korablique.recipecalculator.ui.usergoal;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -24,7 +25,10 @@ import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.database.UserParametersWorker;
-import korablique.recipecalculator.model.PhysicalActivityCoefficients;
+import korablique.recipecalculator.model.Formula;
+import korablique.recipecalculator.model.Gender;
+import korablique.recipecalculator.model.Goal;
+import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.ui.ArrayAdapterWithDisabledItem;
@@ -104,24 +108,9 @@ public class UserParametersActivity extends BaseActivity {
         }
     }
 
-    public static void start(BaseActivity context) {
+    public static void start(Context context) {
         Intent intent = new Intent(context, UserParametersActivity.class);
         context.startActivity(intent);
-    }
-
-    private float getCoefficient(String coefficientString) {
-        String[] lifestyleValues = getResources().getStringArray(R.array.physical_activity_array);
-        if (coefficientString.equals(lifestyleValues[0])) {
-            return PhysicalActivityCoefficients.PASSIVE_LIFESTYLE;
-        } else if (coefficientString.equals(lifestyleValues[1])) {
-            return PhysicalActivityCoefficients.INSIGNIFICANT_ACTIVITY;
-        } else if (coefficientString.equals(lifestyleValues[2])) {
-            return PhysicalActivityCoefficients.MEDIUM_ACTIVITY;
-        } else if (coefficientString.equals(lifestyleValues[3])) {
-            return PhysicalActivityCoefficients.ACTIVE_LIFESTYLE;
-        } else {
-            return PhysicalActivityCoefficients.PROFESSIONAL_SPORTS;
-        }
     }
 
     private boolean allFieldsFilled() {
@@ -140,17 +129,22 @@ public class UserParametersActivity extends BaseActivity {
     }
 
     private UserParameters extractUserParameters() {
-        String goal = (String) ((Spinner) findViewById(R.id.goal_spinner)).getSelectedItem();
-        String gender = (String) ((Spinner) findViewById(R.id.gender_spinner)).getSelectedItem();
+        int goalSelectedPosition = ((Spinner) findViewById(R.id.goal_spinner)).getSelectedItemPosition();
+        Goal goal = Goal.POSITIONS.get(goalSelectedPosition);
+
+        int genderSelectedPosition = ((Spinner) findViewById(R.id.gender_spinner)).getSelectedItemPosition();
+        Gender gender = Gender.POSITIONS.get(genderSelectedPosition);
+
         int age = Integer.parseInt(((EditText) findViewById(R.id.age)).getText().toString());
         int height = Integer.parseInt(((EditText) findViewById(R.id.height)).getText().toString());
         int weight = Integer.parseInt(((EditText) findViewById(R.id.weight)).getText().toString());
 
-        String physicalActivityString = (String) ((Spinner) findViewById(R.id.lifestyle_spinner)).getSelectedItem();
-        float coefficient = getCoefficient(physicalActivityString);
+        int lifestyleSelectedPosition = ((Spinner) findViewById(R.id.lifestyle_spinner)).getSelectedItemPosition();
+        Lifestyle lifestyle = Lifestyle.POSITIONS.get(lifestyleSelectedPosition);
 
-        String formula = (String) ((Spinner) findViewById(R.id.formula_spinner)).getSelectedItem();
+        int formulaSelectedPosition = ((Spinner) findViewById(R.id.formula_spinner)).getSelectedItemPosition();
+        Formula formula = Formula.POSITIONS.get(formulaSelectedPosition);
 
-        return new UserParameters(goal, gender, age, height, weight, coefficient, formula);
+        return new UserParameters(goal, gender, age, height, weight, lifestyle, formula);
     }
 }

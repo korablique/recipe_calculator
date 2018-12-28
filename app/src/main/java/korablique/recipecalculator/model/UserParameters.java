@@ -1,41 +1,63 @@
 package korablique.recipecalculator.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.util.Objects;
 
-import korablique.recipecalculator.FloatUtils;
-
-public class UserParameters {
-    private final String goal;
-    private final String gender;
+public class UserParameters implements Parcelable {
+    private final Goal goal;
+    private final Gender gender;
     private final int age;
     private final int height;
     private final int weight;
-    private final float physicalActivityCoefficient;
-    private final String formula;
+    private final Lifestyle lifestyle;
+    private final Formula formula;
 
     public UserParameters(
-            String goal,
-            String gender,
+            Goal goal,
+            Gender gender,
             int age,
             int height,
             int weight,
-            float physicalActivityCoefficient,
-            String formula) {
+            Lifestyle lifestyle,
+            Formula formula) {
         this.goal = goal;
-
         this.gender = gender;
         this.age = age;
         this.height = height;
         this.weight = weight;
-        this.physicalActivityCoefficient = physicalActivityCoefficient;
+        this.lifestyle = lifestyle;
         this.formula = formula;
     }
 
-    public String getGoal() {
+    protected UserParameters(Parcel in) {
+        goal = (Goal) in.readSerializable();
+        gender = (Gender) in.readSerializable();
+        age = in.readInt();
+        height = in.readInt();
+        weight = in.readInt();
+        lifestyle = (Lifestyle) in.readSerializable();
+        formula = (Formula) in.readSerializable();
+    }
+
+    public static final Creator<UserParameters> CREATOR = new Creator<UserParameters>() {
+        @Override
+        public UserParameters createFromParcel(Parcel in) {
+            return new UserParameters(in);
+        }
+
+        @Override
+        public UserParameters[] newArray(int size) {
+            return new UserParameters[size];
+        }
+    };
+
+    public Goal getGoal() {
         return goal;
     }
 
-    public String getGender() {
+    public Gender getGender() {
         return gender;
     }
 
@@ -51,11 +73,11 @@ public class UserParameters {
         return weight;
     }
 
-    public float getPhysicalActivityCoefficient() {
-        return physicalActivityCoefficient;
+    public Lifestyle getLifestyle() {
+        return lifestyle;
     }
 
-    public String getFormula() {
+    public Formula getFormula() {
         return formula;
     }
 
@@ -67,7 +89,7 @@ public class UserParameters {
         return age == that.age &&
                 height == that.height &&
                 weight == that.weight &&
-                FloatUtils.areFloatsEquals(that.physicalActivityCoefficient, physicalActivityCoefficient) &&
+                Objects.equals(lifestyle, that.lifestyle) &&
                 Objects.equals(goal, that.goal) &&
                 Objects.equals(gender, that.gender) &&
                 Objects.equals(formula, that.formula);
@@ -75,7 +97,23 @@ public class UserParameters {
 
     @Override
     public int hashCode() {
-        return Objects.hash(goal, gender, age, height, weight, physicalActivityCoefficient, formula);
+        return Objects.hash(goal, gender, age, height, weight, lifestyle, formula);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeSerializable(goal);
+        parcel.writeSerializable(gender);
+        parcel.writeInt(age);
+        parcel.writeInt(height);
+        parcel.writeInt(weight);
+        parcel.writeSerializable(lifestyle);
+        parcel.writeSerializable(formula);
     }
 }
 

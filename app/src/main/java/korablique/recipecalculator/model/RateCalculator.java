@@ -1,51 +1,17 @@
 package korablique.recipecalculator.model;
 
-import android.content.Context;
-
-import korablique.recipecalculator.R;
-import korablique.recipecalculator.model.Rates;
-
 public class RateCalculator {
-    public enum Formula {
-        HARRIS_BENEDICT,
-        MIFFLIN_JEOR
-    }
-    public enum Goal {
-        LOSING_WEIGHT,
-        MAINTAINING_CURRENT_WEIGHT,
-        MASS_GATHERING
-    }
-    public enum Gender {
-        MALE,
-        FEMALE
-    }
 
     private RateCalculator() {}
 
-    public static Rates calculate(
-            Context context,
-            String goalString,
-            String genderString,
-            int age,
-            int height,
-            int weight,
-            float physicalActivityCoefficient,
-            String formulaString) {
-        Goal goal = convertGoalStringToGoalEnum(context, goalString);
-        Gender gender = convertGenderStringToGenderEnum(context, genderString);
-        Formula formula = convertFormulaStringToFormulaEnum(context, formulaString);
-        return calculate(goal, gender, age, height, weight, physicalActivityCoefficient, formula);
-    }
-
-    public static Rates calculate(Context context, UserParameters userParameters) {
+    public static Rates calculate(UserParameters userParameters) {
         return calculate(
-                context,
                 userParameters.getGoal(),
                 userParameters.getGender(),
                 userParameters.getAge(),
                 userParameters.getHeight(),
                 userParameters.getWeight(),
-                userParameters.getPhysicalActivityCoefficient(),
+                userParameters.getLifestyle(),
                 userParameters.getFormula());
     }
 
@@ -55,7 +21,7 @@ public class RateCalculator {
             int age,
             int height,
             int weight,
-            float physicalActivityCoefficient,
+            Lifestyle lifestyle,
             Formula formula) {
         // 1) рассчитываем базальный метаболизм
         float basalMetabolism;
@@ -81,7 +47,8 @@ public class RateCalculator {
 
         // 2) корректируем калорийность в зависимости от активности (умножаем на коэф. активности)
         // (это поддержка)
-        float calories = basalMetabolism * physicalActivityCoefficient;
+        float coefficient = lifestyle.getPhysActivityCoefficient();
+        float calories = basalMetabolism * coefficient;
 
         float caloriesDependingOnGoal;
         // 3) корректируем калорийность в зависимости от целей
@@ -101,33 +68,5 @@ public class RateCalculator {
         float fats = weight;
         float carbs = (caloriesDependingOnGoal - (protein * 4 + fats * 9)) / 4;
         return new Rates(caloriesDependingOnGoal, protein, fats, carbs);
-    }
-
-    private static Formula convertFormulaStringToFormulaEnum(Context context, String formulaString) {
-        if (formulaString.equals(context.getResources().getStringArray(R.array.formula_array)[0])) {
-            return Formula.HARRIS_BENEDICT;
-        } else {
-            return Formula.MIFFLIN_JEOR;
-        }
-    }
-
-    private static Gender convertGenderStringToGenderEnum(Context context, String genderString) {
-        if (genderString.equals(context.getResources().getStringArray(R.array.gender_array)[1])) {
-            return Gender.MALE;
-        } else if (genderString.equals(context.getResources().getStringArray(R.array.gender_array)[2])) {
-            return Gender.FEMALE;
-        } else {
-            throw new IllegalStateException("Gender was not selected");
-        }
-    }
-
-    private static Goal convertGoalStringToGoalEnum(Context context, String goalString) {
-        if (goalString.equals(context.getResources().getStringArray(R.array.goals_array)[0])) {
-            return Goal.LOSING_WEIGHT;
-        } else if (goalString.equals(context.getResources().getStringArray(R.array.goals_array)[1])) {
-            return Goal.MAINTAINING_CURRENT_WEIGHT;
-        } else {
-            return Goal.MASS_GATHERING;
-        }
     }
 }

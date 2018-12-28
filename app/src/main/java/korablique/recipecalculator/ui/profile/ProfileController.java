@@ -53,7 +53,7 @@ public class ProfileController extends FragmentCallbacks.Observer {
             UserParameters userParameters = parameters.get();
             fillUserData(fragmentView, userParameters);
 
-            Rates rates = RateCalculator.calculate(context, userParameters);
+            Rates rates = RateCalculator.calculate(userParameters);
             fillNutritionRates(fragmentView, rates);
         });
     }
@@ -66,7 +66,7 @@ public class ProfileController extends FragmentCallbacks.Observer {
 
         ageTextView.setText(String.valueOf(userParameters.getAge()));
         heightTextView.setText(String.valueOf(userParameters.getHeight()));
-        goalTextView.setText(userParameters.getGoal());
+        goalTextView.setText(userParameters.getGoal().getStringRes());
         weightTextView.setText(String.valueOf(userParameters.getWeight()));
     }
 
