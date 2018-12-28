@@ -34,7 +34,7 @@ import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.database.DatabaseWorker;
-import korablique.recipecalculator.database.FoodstuffsDbHelper;
+import korablique.recipecalculator.database.DbHelper;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
@@ -128,8 +128,8 @@ public class MainActivityTest {
 
     @Before
     public void setUp() {
-        FoodstuffsDbHelper.deinitializeDatabase(context);
-        FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+        DbHelper.deinitializeDatabase(context);
+        DbHelper dbHelper = new DbHelper(context);
         dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
 
         mainThreadExecutor.execute(() -> {

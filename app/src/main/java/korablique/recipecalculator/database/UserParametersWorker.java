@@ -77,7 +77,7 @@ public class UserParametersWorker {
      */
     @Nullable
     private UserParameters requestCurrentUserParametersImpl() {
-        FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+        DbHelper dbHelper = new DbHelper(context);
         SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
         Cursor cursor = database.query(
                 USER_PARAMETERS_TABLE_NAME,
@@ -115,7 +115,7 @@ public class UserParametersWorker {
     public Completable saveUserParameters(
             final UserParameters userParameters) {
         Completable result = Completable.create((subscriber) -> {
-            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+            DbHelper dbHelper = new DbHelper(context);
             SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
             ContentValues values = new ContentValues();
             values.put(COLUMN_NAME_GOAL, userParameters.getGoal().getId());

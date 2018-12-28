@@ -31,9 +31,9 @@ import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAM
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_IS_LISTED;
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_PROTEIN;
 import static korablique.recipecalculator.database.FoodstuffsContract.FOODSTUFFS_TABLE_NAME;
-import static korablique.recipecalculator.database.FoodstuffsDbHelper.COLUMN_NAME_VERSION;
-import static korablique.recipecalculator.database.FoodstuffsDbHelper.DATABASE_VERSION;
-import static korablique.recipecalculator.database.FoodstuffsDbHelper.TABLE_DATABASE_VERSION;
+import static korablique.recipecalculator.database.DbHelper.COLUMN_NAME_VERSION;
+import static korablique.recipecalculator.database.DbHelper.DATABASE_VERSION;
+import static korablique.recipecalculator.database.DbHelper.TABLE_DATABASE_VERSION;
 import static korablique.recipecalculator.database.HistoryContract.COLUMN_NAME_DATE;
 import static korablique.recipecalculator.database.HistoryContract.COLUMN_NAME_FOODSTUFF_ID;
 import static korablique.recipecalculator.database.HistoryContract.COLUMN_NAME_WEIGHT;
@@ -50,7 +50,7 @@ import static korablique.recipecalculator.database.UserParametersContract.USER_P
 
 @RunWith(AndroidJUnit4.class)
 @LargeTest
-public class FoodstuffsDbHelperTest {
+public class DbHelperTest {
     private Context context;
     
     @Before
@@ -60,15 +60,15 @@ public class FoodstuffsDbHelperTest {
 
     @NonNull
     private File getDbFile() {
-        return FoodstuffsDbHelper.getDbFile(context);
+        return DbHelper.getDbFile(context);
     }
 
     @Test
     public void databaseUpgradesFrom1to2version() {
         // Удалим существующую базу данных
-        FoodstuffsDbHelper.deinitializeDatabase(context);
+        DbHelper.deinitializeDatabase(context);
 
-        // Создадим файл базы данных НЕ используя FoodstuffsDbHelper
+        // Создадим файл базы данных НЕ используя DbHelper
         SQLiteDatabase database1 = SQLiteDatabase.openOrCreateDatabase(getDbFile(), null);
 
         Assert.assertFalse(DatabaseUtils.tableExists(database1, FOODSTUFFS_TABLE_NAME));
@@ -87,8 +87,8 @@ public class FoodstuffsDbHelperTest {
         Assert.assertFalse(DatabaseUtils.tableExists(database1, USER_PARAMETERS_TABLE_NAME));
         database1.close();
 
-        // Создать FoodstuffsDbHelper и сделать open
-        FoodstuffsDbHelper helper = new FoodstuffsDbHelper(context);
+        // Создать DbHelper и сделать open
+        DbHelper helper = new DbHelper(context);
         SQLiteDatabase database2 = helper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
 
         // Убедиться, что БД имеет 2 версию
@@ -102,9 +102,9 @@ public class FoodstuffsDbHelperTest {
     @Test
     public void databaseUpgradesFrom2to3version() {
         // Удалим существующую базу данных
-        FoodstuffsDbHelper.deinitializeDatabase(context);
+        DbHelper.deinitializeDatabase(context);
 
-        // Создадим файл базы данных НЕ используя FoodstuffsDbHelper
+        // Создадим файл базы данных НЕ используя DbHelper
         SQLiteDatabase database1 = SQLiteDatabase.openOrCreateDatabase(getDbFile(), null);
 
         Assert.assertFalse(DatabaseUtils.tableExists(database1, FOODSTUFFS_TABLE_NAME));
@@ -153,8 +153,8 @@ public class FoodstuffsDbHelperTest {
         values.put(COLUMN_NAME_IS_LISTED, 1);
         long id = database1.insert(FOODSTUFFS_TABLE_NAME, null, values);
 
-        // Создать FoodstuffsDbHelper и сделать open
-        FoodstuffsDbHelper helper = new FoodstuffsDbHelper(context);
+        // Создать DbHelper и сделать open
+        DbHelper helper = new DbHelper(context);
         SQLiteDatabase database2 = helper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
 
         // Убедиться, что БД имеет 3 версию, т.е. проверить наличие столбца name_nocase
@@ -178,9 +178,9 @@ public class FoodstuffsDbHelperTest {
     @Test
     public void databaseUpgradesFrom3to4version() {
         // Удалим существующую базу данных
-        FoodstuffsDbHelper.deinitializeDatabase(context);
+        DbHelper.deinitializeDatabase(context);
 
-        // Создадим файл базы данных НЕ используя FoodstuffsDbHelper
+        // Создадим файл базы данных НЕ используя DbHelper
         SQLiteDatabase database1 = SQLiteDatabase.openOrCreateDatabase(getDbFile(), null);
 
         // Заполнить файл табличками для 3 версии:
@@ -235,8 +235,8 @@ public class FoodstuffsDbHelperTest {
         values.put(COLUMN_NAME_FORMULA, userFormula);
         database1.insert(USER_PARAMETERS_TABLE_NAME, null, values);
 
-        // Создать FoodstuffsDbHelper и сделать open
-        FoodstuffsDbHelper helper = new FoodstuffsDbHelper(context);
+        // Создать DbHelper и сделать open
+        DbHelper helper = new DbHelper(context);
         SQLiteDatabase database2 = helper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
 
         // Убедиться, что БД имеет 4 версию
@@ -262,15 +262,15 @@ public class FoodstuffsDbHelperTest {
 
     @Test
     public void databaseDoesNotUpdateIfHasActualVersion() throws IOException {
-        FoodstuffsDbHelper.deinitializeDatabase(context);
+        DbHelper.deinitializeDatabase(context);
 
-        FoodstuffsDbHelper helper1 = new FoodstuffsDbHelper(context);
-        FoodstuffsDbHelper.InitializationResult result1 = helper1.initializeDatabase();
+        DbHelper helper1 = new DbHelper(context);
+        DbHelper.InitializationResult result1 = helper1.initializeDatabase();
         Assert.assertEquals(DATABASE_VERSION, result1.getNewVersion());
 
-        FoodstuffsDbHelper helper2 = new FoodstuffsDbHelper(context);
-        FoodstuffsDbHelper.InitializationResult result2 = helper2.initializeDatabase();
-        Assert.assertEquals(FoodstuffsDbHelper.InitializationType.None, result2.getPerformedInitialization());
+        DbHelper helper2 = new DbHelper(context);
+        DbHelper.InitializationResult result2 = helper2.initializeDatabase();
+        Assert.assertEquals(DbHelper.InitializationType.None, result2.getPerformedInitialization());
     }
 
     public boolean isColumnExist(SQLiteDatabase database, String tableName, String columnName) {

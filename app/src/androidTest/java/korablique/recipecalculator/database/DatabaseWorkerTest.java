@@ -78,7 +78,7 @@ public class DatabaseWorkerTest {
                 20,
                 foodstuffs -> listedFoodstuffsCount[0] = foodstuffs.size());
 
-        FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+        DbHelper dbHelper = new DbHelper(context);
         SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
         Cursor unlistedFoodstuffs = database.rawQuery(
                 "SELECT * FROM " + FOODSTUFFS_TABLE_NAME + " WHERE " + COLUMN_NAME_IS_LISTED + "=0", null);

@@ -43,7 +43,7 @@ import static korablique.recipecalculator.database.UserParametersContract.COLUMN
 import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_USER_WEIGHT;
 import static korablique.recipecalculator.database.UserParametersContract.USER_PARAMETERS_TABLE_NAME;
 
-public class FoodstuffsDbHelper {
+public class DbHelper {
     public static final int DATABASE_VERSION = 4;
     public static final String TABLE_DATABASE_VERSION = "database_version";
     public static final String COLUMN_NAME_VERSION = "version";
@@ -60,7 +60,7 @@ public class FoodstuffsDbHelper {
         Update // БД присутствовала, но была старой версии - пришлось её обновить
     }
 
-    public FoodstuffsDbHelper(Context context) {
+    public DbHelper(Context context) {
         this.context = context;
     }
 

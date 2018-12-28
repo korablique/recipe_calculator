@@ -12,11 +12,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
-import java.lang.ref.Reference;
 
 import io.reactivex.Completable;
 import io.reactivex.Single;
-import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.Optional;
 import korablique.recipecalculator.model.Formula;
 import korablique.recipecalculator.model.Gender;
@@ -46,8 +44,8 @@ public class UserParametersWorkerTest {
     public void setUp() throws IOException {
         context = InstrumentationRegistry.getTargetContext();
 
-        FoodstuffsDbHelper.deinitializeDatabase(context);
-        FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+        DbHelper.deinitializeDatabase(context);
+        DbHelper dbHelper = new DbHelper(context);
         dbHelper.initializeDatabase();
 
         DbUtil.clearTable(context, HISTORY_TABLE_NAME);
