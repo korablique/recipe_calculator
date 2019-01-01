@@ -13,6 +13,7 @@ public class FragmentCallbacks {
     public static abstract class Observer {
         public void onFragmentCreate(Bundle savedInstanceState) {}
         public void onFragmentViewCreated(View fragmentView) {}
+        public void onFragmentStart() {}
         public void onFragmentResume() {}
         public void onActivityResult(int requestCode, int resultCode, Intent data) {}
         public void onFragmentSaveInstanceState(Bundle outState) {}
@@ -37,6 +38,12 @@ public class FragmentCallbacks {
     void dispatchFragmentViewCreated(View fragmentView) {
         for (Observer observer : observers) {
             observer.onFragmentViewCreated(fragmentView);
+        }
+    }
+
+    void dispatchFragmentStart() {
+        for (Observer observer : observers) {
+            observer.onFragmentStart();
         }
     }
 

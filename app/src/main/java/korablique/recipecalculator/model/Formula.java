@@ -10,6 +10,7 @@ public enum Formula {
     MIFFLIN_JEOR(R.string.mifflin_jeor, 1);
 
     public static final Map<Integer, Formula> POSITIONS = new HashMap<>();
+    public static final Map<Formula, Integer> POSITIONS_REVERSED = new HashMap<>();
     private int stringRes;
     private int id;
 
@@ -22,6 +23,7 @@ public enum Formula {
         Formula[] elements = Formula.values();
         for (int index = 0; index < elements.length; index++) {
             POSITIONS.put(index, elements[index]);
+            POSITIONS_REVERSED.put(elements[index], index);
         }
     }
 

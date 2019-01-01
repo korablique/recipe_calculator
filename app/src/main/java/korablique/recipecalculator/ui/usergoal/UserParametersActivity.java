@@ -21,11 +21,14 @@ import java.util.List;
 import javax.inject.Inject;
 
 import io.reactivex.Completable;
+import io.reactivex.Single;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
+import korablique.recipecalculator.base.Optional;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.model.Formula;
+import korablique.recipecalculator.model.FullName;
 import korablique.recipecalculator.model.Gender;
 import korablique.recipecalculator.model.Goal;
 import korablique.recipecalculator.model.Lifestyle;
@@ -84,16 +87,29 @@ public class UserParametersActivity extends BaseActivity {
                     Toast.makeText(UserParametersActivity.this, R.string.fill_all_fields, Toast.LENGTH_SHORT).show();
                     return;
                 }
-                String name = ((EditText) findViewById(R.id.name)).getText().toString();
-                String surname = ((EditText) findViewById(R.id.surname)).getText().toString();
-                userNameProvider.saveUserName(name, surname);
+                String firstName = ((EditText) findViewById(R.id.first_name)).getText().toString();
+                String lastName = ((EditText) findViewById(R.id.last_name)).getText().toString();
+                FullName fullName = new FullName(firstName, lastName);
+                userNameProvider.saveUserName(fullName);
 
                 UserParameters userParameters = extractUserParameters();
                 Completable callback = userParametersWorker.saveUserParameters(userParameters);
                 subscriptions.subscribe(callback, () -> {
-                    MainActivity.start(UserParametersActivity.this);
+                    // если пользователь первый раз открыл приложение и у него ещё нет данных,
+                    // то после того, как он их сохранит, открыть MainActivity
+                    if (UserParametersActivity.this.isTaskRoot()) {
+                        MainActivity.start(UserParametersActivity.this);
+                    }
                     finish();
                 });
+            }
+        });
+
+        Single<Optional<UserParameters>> oldUserParamsSingle = userParametersWorker.requestCurrentUserParameters();
+        subscriptions.subscribe(oldUserParamsSingle, userParametersOptional -> {
+            if (userParametersOptional.isPresent()) {
+                fillWithOldUserParameters(userParametersOptional.get());
+                fillUserName(userNameProvider.getUserName());
             }
         });
     }
@@ -114,8 +130,8 @@ public class UserParametersActivity extends BaseActivity {
     }
 
     private boolean allFieldsFilled() {
-        EditText nameView = findViewById(R.id.name);
-        EditText surnameView = findViewById(R.id.surname);
+        EditText nameView = findViewById(R.id.first_name);
+        EditText surnameView = findViewById(R.id.last_name);
         EditText ageView = findViewById(R.id.age);
         EditText heightView = findViewById(R.id.height);
         EditText weightView = findViewById(R.id.weight);
@@ -146,5 +162,38 @@ public class UserParametersActivity extends BaseActivity {
         Formula formula = Formula.POSITIONS.get(formulaSelectedPosition);
 
         return new UserParameters(goal, gender, age, height, weight, lifestyle, formula);
+    }
+
+    private void fillWithOldUserParameters(UserParameters oldUserParams) {
+        EditText ageView = findViewById(R.id.age);
+        EditText heightView = findViewById(R.id.height);
+        EditText weightView = findViewById(R.id.weight);
+        Spinner genderSpinner = findViewById(R.id.gender_spinner);
+        Spinner goalSpinner = findViewById(R.id.goal_spinner);
+        Spinner lifestyleSpinner = findViewById(R.id.lifestyle_spinner);
+        Spinner formulaSpinner = findViewById(R.id.formula_spinner);
+
+        ageView.setText(String.valueOf(oldUserParams.getAge()));
+        heightView.setText(String.valueOf(oldUserParams.getHeight()));
+        weightView.setText(String.valueOf(oldUserParams.getWeight()));
+
+        Gender gender = oldUserParams.getGender();
+        genderSpinner.setSelection(Gender.POSITIONS_REVERSED.get(gender));
+
+        Goal goal = oldUserParams.getGoal();
+        goalSpinner.setSelection(Goal.POSITIONS_REVERSED.get(goal));
+
+        Lifestyle lifestyle = oldUserParams.getLifestyle();
+        lifestyleSpinner.setSelection(Lifestyle.POSITIONS_REVERSED.get(lifestyle));
+
+        Formula formula = oldUserParams.getFormula();
+        formulaSpinner.setSelection(Formula.POSITIONS_REVERSED.get(formula));
+    }
+
+    private void fillUserName(FullName userFullName) {
+        EditText firstNameEditText = findViewById(R.id.first_name);
+        firstNameEditText.setText(userFullName.getFirstName());
+        EditText lastNameEditText = findViewById(R.id.last_name);
+        lastNameEditText.setText(userFullName.getLastName());
     }
 }

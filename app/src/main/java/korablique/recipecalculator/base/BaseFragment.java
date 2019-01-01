@@ -46,6 +46,12 @@ public abstract class BaseFragment extends Fragment {
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        fragmentCallbacks.dispatchFragmentStart();
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         fragmentCallbacks.dispatchFragmentResume();

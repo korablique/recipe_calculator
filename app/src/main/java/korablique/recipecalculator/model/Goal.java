@@ -11,6 +11,7 @@ public enum Goal {
     MASS_GATHERING(R.string.mass_gathering, 2);
 
     public static final Map<Integer, Goal> POSITIONS = new HashMap<>();
+    public static final Map<Goal, Integer> POSITIONS_REVERSED = new HashMap<>();
     private int stringRes;
     private int id;
 
@@ -23,6 +24,7 @@ public enum Goal {
         Goal[] elements = Goal.values();
         for (int index = 0; index < elements.length; index++) {
             POSITIONS.put(index, elements[index]);
+            POSITIONS_REVERSED.put(elements[index], index);
         }
     }
 

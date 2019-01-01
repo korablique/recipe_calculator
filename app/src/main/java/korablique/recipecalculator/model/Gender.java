@@ -10,6 +10,8 @@ public enum Gender {
     FEMALE(R.string.female, 2);
 
     public static final Map<Integer, Gender> POSITIONS = new HashMap<>();
+    public static final Map<Gender, Integer> POSITIONS_REVERSED = new HashMap<>();
+
     private final int stringRes;
     private int id;
 
@@ -23,6 +25,7 @@ public enum Gender {
         Gender[] elements = Gender.values();
         for (int index = 0; index < elements.length; index++) {
             POSITIONS.put(index + 1, elements[index]);
+            POSITIONS_REVERSED.put(elements[index], index + 1);
         }
     }
 

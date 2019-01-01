@@ -139,13 +139,13 @@ public class DbHelper {
     private void createTableUserParameters(SQLiteDatabase database) {
         database.execSQL("CREATE TABLE " + USER_PARAMETERS_TABLE_NAME + " (" +
                 UserParametersContract.ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                COLUMN_NAME_GOAL + " TEXT, " +
-                COLUMN_NAME_GENDER + " TEXT, " +
+                COLUMN_NAME_GOAL + " INTEGER, " +
+                COLUMN_NAME_GENDER + " INTEGER, " +
                 COLUMN_NAME_AGE + " INTEGER, " +
                 COLUMN_NAME_HEIGHT + " INTEGER, " +
                 COLUMN_NAME_USER_WEIGHT + " INTEGER, " +
-                COLUMN_NAME_COEFFICIENT + " REAL, " +
-                COLUMN_NAME_FORMULA + " TEXT)");
+                COLUMN_NAME_LIFESTYLE + " INTEGER, " +
+                COLUMN_NAME_FORMULA + " INTEGER)");
     }
 
     private InitializationResult tryToUpgradeDatabase() {
@@ -167,7 +167,9 @@ public class DbHelper {
             performedInitialization = InitializationType.Update;
             oldVersion = 2;
             newVersion = 3;
-        } else if (getDatabaseVersion(database) == 3) {
+        }
+
+        if (getDatabaseVersion(database) == 3) {
             updateToVersion4(database);
             performedInitialization = InitializationType.Update;
             oldVersion = 3;

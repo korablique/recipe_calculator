@@ -54,7 +54,7 @@
 
                 <!--user name-->
                 <TextView
-                    android:id="@+id/user_name_text_view"
+                    android:id="@+id/first_name_text_view"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="4.5dp"
@@ -62,7 +62,7 @@
                     android:text="@string/user_name" />
 
                 <EditText
-                    android:id="@+id/name"
+                    android:id="@+id/first_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textCapSentences"
@@ -75,22 +75,22 @@
                     android:layout_width="0dp"
                     android:layout_height="0dp"
                     android:layout_marginTop="16dp"
-                    app:layout_constraintTop_toBottomOf="@+id/name" />
+                    app:layout_constraintTop_toBottomOf="@+id/first_name" />
 
                 <!--surname-->
                 <TextView
-                    android:id="@+id/surname_text_view"
+                    android:id="@+id/last_name_text_view"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/name"
+                    app:layout_constraintTop_toBottomOf="@+id/first_name"
                     android:layout_marginStart="4.5dp"
                     android:layout_marginTop="8dp"
                     style="@style/RobotoMonoHintText"
                     android:text="@string/user_surname" />
 
                 <EditText
-                    android:id="@+id/surname"
+                    android:id="@+id/last_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:layout_constraintStart_toStartOf="parent"
@@ -105,7 +105,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/surname"
+                    app:layout_constraintTop_toBottomOf="@+id/last_name"
                     android:layout_marginStart="4.5dp"
                     android:layout_marginTop="8dp"
                     style="@style/RobotoMonoHintText"

@@ -13,6 +13,7 @@ public enum Lifestyle {
     PROFESSIONAL_SPORTS(R.string.professional_sports, 4, PhysicalActivityCoefficients.PROFESSIONAL_SPORTS);
 
     public static final Map<Integer, Lifestyle> POSITIONS = new HashMap<>();
+    public static final Map<Lifestyle, Integer> POSITIONS_REVERSED = new HashMap<>();
     private final int stringRes;
     private final int id;
     private final float physActivityCoefficient;
@@ -39,6 +40,7 @@ public enum Lifestyle {
         Lifestyle[] elements = Lifestyle.values();
         for (int index = 0; index < elements.length; index++) {
             POSITIONS.put(index, elements[index]);
+            POSITIONS_REVERSED.put(elements[index], index);
         }
     }
 
