@@ -15,6 +15,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import korablique.recipecalculator.model.Formula;
+import korablique.recipecalculator.model.Gender;
+import korablique.recipecalculator.model.Goal;
+import korablique.recipecalculator.model.Lifestyle;
+
 import static korablique.recipecalculator.database.DatabaseUtils.tableExists;
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_CALORIES;
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_CARBS;
@@ -30,6 +35,7 @@ import static korablique.recipecalculator.database.HistoryContract.COLUMN_NAME_W
 import static korablique.recipecalculator.database.HistoryContract.HISTORY_TABLE_NAME;
 import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_AGE;
 import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_COEFFICIENT;
+import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_LIFESTYLE;
 import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_FORMULA;
 import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_GENDER;
 import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_GOAL;
@@ -37,8 +43,8 @@ import static korablique.recipecalculator.database.UserParametersContract.COLUMN
 import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_USER_WEIGHT;
 import static korablique.recipecalculator.database.UserParametersContract.USER_PARAMETERS_TABLE_NAME;
 
-public class FoodstuffsDbHelper {
-    public static final int DATABASE_VERSION = 3;
+public class DbHelper {
+    public static final int DATABASE_VERSION = 4;
     public static final String TABLE_DATABASE_VERSION = "database_version";
     public static final String COLUMN_NAME_VERSION = "version";
 
@@ -54,7 +60,7 @@ public class FoodstuffsDbHelper {
         Update // БД присутствовала, но была старой версии - пришлось её обновить
     }
 
-    public FoodstuffsDbHelper(Context context) {
+    public DbHelper(Context context) {
         this.context = context;
     }
 
@@ -133,14 +139,13 @@ public class FoodstuffsDbHelper {
     private void createTableUserParameters(SQLiteDatabase database) {
         database.execSQL("CREATE TABLE " + USER_PARAMETERS_TABLE_NAME + " (" +
                 UserParametersContract.ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                COLUMN_NAME_GOAL + " TEXT, " +
-                COLUMN_NAME_GENDER + " TEXT, " +
+                COLUMN_NAME_GOAL + " INTEGER, " +
+                COLUMN_NAME_GENDER + " INTEGER, " +
                 COLUMN_NAME_AGE + " INTEGER, " +
                 COLUMN_NAME_HEIGHT + " INTEGER, " +
                 COLUMN_NAME_USER_WEIGHT + " INTEGER, " +
-                COLUMN_NAME_COEFFICIENT + " REAL, " +
-                COLUMN_NAME_FORMULA + " TEXT)");
-        // TODO: 17.10.17 я тут сделала integer'ы, но что если юзер умудрится ввести нецелое число?
+                COLUMN_NAME_LIFESTYLE + " INTEGER, " +
+                COLUMN_NAME_FORMULA + " INTEGER)");
     }
 
     private InitializationResult tryToUpgradeDatabase() {
@@ -164,6 +169,13 @@ public class FoodstuffsDbHelper {
             newVersion = 3;
         }
 
+        if (getDatabaseVersion(database) == 3) {
+            updateToVersion4(database);
+            performedInitialization = InitializationType.Update;
+            oldVersion = 3;
+            newVersion = 4;
+        }
+
         return new InitializationResult(performedInitialization, oldVersion, newVersion);
     }
 
@@ -181,6 +193,7 @@ public class FoodstuffsDbHelper {
     }
 
     private void updateToVersion3(SQLiteDatabase database) {
+        // добавляется новый столбец с названием продукта без заглавных букв
         database.beginTransaction();
         String tmpTableName = "foodstuffs_tmp";
         try {
@@ -219,6 +232,68 @@ public class FoodstuffsDbHelper {
             }
             cursor.close();
             setDatabaseVersion(database, 3);
+            database.setTransactionSuccessful();
+        } finally {
+            database.endTransaction();
+        }
+    }
+
+    private void updateToVersion4(SQLiteDatabase database) {
+        // goal, gender, lifestyle, formula хранятся в виде их id элементов enum'ов
+        database.beginTransaction();
+        String tmpTableName = USER_PARAMETERS_TABLE_NAME + "_tmp";
+        try {
+            database.execSQL("CREATE TABLE " + tmpTableName + " (" +
+                    UserParametersContract.ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    COLUMN_NAME_GOAL + " INTEGER, " +
+                    COLUMN_NAME_GENDER + " INTEGER, " +
+                    COLUMN_NAME_AGE + " INTEGER, " +
+                    COLUMN_NAME_HEIGHT + " INTEGER, " +
+                    COLUMN_NAME_USER_WEIGHT + " INTEGER, " +
+                    COLUMN_NAME_LIFESTYLE + " INTEGER, " +
+                    COLUMN_NAME_FORMULA + " INTEGER)");
+
+            Cursor cursor = database.query(USER_PARAMETERS_TABLE_NAME, null, null, null, null, null, null);
+            while (cursor.moveToNext()) {
+                long id = cursor.getLong(cursor.getColumnIndex(UserParametersContract.ID));
+
+                String goalStr = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_GOAL));
+                Goal goal = DeprecetedDatabaseValues.convertGoal(goalStr);
+                int goalId = goal.getId();
+
+                String genderStr = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_GENDER));
+                Gender gender = DeprecetedDatabaseValues.convertGender(genderStr);
+                int genderId = gender.getId();
+
+                int age = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_AGE));
+                int height = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_HEIGHT));
+                int weight = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_USER_WEIGHT));
+
+                float coefficient = cursor.getFloat(cursor.getColumnIndex(COLUMN_NAME_COEFFICIENT));
+                Lifestyle lifestyle = DeprecetedDatabaseValues.convertCoefficient(coefficient);
+                int lifestyleId = lifestyle.getId();
+
+                String formulaStr = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_FORMULA));
+                Formula formula = DeprecetedDatabaseValues.convertFormula(formulaStr);
+                int formulaId = formula.getId();
+
+                ContentValues values = new ContentValues();
+                values.put(UserParametersContract.ID, id);
+                values.put(COLUMN_NAME_GOAL, goalId);
+                values.put(COLUMN_NAME_GENDER, genderId);
+                values.put(COLUMN_NAME_AGE, age);
+                values.put(COLUMN_NAME_HEIGHT, height);
+                values.put(COLUMN_NAME_USER_WEIGHT, weight);
+                values.put(COLUMN_NAME_LIFESTYLE, lifestyleId);
+                values.put(COLUMN_NAME_FORMULA, formulaId);
+
+                database.insert(tmpTableName, null, values);
+            }
+            cursor.close();
+
+            database.execSQL("DROP TABLE " + USER_PARAMETERS_TABLE_NAME);
+            database.execSQL("ALTER TABLE " + tmpTableName + " RENAME TO " + USER_PARAMETERS_TABLE_NAME);
+            setDatabaseVersion(database, 4);
             database.setTransactionSuccessful();
         } finally {
             database.endTransaction();

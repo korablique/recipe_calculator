@@ -129,7 +129,13 @@ class PluralProgressBar : View {
             totalProgress += Math.floor(bar.progress.toDouble()).toInt()
         }
         if (totalProgress > 100) {
-            throw IllegalStateException("Sum of all progresses must be <=100, but is $totalProgress")
+            val barsValues = ArrayList<Float>()
+            for (bar in bars) {
+                barsValues.add(bar.progress)
+            }
+            val varsValuesStr = barsValues.joinToString()
+
+            throw IllegalStateException("Sum of all progresses must be <=100, but is $totalProgress, progress: $varsValuesStr")
         }
 
         recalculateAllBounds()

@@ -105,7 +105,7 @@ public class HistoryWorker {
             cacheWasUsed = true;
         }
 
-        FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+        DbHelper dbHelper = new DbHelper(context);
         SQLiteDatabase db = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
         String joinTablesArg = HISTORY_TABLE_NAME + " LEFT OUTER" +
                 " JOIN " + FOODSTUFFS_TABLE_NAME +
@@ -185,7 +185,7 @@ public class HistoryWorker {
             final NewHistoryEntry[] newEntries,
             final AddHistoryEntriesCallback callback) {
         databaseThreadExecutor.execute(() -> {
-            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+            DbHelper dbHelper = new DbHelper(context);
             SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
 
             final ArrayList<Long> ids = new ArrayList<>();
@@ -213,7 +213,7 @@ public class HistoryWorker {
 
     public void deleteEntryFromHistory(final long historyId) {
         databaseThreadExecutor.execute(() -> {
-            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+            DbHelper dbHelper = new DbHelper(context);
             SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
             database.delete(
                     HISTORY_TABLE_NAME,
@@ -235,7 +235,7 @@ public class HistoryWorker {
             final double newWeight,
             final Runnable callback) {
         databaseThreadExecutor.execute(() -> {
-            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+            DbHelper dbHelper = new DbHelper(context);
             SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
             ContentValues values = new ContentValues();
             values.put(COLUMN_NAME_WEIGHT, newWeight);
@@ -263,7 +263,7 @@ public class HistoryWorker {
             final long newFoodstuffId,
             final Runnable callback) {
         databaseThreadExecutor.execute(() -> {
-            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+            DbHelper dbHelper = new DbHelper(context);
             SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
             ContentValues values = new ContentValues(1);
             values.put(COLUMN_NAME_FOODSTUFF_ID, newFoodstuffId);
@@ -285,7 +285,7 @@ public class HistoryWorker {
             final long to,
             @NonNull final RequestFoodstuffsIdsFromHistoryCallback callback) {
         databaseThreadExecutor.execute(() -> {
-            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+            DbHelper dbHelper = new DbHelper(context);
             SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
             Cursor cursor = database.query(
                     HISTORY_TABLE_NAME,

@@ -10,7 +10,6 @@ import android.support.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-import korablique.recipecalculator.base.Callback;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.model.Foodstuff;
 
@@ -66,7 +65,7 @@ public class DatabaseWorker {
             final Foodstuff foodstuff,
             final SaveFoodstuffCallback callback) {
         databaseThreadExecutor.execute(() -> {
-            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+            DbHelper dbHelper = new DbHelper(context);
             SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
             String whereClause = COLUMN_NAME_FOODSTUFF_NAME + "=? AND " +
                     COLUMN_NAME_PROTEIN + "=? AND " +
@@ -125,7 +124,7 @@ public class DatabaseWorker {
         databaseThreadExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+                DbHelper dbHelper = new DbHelper(context);
                 SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
                 final ArrayList<Long> ids = new ArrayList<>();
 
@@ -160,7 +159,7 @@ public class DatabaseWorker {
         databaseThreadExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+                DbHelper dbHelper = new DbHelper(context);
                 SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
                 ContentValues values = new ContentValues();
                 values.put(COLUMN_NAME_FOODSTUFF_NAME, foodstuff.getName());
@@ -189,7 +188,7 @@ public class DatabaseWorker {
         databaseThreadExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+                DbHelper dbHelper = new DbHelper(context);
                 SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
 
                 ContentValues contentValues = new ContentValues();
@@ -214,7 +213,7 @@ public class DatabaseWorker {
 
     public void deleteFoodstuff(final Context context, final long foodstuffsId) {
         databaseThreadExecutor.execute(() -> {
-            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+            DbHelper dbHelper = new DbHelper(context);
             SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
             database.delete(
                     FOODSTUFFS_TABLE_NAME,
@@ -225,7 +224,7 @@ public class DatabaseWorker {
 
     public void makeFoodstuffUnlisted(final Context context, final long foodstuffId, final Runnable callback) {
         databaseThreadExecutor.execute(() -> {
-            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+            DbHelper dbHelper = new DbHelper(context);
             SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
             ContentValues values = new ContentValues();
             values.put(COLUMN_NAME_IS_LISTED, 0);
@@ -246,7 +245,7 @@ public class DatabaseWorker {
             @NonNull final FoodstuffsBatchReceiveCallback foodstuffsBatchReceiveCallback,
             @Nullable FinishCallback finishCallback) {
         databaseThreadExecutor.execute(() -> {
-            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+            DbHelper dbHelper = new DbHelper(context);
             SQLiteDatabase db = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
             Cursor cursor = db.query(
                     FOODSTUFFS_TABLE_NAME,
@@ -309,7 +308,7 @@ public class DatabaseWorker {
             List<Long> ids,
             FoodstuffsBatchReceiveCallback callback) {
         databaseThreadExecutor.execute(() -> {
-            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+            DbHelper dbHelper = new DbHelper(context);
             SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
             List<Foodstuff> result = new ArrayList<>();
             String[] columns = new String[] {
@@ -356,7 +355,7 @@ public class DatabaseWorker {
      */
     public void requestFoodstuffsLike(Context context, String nameQuery, int limit, FoodstuffsBatchReceiveCallback callback) {
         databaseThreadExecutor.execute(() -> {
-            FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+            DbHelper dbHelper = new DbHelper(context);
             SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
             List<Foodstuff> result = new ArrayList<>();
             String limitString = null;

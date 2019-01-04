@@ -1,6 +1,5 @@
 package korablique.recipecalculator.ui.profile;
 
-import android.content.Context;
 import android.view.View;
 import android.widget.TextView;
 
@@ -8,11 +7,13 @@ import javax.inject.Inject;
 
 import io.reactivex.Single;
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.base.FragmentCallbacks;
 import korablique.recipecalculator.base.Optional;
 import korablique.recipecalculator.base.RxFragmentSubscriptions;
 import korablique.recipecalculator.dagger.FragmentScope;
 import korablique.recipecalculator.database.UserParametersWorker;
+import korablique.recipecalculator.model.FullName;
 import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.model.RateCalculator;
 import korablique.recipecalculator.model.Rates;
@@ -20,22 +21,23 @@ import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.ui.NutritionValuesWrapper;
 import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
+import korablique.recipecalculator.ui.usergoal.UserParametersActivity;
 
 @FragmentScope
 public class ProfileController extends FragmentCallbacks.Observer {
-    private Context context;
+    private BaseFragment fragment;
     private UserParametersWorker userParametersWorker;
     private RxFragmentSubscriptions subscriptions;
     private UserNameProvider userNameProvider;
 
     @Inject
     ProfileController(
-            Context context,
+            BaseFragment fragment,
             FragmentCallbacks fragmentCallbacks,
             UserParametersWorker userParametersWorker,
             RxFragmentSubscriptions subscriptions,
             UserNameProvider userNameProvider) {
-        this.context = context;
+        this.fragment = fragment;
         fragmentCallbacks.addObserver(this);
         this.userParametersWorker = userParametersWorker;
         this.subscriptions = subscriptions;
@@ -44,8 +46,8 @@ public class ProfileController extends FragmentCallbacks.Observer {
 
     @Override
     public void onFragmentViewCreated(View fragmentView) {
-        String userNameAndSurname = userNameProvider.getUserName();
-        fillUserName(fragmentView, userNameAndSurname);
+        FullName userFullName = userNameProvider.getUserName();
+        fillUserName(fragmentView, userFullName);
 
         Single<Optional<UserParameters>> paramsSingle =
                 userParametersWorker.requestCurrentUserParameters();
@@ -53,8 +55,34 @@ public class ProfileController extends FragmentCallbacks.Observer {
             UserParameters userParameters = parameters.get();
             fillUserData(fragmentView, userParameters);
 
-            Rates rates = RateCalculator.calculate(context, userParameters);
+            Rates rates = RateCalculator.calculate(userParameters);
             fillNutritionRates(fragmentView, rates);
+        });
+
+        // редактирование профиля
+        View editProfileButton = fragmentView.findViewById(R.id.layout_button_edit);
+        editProfileButton.setOnClickListener(view -> {
+            UserParametersActivity.start(fragment.getContext());
+        });
+    }
+
+    @Override
+    public void onFragmentStart() {
+        // обновляет данные пользователя, если они редактировались
+        Single<Optional<UserParameters>> paramsSingle =
+                userParametersWorker.requestCurrentUserParameters();
+        subscriptions.subscribe(paramsSingle, (Optional<UserParameters> parameters) -> {
+            if (parameters.isPresent()) {
+                View fragmentView = fragment.getView();
+
+                UserParameters userParameters = parameters.get();
+                fillUserData(fragmentView, userParameters);
+
+                Rates rates = RateCalculator.calculate(userParameters);
+                fillNutritionRates(fragmentView, rates);
+
+                fillUserName(fragmentView, userNameProvider.getUserName());
+            }
         });
     }
 
@@ -66,12 +94,14 @@ public class ProfileController extends FragmentCallbacks.Observer {
 
         ageTextView.setText(String.valueOf(userParameters.getAge()));
         heightTextView.setText(String.valueOf(userParameters.getHeight()));
-        goalTextView.setText(userParameters.getGoal());
+        goalTextView.setText(userParameters.getGoal().getStringRes());
         weightTextView.setText(String.valueOf(userParameters.getWeight()));
     }
 
     private void fillNutritionRates(View fragmentView, Rates rates) {
-        NutritionValuesWrapper nutritionValues = new NutritionValuesWrapper(context, fragmentView.findViewById(R.id.nutrition_parent_layout));
+        NutritionValuesWrapper nutritionValues = new NutritionValuesWrapper(
+                fragmentView.getContext(),
+                fragmentView.findViewById(R.id.nutrition_parent_layout));
         Nutrition nutrition = Nutrition.from(rates);
         nutritionValues.setNutrition(nutrition);
 
@@ -86,8 +116,9 @@ public class ProfileController extends FragmentCallbacks.Observer {
         progressBar.setProgress(proteinPercentage, fatsPercentage, carbsPercentage);
     }
 
-    private void fillUserName(View fragmentView, String userNameAndSurname) {
+    private void fillUserName(View fragmentView, FullName userFullName) {
         TextView nameView = fragmentView.findViewById(R.id.user_name);
-        nameView.setText(userNameAndSurname);
+        String nameAndSurname = userFullName.getFirstName() + " " + userFullName.getLastName();
+        nameView.setText(nameAndSurname);
     }
 }

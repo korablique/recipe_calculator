@@ -83,6 +83,22 @@
     <string name="statistics">Статистические данные</string>
     <string name="fill_all_fields">Заполните все поля</string>
 
+    <string name="losing_weight">Снижение веса</string>
+    <string name="maintaining_current_weight">Сохранение веса</string>
+    <string name="mass_gathering">Набор веса</string>
+
+    <string name="male">Мужской</string>
+    <string name="female">Женский</string>
+
+    <string name="passive_lifestyle">Сидячий образ жизни</string>
+    <string name="insignificant_activity">Умеренная активность</string>
+    <string name="medium_activity">Средняя активность</string>
+    <string name="active_lifestyle">Высокая активность</string>
+    <string name="professional_sports">Очень высокая активность</string>
+
+    <string name="harris_benedict">Харриса-Бенедикта</string>
+    <string name="mifflin_jeor">Миффлина-Джеора</string>
+
     <string-array name="goals_array">
         <item name="losing_weight">Снижение веса</item>
         <item name="maintaining_current_weight">Сохранение веса</item>

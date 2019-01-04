@@ -42,8 +42,8 @@ public class HistoryWorkerTest {
     public void setUp() throws IOException {
         context = InstrumentationRegistry.getTargetContext();
 
-        FoodstuffsDbHelper.deinitializeDatabase(context);
-        FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+        DbHelper.deinitializeDatabase(context);
+        DbHelper dbHelper = new DbHelper(context);
         dbHelper.initializeDatabase();
 
         DbUtil.clearTable(context, HISTORY_TABLE_NAME);
@@ -59,7 +59,7 @@ public class HistoryWorkerTest {
 
     @Test
     public void savingToHistoryWorks() throws InterruptedException {
-        FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+        DbHelper dbHelper = new DbHelper(context);
         SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
 
         Cursor cursorBeforeSaving = database.rawQuery("SELECT * FROM " + HISTORY_TABLE_NAME, null);
@@ -152,7 +152,7 @@ public class HistoryWorkerTest {
         double newWeight = 200;
         historyWorker.editWeightInHistoryEntry(historyId[0], 200);
 
-        FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+        DbHelper dbHelper = new DbHelper(context);
         SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
         Cursor cursor2 = database.rawQuery("SELECT * FROM " + HISTORY_TABLE_NAME +
                 " WHERE " + HistoryContract.ID + "=" + historyId[0], null);
@@ -208,7 +208,7 @@ public class HistoryWorkerTest {
         // заменить foodstuff_id в записи истории с 1 на 2
         historyWorker.updateFoodstuffIdInHistory(historyId[0], foodstuff2Id[0]);
 
-        FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+        DbHelper dbHelper = new DbHelper(context);
         SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
         Cursor cursor = database.rawQuery("SELECT * FROM " + HISTORY_TABLE_NAME +
                 " WHERE " + HistoryContract.ID + "=" + historyId[0], null);

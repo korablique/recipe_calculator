@@ -34,14 +34,19 @@ import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.database.DatabaseWorker;
-import korablique.recipecalculator.database.FoodstuffsDbHelper;
+import korablique.recipecalculator.database.DbHelper;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.Formula;
+import korablique.recipecalculator.model.Gender;
+import korablique.recipecalculator.model.Goal;
+import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.PopularProductsUtils;
 import korablique.recipecalculator.model.TopList;
+import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
@@ -123,8 +128,8 @@ public class MainActivityTest {
 
     @Before
     public void setUp() {
-        FoodstuffsDbHelper.deinitializeDatabase(context);
-        FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+        DbHelper.deinitializeDatabase(context);
+        DbHelper dbHelper = new DbHelper(context);
         dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
 
         mainThreadExecutor.execute(() -> {
@@ -162,6 +167,11 @@ public class MainActivityTest {
         newEntries[9] = new NewHistoryEntry(foodstuffsIds.get(3), 100, new Date(118, 0, 1));
         historyWorker.saveGroupOfFoodstuffsToHistory(newEntries);
 
+        // сохраняем userParameters в БД
+        UserParameters userParameters = new UserParameters(
+                Goal.LOSING_WEIGHT, Gender.FEMALE, 25, 158, 48, Lifestyle.PASSIVE_LIFESTYLE, Formula.HARRIS_BENEDICT);
+        userParametersWorker.saveUserParameters(userParameters);
+
         // каждый тест должен сам сделать launchActivity()
     }
 
@@ -169,6 +179,7 @@ public class MainActivityTest {
     public void tearDown() {
         databaseWorker = null;
         historyWorker = null;
+        userParametersWorker = null;
     }
 
     @Test

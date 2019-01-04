@@ -18,7 +18,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import korablique.recipecalculator.R;
-import korablique.recipecalculator.database.FoodstuffsDbHelper;
+import korablique.recipecalculator.database.DbHelper;
 import korablique.recipecalculator.ui.KeyboardHandler;
 
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_CALORIES;
@@ -72,7 +72,7 @@ public class ShowResultDialogFragment extends DialogFragment {
                     values.put(COLUMN_NAME_FATS, fatsPer100Gram);
                     values.put(COLUMN_NAME_CARBS, carbsPer100Gram);
                     values.put(COLUMN_NAME_CALORIES, caloriesPer100Gram);
-                    FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(getContext());
+                    DbHelper dbHelper = new DbHelper(getContext());
                     SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
                     database.insert(FOODSTUFFS_TABLE_NAME, null, values);
                     Snackbar.make(getActivity().findViewById(android.R.id.content),

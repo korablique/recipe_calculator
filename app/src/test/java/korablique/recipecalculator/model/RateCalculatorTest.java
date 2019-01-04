@@ -18,26 +18,26 @@ public class RateCalculatorTest {
     @Test
     public void ratesCalculatedCorrectly() {
         Rates rates1 = RateCalculator.calculate(
-                RateCalculator.Goal.LOSING_WEIGHT,
-                RateCalculator.Gender.FEMALE,
+                Goal.LOSING_WEIGHT,
+                Gender.FEMALE,
                 24,
                 158,
                 45,
-                1.2f,
-                RateCalculator.Formula.HARRIS_BENEDICT);
+                Lifestyle.PASSIVE_LIFESTYLE,
+                Formula.HARRIS_BENEDICT);
         Assert.assertTrue("Calories", FloatUtils.areFloatsEquals(1349.21376f, rates1.getCalories()));
         Assert.assertTrue("Protein", FloatUtils.areFloatsEquals(90, rates1.getProtein()));
         Assert.assertTrue("Fats", FloatUtils.areFloatsEquals(45, rates1.getFats()));
         Assert.assertTrue("Carbs", FloatUtils.areFloatsEquals(146.05344f, rates1.getCarbs()));
 
         Rates rates2 = RateCalculator.calculate(
-                RateCalculator.Goal.MASS_GATHERING,
-                RateCalculator.Gender.MALE,
+                Goal.MASS_GATHERING,
+                Gender.MALE,
                 24,
                 165,
                 64,
-                1.375f,
-                RateCalculator.Formula.MIFFLIN_JEOR);
+                Lifestyle.INSIGNIFICANT_ACTIVITY,
+                Formula.MIFFLIN_JEOR);
         Assert.assertTrue("Calories", FloatUtils.areFloatsEquals(2353.828125f, rates2.getCalories()));
         Assert.assertTrue("Protein", FloatUtils.areFloatsEquals(128, rates2.getProtein()));
         Assert.assertTrue("Fats", FloatUtils.areFloatsEquals(64, rates2.getFats()));

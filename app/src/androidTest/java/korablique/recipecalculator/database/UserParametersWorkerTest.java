@@ -12,12 +12,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
-import java.lang.ref.Reference;
 
 import io.reactivex.Completable;
 import io.reactivex.Single;
-import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.Optional;
+import korablique.recipecalculator.model.Formula;
+import korablique.recipecalculator.model.Gender;
+import korablique.recipecalculator.model.Goal;
+import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.util.DbUtil;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
@@ -42,8 +44,8 @@ public class UserParametersWorkerTest {
     public void setUp() throws IOException {
         context = InstrumentationRegistry.getTargetContext();
 
-        FoodstuffsDbHelper.deinitializeDatabase(context);
-        FoodstuffsDbHelper dbHelper = new FoodstuffsDbHelper(context);
+        DbHelper.deinitializeDatabase(context);
+        DbHelper dbHelper = new DbHelper(context);
         dbHelper.initializeDatabase();
 
         DbUtil.clearTable(context, HISTORY_TABLE_NAME);
@@ -59,13 +61,13 @@ public class UserParametersWorkerTest {
     @Test
     public void canSaveAndRetrieveUserParameters() {
         UserParameters userParameters = new UserParameters(
-                context.getResources().getStringArray(R.array.goals_array)[0],
-                context.getResources().getStringArray(R.array.gender_array)[0],
+                Goal.LOSING_WEIGHT,
+                Gender.MALE,
                 24,
                 165,
                 64,
-                1.375f,
-                context.getResources().getStringArray(R.array.formula_array)[0]);
+                Lifestyle.INSIGNIFICANT_ACTIVITY,
+                Formula.HARRIS_BENEDICT);
 
         MutableBoolean saved = new MutableBoolean(false);
         Completable callback = userParametersWorker.saveUserParameters(userParameters);
@@ -89,13 +91,13 @@ public class UserParametersWorkerTest {
         // сохраняем в БД параметры пользователя
         userParametersWorker.initCache();
         UserParameters userParameters = new UserParameters(
-                context.getResources().getStringArray(R.array.goals_array)[0],
-                context.getResources().getStringArray(R.array.gender_array)[0],
+                Goal.LOSING_WEIGHT,
+                Gender.MALE,
                 24,
                 165,
                 64,
-                1.375f,
-                context.getResources().getStringArray(R.array.formula_array)[0]);
+                Lifestyle.INSIGNIFICANT_ACTIVITY,
+                Formula.HARRIS_BENEDICT);
         userParametersWorker.saveUserParameters(userParameters);
 
         reset(spiedDatabaseThreadExecutor);

@@ -9,26 +9,26 @@ import javax.inject.Singleton;
 
 @Singleton
 public class UserNameProvider {
-    private static final String USER_NAME = "USER_NAME";
-    private static final String USER_SURNAME = "USER_SURNAME";
+    private static final String USER_FIRST_NAME = "USER_FIRST_NAME";
+    private static final String USER_LAST_SURNAME = "USER_LAST_SURNAME";
     private Context context;
     @Inject
     public UserNameProvider(Context context) {
         this.context = context;
     }
 
-    public void saveUserName(String name, String surname) {
+    public void saveUserName(FullName fullName) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(USER_NAME, name);
-        editor.putString(USER_SURNAME, surname);
+        editor.putString(USER_FIRST_NAME, fullName.getFirstName());
+        editor.putString(USER_LAST_SURNAME, fullName.getLastName());
         editor.apply();
     }
 
-    public String getUserName() {
+    public FullName getUserName() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        String userName = prefs.getString(USER_NAME, "");
-        String userSurname = prefs.getString(USER_SURNAME, "");
-        return userName + " " + userSurname;
+        String userFirstName = prefs.getString(USER_FIRST_NAME, "");
+        String userLastName = prefs.getString(USER_LAST_SURNAME, "");
+        return new FullName(userFirstName, userLastName);
     }
 }
