@@ -41,18 +41,6 @@ public class UserParameters implements Parcelable {
         formula = (Formula) in.readSerializable();
     }
 
-    public static final Creator<UserParameters> CREATOR = new Creator<UserParameters>() {
-        @Override
-        public UserParameters createFromParcel(Parcel in) {
-            return new UserParameters(in);
-        }
-
-        @Override
-        public UserParameters[] newArray(int size) {
-            return new UserParameters[size];
-        }
-    };
-
     public Goal getGoal() {
         return goal;
     }
@@ -99,6 +87,18 @@ public class UserParameters implements Parcelable {
     public int hashCode() {
         return Objects.hash(goal, gender, age, height, weight, lifestyle, formula);
     }
+
+    public static final Creator<UserParameters> CREATOR = new Creator<UserParameters>() {
+        @Override
+        public UserParameters createFromParcel(Parcel in) {
+            return new UserParameters(in);
+        }
+
+        @Override
+        public UserParameters[] newArray(int size) {
+            return new UserParameters[size];
+        }
+    };
 
     @Override
     public int describeContents() {

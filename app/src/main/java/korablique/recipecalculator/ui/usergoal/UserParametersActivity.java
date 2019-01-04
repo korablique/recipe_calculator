@@ -149,7 +149,7 @@ public class UserParametersActivity extends BaseActivity {
         Goal goal = Goal.POSITIONS.get(goalSelectedPosition);
 
         int genderSelectedPosition = ((Spinner) findViewById(R.id.gender_spinner)).getSelectedItemPosition();
-        Gender gender = Gender.POSITIONS.get(genderSelectedPosition);
+        Gender gender = Gender.POSITIONS.get(genderSelectedPosition - 1);
 
         int age = Integer.parseInt(((EditText) findViewById(R.id.age)).getText().toString());
         int height = Integer.parseInt(((EditText) findViewById(R.id.height)).getText().toString());
@@ -178,7 +178,7 @@ public class UserParametersActivity extends BaseActivity {
         weightView.setText(String.valueOf(oldUserParams.getWeight()));
 
         Gender gender = oldUserParams.getGender();
-        genderSpinner.setSelection(Gender.POSITIONS_REVERSED.get(gender));
+        genderSpinner.setSelection(Gender.POSITIONS_REVERSED.get(gender) + 1);
 
         Goal goal = oldUserParams.getGoal();
         goalSpinner.setSelection(Goal.POSITIONS_REVERSED.get(goal));

@@ -1,5 +1,6 @@
 package korablique.recipecalculator.model;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,22 +10,26 @@ public enum Formula {
     HARRIS_BENEDICT(R.string.harris_benedict, 0),
     MIFFLIN_JEOR(R.string.mifflin_jeor, 1);
 
-    public static final Map<Integer, Formula> POSITIONS = new HashMap<>();
-    public static final Map<Formula, Integer> POSITIONS_REVERSED = new HashMap<>();
+    public static final Map<Integer, Formula> POSITIONS;
+    public static final Map<Formula, Integer> POSITIONS_REVERSED;
     private int stringRes;
     private int id;
+
+    static {
+        Formula[] elements = Formula.values();
+        Map<Integer, Formula> positions = new HashMap<>();
+        Map<Formula, Integer> positionsReversed = new HashMap<>();
+        for (int index = 0; index < elements.length; index++) {
+            positions.put(index, elements[index]);
+            positionsReversed.put(elements[index], index);
+        }
+        POSITIONS = Collections.unmodifiableMap(positions);
+        POSITIONS_REVERSED = Collections.unmodifiableMap(positionsReversed);
+    }
 
     Formula(int stringRes, int id) {
         this.stringRes = stringRes;
         this.id = id;
-    }
-
-    static {
-        Formula[] elements = Formula.values();
-        for (int index = 0; index < elements.length; index++) {
-            POSITIONS.put(index, elements[index]);
-            POSITIONS_REVERSED.put(elements[index], index);
-        }
     }
 
     public int getStringRes() {
@@ -36,13 +41,12 @@ public enum Formula {
     }
 
     public static Formula fromId(int id) {
-        switch (id) {
-            case 0:
-                return HARRIS_BENEDICT;
-            case 1:
-                return MIFFLIN_JEOR;
-            default:
-                throw new IllegalStateException("Has no element with this id: " + id);
+        if (id == HARRIS_BENEDICT.id) {
+            return HARRIS_BENEDICT;
+        } else if (id == MIFFLIN_JEOR.id) {
+            return MIFFLIN_JEOR;
+        } else {
+            throw new IllegalArgumentException("Has no element with this id: " + id);
         }
     }
 }
