@@ -150,7 +150,9 @@ public class BucketListActivity extends BaseActivity {
 
         saveAsSingleFoodstuffButton.setOnClickListener((view) -> {
             bucketList.clear();
-            SaveDishDialog dialog = SaveDishDialog.showDialog(BucketListActivity.this, foodstuffs, totalWeight);
+            // т.к. вес готового продукта мог быть изменён, получаем его ещё раз
+            double resultWeight = Double.parseDouble(totalWeightEditText.getText().toString());
+            SaveDishDialog dialog = SaveDishDialog.showDialog(BucketListActivity.this, foodstuffs, resultWeight);
             dialog.setOnSaveDishButtonClickListener(saveDishButtonClickListener);
         });
 
