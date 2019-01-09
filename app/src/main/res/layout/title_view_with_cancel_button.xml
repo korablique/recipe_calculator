@@ -31,6 +31,7 @@
         android:layout_height="25dp"
         android:layout_gravity="center_vertical"
         android:src="@drawable/ic_close_white"
+        android:background="@drawable/rectangular_button_click_selector"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"/>
