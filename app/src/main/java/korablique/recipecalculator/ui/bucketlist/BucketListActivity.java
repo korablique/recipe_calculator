@@ -7,6 +7,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.Editable;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
@@ -161,6 +162,9 @@ public class BucketListActivity extends BaseActivity {
             HistoryActivity.startAndAdd(adapter.getItems(), BucketListActivity.this);
             finish();
         });
+
+        View cancelView = findViewById(R.id.button_close);
+        cancelView.setOnClickListener(view -> BucketListActivity.this.finish());
     }
 
     private void updateNutritionWrappers(List<WeightedFoodstuff> foodstuffs, double totalWeight) {
