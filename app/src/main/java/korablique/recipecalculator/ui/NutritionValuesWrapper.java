@@ -2,9 +2,9 @@ package korablique.recipecalculator.ui;
 
 
 import android.content.Context;
-import android.support.annotation.DrawableRes;
-import android.support.annotation.IdRes;
-import android.support.annotation.StringRes;
+import androidx.annotation.DrawableRes;
+import androidx.annotation.IdRes;
+import androidx.annotation.StringRes;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;

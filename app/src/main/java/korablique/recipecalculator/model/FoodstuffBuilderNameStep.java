@@ -1,6 +1,6 @@
 package korablique.recipecalculator.model;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 public class FoodstuffBuilderNameStep {
     @Nullable

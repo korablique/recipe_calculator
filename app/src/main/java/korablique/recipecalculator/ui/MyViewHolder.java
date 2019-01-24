@@ -1,6 +1,6 @@
 package korablique.recipecalculator.ui;
 
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.ViewGroup;
 
 public class MyViewHolder extends RecyclerView.ViewHolder {

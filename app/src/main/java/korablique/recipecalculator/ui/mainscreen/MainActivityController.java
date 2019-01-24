@@ -1,7 +1,7 @@
 package korablique.recipecalculator.ui.mainscreen;
 
 import android.os.Bundle;
-import android.support.design.widget.BottomNavigationView;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import io.reactivex.Single;
 import korablique.recipecalculator.R;
