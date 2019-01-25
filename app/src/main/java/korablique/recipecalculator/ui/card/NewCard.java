@@ -50,7 +50,7 @@ public class NewCard {
         cardLayout = (ViewGroup) LayoutInflater.from(context).inflate(R.layout.new_card_layout, parent);
         addFoodstuffButton = cardLayout.findViewById(R.id.add_foodstuff_button);
         editButton = cardLayout.findViewById(R.id.frame_layout_button_edit);
-        closeButton = cardLayout.findViewById(R.id.button_close);
+        closeButton = cardLayout.findViewById(R.id.button_close_layout);
         weightEditText = cardLayout.findViewById(R.id.weight_edit_text);
         weightEditText.setText(String.valueOf(DEFAULT_WEIGHT));
         updateAddButtonEnability(weightEditText.getText());
