@@ -1,6 +1,6 @@
 package korablique.recipecalculator.util;
 
-import android.support.test.espresso.ViewAssertion;
+import androidx.test.espresso.ViewAssertion;
 import android.view.View;
 
 import junit.framework.AssertionFailedError;

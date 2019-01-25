@@ -1,9 +1,9 @@
 package korablique.recipecalculator.util;
 
 import android.content.Intent;
-import android.support.annotation.Nullable;
-import android.support.test.espresso.intent.Intents;
-import android.support.test.rule.ActivityTestRule;
+import androidx.annotation.Nullable;
+import androidx.test.espresso.intent.Intents;
+import androidx.test.rule.ActivityTestRule;
 
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;

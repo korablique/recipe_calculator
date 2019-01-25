@@ -30,7 +30,7 @@
                 android:orientation="horizontal">
 
                 <!--возраст-->
-                <android.support.design.widget.TextInputLayout
+                <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1">
@@ -42,10 +42,10 @@
                         android:textAppearance="?android:attr/textAppearanceSmall"
                         android:hint="@string/age"
                         android:inputType="number" />
-                </android.support.design.widget.TextInputLayout>
+                </com.google.android.material.textfield.TextInputLayout>
 
                 <!--рост-->
-                <android.support.design.widget.TextInputLayout
+                <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1">
@@ -57,10 +57,10 @@
                     android:textAppearance="?android:attr/textAppearanceSmall"
                     android:hint="@string/height"
                     android:inputType="number" />
-                </android.support.design.widget.TextInputLayout>
+                </com.google.android.material.textfield.TextInputLayout>
 
                 <!--вес-->
-                <android.support.design.widget.TextInputLayout
+                <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1">
@@ -72,7 +72,7 @@
                         android:textAppearance="?android:attr/textAppearanceSmall"
                         android:hint="@string/weight"
                         android:inputType="number" />
-                </android.support.design.widget.TextInputLayout>
+                </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
             <!--пол-->

@@ -1,6 +1,6 @@
 package korablique.recipecalculator.base;
 
-import android.arch.lifecycle.Lifecycle;
+import androidx.lifecycle.Lifecycle;
 
 import dagger.Module;
 import dagger.Provides;
