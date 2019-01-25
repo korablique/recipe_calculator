@@ -21,6 +21,7 @@ import java.util.List;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.HistoryEntry;
 import korablique.recipecalculator.model.NewHistoryEntry;
+import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.util.DbUtil;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.InstantMainThreadExecutor;
@@ -35,6 +36,7 @@ import static korablique.recipecalculator.database.HistoryContract.HISTORY_TABLE
 @LargeTest
 public class HistoryWorkerTest {
     private Context context;
+    private DatabaseHolder databaseHolder;
     private DatabaseWorker databaseWorker;
     private HistoryWorker historyWorker;
     
@@ -49,12 +51,12 @@ public class HistoryWorkerTest {
         DbUtil.clearTable(context, HISTORY_TABLE_NAME);
         DbUtil.clearTable(context, FOODSTUFFS_TABLE_NAME);
 
-        databaseWorker =
-                new DatabaseWorker(
-                        new InstantMainThreadExecutor(), new InstantDatabaseThreadExecutor());
-        historyWorker =
-                new HistoryWorker(
-                    context, new InstantMainThreadExecutor(), new InstantDatabaseThreadExecutor());
+        DatabaseThreadExecutor databaseThreadExecutor = new InstantDatabaseThreadExecutor();
+        databaseHolder = new DatabaseHolder(context, databaseThreadExecutor);
+        databaseWorker = new DatabaseWorker(
+                databaseHolder, new InstantMainThreadExecutor(), databaseThreadExecutor);
+        historyWorker = new HistoryWorker(
+                databaseHolder, databaseWorker, new InstantMainThreadExecutor(), databaseThreadExecutor);
     }
 
     @Test
@@ -111,7 +113,6 @@ public class HistoryWorkerTest {
         }
         ArrayList<Long> foodstuffsIds = new ArrayList<>();
         databaseWorker.saveGroupOfFoodstuffs(
-                context,
                 foodstuffs,
                 ids -> foodstuffsIds.addAll(ids));
 
@@ -119,7 +120,7 @@ public class HistoryWorkerTest {
         double weight = 100;
         for (int index = 0; index < historyEntries.length; index++) {
             historyEntries[index] = new NewHistoryEntry(
-                    foodstuffs[index].getId(),
+                    foodstuffsIds.get(index),
                     weight,
                     new Date(118, 0, index));
         }
@@ -150,7 +151,7 @@ public class HistoryWorkerTest {
                 (historyEntriesIds) -> historyId[0] = historyEntriesIds.get(0));
 
         double newWeight = 200;
-        historyWorker.editWeightInHistoryEntry(historyId[0], 200);
+        historyWorker.editWeightInHistoryEntry(historyId[0], newWeight);
 
         DbHelper dbHelper = new DbHelper(context);
         SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
@@ -164,24 +165,24 @@ public class HistoryWorkerTest {
     }
 
     @Test
-    public void updatesFoodstuffIdInHistory() throws InterruptedException {
+    public void updatesFoodstuffIdInHistory() {
         // вставить в таблицу foodstuffs 2 фудстаффа
         final Foodstuff foodstuff1 = Foodstuff.withName("продукт1").withNutrition(1, 1, 1, 1);
         Foodstuff foodstuff2 = Foodstuff.withName("продукт2").withNutrition(1, 1, 1, 1);
         final long[] foodstuff1Id = {-1};
         final long[] foodstuff2Id = {-1};
-        databaseWorker.saveFoodstuff(context, foodstuff1, new DatabaseWorker.SaveFoodstuffCallback() {
+        databaseWorker.saveFoodstuff(foodstuff1, new DatabaseWorker.SaveFoodstuffCallback() {
             @Override
             public void onResult(long id) {
                 foodstuff1Id[0] = id;
             }
+
             @Override
             public void onDuplication() {
                 throw new RuntimeException("Видимо, продукт уже существует");
             }
         });
         databaseWorker.saveFoodstuff(
-                context,
                 foodstuff2,
                 new DatabaseWorker.SaveFoodstuffCallback() {
                     @Override
@@ -220,7 +221,7 @@ public class HistoryWorkerTest {
     }
 
     @Test
-    public void requestFoodstuffsIdsFromHistoryForPeriodWorks() throws InterruptedException {
+    public void requestFoodstuffsIdsFromHistoryForPeriodWorks() {
         // создаем 20 продуктов
         int foodstuffsNumber = 20;
         final Foodstuff[] foodstuffs = new Foodstuff[foodstuffsNumber];
@@ -231,7 +232,6 @@ public class HistoryWorkerTest {
         // сохраняем продукты в список
         final ArrayList<Long> foodstuffsIds = new ArrayList<>();
         databaseWorker.saveGroupOfFoodstuffs(
-                context,
                 foodstuffs,
                 (ids) -> foodstuffsIds.addAll(ids));
         Assert.assertEquals(foodstuffsNumber, foodstuffsIds.size());
@@ -266,7 +266,6 @@ public class HistoryWorkerTest {
     public Foodstuff getAnyFoodstuffFromDb() throws InterruptedException {
         final ArrayList<Foodstuff> foodstuffArrayList = new ArrayList<>();
         databaseWorker.requestListedFoodstuffsFromDb(
-                context,
                 20,
                 (foodstuffs) -> foodstuffArrayList.addAll(foodstuffs));
 
@@ -275,7 +274,7 @@ public class HistoryWorkerTest {
         }
 
         Foodstuff foodstuff = Foodstuff.withName("apricot").withNutrition(10, 10, 10, 10);
-        databaseWorker.saveFoodstuff(context, foodstuff);
+        databaseWorker.saveFoodstuff(foodstuff);
         return getAnyFoodstuffFromDb();
     }
 }

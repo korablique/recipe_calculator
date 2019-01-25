@@ -24,6 +24,8 @@ import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
+import korablique.recipecalculator.database.DatabaseHolder;
+import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.database.HistoryWorker;
@@ -61,26 +63,29 @@ import static org.hamcrest.Matchers.not;
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class HistoryActivityTest {
+    private Context context;
+    private DatabaseHolder databaseHolder;
     private MainThreadExecutor mainThreadExecutor = new SyncMainThreadExecutor();
-    private DatabaseWorker databaseWorker =
-            new DatabaseWorker(mainThreadExecutor, new InstantDatabaseThreadExecutor());
+    private DatabaseThreadExecutor databaseThreadExecutor = new InstantDatabaseThreadExecutor();
+    private DatabaseWorker databaseWorker;
     private HistoryWorker historyWorker;
     private UserParametersWorker userParametersWorker;
-    private Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-    private FoodstuffsList foodstuffsList = new FoodstuffsList(context, databaseWorker);
+    private FoodstuffsList foodstuffsList;
 
     @Rule
     public ActivityTestRule<HistoryActivity> mActivityRule =
             InjectableActivityTestRule.forActivity(HistoryActivity.class)
             .withManualStart()
             .withSingletones(() -> {
-                Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+                context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+                databaseHolder = new DatabaseHolder(context, databaseThreadExecutor);
+                databaseWorker = new DatabaseWorker(databaseHolder, mainThreadExecutor, databaseThreadExecutor);
                 historyWorker = new HistoryWorker(
-                        context, new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
+                        databaseHolder, databaseWorker, new SyncMainThreadExecutor(), databaseThreadExecutor);
                 userParametersWorker = new UserParametersWorker(
-                        context, new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
-
-                return Arrays.asList(mainThreadExecutor, databaseWorker,
+                        databaseHolder, new SyncMainThreadExecutor(), databaseThreadExecutor);
+                foodstuffsList = new FoodstuffsList(context, databaseWorker);
+                return Arrays.asList(mainThreadExecutor, databaseHolder, databaseWorker,
                         historyWorker, userParametersWorker, foodstuffsList);
             })
             .withActivityScoped(target -> {
@@ -214,7 +219,6 @@ public class HistoryActivityTest {
         }
         ArrayList<Long> foodstuffIds = new ArrayList<>();
         databaseWorker.saveGroupOfFoodstuffs(
-                mActivityRule.getActivity(),
                 foodstuffs,
                 (ids) -> {
                     foodstuffIds.addAll(ids);
@@ -244,7 +248,6 @@ public class HistoryActivityTest {
         }
         ArrayList<Long> foodstuffIds = new ArrayList<>();
         databaseWorker.saveGroupOfFoodstuffs(
-                mActivityRule.getActivity(),
                 foodstuffs,
                 (ids) -> {
                     foodstuffIds.addAll(ids);

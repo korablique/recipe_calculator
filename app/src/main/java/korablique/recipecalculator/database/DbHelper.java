@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
+import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
 
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import androidx.room.util.DBUtil;
 import korablique.recipecalculator.model.Formula;
 import korablique.recipecalculator.model.Gender;
 import korablique.recipecalculator.model.Goal;
@@ -89,12 +91,15 @@ public class DbHelper {
     }
 
     InitializationResult initializeDatabase() throws IOException {
+        InitializationResult result;
         if (!dbExists()) {
             createDatabase();
-            return new InitializationResult(InitializationType.Creation, -1, DATABASE_VERSION);
+            result = new InitializationResult(InitializationType.Creation, -1, DATABASE_VERSION);
         } else {
-            return tryToUpgradeDatabase();
+            result = tryToUpgradeDatabase();
         }
+        initialized = true;
+        return result;
     }
 
     public static synchronized void deinitializeDatabase(Context context) {
@@ -102,7 +107,7 @@ public class DbHelper {
         if (!dbFile.exists()) {
             return;
         }
-        boolean deleted = dbFile.delete();
+        boolean deleted = SQLiteDatabase.deleteDatabase(dbFile);
         if (!deleted) {
             throw new Error("Couldn't delete database");
         }
@@ -115,6 +120,7 @@ public class DbHelper {
     private void createDatabase() throws IOException {
         copyDatabaseFromAssets();
         File path = getDbFile(context);
+
         SQLiteDatabase database = SQLiteDatabase.openDatabase(path.getPath(), null, SQLiteDatabase.OPEN_READWRITE);
         createTableHistory(database);
         createTableDatabaseVersion(database);
@@ -147,9 +153,10 @@ public class DbHelper {
                 COLUMN_NAME_LIFESTYLE + " INTEGER, " +
                 COLUMN_NAME_FORMULA + " INTEGER)");
     }
-
+static 
     private InitializationResult tryToUpgradeDatabase() {
         File path = getDbFile(context);
+
         SQLiteDatabase database = SQLiteDatabase.openDatabase(path.getPath(), null, SQLiteDatabase.OPEN_READWRITE);
         InitializationType performedInitialization = InitializationType.None;
         int oldVersion = -1, newVersion = -1;

@@ -22,6 +22,7 @@ import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
+import korablique.recipecalculator.database.DatabaseHolder;
 import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.DbHelper;
@@ -54,22 +55,28 @@ import static org.hamcrest.CoreMatchers.allOf;
 @LargeTest
 public class BucketListActivityTest {
     private Context context = InstrumentationRegistry.getTargetContext();
+    private DatabaseHolder databaseHolder;
     private MainThreadExecutor mainThreadExecutor = new SyncMainThreadExecutor();
     private DatabaseThreadExecutor databaseThreadExecutor = new InstantDatabaseThreadExecutor();
-    private DatabaseWorker databaseWorker =
-            new DatabaseWorker(mainThreadExecutor, new InstantDatabaseThreadExecutor());
-    private HistoryWorker historyWorker =
-            new HistoryWorker(context, mainThreadExecutor, databaseThreadExecutor);
-    private UserParametersWorker userParametersWorker =
-            new UserParametersWorker(context, mainThreadExecutor, databaseThreadExecutor);
-    private FoodstuffsList foodstuffsList = new FoodstuffsList(context, databaseWorker);
+    private DatabaseWorker databaseWorker;
+    private HistoryWorker historyWorker;
+    private UserParametersWorker userParametersWorker;
+    private FoodstuffsList foodstuffsList;
 
     @Rule
     public ActivityTestRule<BucketListActivity> activityRule =
             InjectableActivityTestRule.forActivity(BucketListActivity.class)
                     .withManualStart()
                     .withSingletones(() -> {
-                        return Arrays.asList(mainThreadExecutor, databaseWorker,
+                        databaseHolder = new DatabaseHolder(context, databaseThreadExecutor);
+                        databaseWorker =
+                                new DatabaseWorker(databaseHolder, mainThreadExecutor, databaseThreadExecutor);
+                        historyWorker =
+                                new HistoryWorker(databaseHolder, databaseWorker, mainThreadExecutor, databaseThreadExecutor);
+                        userParametersWorker =
+                                new UserParametersWorker(databaseHolder, mainThreadExecutor, databaseThreadExecutor);
+                        foodstuffsList = new FoodstuffsList(context, databaseWorker);
+                        return Arrays.asList(mainThreadExecutor, databaseHolder, databaseWorker,
                                 historyWorker, userParametersWorker, foodstuffsList);
                     })
                     .withActivityScoped((target) -> {

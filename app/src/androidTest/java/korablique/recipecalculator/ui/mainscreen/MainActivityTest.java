@@ -33,6 +33,8 @@ import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
+import korablique.recipecalculator.database.DatabaseHolder;
+import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.DbHelper;
 import korablique.recipecalculator.database.FoodstuffsList;
@@ -81,6 +83,7 @@ import static org.hamcrest.Matchers.not;
 @LargeTest
 public class MainActivityTest {
     private SyncMainThreadExecutor mainThreadExecutor = new SyncMainThreadExecutor();
+    private DatabaseHolder databaseHolder;
     private DatabaseWorker databaseWorker;
     private HistoryWorker historyWorker;
     private UserParametersWorker userParametersWorker;
@@ -95,12 +98,14 @@ public class MainActivityTest {
             InjectableActivityTestRule.forActivity(MainActivity.class)
                 .withManualStart()
                 .withSingletones(() -> {
-                    databaseWorker =
-                            new DatabaseWorker(mainThreadExecutor, new InstantDatabaseThreadExecutor());
+                    DatabaseThreadExecutor databaseThreadExecutor = new InstantDatabaseThreadExecutor();
+                    databaseHolder = new DatabaseHolder(context, databaseThreadExecutor);
+                    databaseWorker = new DatabaseWorker(
+                            databaseHolder, mainThreadExecutor, databaseThreadExecutor);
                     historyWorker = new HistoryWorker(
-                            context, mainThreadExecutor, new InstantDatabaseThreadExecutor());
+                            databaseHolder, databaseWorker, mainThreadExecutor, databaseThreadExecutor);
                     userParametersWorker = new UserParametersWorker(
-                            context, mainThreadExecutor, new InstantDatabaseThreadExecutor());
+                            databaseHolder, mainThreadExecutor, databaseThreadExecutor);
                     foodstuffsList = new FoodstuffsList(context, databaseWorker);
                     topList = new TopList(context, databaseWorker, historyWorker);
                     return Arrays.asList(databaseWorker, historyWorker, userParametersWorker, foodstuffsList);
@@ -146,7 +151,7 @@ public class MainActivityTest {
         foodstuffs[6] = Foodstuff.withName("banana").withNutrition(1, 1, 1, 1);
 
         List<Long> foodstuffsIds = new ArrayList<>();
-        databaseWorker.saveGroupOfFoodstuffs(context, foodstuffs, (ids) -> {
+        databaseWorker.saveGroupOfFoodstuffs(foodstuffs, (ids) -> {
             foodstuffsIds.addAll(ids);
         });
 
@@ -359,7 +364,7 @@ public class MainActivityTest {
         }
 
         List<Foodstuff> topFoodstuffs = new ArrayList<>();
-        databaseWorker.requestFoodstuffsByIds(context, topIds, (foodstuffs) -> {
+        databaseWorker.requestFoodstuffsByIds(topIds, (foodstuffs) -> {
             topFoodstuffs.addAll(foodstuffs);
         });
         return topFoodstuffs;

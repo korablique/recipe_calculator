@@ -20,6 +20,8 @@ import org.junit.runner.RunWith;
 import java.util.Arrays;
 
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.database.DatabaseHolder;
+import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
@@ -40,30 +42,33 @@ import static org.hamcrest.Matchers.not;
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class ListOfFoodstuffsActivityTest {
-    private DatabaseWorker databaseWorker =
-            new DatabaseWorker(new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
     private Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-    private FoodstuffsList foodstuffsList = new FoodstuffsList(context, databaseWorker);
+    private DatabaseHolder databaseHolder;
+    private DatabaseWorker databaseWorker;
+    private FoodstuffsList foodstuffsList;
     private Long savedFoodstuffId;
-
 
     @Rule
     public ActivityTestRule<ListOfFoodstuffsActivity> mActivityRule =
             InjectableActivityTestRule.forActivity(ListOfFoodstuffsActivity.class)
                     .withManualStart()
                     .withSingletones(() -> {
+                        DatabaseThreadExecutor databaseThreadExecutor = new InstantDatabaseThreadExecutor();
+                        databaseHolder = new DatabaseHolder(context, databaseThreadExecutor);
+                        databaseWorker = new DatabaseWorker(
+                                databaseHolder, new SyncMainThreadExecutor(), databaseThreadExecutor);
+                        foodstuffsList = new FoodstuffsList(context, databaseWorker);
                         return Arrays.asList(databaseWorker, foodstuffsList);
                     })
                     .build();
 
     @Before
-    public void setUp() throws InterruptedException {
+    public void setUp() {
         Card.setAnimationDuration(0);
 
         Context context = InstrumentationRegistry.getTargetContext();
         Foodstuff foodstuff1 = Foodstuff.withName("product1").withNutrition(10, 10, 10, 10);
         foodstuffsList.saveFoodstuff(
-                context,
                 foodstuff1,
                 new FoodstuffsList.SaveFoodstuffCallback() {
             @Override
@@ -82,7 +87,8 @@ public class ListOfFoodstuffsActivityTest {
 
     @After
     public void tearDown() {
-        databaseWorker.deleteFoodstuff(mActivityRule.getActivity(), savedFoodstuffId);
+        // TODO: 22.01.19 что делать c id?
+//        databaseWorker.deleteFoodstuff(savedFoodstuffId);
         savedFoodstuffId = null;
     }
 

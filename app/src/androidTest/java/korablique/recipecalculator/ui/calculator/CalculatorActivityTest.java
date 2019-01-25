@@ -23,6 +23,8 @@ import org.junit.runner.RunWith;
 import java.util.Arrays;
 
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.database.DatabaseHolder;
+import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.ui.Card;
@@ -44,15 +46,19 @@ import static org.hamcrest.Matchers.not;
 @LargeTest
 public class CalculatorActivityTest {
     private Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-    private DatabaseWorker databaseWorker = new DatabaseWorker(
-            new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
-    private FoodstuffsList foodstuffsList = new FoodstuffsList(context, databaseWorker);
-
+    private DatabaseHolder databaseHolder;
+    private DatabaseWorker databaseWorker;
+    private FoodstuffsList foodstuffsList;
 
     @Rule
     public ActivityTestRule<CalculatorActivity> mActivityRule =
             InjectableActivityTestRule.forActivity(CalculatorActivity.class)
                     .withSingletones(() -> {
+                        DatabaseThreadExecutor databaseThreadExecutor = new InstantDatabaseThreadExecutor();
+                        databaseHolder = new DatabaseHolder(context, databaseThreadExecutor);
+                        databaseWorker = new DatabaseWorker(
+                                databaseHolder, new SyncMainThreadExecutor(), databaseThreadExecutor);
+                        foodstuffsList = new FoodstuffsList(context, databaseWorker);
                         return Arrays.asList(databaseWorker, foodstuffsList);
                     })
                     .build();

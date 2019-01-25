@@ -37,12 +37,15 @@ import static org.mockito.Mockito.verify;
 @LargeTest
 public class UserParametersWorkerTest {
     private Context context;
+    private DatabaseHolder databaseHolder;
     private UserParametersWorker userParametersWorker;
     private DatabaseThreadExecutor spiedDatabaseThreadExecutor;
 
     @Before
     public void setUp() throws IOException {
         context = InstrumentationRegistry.getTargetContext();
+        spiedDatabaseThreadExecutor = spy(new InstantDatabaseThreadExecutor());
+        databaseHolder = new DatabaseHolder(context, spiedDatabaseThreadExecutor);
 
         DbHelper.deinitializeDatabase(context);
         DbHelper dbHelper = new DbHelper(context);
@@ -51,11 +54,9 @@ public class UserParametersWorkerTest {
         DbUtil.clearTable(context, HISTORY_TABLE_NAME);
         DbUtil.clearTable(context, FOODSTUFFS_TABLE_NAME);
 
-        spiedDatabaseThreadExecutor = spy(new InstantDatabaseThreadExecutor());
-
         userParametersWorker =
                 new UserParametersWorker(
-                        context, new InstantMainThreadExecutor(), spiedDatabaseThreadExecutor);
+                        databaseHolder, new InstantMainThreadExecutor(), spiedDatabaseThreadExecutor);
     }
 
     @Test

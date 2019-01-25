@@ -1,14 +1,15 @@
 package korablique.recipecalculator.database;
 
-import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
+
 import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.model.Foodstuff;
@@ -21,17 +22,17 @@ import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAM
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_FATS;
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_FOODSTUFF_NAME;
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_PROTEIN;
-import static korablique.recipecalculator.database.FoodstuffsContract.FOODSTUFFS_TABLE_NAME;
 import static korablique.recipecalculator.database.HistoryContract.COLUMN_NAME_DATE;
 import static korablique.recipecalculator.database.HistoryContract.COLUMN_NAME_FOODSTUFF_ID;
 import static korablique.recipecalculator.database.HistoryContract.COLUMN_NAME_WEIGHT;
-import static korablique.recipecalculator.database.HistoryContract.HISTORY_TABLE_NAME;
 
+@Singleton
 public class HistoryWorker {
     public static final int BATCH_SIZE = 20;
     private static final int NO_LIMIT = -1;
 
-    private Context context;
+    private DatabaseHolder databaseHolder;
+    private DatabaseWorker databaseWorker;
     private DatabaseThreadExecutor databaseThreadExecutor;
     private MainThreadExecutor mainThreadExecutor;
 
@@ -49,11 +50,14 @@ public class HistoryWorker {
         void onResult(List<Long> ids);
     }
 
+    @Inject
     public HistoryWorker(
-            Context context,
+            DatabaseHolder databaseHolder,
+            DatabaseWorker databaseWorker,
             MainThreadExecutor mainThreadExecutor,
             DatabaseThreadExecutor databaseThreadExecutor) {
-        this.context = context;
+        this.databaseHolder = databaseHolder;
+        this.databaseWorker = databaseWorker;
         this.mainThreadExecutor = mainThreadExecutor;
         this.databaseThreadExecutor = databaseThreadExecutor;
     }
@@ -98,32 +102,82 @@ public class HistoryWorker {
      */
     private void requestHistoryFromDbImpl(
             final int limit,
-            @NonNull final RequestHistoryCallback callback) {
+            @NonNull final RequestHistoryCallback historyBatchesCallback) {
         boolean cacheWasUsed = false;
         if (!cachedValues.isEmpty()) {
-            callback.onResult(cachedValues);
+            historyBatchesCallback.onResult(cachedValues);
             cacheWasUsed = true;
         }
 
-        DbHelper dbHelper = new DbHelper(context);
-        SQLiteDatabase db = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
-        String joinTablesArg = HISTORY_TABLE_NAME + " LEFT OUTER" +
-                " JOIN " + FOODSTUFFS_TABLE_NAME +
-                " ON " + HISTORY_TABLE_NAME + "." + COLUMN_NAME_FOODSTUFF_ID
-                + "=" + FOODSTUFFS_TABLE_NAME + "." + FoodstuffsContract.ID;
+//        DbHelper dbHelper = new DbHelper(context);
+//        SQLiteDatabase db = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
+//        String joinTablesArg = HISTORY_TABLE_NAME + " LEFT OUTER" +
+//                " JOIN " + FOODSTUFFS_TABLE_NAME +
+//                " ON " + HISTORY_TABLE_NAME + "." + COLUMN_NAME_FOODSTUFF_ID
+//                + "=" + FOODSTUFFS_TABLE_NAME + "." + FoodstuffsContract.ID;
+//
+//        Cursor cursor;
+//        if (limit == NO_LIMIT) {
+//            cursor = db.query(joinTablesArg, null, null, null, null, null, COLUMN_NAME_DATE + " DESC");
+//        } else {
+//            cursor = db.query(joinTablesArg, null, null, null, null, null, COLUMN_NAME_DATE + " DESC", String.valueOf(limit));
+//        }
+//
+//        // Если кэш уже отправлен, первый батч будет такой же, как кэш
+//        // - первый батч отправлять не нужно.
+//        boolean shouldIgnoreNextBatch = cacheWasUsed;
+//
+//        ArrayList<HistoryEntry> historyBatch = new ArrayList<>();
+//        int index = 0;
+//        while (cursor.moveToNext()) {
+//            long foodstuffId = cursor.getLong(
+//                    cursor.getColumnIndex(COLUMN_NAME_FOODSTUFF_ID));
+//            double weight = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_WEIGHT));
+//            String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_FOODSTUFF_NAME));
+//            double protein = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_PROTEIN));
+//            double fats = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_FATS));
+//            double carbs = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CARBS));
+//            double calories = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CALORIES));
+//
+//            WeightedFoodstuff foodstuff = Foodstuff
+//                    .withId(foodstuffId)
+//                    .withName(name)
+//                    .withNutrition(protein, fats, carbs, calories)
+//                    .withWeight(weight);
+//
+//            long time = cursor.getLong(cursor.getColumnIndex(COLUMN_NAME_DATE));
+//            long historyId = cursor.getLong(cursor.getColumnIndex(HistoryContract.ID));
+//            HistoryEntry historyEntry = new HistoryEntry(historyId, foodstuff, new Date(time));
+//            historyBatch.add(historyEntry);
+//            ++index;
+//            if (index >= BATCH_SIZE) {
+//                if (!shouldIgnoreNextBatch) {
+//                    callback.onResult(historyBatch);
+//                }
+//                historyBatch.clear();
+//                index = 0;
+//                shouldIgnoreNextBatch = false;
+//            }
+//        }
+//        if (historyBatch.size() > 0 && !shouldIgnoreNextBatch) {
+//            callback.onResult(historyBatch);
+//        }
+//        cursor.close();
 
+        AppDatabase database = databaseHolder.getDatabase();
+        HistoryDao historyDao = database.historyDao();
         Cursor cursor;
         if (limit == NO_LIMIT) {
-            cursor = db.query(joinTablesArg, null, null, null, null, null, COLUMN_NAME_DATE + " DESC");
+            cursor = historyDao.loadHistory();
         } else {
-            cursor = db.query(joinTablesArg, null, null, null, null, null, COLUMN_NAME_DATE + " DESC", String.valueOf(limit));
+            cursor = historyDao.loadHistoryWithLimit(limit);
         }
 
         // Если кэш уже отправлен, первый батч будет такой же, как кэш
         // - первый батч отправлять не нужно.
         boolean shouldIgnoreNextBatch = cacheWasUsed;
 
-        ArrayList<HistoryEntry> historyBatch = new ArrayList<>();
+        List<HistoryEntry> historyBatch = new ArrayList<>();
         int index = 0;
         while (cursor.moveToNext()) {
             long foodstuffId = cursor.getLong(
@@ -148,7 +202,7 @@ public class HistoryWorker {
             ++index;
             if (index >= BATCH_SIZE) {
                 if (!shouldIgnoreNextBatch) {
-                    callback.onResult(historyBatch);
+                    historyBatchesCallback.onResult(historyBatch);
                 }
                 historyBatch.clear();
                 index = 0;
@@ -156,7 +210,7 @@ public class HistoryWorker {
             }
         }
         if (historyBatch.size() > 0 && !shouldIgnoreNextBatch) {
-            callback.onResult(historyBatch);
+            historyBatchesCallback.onResult(historyBatch);
         }
         cursor.close();
     }
@@ -185,97 +239,133 @@ public class HistoryWorker {
             final NewHistoryEntry[] newEntries,
             final AddHistoryEntriesCallback callback) {
         databaseThreadExecutor.execute(() -> {
-            DbHelper dbHelper = new DbHelper(context);
-            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-
-            final ArrayList<Long> ids = new ArrayList<>();
-            database.beginTransaction();
-            try {
-                for (NewHistoryEntry newEntry : newEntries) {
-                    ContentValues values = new ContentValues();
-                    values.put(COLUMN_NAME_DATE, newEntry.getDate().getTime());
-                    values.put(COLUMN_NAME_FOODSTUFF_ID, newEntry.getFoodstuffId());
-                    values.put(COLUMN_NAME_WEIGHT, newEntry.getFoodstuffWeight());
-                    long historyEntryId = database.insert(HISTORY_TABLE_NAME, null, values);
-                    ids.add(historyEntryId);
-                }
-                database.setTransactionSuccessful();
-            } finally {
-                database.endTransaction();
+//            DbHelper dbHelper = new DbHelper(context);
+//            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+//
+//            final ArrayList<Long> ids = new ArrayList<>();
+//            database.beginTransaction();
+//            try {
+//                for (NewHistoryEntry newEntry : newEntries) {
+//                    ContentValues values = new ContentValues();
+//                    values.put(COLUMN_NAME_DATE, newEntry.getDate().getTime());
+//                    values.put(COLUMN_NAME_FOODSTUFF_ID, newEntry.getFoodstuffId());
+//                    values.put(COLUMN_NAME_WEIGHT, newEntry.getFoodstuffWeight());
+//                    long historyEntryId = database.insert(HISTORY_TABLE_NAME, null, values);
+//                    ids.add(historyEntryId);
+//                }
+//                database.setTransactionSuccessful();
+//            } finally {
+//                database.endTransaction();
+//            }
+//            if (callback != null) {
+//                mainThreadExecutor.execute(() -> callback.onResult(ids));
+//            }
+//
+//            updateCache();
+            AppDatabase database = databaseHolder.getDatabase();
+            HistoryDao historyDao = database.historyDao();
+            List<HistoryEntity> historyEntities = new ArrayList<>();
+            for (NewHistoryEntry historyEntry : newEntries) {
+                HistoryEntity historyEntity = new HistoryEntity(
+                        historyEntry.getDate().getTime(),
+                        historyEntry.getFoodstuffId(),
+                        (float) historyEntry.getFoodstuffWeight());
+                historyEntities.add(historyEntity);
             }
+
+            List<Long> historyEntitiesIds = historyDao.insertHistoryEntities(historyEntities);
             if (callback != null) {
-                mainThreadExecutor.execute(() -> callback.onResult(ids));
+                mainThreadExecutor.execute(() -> callback.onResult(historyEntitiesIds));
             }
-
             updateCache();
         });
     }
 
-    public void deleteEntryFromHistory(final long historyId) {
+    public void deleteEntryFromHistory(final HistoryEntry historyEntry) {
         databaseThreadExecutor.execute(() -> {
-            DbHelper dbHelper = new DbHelper(context);
-            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-            database.delete(
-                    HISTORY_TABLE_NAME,
-                    HistoryContract.ID + " = ?",
-                    new String[]{String.valueOf(historyId)});
-
+//            DbHelper dbHelper = new DbHelper(context);
+//            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+//            database.delete(
+//                    HISTORY_TABLE_NAME,
+//                    HistoryContract.ID + " = ?",
+//                    new String[]{String.valueOf(historyId)});
+//
+//            updateCache();
+            AppDatabase database = databaseHolder.getDatabase();
+            HistoryDao historyDao = database.historyDao();
+            HistoryEntity historyEntity = new HistoryEntity(
+                    historyEntry.getTime().getTime(), // TODO: 21.01.19 get time get time
+                    historyEntry.getHistoryId(),
+                    (float) historyEntry.getFoodstuff().getWeight());
+            historyDao.deleteHistoryEntity(historyEntity);
             updateCache();
         });
     }
 
-    public void editWeightInHistoryEntry(
-            final long historyId,
-            final double newWeight) {
-        editWeightInHistoryEntry(historyId, newWeight, null);
+    public void editWeightInHistoryEntry(final long historyId, final double weight) {
+        editWeightInHistoryEntry(historyId, weight, null);
     }
 
     public void editWeightInHistoryEntry(
             final long historyId,
-            final double newWeight,
+            final double weight,
             final Runnable callback) {
         databaseThreadExecutor.execute(() -> {
-            DbHelper dbHelper = new DbHelper(context);
-            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-            ContentValues values = new ContentValues();
-            values.put(COLUMN_NAME_WEIGHT, newWeight);
-            database.update(
-                    HISTORY_TABLE_NAME,
-                    values,
-                    HistoryContract.ID + "=?",
-                    new String[]{String.valueOf(historyId)});
+//            DbHelper dbHelper = new DbHelper(context);
+//            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+//            ContentValues values = new ContentValues();
+//            values.put(COLUMN_NAME_WEIGHT, newWeight);
+//            database.update(
+//                    HISTORY_TABLE_NAME,
+//                    values,
+//                    HistoryContract.ID + "=?",
+//                    new String[]{String.valueOf(historyId)});
+//            if (callback != null) {
+//                mainThreadExecutor.execute(callback);
+//            }
+//
+//            updateCache();
+            AppDatabase database = databaseHolder.getDatabase();
+            HistoryDao historyDao = database.historyDao();
+            historyDao.updateWeight(historyId, weight);
             if (callback != null) {
                 mainThreadExecutor.execute(callback);
             }
-
             updateCache();
         });
     }
 
     public void updateFoodstuffIdInHistory(
             final long historyId,
-            final long newFoodstuffId) {
-        updateFoodstuffIdInHistory(historyId, newFoodstuffId, null);
+            final long foodstuffId) {
+        updateFoodstuffIdInHistory(historyId, foodstuffId, null);
     }
 
     public void updateFoodstuffIdInHistory(
             final long historyId,
-            final long newFoodstuffId,
+            final long foodstuffId,
             final Runnable callback) {
         databaseThreadExecutor.execute(() -> {
-            DbHelper dbHelper = new DbHelper(context);
-            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-            ContentValues values = new ContentValues(1);
-            values.put(COLUMN_NAME_FOODSTUFF_ID, newFoodstuffId);
-            database.update(
-                    HISTORY_TABLE_NAME,
-                    values,
-                    HistoryContract.ID + "=?",
-                    new String[]{String.valueOf(historyId)});
+//            DbHelper dbHelper = new DbHelper(context);
+//            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+//            ContentValues values = new ContentValues(1);
+//            values.put(COLUMN_NAME_FOODSTUFF_ID, newFoodstuffId);
+//            database.update(
+//                    HISTORY_TABLE_NAME,
+//                    values,
+//                    HistoryContract.ID + "=?",
+//                    new String[]{String.valueOf(historyId)});
+//            if (callback != null) {
+//                mainThreadExecutor.execute(callback);
+//            }
+//
+//            updateCache();
+            AppDatabase database = databaseHolder.getDatabase();
+            HistoryDao historyDao = database.historyDao();
+            historyDao.updateFoodstuff(historyId, foodstuffId);
             if (callback != null) {
                 mainThreadExecutor.execute(callback);
             }
-
             updateCache();
         });
     }
@@ -285,24 +375,29 @@ public class HistoryWorker {
             final long to,
             @NonNull final RequestFoodstuffsIdsFromHistoryCallback callback) {
         databaseThreadExecutor.execute(() -> {
-            DbHelper dbHelper = new DbHelper(context);
-            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
-            Cursor cursor = database.query(
-                    HISTORY_TABLE_NAME,
-                    new String[]{ COLUMN_NAME_FOODSTUFF_ID },
-                    COLUMN_NAME_DATE + " >= ? AND " + COLUMN_NAME_DATE + " <= ?",
-                    new String[]{ String.valueOf(from), String.valueOf(to) },
-                    null,
-                    null,
-                    COLUMN_NAME_DATE + " ASC");
+//            DbHelper dbHelper = new DbHelper(context);
+//            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
+//            Cursor cursor = database.query(
+//                    HISTORY_TABLE_NAME,
+//                    new String[]{ COLUMN_NAME_FOODSTUFF_ID },
+//                    COLUMN_NAME_DATE + " >= ? AND " + COLUMN_NAME_DATE + " <= ?",
+//                    new String[]{ String.valueOf(from), String.valueOf(to) },
+//                    null,
+//                    null,
+//                    COLUMN_NAME_DATE + " ASC");
+//
+//            ArrayList<Long> ids = new ArrayList<>();
+//            while (cursor.moveToNext()) {
+//                long id = cursor.getLong(cursor.getColumnIndex(COLUMN_NAME_FOODSTUFF_ID));
+//                ids.add(id);
+//            }
+//            cursor.close();
+//            mainThreadExecutor.execute(() -> callback.onResult(ids));
 
-            ArrayList<Long> ids = new ArrayList<>();
-            while (cursor.moveToNext()) {
-                long id = cursor.getLong(cursor.getColumnIndex(COLUMN_NAME_FOODSTUFF_ID));
-                ids.add(id);
-            }
-            cursor.close();
-            mainThreadExecutor.execute(() -> callback.onResult(ids));
+            AppDatabase database = databaseHolder.getDatabase();
+            HistoryDao historyDao = database.historyDao();
+            List<Long> foodstuffIdsForPeriod = historyDao.loadFoodstuffsIdsForPeriod(from, to);
+            mainThreadExecutor.execute(() -> callback.onResult(foodstuffIdsForPeriod));
         });
     }
 }

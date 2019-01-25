@@ -16,26 +16,17 @@ import korablique.recipecalculator.model.Goal;
 import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.UserParameters;
 
-import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_AGE;
-import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_LIFESTYLE;
-import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_FORMULA;
-import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_GENDER;
-import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_GOAL;
-import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_HEIGHT;
-import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_USER_WEIGHT;
-import static korablique.recipecalculator.database.UserParametersContract.USER_PARAMETERS_TABLE_NAME;
-
 public class UserParametersWorker {
-    private final Context context;
+    private DatabaseHolder databaseHolder;
     private final DatabaseThreadExecutor databaseThreadExecutor;
     private final MainThreadExecutor mainThreadExecutor;
     private volatile Single<Optional<UserParameters>> cachedUserParameters;
 
     public UserParametersWorker(
-            Context context,
+            DatabaseHolder databaseHolder,
             MainThreadExecutor mainThreadExecutor,
             DatabaseThreadExecutor databaseThreadExecutor) {
-        this.context = context;
+        this.databaseHolder = databaseHolder;
         this.mainThreadExecutor = mainThreadExecutor;
         this.databaseThreadExecutor = databaseThreadExecutor;
     }
@@ -77,63 +68,123 @@ public class UserParametersWorker {
      */
     @Nullable
     private UserParameters requestCurrentUserParametersImpl() {
-        DbHelper dbHelper = new DbHelper(context);
-        SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
-        Cursor cursor = database.query(
-                USER_PARAMETERS_TABLE_NAME,
-                null,
-                null,
-                null,
-                null,
-                null,
-                UserParametersContract.ID + " DESC",
-                String.valueOf(1));
+//        DbHelper dbHelper = new DbHelper(context);
+//        SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
+//        Cursor cursor = database.query(
+//                USER_PARAMETERS_TABLE_NAME,
+//                null,
+//                null,
+//                null,
+//                null,
+//                null,
+//                UserParametersContract.ID + " DESC",
+//                String.valueOf(1));
+//        UserParameters userParameters = null;
+//        if (cursor.moveToNext()) {
+//            int goalId = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_GOAL));
+//            Goal goal = Goal.fromId(goalId);
+//
+//            int genderId = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_GENDER));
+//            Gender gender = Gender.fromId(genderId);
+//
+//            int age = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_AGE));
+//            int height = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_HEIGHT));
+//            int weight = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_USER_WEIGHT));
+//
+//            int lifestyleId = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_LIFESTYLE));
+//            Lifestyle lifestyle = Lifestyle.fromId(lifestyleId);
+//
+//            int formulaId = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_FORMULA));
+//            Formula formula = Formula.fromId(formulaId);
+//
+//            userParameters = new UserParameters(goal, gender, age, height, weight, lifestyle, formula);
+//        }
+//        cursor.close();
+//        return userParameters;
+        AppDatabase database = databaseHolder.getDatabase();
+        UserParametersDao userDao = database.userParametersDao();
+        UserParametersEntity userEntity = userDao.loadUserParameters();
+
         UserParameters userParameters = null;
-        if (cursor.moveToNext()) {
-            int goalId = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_GOAL));
+        if (userEntity != null) {
+            int goalId = userEntity.getGoalId();
             Goal goal = Goal.fromId(goalId);
 
-            int genderId = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_GENDER));
+            int genderId = userEntity.getGenderId();
             Gender gender = Gender.fromId(genderId);
 
-            int age = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_AGE));
-            int height = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_HEIGHT));
-            int weight = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_USER_WEIGHT));
+            int age = userEntity.getAge();
+            int height = userEntity.getHeight();
+            int weight = userEntity.getWeight();
 
-            int lifestyleId = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_LIFESTYLE));
+            int lifestyleId = userEntity.getLifestyleId();
             Lifestyle lifestyle = Lifestyle.fromId(lifestyleId);
 
-            int formulaId = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_FORMULA));
+            int formulaId = userEntity.getFormulaId();
             Formula formula = Formula.fromId(formulaId);
 
             userParameters = new UserParameters(goal, gender, age, height, weight, lifestyle, formula);
         }
-        cursor.close();
         return userParameters;
     }
 
     public Completable saveUserParameters(
             final UserParameters userParameters) {
-        Completable result = Completable.create((subscriber) -> {
-            DbHelper dbHelper = new DbHelper(context);
-            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-            ContentValues values = new ContentValues();
-            values.put(COLUMN_NAME_GOAL, userParameters.getGoal().getId());
-            values.put(COLUMN_NAME_GENDER, userParameters.getGender().getId());
-            values.put(COLUMN_NAME_AGE, userParameters.getAge());
-            values.put(COLUMN_NAME_HEIGHT, userParameters.getHeight());
-            values.put(COLUMN_NAME_USER_WEIGHT, userParameters.getWeight());
-            values.put(COLUMN_NAME_LIFESTYLE, userParameters.getLifestyle().getId());
-            values.put(COLUMN_NAME_FORMULA, userParameters.getFormula().getId());
-            database.insert(USER_PARAMETERS_TABLE_NAME, null, values);
+//        Completable result = Completable.create((subscriber) -> {
+//            DbHelper dbHelper = new DbHelper(context);
+//            SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+//            ContentValues values = new ContentValues();
+//            values.put(COLUMN_NAME_GOAL, userParameters.getGoal().getId());
+//            values.put(COLUMN_NAME_GENDER, userParameters.getGender().getId());
+//            values.put(COLUMN_NAME_AGE, userParameters.getAge());
+//            values.put(COLUMN_NAME_HEIGHT, userParameters.getHeight());
+//            values.put(COLUMN_NAME_USER_WEIGHT, userParameters.getWeight());
+//            values.put(COLUMN_NAME_LIFESTYLE, userParameters.getLifestyle().getId());
+//            values.put(COLUMN_NAME_FORMULA, userParameters.getFormula().getId());
+//            database.insert(USER_PARAMETERS_TABLE_NAME, null, values);
+//
+//            // Мы вставили новые параметры пользователя в БД, нужно не забыть
+//            // обновить закешированное значение.
+//            cachedUserParameters = Single.just(Optional.of(userParameters));
+//            subscriber.onComplete();
+//        });
+//
+//        result = result.subscribeOn(databaseThreadExecutor.asScheduler())
+//                .observeOn(mainThreadExecutor.asScheduler())
+//                .cache();
+//
+//        // Сразу подписываемся на получивщийся Completable, чтобы форсировать немедленный
+//        // старт операции без ожидания подписчиков (кажется естественным, что клиенты могут вызывать
+//        // saveUserParameters и не особо интересоваться моментом, когда сохранение будет завершено,
+//        // т.е. вообще не подписываться на Completable).
+//        result.subscribe();
+//
+//        return result;
 
+        Completable result = Completable.create((subscriber) -> {
+            AppDatabase database = databaseHolder.getDatabase();
+            UserParametersDao userDao = database.userParametersDao();
+            UserParametersEntity userParametersEntity = new UserParametersEntity(
+                    userParameters.getGoal().getId(),
+                    userParameters.getGender().getId(),
+                    userParameters.getAge(),
+                    userParameters.getHeight(),
+                    userParameters.getWeight(),
+                    userParameters.getLifestyle().getId(),
+                    userParameters.getFormula().getId());
+            long insertedParamsId = userDao.insertUserParameters(userParametersEntity);
+// TODO: 16.01.19 возможно будет возвращено -1, возможно 0
+            if (insertedParamsId < 0) {
+                subscriber.onError(new IllegalStateException("Could not insert user parameters"));
+            }
             // Мы вставили новые параметры пользователя в БД, нужно не забыть
             // обновить закешированное значение.
             cachedUserParameters = Single.just(Optional.of(userParameters));
             subscriber.onComplete();
         });
 
-        result = result.subscribeOn(databaseThreadExecutor.asScheduler())
+        result = result
+                .subscribeOn(databaseThreadExecutor.asScheduler())
                 .observeOn(mainThreadExecutor.asScheduler())
                 .cache();
 

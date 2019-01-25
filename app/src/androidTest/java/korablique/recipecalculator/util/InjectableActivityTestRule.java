@@ -21,6 +21,7 @@ import korablique.recipecalculator.util.TestingInjector.SingletonInjectionsSourc
  * мимо Даггера.
  */
 public class InjectableActivityTestRule<T extends BaseActivity> extends ActivityTestRule<T> {
+    private static boolean intentsLibInitialized;
     @Nullable
     private final SingletonInjectionsSource singletonInjectionsSource;
     @Nullable
@@ -41,13 +42,18 @@ public class InjectableActivityTestRule<T extends BaseActivity> extends Activity
 
     private void onTestStarted() {
         // Initializing espresso-intents
+        if (intentsLibInitialized) {
+            Intents.release();
+        }
         Intents.init();
+        intentsLibInitialized = true;
         InjectorHolder.setInjector(
                 new TestingInjector(singletonInjectionsSource, activitiesInjectionSource, fragmentInjectionSource));
     }
 
     private void onTestEnded() {
         Intents.release();
+        intentsLibInitialized = false;
         InjectorHolder.setInjector(null);
     }
 

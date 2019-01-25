@@ -127,7 +127,7 @@ public class BucketListActivity extends BaseActivity {
 
         // диалог, появляющийся при сохранении блюда
         SaveDishDialog.OnSaveDishButtonClickListener saveDishButtonClickListener = (foodstuff) -> {
-            foodstuffsList.saveFoodstuff(this, foodstuff, new FoodstuffsList.SaveFoodstuffCallback() {
+            foodstuffsList.saveFoodstuff(foodstuff, new FoodstuffsList.SaveFoodstuffCallback() {
                 @Override
                 public void onResult(long id) {
                     SaveDishDialog dialog = SaveDishDialog.findDialog(BucketListActivity.this);

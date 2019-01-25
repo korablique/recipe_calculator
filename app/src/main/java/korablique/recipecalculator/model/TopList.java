@@ -41,13 +41,14 @@ public class TopList {
                 0,
                 Long.MAX_VALUE,
                 (ids) -> {
+                    // TODO: 22.01.19 здесь должны быть айдишники
                     foodstuffsIds.addAll(ids);
                     List<PopularProductsUtils.FoodstuffFrequency> topList = PopularProductsUtils.getTop(foodstuffsIds); // это топ из них
                     List<Long> topFoodstuffIds = new ArrayList<>(); // это айдишники топа
                     for (int index = 0; index < topList.size() && index < limit; ++index) {
                         topFoodstuffIds.add(topList.get(index).getFoodstuffId());
                     }
-                    databaseWorker.requestFoodstuffsByIds(context, topFoodstuffIds, (foodstuffs) -> {
+                    databaseWorker.requestFoodstuffsByIds(topFoodstuffIds, (foodstuffs) -> {
                         callback.onResult(foodstuffs);
                     });
                 });

@@ -101,7 +101,7 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
                         return;
                     }
                     //сохраняем новые значения в базу данных
-                    foodstuffsList.editFoodstuff(ListOfFoodstuffsActivity.this, editedFoodstuffId,
+                    foodstuffsList.editFoodstuff(editedFoodstuffId,
                             newFoodstuff.withoutWeight());
                     recyclerViewAdapter.replaceItem(newFoodstuff.withoutWeight(), editedFoodstuffPosition);
                     KeyboardHandler keyboardHandler = new KeyboardHandler(ListOfFoodstuffsActivity.this);
@@ -114,7 +114,8 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
             card.setOnButtonDeleteClickedRunnable(new Runnable() {
                 @Override
                 public void run() {
-                    foodstuffsList.removeFoodstuff(ListOfFoodstuffsActivity.this, editedFoodstuffId, null);
+                    Foodstuff deletingFoodstuff = card.parseFoodstuff().withoutWeight();
+                    foodstuffsList.removeFoodstuff(deletingFoodstuff, null);
                     recyclerViewAdapter.deleteItem(editedFoodstuffPosition);
                     new KeyboardHandler(ListOfFoodstuffsActivity.this).hideKeyBoard();
                     card.hide();

@@ -156,7 +156,6 @@ public class CalculatorActivity extends BaseActivity {
                 }
                 
                 foodstuffsList.saveFoodstuff(
-                        CalculatorActivity.this,
                         savingFoodstuff.withoutWeight(),
                         new FoodstuffsList.SaveFoodstuffCallback() {
                     @Override
