@@ -35,6 +35,16 @@ android {
         versionCode 12
         versionName "18.02.04"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = ["room.schemaLocation":
+                                     "$projectDir/room_schemas".toString()]
+            }
+        }
+
+    }
+    sourceSets {
+        androidTest.assets.srcDirs += files("$projectDir/room_schemas".toString())
     }
     buildTypes {
         debug {
@@ -97,7 +107,7 @@ dependencies {
 
     def room_version = "2.1.0-alpha03"
     implementation "androidx.room:room-runtime:$room_version"
-    annotationProcessor "androidx.room:room-compiler:$room_version" // use kapt for Kotlin
+    annotationProcessor "androidx.room:room-compiler:$room_version"
     implementation "androidx.room:room-rxjava2:$room_version"
     testImplementation "androidx.room:room-testing:$room_version"
 

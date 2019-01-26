@@ -2,10 +2,6 @@ package korablique.recipecalculator.database;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import androidx.test.InstrumentationRegistry;
-import androidx.test.filters.LargeTest;
-import androidx.test.runner.AndroidJUnit4;
 
 import junit.framework.Assert;
 
@@ -19,9 +15,13 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import androidx.test.InstrumentationRegistry;
+import androidx.test.filters.LargeTest;
+import androidx.test.runner.AndroidJUnit4;
+import korablique.recipecalculator.database.room.AppDatabase;
+import korablique.recipecalculator.database.room.DatabaseHolder;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
-import korablique.recipecalculator.util.DbUtil;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.InstantMainThreadExecutor;
 
@@ -42,7 +42,7 @@ public class DatabaseWorkerTest {
         databaseHolder = new DatabaseHolder(context, databaseThreadExecutor);
         databaseWorker = new DatabaseWorker(
                 databaseHolder, new InstantMainThreadExecutor(), databaseThreadExecutor);
-        DbUtil.clearTable(context, FOODSTUFFS_TABLE_NAME);
+        databaseHolder.getDatabase().clearAllTables();
     }
 
     @Test
@@ -79,18 +79,11 @@ public class DatabaseWorkerTest {
                 20,
                 foodstuffs -> listedFoodstuffsCount[0] = foodstuffs.size());
 
-        DbHelper dbHelper = new DbHelper(context);
-        SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
-        Cursor unlistedFoodstuffs = database.rawQuery(
+        AppDatabase database = databaseHolder.getDatabase();
+        Cursor unlistedFoodstuffs = database.query(
                 "SELECT * FROM " + FOODSTUFFS_TABLE_NAME + " WHERE " + COLUMN_NAME_IS_LISTED + "=0", null);
         int unlistedFoodstuffsCount = unlistedFoodstuffs.getCount();
         unlistedFoodstuffs.close();
-
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
         Assert.assertEquals(2, unlistedFoodstuffsCount);
         Assert.assertEquals(2, listedFoodstuffsCount[0]);
@@ -109,9 +102,8 @@ public class DatabaseWorkerTest {
             }
         });
 
-//        databaseWorker.makeFoodstuffUnlisted(id[0], null);
-// TODO: 22.01.19 зачем unlisted foodstuff делать unlisted?
         final boolean[] containsListedFoodstuff = new boolean[1];
+        containsListedFoodstuff[0] = true;
         databaseWorker.saveFoodstuff(
                 foodstuff,
                 new DatabaseWorker.SaveFoodstuffCallback() {

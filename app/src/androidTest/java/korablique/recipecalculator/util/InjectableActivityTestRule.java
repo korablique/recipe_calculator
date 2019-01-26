@@ -1,13 +1,13 @@
 package korablique.recipecalculator.util;
 
 import android.content.Intent;
-import androidx.annotation.Nullable;
-import androidx.test.espresso.intent.Intents;
-import androidx.test.rule.ActivityTestRule;
 
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
+import androidx.annotation.Nullable;
+import androidx.test.espresso.intent.Intents;
+import androidx.test.rule.ActivityTestRule;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.dagger.InjectorHolder;
 import korablique.recipecalculator.util.TestingInjector.ActivitiesInjectionSource;

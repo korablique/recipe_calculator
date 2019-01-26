@@ -2,10 +2,6 @@ package korablique.recipecalculator.database;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import androidx.test.InstrumentationRegistry;
-import androidx.test.filters.LargeTest;
-import androidx.test.runner.AndroidJUnit4;
 
 import junit.framework.Assert;
 
@@ -18,15 +14,17 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import androidx.test.InstrumentationRegistry;
+import androidx.test.filters.LargeTest;
+import androidx.test.runner.AndroidJUnit4;
+import korablique.recipecalculator.database.room.AppDatabase;
+import korablique.recipecalculator.database.room.DatabaseHolder;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.HistoryEntry;
 import korablique.recipecalculator.model.NewHistoryEntry;
-import korablique.recipecalculator.model.Nutrition;
-import korablique.recipecalculator.util.DbUtil;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.InstantMainThreadExecutor;
 
-import static korablique.recipecalculator.database.FoodstuffsContract.FOODSTUFFS_TABLE_NAME;
 import static korablique.recipecalculator.database.HistoryContract.COLUMN_NAME_DATE;
 import static korablique.recipecalculator.database.HistoryContract.COLUMN_NAME_FOODSTUFF_ID;
 import static korablique.recipecalculator.database.HistoryContract.COLUMN_NAME_WEIGHT;
@@ -44,27 +42,20 @@ public class HistoryWorkerTest {
     public void setUp() throws IOException {
         context = InstrumentationRegistry.getTargetContext();
 
-        DbHelper.deinitializeDatabase(context);
-        DbHelper dbHelper = new DbHelper(context);
-        dbHelper.initializeDatabase();
-
-        DbUtil.clearTable(context, HISTORY_TABLE_NAME);
-        DbUtil.clearTable(context, FOODSTUFFS_TABLE_NAME);
-
         DatabaseThreadExecutor databaseThreadExecutor = new InstantDatabaseThreadExecutor();
         databaseHolder = new DatabaseHolder(context, databaseThreadExecutor);
+        databaseHolder.getDatabase().clearAllTables();
         databaseWorker = new DatabaseWorker(
                 databaseHolder, new InstantMainThreadExecutor(), databaseThreadExecutor);
         historyWorker = new HistoryWorker(
-                databaseHolder, databaseWorker, new InstantMainThreadExecutor(), databaseThreadExecutor);
+                databaseHolder, new InstantMainThreadExecutor(), databaseThreadExecutor);
     }
 
     @Test
     public void savingToHistoryWorks() throws InterruptedException {
-        DbHelper dbHelper = new DbHelper(context);
-        SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+        AppDatabase database = databaseHolder.getDatabase();
 
-        Cursor cursorBeforeSaving = database.rawQuery("SELECT * FROM " + HISTORY_TABLE_NAME, null);
+        Cursor cursorBeforeSaving = database.query("SELECT * FROM " + HISTORY_TABLE_NAME, null);
         int entriesCountBeforeSaving = cursorBeforeSaving.getCount();
         Assert.assertTrue(cursorBeforeSaving.getCount() == 0);
         cursorBeforeSaving.close();
@@ -74,7 +65,7 @@ public class HistoryWorkerTest {
         Date date = new Date();
         historyWorker.saveFoodstuffToHistory(date, foodstuff.getId(), 100);
 
-        Cursor cursorAfterSaving = database.rawQuery("SELECT * FROM " + HISTORY_TABLE_NAME, null);
+        Cursor cursorAfterSaving = database.query("SELECT * FROM " + HISTORY_TABLE_NAME, null);
         long dateInt = -1, foodstuffId = -1;
         while (cursorAfterSaving.moveToNext()) {
             dateInt = cursorAfterSaving.getLong(cursorAfterSaving.getColumnIndex(COLUMN_NAME_DATE));
@@ -153,9 +144,8 @@ public class HistoryWorkerTest {
         double newWeight = 200;
         historyWorker.editWeightInHistoryEntry(historyId[0], newWeight);
 
-        DbHelper dbHelper = new DbHelper(context);
-        SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
-        Cursor cursor2 = database.rawQuery("SELECT * FROM " + HISTORY_TABLE_NAME +
+        AppDatabase database = databaseHolder.getDatabase();
+        Cursor cursor2 = database.query("SELECT * FROM " + HISTORY_TABLE_NAME +
                 " WHERE " + HistoryContract.ID + "=" + historyId[0], null);
         double updatedWeight = -1;
         while (cursor2.moveToNext()) {
@@ -209,9 +199,8 @@ public class HistoryWorkerTest {
         // заменить foodstuff_id в записи истории с 1 на 2
         historyWorker.updateFoodstuffIdInHistory(historyId[0], foodstuff2Id[0]);
 
-        DbHelper dbHelper = new DbHelper(context);
-        SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
-        Cursor cursor = database.rawQuery("SELECT * FROM " + HISTORY_TABLE_NAME +
+        AppDatabase database = databaseHolder.getDatabase();
+        Cursor cursor = database.query("SELECT * FROM " + HISTORY_TABLE_NAME +
                 " WHERE " + HistoryContract.ID + "=" + historyId[0], null);
         long updatedId = -1;
         while (cursor.moveToNext()) {

@@ -1,8 +1,5 @@
 package korablique.recipecalculator.util;
 
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,6 +9,8 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 import dagger.android.DispatchingAndroidInjector;
 import korablique.recipecalculator.BroccalcApplication;
 import korablique.recipecalculator.base.BaseActivity;

@@ -1,10 +1,12 @@
-package korablique.recipecalculator.database;
+package korablique.recipecalculator.database.room;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
+import korablique.recipecalculator.database.FoodstuffsContract;
+import korablique.recipecalculator.database.HistoryContract;
 
 import static korablique.recipecalculator.database.HistoryContract.*;
 
@@ -13,7 +15,7 @@ import static korablique.recipecalculator.database.HistoryContract.*;
         parentColumns = FoodstuffsContract.ID,
         childColumns = COLUMN_NAME_FOODSTUFF_ID),
         indices = {@Index(COLUMN_NAME_FOODSTUFF_ID)})
-class HistoryEntity {
+public class HistoryEntity {
     @ColumnInfo(name = HistoryContract.ID)
     @PrimaryKey(autoGenerate = true)
     private long id;

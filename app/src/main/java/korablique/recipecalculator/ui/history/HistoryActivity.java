@@ -237,7 +237,7 @@ public class HistoryActivity extends BaseActivity {
                                     @Override
                                     public void onResult(long foodstuffId) {
                                         historyWorker.updateFoodstuffIdInHistory(
-                                                historyEntry.getHistoryId(), foodstuff.getId());
+                                                historyEntry.getHistoryId(), foodstuffId);
                                     }
                                 });
                     }

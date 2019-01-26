@@ -26,7 +26,6 @@ public class FoodstuffsList {
     }
     public final static int BATCH_SIZE = 100;
     private List<Foodstuff> all = new ArrayList<>();
-    private final Context context;
     private final DatabaseWorker databaseWorker;
     private boolean allLoaded;
     private boolean inProcess;
@@ -35,8 +34,7 @@ public class FoodstuffsList {
     private List<Observer> observers = new ArrayList<>();
 
     @Inject
-    public FoodstuffsList(Context context, DatabaseWorker databaseWorker) {
-        this.context = context;
+    public FoodstuffsList(DatabaseWorker databaseWorker) {
         this.databaseWorker = databaseWorker;
     }
 
@@ -144,20 +142,6 @@ public class FoodstuffsList {
                 }
             }
             callback.onResult(result);
-        });
-    }
-
-    /**
-     * @param foodstuff deleting foodstuff with id
-     * @param callback
-     */
-    public void removeFoodstuff(Foodstuff foodstuff, Runnable callback) {
-        databaseWorker.makeFoodstuffUnlisted(foodstuff, () -> {
-            all.remove(foodstuff);
-            callback.run();
-            for (Observer observer : observers) {
-                observer.onFoodstuffDeleted(foodstuff);
-            }
         });
     }
 

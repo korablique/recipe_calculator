@@ -1,8 +1,10 @@
-package korablique.recipecalculator.database;
+package korablique.recipecalculator.database.room;
 
+import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
+import korablique.recipecalculator.database.FoodstuffsContract;
 
 import static korablique.recipecalculator.database.FoodstuffsContract.*;
 
@@ -12,9 +14,11 @@ public class FoodstuffEntity {
     @ColumnInfo(name = FoodstuffsContract.ID)
     private long id;
 
+    @NonNull
     @ColumnInfo(name = COLUMN_NAME_FOODSTUFF_NAME)
     private String name;
 
+    @NonNull
     @ColumnInfo(name = COLUMN_NAME_FOODSTUFF_NAME_NOCASE)
     private String nameNoCase;
 
@@ -30,12 +34,12 @@ public class FoodstuffEntity {
     @ColumnInfo(name = COLUMN_NAME_CALORIES)
     private float calories;
 
-    @ColumnInfo(name = COLUMN_NAME_IS_LISTED) // TODO: 10.01.19  DEFAULT 1 NOT NULL
+    @ColumnInfo(name = COLUMN_NAME_IS_LISTED)
     private int isListed;
 
     public FoodstuffEntity(
-            String name,
-            String nameNoCase,
+            @NonNull String name,
+            @NonNull String nameNoCase,
             float protein,
             float fats,
             float carbs,
@@ -53,20 +57,25 @@ public class FoodstuffEntity {
     public long getId() {
         return id;
     }
+
     public void setId(long id) {
         this.id = id;
     }
 
+    @NonNull
     public String getName() {
         return name;
     }
+
     public void setName(String name) {
         this.name = name;
     }
 
+    @NonNull
     public String getNameNoCase() {
         return nameNoCase;
     }
+
     public void setNameNoCase(String nameNoCase) {
         this.nameNoCase = nameNoCase;
     }
@@ -90,13 +99,4 @@ public class FoodstuffEntity {
     public int getIsListed() {
         return isListed;
     }
-
-//    FoodstuffsContract.ID + " INTEGER PRIMARY KEY, " +
-//    COLUMN_NAME_FOODSTUFF_NAME + " TEXT, " +
-//    COLUMN_NAME_FOODSTUFF_NAME_NOCASE + " TEXT, " +
-//    COLUMN_NAME_PROTEIN + " REAL, " +
-//    COLUMN_NAME_FATS + " REAL, " +
-//    COLUMN_NAME_CARBS + " REAL, " +
-//    COLUMN_NAME_CALORIES + " REAL, " +
-//    COLUMN_NAME_IS_LISTED + " INTEGER DEFAULT 1 NOT NULL)");
 }

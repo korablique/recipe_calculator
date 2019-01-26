@@ -1,13 +1,14 @@
-package korablique.recipecalculator.database;
+package korablique.recipecalculator.database.room;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
+import korablique.recipecalculator.database.UserParametersContract;
 
 import static korablique.recipecalculator.database.UserParametersContract.*;
 
 @Entity(tableName = USER_PARAMETERS_TABLE_NAME)
-class UserParametersEntity {
+public class UserParametersEntity {
     @ColumnInfo(name = UserParametersContract.ID)
     @PrimaryKey(autoGenerate = true)
     private long id;

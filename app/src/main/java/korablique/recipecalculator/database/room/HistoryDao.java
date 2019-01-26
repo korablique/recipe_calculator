@@ -1,4 +1,4 @@
-package korablique.recipecalculator.database;
+package korablique.recipecalculator.database.room;
 
 import android.database.Cursor;
 
@@ -6,32 +6,33 @@ import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
-import androidx.room.Update;
 
 import java.util.List;
 
-import io.reactivex.Flowable;
+import korablique.recipecalculator.database.FoodstuffsContract;
+import korablique.recipecalculator.database.HistoryContract;
 
 import static korablique.recipecalculator.database.FoodstuffsContract.FOODSTUFFS_TABLE_NAME;
 import static korablique.recipecalculator.database.HistoryContract.COLUMN_NAME_DATE;
 import static korablique.recipecalculator.database.HistoryContract.COLUMN_NAME_FOODSTUFF_ID;
 import static korablique.recipecalculator.database.HistoryContract.COLUMN_NAME_WEIGHT;
 import static korablique.recipecalculator.database.HistoryContract.HISTORY_TABLE_NAME;
+import static korablique.recipecalculator.database.HistoryContract.ID;
 
 @Dao
-interface HistoryDao {
+public interface HistoryDao {
     @Insert
     List<Long> insertHistoryEntities(List<HistoryEntity> historyEntities);
 
-    @Delete
-    void deleteHistoryEntity(HistoryEntity historyEntity);
+    @Query("DELETE FROM " + HISTORY_TABLE_NAME + " WHERE " + ID + " = :historyEntityId")
+    void deleteHistoryEntity(long historyEntityId);
 
     @Query("UPDATE " + HISTORY_TABLE_NAME + " SET " + COLUMN_NAME_WEIGHT +
-            " = :weight WHERE " + HistoryContract.ID + " = :historyId")
+            " = :weight WHERE " + ID + " = :historyId")
     void updateWeight(long historyId, double weight);
 
     @Query("UPDATE " + HISTORY_TABLE_NAME + " SET " + COLUMN_NAME_FOODSTUFF_ID +
-            " = :foodstuffId WHERE " + HistoryContract.ID + " = :historyId")
+            " = :foodstuffId WHERE " + ID + " = :historyId")
     void updateFoodstuff(long historyId, long foodstuffId);
 
     @Query("SELECT " + COLUMN_NAME_FOODSTUFF_ID + " FROM " + HISTORY_TABLE_NAME +

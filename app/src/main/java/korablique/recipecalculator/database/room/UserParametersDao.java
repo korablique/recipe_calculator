@@ -1,4 +1,4 @@
-package korablique.recipecalculator.database;
+package korablique.recipecalculator.database.room;
 
 import androidx.room.Dao;
 import androidx.room.Insert;
@@ -8,9 +8,8 @@ import static korablique.recipecalculator.database.UserParametersContract.ID;
 import static korablique.recipecalculator.database.UserParametersContract.USER_PARAMETERS_TABLE_NAME;
 
 @Dao
-interface UserParametersDao {
+public interface UserParametersDao {
     /**
-     * @param userParameters
      * @return inserted user parameters' id or -1 if failed
      */
     @Insert

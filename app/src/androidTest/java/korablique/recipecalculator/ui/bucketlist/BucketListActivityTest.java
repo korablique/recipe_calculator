@@ -2,11 +2,6 @@ package korablique.recipecalculator.ui.bucketlist;
 
 import android.content.Context;
 import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
-import androidx.test.InstrumentationRegistry;
-import androidx.test.filters.LargeTest;
-import androidx.test.rule.ActivityTestRule;
-import androidx.test.runner.AndroidJUnit4;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -18,14 +13,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
+import androidx.test.InstrumentationRegistry;
+import androidx.test.filters.LargeTest;
+import androidx.test.rule.ActivityTestRule;
+import androidx.test.runner.AndroidJUnit4;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
-import korablique.recipecalculator.database.DatabaseHolder;
+import korablique.recipecalculator.database.room.DatabaseHolder;
 import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
-import korablique.recipecalculator.database.DbHelper;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
@@ -72,10 +70,10 @@ public class BucketListActivityTest {
                         databaseWorker =
                                 new DatabaseWorker(databaseHolder, mainThreadExecutor, databaseThreadExecutor);
                         historyWorker =
-                                new HistoryWorker(databaseHolder, databaseWorker, mainThreadExecutor, databaseThreadExecutor);
+                                new HistoryWorker(databaseHolder, mainThreadExecutor, databaseThreadExecutor);
                         userParametersWorker =
                                 new UserParametersWorker(databaseHolder, mainThreadExecutor, databaseThreadExecutor);
-                        foodstuffsList = new FoodstuffsList(context, databaseWorker);
+                        foodstuffsList = new FoodstuffsList(databaseWorker);
                         return Arrays.asList(mainThreadExecutor, databaseHolder, databaseWorker,
                                 historyWorker, userParametersWorker, foodstuffsList);
                     })
@@ -88,9 +86,7 @@ public class BucketListActivityTest {
 
     @Before
     public void setUp() {
-        DbHelper.deinitializeDatabase(context);
-        DbHelper dbHelper = new DbHelper(context);
-        dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+        databaseHolder.getDatabase().clearAllTables();
     }
 
     @Test

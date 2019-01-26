@@ -50,8 +50,8 @@ public class FoodstuffsListTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) {
-                FoodstuffsBatchReceiveCallback c1 = invocation.getArgument(2);
-                FinishCallback c2 = invocation.getArgument(3);
+                FoodstuffsBatchReceiveCallback c1 = invocation.getArgument(1);
+                FinishCallback c2 = invocation.getArgument(2);
                 List<Foodstuff> batch = new ArrayList<>();
                 // индексы идут от 1, т.к. 0 % 100 == 0
                 for (int index = 1; index <= dbFoodstuffs.size(); index++) {
@@ -68,12 +68,11 @@ public class FoodstuffsListTest {
                 return null;
             }
         }).when(databaseWorker).requestListedFoodstuffsFromDb(
-                any(Context.class),
                 anyInt(),
                 any(FoodstuffsBatchReceiveCallback.class),
                 any(FinishCallback.class));
 
-        foodstuffsList = new FoodstuffsList(context, databaseWorker);
+        foodstuffsList = new FoodstuffsList(databaseWorker);
     }
 
     // Если клиент вызвал метод, в его коллбек через неопределенное время придут фудстафы.
@@ -95,7 +94,6 @@ public class FoodstuffsListTest {
     public void firstRequestTouchesDatabase() {
         foodstuffsList.getAllFoodstuffs(unused -> {}, foodstuffs -> {});
         verify(databaseWorker).requestListedFoodstuffsFromDb(
-                any(Context.class),
                 anyInt(),
                 any(FoodstuffsBatchReceiveCallback.class),
                 any(FinishCallback.class));
@@ -137,14 +135,13 @@ public class FoodstuffsListTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) {
-                FoodstuffsBatchReceiveCallback c1 = invocation.getArgument(2);
-                FinishCallback c2 = invocation.getArgument(3);
+                FoodstuffsBatchReceiveCallback c1 = invocation.getArgument(1);
+                FinishCallback c2 = invocation.getArgument(2);
                 batchReceiveCallbacks.add(c1);
                 finishCallbacks.add(c2);
                 return null;
             }
         }).when(databaseWorker).requestListedFoodstuffsFromDb(
-                any(Context.class),
                 anyInt(),
                 any(FoodstuffsBatchReceiveCallback.class),
                 any(FinishCallback.class));
@@ -163,7 +160,6 @@ public class FoodstuffsListTest {
 
         // проверяем, что запрос в БД будет только один
         verify(databaseWorker, times(1)).requestListedFoodstuffsFromDb(
-                any(Context.class),
                 anyInt(),
                 any(FoodstuffsBatchReceiveCallback.class),
                 any(FinishCallback.class));
@@ -184,14 +180,13 @@ public class FoodstuffsListTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) {
-                FoodstuffsBatchReceiveCallback c1 = invocation.getArgument(2);
-                FinishCallback c2 = invocation.getArgument(3);
+                FoodstuffsBatchReceiveCallback c1 = invocation.getArgument(1);
+                FinishCallback c2 = invocation.getArgument(2);
                 batchReceiveCallbacks.add(c1);
                 finishCallbacks.add(c2);
                 return null;
             }
         }).when(databaseWorker).requestListedFoodstuffsFromDb(
-                any(Context.class),
                 anyInt(),
                 any(FoodstuffsBatchReceiveCallback.class),
                 any(FinishCallback.class));

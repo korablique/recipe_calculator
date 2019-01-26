@@ -3,7 +3,6 @@ package korablique.recipecalculator.util;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Scheduler;
-import io.reactivex.disposables.Disposable;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 
 /**

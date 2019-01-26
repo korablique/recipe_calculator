@@ -18,8 +18,6 @@ import java.util.List;
 import korablique.recipecalculator.BuildConfig;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.dagger.InjectorHolder;
-import korablique.recipecalculator.ui.calculator.CalculatorActivity;
-import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
 import korablique.recipecalculator.ui.history.HistoryActivity;
 import korablique.recipecalculator.ui.mainscreen.MainActivity;
 
@@ -57,30 +55,6 @@ public abstract class BaseActivity extends AppCompatActivity {
                     }
                 });
 
-        IDrawerItem itemPrimary1 = new PrimaryDrawerItem()
-                .withName(R.string.calculator)
-                .withSelectable(false)
-                .withIcon(R.drawable.calculator_icon)
-                .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
-                    @Override
-                    public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
-                        Intent intent = new Intent(BaseActivity.this, CalculatorActivity.class);
-                        BaseActivity.this.startActivity(intent);
-                        return true;
-                    }
-                });
-        IDrawerItem itemPrimary2 = new PrimaryDrawerItem()
-                .withName(R.string.list_of_foodstuffs)
-                .withSelectable(false)
-                .withIcon(R.drawable.list_of_foodstuffs_icon)
-                .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
-                    @Override
-                    public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
-                        Intent intent = new Intent(BaseActivity.this, ListOfFoodstuffsActivity.class);
-                        BaseActivity.this.startActivity(intent);
-                        return false;
-                    }
-                });
         IDrawerItem itemPrimary3 = new PrimaryDrawerItem()
                 .withName(R.string.history)
                 .withSelectable(false)
@@ -109,8 +83,6 @@ public abstract class BaseActivity extends AppCompatActivity {
                     });
         }
         List<IDrawerItem> drawerItems = new ArrayList<>();
-        drawerItems.add(itemPrimary1);
-        drawerItems.add(itemPrimary2);
         drawerItems.add(itemPrimary3);
         if (itemPrimary4 != null) {
             drawerItems.add(itemPrimary4);

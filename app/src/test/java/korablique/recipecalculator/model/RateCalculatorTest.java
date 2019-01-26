@@ -9,8 +9,6 @@ import org.robolectric.annotation.Config;
 
 import korablique.recipecalculator.BuildConfig;
 import korablique.recipecalculator.FloatUtils;
-import korablique.recipecalculator.model.Rates;
-import korablique.recipecalculator.model.RateCalculator;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class)
