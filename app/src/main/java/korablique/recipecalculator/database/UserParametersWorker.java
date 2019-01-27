@@ -70,7 +70,7 @@ public class UserParametersWorker {
     private UserParameters requestCurrentUserParametersImpl() {
         AppDatabase database = databaseHolder.getDatabase();
         UserParametersDao userDao = database.userParametersDao();
-        UserParametersEntity userEntity = userDao.loadUserParameters();
+        UserParametersEntity userEntity = userDao.loadCurrentUserParameters();
 
         UserParameters userParameters = null;
         if (userEntity != null) {

@@ -25,7 +25,7 @@ public class Migrations {
                             FoodstuffsContract.COLUMN_NAME_CARBS + " REAL NOT NULL," +
                             FoodstuffsContract.COLUMN_NAME_CALORIES + " REAL NOT NULL," +
                             FoodstuffsContract.COLUMN_NAME_IS_LISTED + " INTEGER DEFAULT 1 NOT NULL)");
-            copyDropRename(database, "foodstuffs_tmp", FoodstuffsContract.FOODSTUFFS_TABLE_NAME);
+            replaceTable(database, "foodstuffs_tmp", FoodstuffsContract.FOODSTUFFS_TABLE_NAME);
 
             // Add NOT NULL to history table
             database.execSQL(
@@ -36,7 +36,7 @@ public class Migrations {
                             HistoryContract.COLUMN_NAME_WEIGHT + " REAL NOT NULL, " +
                             "FOREIGN KEY (" + HistoryContract.COLUMN_NAME_FOODSTUFF_ID + ") " +
                             "REFERENCES " + FoodstuffsContract.FOODSTUFFS_TABLE_NAME + "(" + FoodstuffsContract.ID + "))");
-            copyDropRename(database, "history_tmp", HistoryContract.HISTORY_TABLE_NAME);
+            replaceTable(database, "history_tmp", HistoryContract.HISTORY_TABLE_NAME);
 
             // Add not null to user parameters table
             database.execSQL(
@@ -49,7 +49,7 @@ public class Migrations {
                             UserParametersContract.COLUMN_NAME_USER_WEIGHT + " INTEGER NOT NULL, " +
                             UserParametersContract.COLUMN_NAME_LIFESTYLE + " INTEGER NOT NULL, " +
                             UserParametersContract.COLUMN_NAME_FORMULA + " INTEGER NOT NULL)");
-            copyDropRename(database, "user_params_tmp", UserParametersContract.USER_PARAMETERS_TABLE_NAME);
+            replaceTable(database, "user_params_tmp", UserParametersContract.USER_PARAMETERS_TABLE_NAME);
 
             // Drop versions table - Room now controls DB versioning
             database.execSQL("DROP TABLE " + LegacyDatabaseUpdater.TABLE_DATABASE_VERSION);
@@ -59,7 +59,7 @@ public class Migrations {
         }
     };
 
-    private static void copyDropRename(
+    private static void replaceTable(
             SupportSQLiteDatabase database, String tmpTableName, String targetTableName) {
         database.execSQL("INSERT INTO " + tmpTableName + " SELECT * FROM " + targetTableName);
         database.execSQL("DROP TABLE " + targetTableName);

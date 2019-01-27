@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.LargeTest;
@@ -92,32 +93,30 @@ public class DatabaseWorkerTest {
     @Test
     public void canSaveListedProductSameAsUnlisted() {
         Foodstuff foodstuff = Foodstuff.withName("falafel").withNutrition(10, 10, 10, 100);
-        final long[] id = {-1};
+        AtomicBoolean savedAsUnlisted = new AtomicBoolean(false);
         databaseWorker.saveUnlistedFoodstuff(
                 foodstuff,
-                new DatabaseWorker.SaveUnlistedFoodstuffCallback() {
-            @Override
-            public void onResult(long foodstuffId) {
-                id[0] = foodstuffId;
-            }
-        });
+                foodstuffId -> {
+                    Assert.assertTrue(foodstuffId > 0);
+                    savedAsUnlisted.set(true);
+                });
 
-        final boolean[] containsListedFoodstuff = new boolean[1];
-        containsListedFoodstuff[0] = true;
+        AtomicBoolean savedAsListed = new AtomicBoolean(false);
         databaseWorker.saveFoodstuff(
                 foodstuff,
                 new DatabaseWorker.SaveFoodstuffCallback() {
             @Override
             public void onResult(long id) {
-                containsListedFoodstuff[0] = false;
+                Assert.assertTrue(id > 0);
+                savedAsListed.set(true);
             }
 
             @Override
             public void onDuplication() {
-                containsListedFoodstuff[0] = true;
             }
         });
-        Assert.assertEquals(false, containsListedFoodstuff[0]);
+        Assert.assertTrue(savedAsUnlisted.get());
+        Assert.assertTrue(savedAsListed.get());
     }
 
     @Test
@@ -330,6 +329,51 @@ public class DatabaseWorkerTest {
         Assert.assertEquals(searchResult.get(0).getName(), "варенье из абрикосов");
         Assert.assertEquals(searchResult.get(1).getName(), "варенье из груш");
         Assert.assertEquals(searchResult.get(2).getName(), "варенье из клубники");
+    }
+
+    @Test
+    public void returnedIdsOfSavedFoodstuffsGroupHasSameOrder() {
+        // Order 1
+        Foodstuff[] foodstuffs = new Foodstuff[] {
+                Foodstuff.withName("a").withNutrition(1, 2, 3, 4),
+                Foodstuff.withName("b").withNutrition(4, 3, 2, 1),
+                Foodstuff.withName("c").withNutrition(3, 3, 2, 2),
+        };
+        databaseHolder.getDatabase().clearAllTables();
+        returnedIdsOfSavedFoodstuffsGroupHasSameOrderImpl(foodstuffs);
+
+        // Order reversed
+        foodstuffs = new Foodstuff[] {
+                Foodstuff.withName("c").withNutrition(3, 3, 2, 2),
+                Foodstuff.withName("b").withNutrition(4, 3, 2, 1),
+                Foodstuff.withName("a").withNutrition(1, 2, 3, 4),
+        };
+        databaseHolder.getDatabase().clearAllTables();
+        returnedIdsOfSavedFoodstuffsGroupHasSameOrderImpl(foodstuffs);
+    }
+
+    private void returnedIdsOfSavedFoodstuffsGroupHasSameOrderImpl(Foodstuff[] foodstuffs) {
+        List<Long> ids = new ArrayList<>();
+        databaseWorker.saveGroupOfFoodstuffs(foodstuffs, idsResult -> {
+            ids.addAll(idsResult);
+        });
+
+        List<Foodstuff> receivedFoodstuffs = new ArrayList<>();
+        databaseWorker.requestFoodstuffsByIds(ids, foodstuffs1 -> {
+            receivedFoodstuffs.addAll(foodstuffs1);
+        });
+
+        Assert.assertTrue(Foodstuff.haveSameNutrition(foodstuffs[0], receivedFoodstuffs.get(0)));
+        Assert.assertEquals(foodstuffs[0].getName(), receivedFoodstuffs.get(0).getName());
+        Assert.assertEquals((long) ids.get(0), receivedFoodstuffs.get(0).getId());
+
+        Assert.assertTrue(Foodstuff.haveSameNutrition(foodstuffs[1], receivedFoodstuffs.get(1)));
+        Assert.assertEquals(foodstuffs[1].getName(), receivedFoodstuffs.get(1).getName());
+        Assert.assertEquals((long) ids.get(1), receivedFoodstuffs.get(1).getId());
+
+        Assert.assertTrue(Foodstuff.haveSameNutrition(foodstuffs[2], receivedFoodstuffs.get(2)));
+        Assert.assertEquals(foodstuffs[2].getName(), receivedFoodstuffs.get(2).getName());
+        Assert.assertEquals((long) ids.get(2), receivedFoodstuffs.get(2).getId());
     }
 
     public Foodstuff getAnyFoodstuffFromDb() throws InterruptedException {

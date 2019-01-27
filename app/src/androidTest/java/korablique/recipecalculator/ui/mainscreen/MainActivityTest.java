@@ -104,7 +104,8 @@ public class MainActivityTest {
                             databaseHolder, mainThreadExecutor, databaseThreadExecutor);
                     foodstuffsList = new FoodstuffsList(databaseWorker);
                     topList = new TopList(context, databaseWorker, historyWorker);
-                    return Arrays.asList(databaseWorker, historyWorker, userParametersWorker, foodstuffsList);
+                    return Arrays.asList(databaseWorker, historyWorker, userParametersWorker,
+                            foodstuffsList, databaseHolder);
                 })
                 .withActivityScoped((injectionTarget) -> {
                     if (!(injectionTarget instanceof MainActivity)) {

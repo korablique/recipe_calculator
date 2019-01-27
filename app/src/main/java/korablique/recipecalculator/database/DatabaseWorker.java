@@ -75,7 +75,8 @@ public class DatabaseWorker {
         databaseThreadExecutor.execute(() -> {
             AppDatabase database = databaseHolder.getDatabase();
             FoodstuffsDao foodstuffsDao = database.foodstuffsDao();
-            long id = foodstuffsDao.insertFoodstuff(toEntity(foodstuff, LISTED));
+            FoodstuffEntity entity = toEntity(foodstuff, LISTED);
+            long id = foodstuffsDao.insertFoodstuff(entity);
 
             if (callback != null) {
                 if (id > 0) {
@@ -98,7 +99,8 @@ public class DatabaseWorker {
             FoodstuffsDao foodstuffsDao = database.foodstuffsDao();
             List<FoodstuffEntity> foodstuffsEntities = new ArrayList<>();
             for (Foodstuff foodstuff : foodstuffs) {
-                foodstuffsEntities.add(toEntity(foodstuff, LISTED));
+                FoodstuffEntity entity = toEntity(foodstuff, LISTED);
+                foodstuffsEntities.add(entity);
             }
 
             List<Long> ids = foodstuffsDao.insertFoodstuffs(foodstuffsEntities);
@@ -114,7 +116,8 @@ public class DatabaseWorker {
         databaseThreadExecutor.execute(() -> {
             AppDatabase database = databaseHolder.getDatabase();
             FoodstuffsDao foodstuffsDao = database.foodstuffsDao();
-            long id = foodstuffsDao.insertFoodstuff(toEntity(foodstuff, UNLISTED));
+            FoodstuffEntity entity = toEntity(foodstuff, UNLISTED);
+            long id = foodstuffsDao.insertFoodstuff(entity);
             if (callback != null) {
                 mainThreadExecutor.execute(() -> callback.onResult(id));
             }
@@ -143,14 +146,6 @@ public class DatabaseWorker {
             if (callback != null) {
                 mainThreadExecutor.execute(callback);
             }
-        });
-    }
-
-    public void deleteFoodstuffByID(long foodstuffId) {
-        databaseThreadExecutor.execute(() -> {
-            AppDatabase database = databaseHolder.getDatabase();
-            FoodstuffsDao foodstuffsDao = database.foodstuffsDao();
-            foodstuffsDao.deleteFoodstuffById(foodstuffId);
         });
     }
 

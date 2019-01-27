@@ -17,5 +17,5 @@ public interface UserParametersDao {
 
     @Query("SELECT * FROM " + USER_PARAMETERS_TABLE_NAME +
             " ORDER BY " + ID + " DESC LIMIT 1")
-    UserParametersEntity loadUserParameters();
+    UserParametersEntity loadCurrentUserParameters();
 }

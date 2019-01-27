@@ -98,7 +98,7 @@ public class LegacyDatabaseUpdater {
                     " FROM " + FOODSTUFFS_TABLE_NAME);
             database.execSQL("DROP TABLE " + FOODSTUFFS_TABLE_NAME);
             database.execSQL("ALTER TABLE " + tmpTableName + " RENAME TO " + FOODSTUFFS_TABLE_NAME);
-            Cursor cursor = database.query("Select * from " + FOODSTUFFS_TABLE_NAME);
+            Cursor cursor = database.query("SELECT * FROM " + FOODSTUFFS_TABLE_NAME);
             while (cursor.moveToNext()) {
                 String foodstuffName = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_FOODSTUFF_NAME));
                 long foodstuffId = cursor.getLong(cursor.getColumnIndex(FoodstuffsContract.ID));
@@ -125,7 +125,7 @@ public class LegacyDatabaseUpdater {
         String tmpTableName = USER_PARAMETERS_TABLE_NAME + "_tmp";
         try {
             database.execSQL("CREATE TABLE " + tmpTableName + " (" +
-                    UserParametersContract.ID + " INTEGER PRIMARY KEY AUTOINCREMENT , " +
+                    UserParametersContract.ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     COLUMN_NAME_GOAL + " INTEGER, " +
                     COLUMN_NAME_GENDER + " INTEGER, " +
                     COLUMN_NAME_AGE + " INTEGER, " +

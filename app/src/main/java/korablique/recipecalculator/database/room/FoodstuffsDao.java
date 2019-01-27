@@ -3,6 +3,7 @@ package korablique.recipecalculator.database.room;
 import android.database.Cursor;
 
 import androidx.room.Dao;
+import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
 import androidx.room.Update;
@@ -48,9 +49,6 @@ public interface FoodstuffsDao {
             COLUMN_NAME_IS_LISTED + "=:isListed " +
             "WHERE " + ID + "=:foodstuffId")
     void updateFoodstuffVisibility(long foodstuffId, int isListed);
-
-    @Query("DELETE FROM " + FOODSTUFFS_TABLE_NAME + " WHERE " + ID + "=:foodstuffId")
-    void deleteFoodstuffById(long foodstuffId);
 
     @Query("SELECT * FROM " + FOODSTUFFS_TABLE_NAME +
             " WHERE " + COLUMN_NAME_IS_LISTED + "=1" +

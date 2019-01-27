@@ -36,11 +36,16 @@ public class DatabaseHolder {
 
     public synchronized AppDatabase getDatabase() {
         if (db == null) {
-            db = createDb();
+            db = createDB();
         }
         return db;
     }
 
+    /**
+     * Закрывает соединение с БД.
+     * Метод не стоит использовать вне тестов - нет смысла, и Room не особо
+     * даёт гарантии о результатах закрытия.
+     */
     synchronized void closeDatabaseConnection() {
         if (db == null) {
             return;
@@ -49,9 +54,11 @@ public class DatabaseHolder {
         db = null;
     }
 
-    private AppDatabase createDb() {
+    private AppDatabase createDB() {
         File dbFile = getDBFile();
-        ensureDbFileExistence(dbFile);
+        if (!dbFile.exists()) {
+            createDBFile(dbFile);
+        }
 
         AppDatabase.Builder<AppDatabase> builder =
                 Room.databaseBuilder(context, AppDatabase.class, dbFile.getAbsolutePath());
@@ -71,11 +78,7 @@ public class DatabaseHolder {
         return new File(context.getFilesDir(), DATABASE_NAME);
     }
 
-    private void ensureDbFileExistence(File dbFile) {
-        if (dbFile.exists()) {
-            return;
-        }
-
+    private void createDBFile(File dbFile) {
         try {
             FileSystemUtils.copyFileFromAssets(context.getAssets(), DATABASE_NAME, dbFile);
         } catch (IOException e) {
