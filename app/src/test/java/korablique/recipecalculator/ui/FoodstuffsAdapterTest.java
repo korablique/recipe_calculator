@@ -1,7 +1,5 @@
 package korablique.recipecalculator.ui;
 
-import androidx.recyclerview.widget.RecyclerView;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -9,11 +7,12 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
+import androidx.recyclerview.widget.RecyclerView;
 import korablique.recipecalculator.BuildConfig;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 
-import static junit.framework.Assert.*;
+import static junit.framework.Assert.assertEquals;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class)

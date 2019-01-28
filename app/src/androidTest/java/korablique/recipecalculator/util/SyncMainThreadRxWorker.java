@@ -2,7 +2,6 @@ package korablique.recipecalculator.util;
 
 import android.os.Handler;
 import android.os.Looper;
-import android.util.TimeUtils;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;

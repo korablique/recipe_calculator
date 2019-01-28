@@ -2,15 +2,8 @@ package korablique.recipecalculator.ui.mainscreen;
 
 import android.app.Activity;
 import android.app.Instrumentation;
-import androidx.lifecycle.Lifecycle;
 import android.content.Context;
 import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
-import androidx.test.InstrumentationRegistry;
-import androidx.test.filters.LargeTest;
-import androidx.test.rule.ActivityTestRule;
-import androidx.test.runner.AndroidJUnit4;
-import androidx.fragment.app.Fragment;
 import android.view.View;
 
 import junit.framework.Assert;
@@ -28,13 +21,20 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Lifecycle;
+import androidx.test.InstrumentationRegistry;
+import androidx.test.filters.LargeTest;
+import androidx.test.rule.ActivityTestRule;
+import androidx.test.runner.AndroidJUnit4;
 import korablique.recipecalculator.IntentConstants;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
+import korablique.recipecalculator.database.room.DatabaseHolder;
+import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
-import korablique.recipecalculator.database.DbHelper;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
@@ -51,7 +51,6 @@ import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
-import korablique.recipecalculator.util.DbUtil;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.SyncMainThreadExecutor;
@@ -72,7 +71,6 @@ import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertContains;
 import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertNotContains;
-import static korablique.recipecalculator.database.HistoryContract.HISTORY_TABLE_NAME;
 import static korablique.recipecalculator.util.EspressoUtils.matches;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.Matchers.not;
@@ -81,6 +79,7 @@ import static org.hamcrest.Matchers.not;
 @LargeTest
 public class MainActivityTest {
     private SyncMainThreadExecutor mainThreadExecutor = new SyncMainThreadExecutor();
+    private DatabaseHolder databaseHolder;
     private DatabaseWorker databaseWorker;
     private HistoryWorker historyWorker;
     private UserParametersWorker userParametersWorker;
@@ -95,15 +94,18 @@ public class MainActivityTest {
             InjectableActivityTestRule.forActivity(MainActivity.class)
                 .withManualStart()
                 .withSingletones(() -> {
-                    databaseWorker =
-                            new DatabaseWorker(mainThreadExecutor, new InstantDatabaseThreadExecutor());
+                    DatabaseThreadExecutor databaseThreadExecutor = new InstantDatabaseThreadExecutor();
+                    databaseHolder = new DatabaseHolder(context, databaseThreadExecutor);
+                    databaseWorker = new DatabaseWorker(
+                            databaseHolder, mainThreadExecutor, databaseThreadExecutor);
                     historyWorker = new HistoryWorker(
-                            context, mainThreadExecutor, new InstantDatabaseThreadExecutor());
+                            databaseHolder, mainThreadExecutor, databaseThreadExecutor);
                     userParametersWorker = new UserParametersWorker(
-                            context, mainThreadExecutor, new InstantDatabaseThreadExecutor());
-                    foodstuffsList = new FoodstuffsList(context, databaseWorker);
+                            databaseHolder, mainThreadExecutor, databaseThreadExecutor);
+                    foodstuffsList = new FoodstuffsList(databaseWorker);
                     topList = new TopList(context, databaseWorker, historyWorker);
-                    return Arrays.asList(databaseWorker, historyWorker, userParametersWorker, foodstuffsList);
+                    return Arrays.asList(databaseWorker, historyWorker, userParametersWorker,
+                            foodstuffsList, databaseHolder);
                 })
                 .withActivityScoped((injectionTarget) -> {
                     if (!(injectionTarget instanceof MainActivity)) {
@@ -128,9 +130,7 @@ public class MainActivityTest {
 
     @Before
     public void setUp() {
-        DbHelper.deinitializeDatabase(context);
-        DbHelper dbHelper = new DbHelper(context);
-        dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+        databaseHolder.getDatabase().clearAllTables();
 
         mainThreadExecutor.execute(() -> {
             bucketList.clear();
@@ -146,7 +146,7 @@ public class MainActivityTest {
         foodstuffs[6] = Foodstuff.withName("banana").withNutrition(1, 1, 1, 1);
 
         List<Long> foodstuffsIds = new ArrayList<>();
-        databaseWorker.saveGroupOfFoodstuffs(context, foodstuffs, (ids) -> {
+        databaseWorker.saveGroupOfFoodstuffs(foodstuffs, (ids) -> {
             foodstuffsIds.addAll(ids);
         });
 
@@ -184,7 +184,7 @@ public class MainActivityTest {
 
     @Test
     public void topHeaderDoNotDisplayedIfHistoryIsEmpty() {
-        DbUtil.clearTable(context, HISTORY_TABLE_NAME);
+        databaseHolder.getDatabase().clearAllTables();
         mActivityRule.launchActivity(null);
         assertNotContains(mActivityRule.getActivity().getString(R.string.top_header));
     }
@@ -359,7 +359,7 @@ public class MainActivityTest {
         }
 
         List<Foodstuff> topFoodstuffs = new ArrayList<>();
-        databaseWorker.requestFoodstuffsByIds(context, topIds, (foodstuffs) -> {
+        databaseWorker.requestFoodstuffsByIds(topIds, (foodstuffs) -> {
             topFoodstuffs.addAll(foodstuffs);
         });
         return topFoodstuffs;

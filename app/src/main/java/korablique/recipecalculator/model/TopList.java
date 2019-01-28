@@ -47,7 +47,7 @@ public class TopList {
                     for (int index = 0; index < topList.size() && index < limit; ++index) {
                         topFoodstuffIds.add(topList.get(index).getFoodstuffId());
                     }
-                    databaseWorker.requestFoodstuffsByIds(context, topFoodstuffIds, (foodstuffs) -> {
+                    databaseWorker.requestFoodstuffsByIds(topFoodstuffIds, (foodstuffs) -> {
                         callback.onResult(foodstuffs);
                     });
                 });

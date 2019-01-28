@@ -6,13 +6,16 @@ import korablique.recipecalculator.model.Gender;
 import korablique.recipecalculator.model.Goal;
 import korablique.recipecalculator.model.Lifestyle;
 
-public class DeprecetedDatabaseValues {
-    public static final String GOAL_LOSING_WEIGHT = "losing_weight";
-    public static final String GOAL_MAINTAINING_CURRENT_WEIGHT = "maintaining_current_weight";
-    public static final String GOAL_MASS_GATHERING = "mass_gathering";
+/**
+ * Значения из старых версий БД, нужные для эмиграции.
+ */
+public class LegacyDatabaseValues {
+    public static final String GOAL_LOSING_WEIGHT = "Снижение веса";
+    public static final String GOAL_MAINTAINING_CURRENT_WEIGHT = "Сохранение веса";
+    public static final String GOAL_MASS_GATHERING = "Набор веса";
 
-    public static final String GENDER_MALE = "male";
-    public static final String GENDER_FEMALE = "female";
+    public static final String GENDER_MALE = "Мужской";
+    public static final String GENDER_FEMALE = "Женский";
 
     public static final float COEFFICIENT_PASSIVE = 1.2f;
     public static final float COEFFICIENT_INSIGNIFICANT_ACTIVITY = 1.375f;
@@ -20,8 +23,8 @@ public class DeprecetedDatabaseValues {
     public static final float COEFFICIENT_ACTIVE = 1.725f;
     public static final float COEFFICIENT_PROFESSIONAL_SPORTS = 1.9f;
 
-    public static final String FORMULA_HARRIS_BENEDICT = "harris_benedict";
-    public static final String FORMULA_MIFFLIN_JEOR = "mifflin_jeor";
+    public static final String FORMULA_HARRIS_BENEDICT = "Харриса-Бенедикта";
+    public static final String FORMULA_MIFFLIN_JEOR = "Миффлина-Джеора";
 
     public static Goal convertGoal(String goalString) {
         if (goalString.equals(GOAL_LOSING_WEIGHT)) {

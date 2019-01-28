@@ -74,7 +74,7 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
             createRecyclerView(findFoodstuffObserver);
         } else {
             card = new Card(this, findViewById(R.id.list_of_recipes_parent));
-            card.setButtonsVisible(false, Card.ButtonType.OK, Card.ButtonType.SEARCH);
+            card.setButtonsVisible(false, Card.ButtonType.OK, Card.ButtonType.SEARCH, Card.ButtonType.DELETE);
             card.hideWeight();
             card.setOnButtonSaveClickedRunnable(new Runnable() {
                 @Override
@@ -101,7 +101,7 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
                         return;
                     }
                     //сохраняем новые значения в базу данных
-                    foodstuffsList.editFoodstuff(ListOfFoodstuffsActivity.this, editedFoodstuffId,
+                    foodstuffsList.editFoodstuff(editedFoodstuffId,
                             newFoodstuff.withoutWeight());
                     recyclerViewAdapter.replaceItem(newFoodstuff.withoutWeight(), editedFoodstuffPosition);
                     KeyboardHandler keyboardHandler = new KeyboardHandler(ListOfFoodstuffsActivity.this);
@@ -111,16 +111,6 @@ public class ListOfFoodstuffsActivity extends BaseActivity {
                 }
             });
 
-            card.setOnButtonDeleteClickedRunnable(new Runnable() {
-                @Override
-                public void run() {
-                    foodstuffsList.removeFoodstuff(ListOfFoodstuffsActivity.this, editedFoodstuffId, null);
-                    recyclerViewAdapter.deleteItem(editedFoodstuffPosition);
-                    new KeyboardHandler(ListOfFoodstuffsActivity.this).hideKeyBoard();
-                    card.hide();
-                    Snackbar.make(findViewById(android.R.id.content), "Продукт удалён", Snackbar.LENGTH_SHORT).show();
-                }
-            });
             createRecyclerView(defaultObserver);
         }
     }

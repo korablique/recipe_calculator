@@ -4,11 +4,6 @@ import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
 
-import androidx.test.InstrumentationRegistry;
-import androidx.test.filters.LargeTest;
-import androidx.test.rule.ActivityTestRule;
-import androidx.test.runner.AndroidJUnit4;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -20,10 +15,16 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 
+import androidx.test.InstrumentationRegistry;
+import androidx.test.filters.LargeTest;
+import androidx.test.rule.ActivityTestRule;
+import androidx.test.runner.AndroidJUnit4;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
+import korablique.recipecalculator.database.room.DatabaseHolder;
+import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.database.HistoryWorker;
@@ -37,7 +38,6 @@ import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.Card;
-import korablique.recipecalculator.util.DbUtil;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.SyncMainThreadExecutor;
@@ -53,7 +53,6 @@ import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertContains;
 import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertNotContains;
-import static korablique.recipecalculator.database.HistoryContract.HISTORY_TABLE_NAME;
 import static korablique.recipecalculator.database.HistoryWorker.BATCH_SIZE;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
@@ -61,26 +60,29 @@ import static org.hamcrest.Matchers.not;
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class HistoryActivityTest {
+    private Context context;
+    private DatabaseHolder databaseHolder;
     private MainThreadExecutor mainThreadExecutor = new SyncMainThreadExecutor();
-    private DatabaseWorker databaseWorker =
-            new DatabaseWorker(mainThreadExecutor, new InstantDatabaseThreadExecutor());
+    private DatabaseThreadExecutor databaseThreadExecutor = new InstantDatabaseThreadExecutor();
+    private DatabaseWorker databaseWorker;
     private HistoryWorker historyWorker;
     private UserParametersWorker userParametersWorker;
-    private Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-    private FoodstuffsList foodstuffsList = new FoodstuffsList(context, databaseWorker);
+    private FoodstuffsList foodstuffsList;
 
     @Rule
     public ActivityTestRule<HistoryActivity> mActivityRule =
             InjectableActivityTestRule.forActivity(HistoryActivity.class)
             .withManualStart()
             .withSingletones(() -> {
-                Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+                context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+                databaseHolder = new DatabaseHolder(context, databaseThreadExecutor);
+                databaseWorker = new DatabaseWorker(databaseHolder, mainThreadExecutor, databaseThreadExecutor);
                 historyWorker = new HistoryWorker(
-                        context, new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
+                        databaseHolder, new SyncMainThreadExecutor(), databaseThreadExecutor);
                 userParametersWorker = new UserParametersWorker(
-                        context, new SyncMainThreadExecutor(), new InstantDatabaseThreadExecutor());
-
-                return Arrays.asList(mainThreadExecutor, databaseWorker,
+                        databaseHolder, new SyncMainThreadExecutor(), databaseThreadExecutor);
+                foodstuffsList = new FoodstuffsList(databaseWorker);
+                return Arrays.asList(mainThreadExecutor, databaseHolder, databaseWorker,
                         historyWorker, userParametersWorker, foodstuffsList);
             })
             .withActivityScoped(target -> {
@@ -95,7 +97,7 @@ public class HistoryActivityTest {
     public void setUp() {
         Card.setAnimationDuration(0);
 
-        DbUtil.clearTable(context, HISTORY_TABLE_NAME);
+        databaseHolder.getDatabase().clearAllTables();
 
         Goal goal = Goal.LOSING_WEIGHT;
         Gender gender = Gender.MALE;
@@ -214,7 +216,6 @@ public class HistoryActivityTest {
         }
         ArrayList<Long> foodstuffIds = new ArrayList<>();
         databaseWorker.saveGroupOfFoodstuffs(
-                mActivityRule.getActivity(),
                 foodstuffs,
                 (ids) -> {
                     foodstuffIds.addAll(ids);
@@ -244,7 +245,6 @@ public class HistoryActivityTest {
         }
         ArrayList<Long> foodstuffIds = new ArrayList<>();
         databaseWorker.saveGroupOfFoodstuffs(
-                mActivityRule.getActivity(),
                 foodstuffs,
                 (ids) -> {
                     foodstuffIds.addAll(ids);

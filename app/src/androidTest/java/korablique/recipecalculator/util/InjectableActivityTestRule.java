@@ -1,13 +1,13 @@
 package korablique.recipecalculator.util;
 
 import android.content.Intent;
-import androidx.annotation.Nullable;
-import androidx.test.espresso.intent.Intents;
-import androidx.test.rule.ActivityTestRule;
 
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
+import androidx.annotation.Nullable;
+import androidx.test.espresso.intent.Intents;
+import androidx.test.rule.ActivityTestRule;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.dagger.InjectorHolder;
 import korablique.recipecalculator.util.TestingInjector.ActivitiesInjectionSource;
@@ -21,6 +21,7 @@ import korablique.recipecalculator.util.TestingInjector.SingletonInjectionsSourc
  * мимо Даггера.
  */
 public class InjectableActivityTestRule<T extends BaseActivity> extends ActivityTestRule<T> {
+    private static boolean intentsLibInitialized;
     @Nullable
     private final SingletonInjectionsSource singletonInjectionsSource;
     @Nullable
@@ -41,13 +42,18 @@ public class InjectableActivityTestRule<T extends BaseActivity> extends Activity
 
     private void onTestStarted() {
         // Initializing espresso-intents
+        if (intentsLibInitialized) {
+            Intents.release();
+        }
         Intents.init();
+        intentsLibInitialized = true;
         InjectorHolder.setInjector(
                 new TestingInjector(singletonInjectionsSource, activitiesInjectionSource, fragmentInjectionSource));
     }
 
     private void onTestEnded() {
         Intents.release();
+        intentsLibInitialized = false;
         InjectorHolder.setInjector(null);
     }
 

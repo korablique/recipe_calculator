@@ -26,7 +26,6 @@ public class FoodstuffsList {
     }
     public final static int BATCH_SIZE = 100;
     private List<Foodstuff> all = new ArrayList<>();
-    private final Context context;
     private final DatabaseWorker databaseWorker;
     private boolean allLoaded;
     private boolean inProcess;
@@ -35,8 +34,7 @@ public class FoodstuffsList {
     private List<Observer> observers = new ArrayList<>();
 
     @Inject
-    public FoodstuffsList(Context context, DatabaseWorker databaseWorker) {
-        this.context = context;
+    public FoodstuffsList(DatabaseWorker databaseWorker) {
         this.databaseWorker = databaseWorker;
     }
 
@@ -66,7 +64,6 @@ public class FoodstuffsList {
         }
         inProcess = true;
         databaseWorker.requestListedFoodstuffsFromDb(
-                context,
                 BATCH_SIZE,
                 foodstuffs -> {
                     all.addAll(foodstuffs);
@@ -86,9 +83,9 @@ public class FoodstuffsList {
                 });
     }
 
-    public void saveFoodstuff(Context context, Foodstuff foodstuff, SaveFoodstuffCallback callback) {
+    public void saveFoodstuff(Foodstuff foodstuff, SaveFoodstuffCallback callback) {
         getAllFoodstuffs(unused -> {}, unused -> {
-            databaseWorker.saveFoodstuff(context, foodstuff, new DatabaseWorker.SaveFoodstuffCallback() {
+            databaseWorker.saveFoodstuff(foodstuff, new DatabaseWorker.SaveFoodstuffCallback() {
                 @Override
                 public void onResult(long id) {
                     Foodstuff foodstuffWithId = Foodstuff.withId(id).withName(foodstuff.getName()).withNutrition(
@@ -109,13 +106,12 @@ public class FoodstuffsList {
     }
 
     /**
-     * @param context
      * @param id id редактированного фудстаффа (не меняется при редактировании)
      * @param editedFoodstuff отредактированный фудстафф
      */
-    public void editFoodstuff(Context context, long id, Foodstuff editedFoodstuff) {
+    public void editFoodstuff(long id, Foodstuff editedFoodstuff) {
         getAllFoodstuffs(foodstuffs -> {}, foodstuffs -> {
-            databaseWorker.editFoodstuff(context, id, editedFoodstuff, () -> {
+            databaseWorker.editFoodstuff(id, editedFoodstuff, () -> {
                 int editingFoodstuffIndex = -1;
                 for (int index = 0; index < all.size(); index++) {
                     Foodstuff foodstuff = all.get(index);
@@ -146,26 +142,6 @@ public class FoodstuffsList {
                 }
             }
             callback.onResult(result);
-        });
-    }
-
-    public void removeFoodstuff(Context context, long foodstuffId, Runnable callback) {
-        getAllFoodstuffs(unused -> {}, unused -> {
-            Foodstuff deleted = null;
-            for (Foodstuff f : all) {
-                if (f.getId() == foodstuffId) {
-                    deleted = f;
-                    break;
-                }
-            }
-            Foodstuff finalDeleted = deleted;
-            databaseWorker.makeFoodstuffUnlisted(context, foodstuffId, () -> {
-                all.remove(finalDeleted);
-                callback.run();
-                for (Observer observer : observers) {
-                    observer.onFoodstuffDeleted(finalDeleted);
-                }
-            });
         });
     }
 

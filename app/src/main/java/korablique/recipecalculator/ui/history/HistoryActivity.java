@@ -232,15 +232,12 @@ public class HistoryActivity extends BaseActivity {
                                 historyEntry.getHistoryId(), foodstuff, historyEntry.getTime());
                         adapter.replaceItem(newEntry, editedFoodstuffPosition);
                         databaseWorker.saveUnlistedFoodstuff(
-                                HistoryActivity.this,
                                 foodstuff.withoutWeight(),
                                 new DatabaseWorker.SaveUnlistedFoodstuffCallback() {
                                     @Override
                                     public void onResult(long foodstuffId) {
                                         historyWorker.updateFoodstuffIdInHistory(
-                                                historyEntry.getHistoryId(),
-                                                foodstuffId,
-                                                null);
+                                                historyEntry.getHistoryId(), foodstuffId);
                                     }
                                 });
                     }
@@ -252,7 +249,7 @@ public class HistoryActivity extends BaseActivity {
                                 historyEntry.getHistoryId(), foodstuff, historyEntry.getTime());
                         adapter.replaceItem(newEntry, editedFoodstuffPosition);
                         historyWorker.editWeightInHistoryEntry(
-                                newEntry.getHistoryId(), newWeight, null);
+                                historyEntry.getHistoryId(), foodstuff.getWeight());
                     }
                     recyclerView.smoothScrollToPosition(editedFoodstuffPosition);
                 }
@@ -266,10 +263,10 @@ public class HistoryActivity extends BaseActivity {
         card.setOnButtonDeleteClickedRunnable(new Runnable() {
             @Override
             public void run() {
-                long historyId = ((HistoryAdapter.FoodstuffData) adapter.getItem(editedFoodstuffPosition))
-                        .getHistoryEntry().getHistoryId();
+                HistoryEntry historyEntry = ((HistoryAdapter.FoodstuffData) adapter.getItem(editedFoodstuffPosition))
+                        .getHistoryEntry();
                 adapter.deleteItem(editedFoodstuffPosition);
-                historyWorker.deleteEntryFromHistory(historyId);
+                historyWorker.deleteEntryFromHistory(historyEntry);
                 card.hide();
             }
         });
@@ -302,7 +299,6 @@ public class HistoryActivity extends BaseActivity {
                 }
 
                 foodstuffsList.saveFoodstuff(
-                        HistoryActivity.this,
                         savingFoodstuff.withoutWeight(),
                         new FoodstuffsList.SaveFoodstuffCallback() {
                     @Override
@@ -357,7 +353,6 @@ public class HistoryActivity extends BaseActivity {
     private void addUnlistedFoodstuffToHistory(final WeightedFoodstuff foodstuff) {
         final Date date = new Date();
         databaseWorker.saveUnlistedFoodstuff(
-                HistoryActivity.this,
                 foodstuff.withoutWeight(),
                 (foodstuffId) -> {
                     historyWorker.saveFoodstuffToHistory(

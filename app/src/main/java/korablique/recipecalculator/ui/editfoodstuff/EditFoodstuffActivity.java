@@ -107,7 +107,7 @@ public class EditFoodstuffActivity extends BaseActivity {
             saveButton.setOnClickListener(v -> {
                 Foodstuff editedFoodstuff = parseFoodstuff();
                 long id = editingFoodstuff.getId();
-                foodstuffsList.editFoodstuff(EditFoodstuffActivity.this, id, editedFoodstuff);
+                foodstuffsList.editFoodstuff(id, editedFoodstuff);
 
                 Foodstuff editedFoodstuffWithId =
                         Foodstuff.withId(id)
@@ -120,7 +120,6 @@ public class EditFoodstuffActivity extends BaseActivity {
         } else {
             saveButton.setOnClickListener(v -> {
                 foodstuffsList.saveFoodstuff(
-                        EditFoodstuffActivity.this,
                         parseFoodstuff(),
                         new FoodstuffsList.SaveFoodstuffCallback() {
                     @Override

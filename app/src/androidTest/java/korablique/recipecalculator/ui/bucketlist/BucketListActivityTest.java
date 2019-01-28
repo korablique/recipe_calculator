@@ -2,11 +2,6 @@ package korablique.recipecalculator.ui.bucketlist;
 
 import android.content.Context;
 import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
-import androidx.test.InstrumentationRegistry;
-import androidx.test.filters.LargeTest;
-import androidx.test.rule.ActivityTestRule;
-import androidx.test.runner.AndroidJUnit4;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -18,13 +13,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
+import androidx.test.InstrumentationRegistry;
+import androidx.test.filters.LargeTest;
+import androidx.test.rule.ActivityTestRule;
+import androidx.test.runner.AndroidJUnit4;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
+import korablique.recipecalculator.database.room.DatabaseHolder;
 import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
-import korablique.recipecalculator.database.DbHelper;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
@@ -54,22 +53,28 @@ import static org.hamcrest.CoreMatchers.allOf;
 @LargeTest
 public class BucketListActivityTest {
     private Context context = InstrumentationRegistry.getTargetContext();
+    private DatabaseHolder databaseHolder;
     private MainThreadExecutor mainThreadExecutor = new SyncMainThreadExecutor();
     private DatabaseThreadExecutor databaseThreadExecutor = new InstantDatabaseThreadExecutor();
-    private DatabaseWorker databaseWorker =
-            new DatabaseWorker(mainThreadExecutor, new InstantDatabaseThreadExecutor());
-    private HistoryWorker historyWorker =
-            new HistoryWorker(context, mainThreadExecutor, databaseThreadExecutor);
-    private UserParametersWorker userParametersWorker =
-            new UserParametersWorker(context, mainThreadExecutor, databaseThreadExecutor);
-    private FoodstuffsList foodstuffsList = new FoodstuffsList(context, databaseWorker);
+    private DatabaseWorker databaseWorker;
+    private HistoryWorker historyWorker;
+    private UserParametersWorker userParametersWorker;
+    private FoodstuffsList foodstuffsList;
 
     @Rule
     public ActivityTestRule<BucketListActivity> activityRule =
             InjectableActivityTestRule.forActivity(BucketListActivity.class)
                     .withManualStart()
                     .withSingletones(() -> {
-                        return Arrays.asList(mainThreadExecutor, databaseWorker,
+                        databaseHolder = new DatabaseHolder(context, databaseThreadExecutor);
+                        databaseWorker =
+                                new DatabaseWorker(databaseHolder, mainThreadExecutor, databaseThreadExecutor);
+                        historyWorker =
+                                new HistoryWorker(databaseHolder, mainThreadExecutor, databaseThreadExecutor);
+                        userParametersWorker =
+                                new UserParametersWorker(databaseHolder, mainThreadExecutor, databaseThreadExecutor);
+                        foodstuffsList = new FoodstuffsList(databaseWorker);
+                        return Arrays.asList(mainThreadExecutor, databaseHolder, databaseWorker,
                                 historyWorker, userParametersWorker, foodstuffsList);
                     })
                     .withActivityScoped((target) -> {
@@ -81,9 +86,7 @@ public class BucketListActivityTest {
 
     @Before
     public void setUp() {
-        DbHelper.deinitializeDatabase(context);
-        DbHelper dbHelper = new DbHelper(context);
-        dbHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
+        databaseHolder.getDatabase().clearAllTables();
     }
 
     @Test

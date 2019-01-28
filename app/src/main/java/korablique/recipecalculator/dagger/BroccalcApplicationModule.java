@@ -11,13 +11,12 @@ import dagger.android.support.AndroidSupportInjectionModule;
 import korablique.recipecalculator.base.BaseActivityModule;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.base.executors.MainThreadExecutorImpl;
+import korablique.recipecalculator.database.room.DatabaseHolder;
 import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseThreadExecutorImpl;
 import korablique.recipecalculator.database.DatabaseWorker;
-import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
-import korablique.recipecalculator.ui.calculator.CalculatorActivity;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
 import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
 import korablique.recipecalculator.ui.history.HistoryActivity;
@@ -48,26 +47,19 @@ public abstract class BroccalcApplicationModule {
     @Provides
     @Singleton
     public static DatabaseWorker provideDatabaseWorker(
-            MainThreadExecutor mainThreadExecutor, DatabaseThreadExecutor databaseThreadExecutor) {
-        return new DatabaseWorker(mainThreadExecutor, databaseThreadExecutor);
-    }
-
-    @Provides
-    @Singleton
-    public static HistoryWorker provideHistoryWorker(
-            Context context,
+            DatabaseHolder databaseHolder,
             MainThreadExecutor mainThreadExecutor,
             DatabaseThreadExecutor databaseThreadExecutor) {
-        return new HistoryWorker(context, mainThreadExecutor, databaseThreadExecutor);
+        return new DatabaseWorker(databaseHolder, mainThreadExecutor, databaseThreadExecutor);
     }
 
     @Provides
     @Singleton
     public static UserParametersWorker provideUserParametersWorker(
-            Context context,
+            DatabaseHolder databaseHolder,
             MainThreadExecutor mainThreadExecutor,
             DatabaseThreadExecutor databaseThreadExecutor) {
-        return new UserParametersWorker(context, mainThreadExecutor, databaseThreadExecutor);
+        return new UserParametersWorker(databaseHolder, mainThreadExecutor, databaseThreadExecutor);
     }
 
     @Provides
@@ -75,10 +67,6 @@ public abstract class BroccalcApplicationModule {
     public static FoodReminder provideFoodReminder(Context context) {
         return new FoodReminder(context);
     }
-
-    @ActivityScope
-    @ContributesAndroidInjector
-    abstract CalculatorActivity contributeCalculatorActivityInjector();
 
     @ActivityScope
     @ContributesAndroidInjector

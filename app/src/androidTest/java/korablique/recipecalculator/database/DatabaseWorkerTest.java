@@ -2,10 +2,6 @@ package korablique.recipecalculator.database;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import androidx.test.InstrumentationRegistry;
-import androidx.test.filters.LargeTest;
-import androidx.test.runner.AndroidJUnit4;
 
 import junit.framework.Assert;
 
@@ -18,10 +14,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import androidx.test.InstrumentationRegistry;
+import androidx.test.filters.LargeTest;
+import androidx.test.runner.AndroidJUnit4;
+import korablique.recipecalculator.database.room.AppDatabase;
+import korablique.recipecalculator.database.room.DatabaseHolder;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
-import korablique.recipecalculator.util.DbUtil;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.InstantMainThreadExecutor;
 
@@ -32,24 +33,26 @@ import static korablique.recipecalculator.database.FoodstuffsContract.FOODSTUFFS
 @LargeTest
 public class DatabaseWorkerTest {
     private Context context;
+    private DatabaseHolder databaseHolder;
     private DatabaseWorker databaseWorker;
 
     @Before
     public void setUp() {
         context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        DatabaseThreadExecutor databaseThreadExecutor = new InstantDatabaseThreadExecutor();
+        databaseHolder = new DatabaseHolder(context, databaseThreadExecutor);
         databaseWorker = new DatabaseWorker(
-                new InstantMainThreadExecutor(), new InstantDatabaseThreadExecutor());
-        DbUtil.clearTable(context, FOODSTUFFS_TABLE_NAME);
+                databaseHolder, new InstantMainThreadExecutor(), databaseThreadExecutor);
+        databaseHolder.getDatabase().clearAllTables();
     }
 
     @Test
-    public void requestListedFoodstuffsFromDbWorks() throws InterruptedException {
+    public void requestListedFoodstuffsFromDbWorks() {
         Foodstuff foodstuff1 = Foodstuff.withName("продукт1").withNutrition(1, 1, 1, 1);
         Foodstuff foodstuff2 = Foodstuff.withName("продукт2").withNutrition(1, 1, 1, 1);
         Foodstuff foodstuff3 = Foodstuff.withName("продукт3").withNutrition(1, 1, 1, 1);
         Foodstuff foodstuff4 = Foodstuff.withName("продукт4").withNutrition(1, 1, 1, 1);
         databaseWorker.saveFoodstuff(
-                context,
                 foodstuff1,
                 new DatabaseWorker.SaveFoodstuffCallback() {
             @Override
@@ -59,7 +62,7 @@ public class DatabaseWorkerTest {
                 throw new RuntimeException("Видимо, продукт уже существует");
             }
         });
-        databaseWorker.saveFoodstuff(context, foodstuff2, new DatabaseWorker.SaveFoodstuffCallback() {
+        databaseWorker.saveFoodstuff(foodstuff2, new DatabaseWorker.SaveFoodstuffCallback() {
             @Override
             public void onResult(long id) {}
 
@@ -69,18 +72,16 @@ public class DatabaseWorkerTest {
             }
         });
         //сохраняем два unlisted foodstuff'а
-        databaseWorker.saveUnlistedFoodstuff(context, foodstuff3, null);
-        databaseWorker.saveUnlistedFoodstuff(context, foodstuff4, null);
+        databaseWorker.saveUnlistedFoodstuff(foodstuff3, null);
+        databaseWorker.saveUnlistedFoodstuff(foodstuff4, null);
 
         final int[] listedFoodstuffsCount = new int[1];
         databaseWorker.requestListedFoodstuffsFromDb(
-                context,
                 20,
                 foodstuffs -> listedFoodstuffsCount[0] = foodstuffs.size());
 
-        DbHelper dbHelper = new DbHelper(context);
-        SQLiteDatabase database = dbHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
-        Cursor unlistedFoodstuffs = database.rawQuery(
+        AppDatabase database = databaseHolder.getDatabase();
+        Cursor unlistedFoodstuffs = database.query(
                 "SELECT * FROM " + FOODSTUFFS_TABLE_NAME + " WHERE " + COLUMN_NAME_IS_LISTED + "=0", null);
         int unlistedFoodstuffsCount = unlistedFoodstuffs.getCount();
         unlistedFoodstuffs.close();
@@ -90,37 +91,32 @@ public class DatabaseWorkerTest {
     }
 
     @Test
-    public void canSaveListedProductSameAsUnlisted() throws InterruptedException {
+    public void canSaveListedProductSameAsUnlisted() {
         Foodstuff foodstuff = Foodstuff.withName("falafel").withNutrition(10, 10, 10, 100);
-        final long[] id = {-1};
+        AtomicBoolean savedAsUnlisted = new AtomicBoolean(false);
         databaseWorker.saveUnlistedFoodstuff(
-                context,
                 foodstuff,
-                new DatabaseWorker.SaveUnlistedFoodstuffCallback() {
-            @Override
-            public void onResult(long foodstuffId) {
-                id[0] = foodstuffId;
-            }
-        });
+                foodstuffId -> {
+                    Assert.assertTrue(foodstuffId > 0);
+                    savedAsUnlisted.set(true);
+                });
 
-        databaseWorker.makeFoodstuffUnlisted(context, id[0], null);
-
-        final boolean[] containsListedFoodstuff = new boolean[1];
+        AtomicBoolean savedAsListed = new AtomicBoolean(false);
         databaseWorker.saveFoodstuff(
-                context,
                 foodstuff,
                 new DatabaseWorker.SaveFoodstuffCallback() {
             @Override
             public void onResult(long id) {
-                containsListedFoodstuff[0] = false;
+                Assert.assertTrue(id > 0);
+                savedAsListed.set(true);
             }
 
             @Override
             public void onDuplication() {
-                containsListedFoodstuff[0] = true;
             }
         });
-        Assert.assertEquals(false, containsListedFoodstuff[0]);
+        Assert.assertTrue(savedAsUnlisted.get());
+        Assert.assertTrue(savedAsListed.get());
     }
 
     @Test
@@ -135,11 +131,10 @@ public class DatabaseWorkerTest {
         // сохраняем продукты в список
         final ArrayList<Long> foodstuffsIds = new ArrayList<>();
         databaseWorker.saveGroupOfFoodstuffs(
-                context,
                 foodstuffs,
                 new DatabaseWorker.SaveGroupOfFoodstuffsCallback() {
                     @Override
-                    public void onResult(ArrayList<Long> ids) {
+                    public void onResult(List<Long> ids) {
                         foodstuffsIds.addAll(ids);
                     }
                 });
@@ -148,10 +143,7 @@ public class DatabaseWorkerTest {
         // Запрашиваем все фудстафы с размером батча 3
         int batchSize = 3;
         final int[] counter = {0};
-        databaseWorker.requestListedFoodstuffsFromDb(
-                context,
-                batchSize,
-                unused -> ++counter[0]);
+        databaseWorker.requestListedFoodstuffsFromDb(batchSize, unused -> ++counter[0]);
         Assert.assertEquals(4, counter[0]);
     }
 
@@ -167,11 +159,10 @@ public class DatabaseWorkerTest {
         // сохраняем продукты в список
         final ArrayList<Long> foodstuffsIds = new ArrayList<>();
         databaseWorker.saveGroupOfFoodstuffs(
-                context,
                 foodstuffs,
                 new DatabaseWorker.SaveGroupOfFoodstuffsCallback() {
                     @Override
-                    public void onResult(ArrayList<Long> ids) {
+                    public void onResult(List<Long> ids) {
                         foodstuffsIds.addAll(ids);
                     }
                 });
@@ -181,7 +172,6 @@ public class DatabaseWorkerTest {
         int batchSize = 3;
         final ArrayList<Foodstuff> returnedFoodstuffs = new ArrayList<>();
         databaseWorker.requestListedFoodstuffsFromDb(
-                context,
                 batchSize,
                 foodstuffs1 -> returnedFoodstuffs.addAll(foodstuffs1));
         Collections.sort(foodstuffsIds);
@@ -197,7 +187,7 @@ public class DatabaseWorkerTest {
     }
 
     @Test
-    public void listOfRequestedFoodstuffsReturnedInCorrectOrder() throws InterruptedException {
+    public void listOfRequestedFoodstuffsReturnedInCorrectOrder() {
         // создаем продукт с названиями с маленькой и заглавной букв
         int foodstuffsNumber = 3;
         final Foodstuff[] foodstuffs = new Foodstuff[foodstuffsNumber];
@@ -207,13 +197,12 @@ public class DatabaseWorkerTest {
         foodstuffs[2] = Foodstuff.withName(apple).withNutrition(5, 5, 5, 5);
 
         // сохраняем продукты в список
-        final ArrayList<Long> foodstuffsIds = new ArrayList<>();
+        final List<Long> foodstuffsIds = new ArrayList<>();
         databaseWorker.saveGroupOfFoodstuffs(
-                context,
                 foodstuffs,
                 new DatabaseWorker.SaveGroupOfFoodstuffsCallback() {
                     @Override
-                    public void onResult(ArrayList<Long> ids) {
+                    public void onResult(List<Long> ids) {
                         foodstuffsIds.addAll(ids);
                     }
                 });
@@ -221,9 +210,8 @@ public class DatabaseWorkerTest {
 
         // Запрашиваем все фудстафы
         int batchSize = 4;
-        final ArrayList<Foodstuff> returnedFoodstuffs = new ArrayList<>();
+        final List<Foodstuff> returnedFoodstuffs = new ArrayList<>();
         databaseWorker.requestListedFoodstuffsFromDb(
-                context,
                 batchSize,
                 foodstuffs1 -> returnedFoodstuffs.addAll(foodstuffs1));
         Assert.assertEquals(apple, returnedFoodstuffs.get(2).getName());
@@ -244,18 +232,16 @@ public class DatabaseWorkerTest {
         // сохраняем продукты в список
         final ArrayList<Long> foodstuffsIds = new ArrayList<>();
         databaseWorker.saveGroupOfFoodstuffs(
-                context,
                 foodstuffs,
                 new DatabaseWorker.SaveGroupOfFoodstuffsCallback() {
                     @Override
-                    public void onResult(ArrayList<Long> ids) {
+                    public void onResult(List<Long> ids) {
                         foodstuffsIds.addAll(ids);
                     }
                 });
 
         List<Foodstuff> returnedFoodstuffs = new ArrayList<>();
         databaseWorker.requestFoodstuffsByIds(
-                context,
                 foodstuffsIds,
                 foodstuffs1 -> {
                     returnedFoodstuffs.addAll(foodstuffs1);
@@ -278,11 +264,9 @@ public class DatabaseWorkerTest {
         // сохраняем продукты в список
         final ArrayList<Long> foodstuffsIds = new ArrayList<>();
         databaseWorker.saveGroupOfFoodstuffs(
-                context,
-                foodstuffs,
-                new DatabaseWorker.SaveGroupOfFoodstuffsCallback() {
+                foodstuffs, new DatabaseWorker.SaveGroupOfFoodstuffsCallback() {
                     @Override
-                    public void onResult(ArrayList<Long> ids) {
+                    public void onResult(List<Long> ids) {
                         foodstuffsIds.addAll(ids);
                     }
                 });
@@ -301,7 +285,6 @@ public class DatabaseWorkerTest {
 
         List<Foodstuff> returnedFoodstuffs = new ArrayList<>();
         databaseWorker.requestFoodstuffsByIds(
-                context,
                 foodstuffsIds,
                 foodstuffs1 -> {
                     returnedFoodstuffs.addAll(foodstuffs1);
@@ -314,7 +297,6 @@ public class DatabaseWorkerTest {
         Collections.reverse(foodstuffsIds);
         returnedFoodstuffs.clear();
         databaseWorker.requestFoodstuffsByIds(
-                context,
                 foodstuffsIds,
                 foodstuffs1 -> returnedFoodstuffs.addAll(foodstuffs1));
         Assert.assertEquals(returnedFoodstuffs.get(0), foodstuffs[2]);
@@ -336,15 +318,11 @@ public class DatabaseWorkerTest {
         foodstuffs[8] = Foodstuff.withName("хлеб").withNutrition(1, 1, 1, 1);
         foodstuffs[9] = Foodstuff.withName("варенье из черники").withNutrition(1, 1, 1, 1);
 
-        databaseWorker.saveGroupOfFoodstuffs(
-                context,
-                foodstuffs,
-                null);
+        databaseWorker.saveGroupOfFoodstuffs(foodstuffs, null);
 
         String query = "варенье";
         List<Foodstuff> searchResult = new ArrayList<>();
         databaseWorker.requestFoodstuffsLike(
-                context,
                 query,
                 3,
                 foodstuffs1 -> searchResult.addAll(foodstuffs1));
@@ -353,10 +331,54 @@ public class DatabaseWorkerTest {
         Assert.assertEquals(searchResult.get(2).getName(), "варенье из клубники");
     }
 
+    @Test
+    public void returnedIdsOfSavedFoodstuffsGroupHasSameOrder() {
+        // Order 1
+        Foodstuff[] foodstuffs = new Foodstuff[] {
+                Foodstuff.withName("a").withNutrition(1, 2, 3, 4),
+                Foodstuff.withName("b").withNutrition(4, 3, 2, 1),
+                Foodstuff.withName("c").withNutrition(3, 3, 2, 2),
+        };
+        databaseHolder.getDatabase().clearAllTables();
+        returnedIdsOfSavedFoodstuffsGroupHasSameOrderImpl(foodstuffs);
+
+        // Order reversed
+        foodstuffs = new Foodstuff[] {
+                Foodstuff.withName("c").withNutrition(3, 3, 2, 2),
+                Foodstuff.withName("b").withNutrition(4, 3, 2, 1),
+                Foodstuff.withName("a").withNutrition(1, 2, 3, 4),
+        };
+        databaseHolder.getDatabase().clearAllTables();
+        returnedIdsOfSavedFoodstuffsGroupHasSameOrderImpl(foodstuffs);
+    }
+
+    private void returnedIdsOfSavedFoodstuffsGroupHasSameOrderImpl(Foodstuff[] foodstuffs) {
+        List<Long> ids = new ArrayList<>();
+        databaseWorker.saveGroupOfFoodstuffs(foodstuffs, idsResult -> {
+            ids.addAll(idsResult);
+        });
+
+        List<Foodstuff> receivedFoodstuffs = new ArrayList<>();
+        databaseWorker.requestFoodstuffsByIds(ids, foodstuffs1 -> {
+            receivedFoodstuffs.addAll(foodstuffs1);
+        });
+
+        Assert.assertTrue(Foodstuff.haveSameNutrition(foodstuffs[0], receivedFoodstuffs.get(0)));
+        Assert.assertEquals(foodstuffs[0].getName(), receivedFoodstuffs.get(0).getName());
+        Assert.assertEquals((long) ids.get(0), receivedFoodstuffs.get(0).getId());
+
+        Assert.assertTrue(Foodstuff.haveSameNutrition(foodstuffs[1], receivedFoodstuffs.get(1)));
+        Assert.assertEquals(foodstuffs[1].getName(), receivedFoodstuffs.get(1).getName());
+        Assert.assertEquals((long) ids.get(1), receivedFoodstuffs.get(1).getId());
+
+        Assert.assertTrue(Foodstuff.haveSameNutrition(foodstuffs[2], receivedFoodstuffs.get(2)));
+        Assert.assertEquals(foodstuffs[2].getName(), receivedFoodstuffs.get(2).getName());
+        Assert.assertEquals((long) ids.get(2), receivedFoodstuffs.get(2).getId());
+    }
+
     public Foodstuff getAnyFoodstuffFromDb() throws InterruptedException {
         final ArrayList<Foodstuff> foodstuffArrayList = new ArrayList<>();
         databaseWorker.requestListedFoodstuffsFromDb(
-                context,
                 20,
                 foodstuffs -> foodstuffArrayList.addAll(foodstuffs));
 
@@ -365,7 +387,7 @@ public class DatabaseWorkerTest {
         }
 
         Foodstuff foodstuff = Foodstuff.withName("apricot").withNutrition(10, 10, 10, 10);
-        databaseWorker.saveFoodstuff(context, foodstuff, new DatabaseWorker.SaveFoodstuffCallback() {
+        databaseWorker.saveFoodstuff(foodstuff, new DatabaseWorker.SaveFoodstuffCallback() {
             @Override
             public void onResult(long id) {}
             @Override

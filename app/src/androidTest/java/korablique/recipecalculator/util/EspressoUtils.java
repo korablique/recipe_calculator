@@ -1,6 +1,5 @@
 package korablique.recipecalculator.util;
 
-import androidx.test.espresso.ViewAssertion;
 import android.view.View;
 
 import junit.framework.AssertionFailedError;
@@ -8,6 +7,8 @@ import junit.framework.AssertionFailedError;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
+
+import androidx.test.espresso.ViewAssertion;
 
 public class EspressoUtils {
     private EspressoUtils() {
