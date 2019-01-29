@@ -5,35 +5,86 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/age"
+    <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        style="@style/RobotoMonoHintText"
-        android:textColor="#FFFFFF"
-        tools:text="18"/>
+        android:layout_height="wrap_content">
 
-    <TextView
-        android:id="@+id/height"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        style="@style/RobotoMonoHintText"
-        android:textColor="#FFFFFF"
-        tools:text="160"/>
+        <TextView
+            android:id="@+id/age"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/RobotoMonoHintText"
+            android:textColor="#FFFFFF"
+            tools:text="18"/>
 
-    <TextView
-        android:id="@+id/goal"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        style="@style/RobotoMonoHintText"
-        android:textColor="#FFFFFF"
-        tools:text="Похудение"/>
+        <TextView
 
-    <TextView
-        android:id="@+id/calorie_intake"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/RobotoMonoHintText"
+            android:textColor="#FFFFFF"
+            android:text="@string/years"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/height"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/RobotoMonoHintText"
+            android:textColor="#FFFFFF"
+            tools:text="160"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/RobotoMonoHintText"
+            android:textColor="#FFFFFF"
+            android:text="@string/cm"/>
+    </LinearLayout>
+
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        style="@style/RobotoMonoHintText"
-        android:textColor="#FFFFFF"
-        tools:text="1700"/>
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/target_weight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/RobotoMonoHintText"
+            android:textColor="#FFFFFF"
+            tools:text="46"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/RobotoMonoHintText"
+            android:textColor="#FFFFFF"
+            android:text="@string/kg"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+
+        <TextView
+            android:id="@+id/calorie_intake"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/RobotoMonoHintText"
+            android:textColor="#FFFFFF"
+            tools:text="1700"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/RobotoMonoHintText"
+            android:textColor="#FFFFFF"
+            android:text="@string/kcal"/>
+    </LinearLayout>
 </LinearLayout>

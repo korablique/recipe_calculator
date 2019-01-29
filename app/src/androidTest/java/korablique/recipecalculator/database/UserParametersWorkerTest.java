@@ -55,7 +55,7 @@ public class UserParametersWorkerTest {
     @Test
     public void canSaveAndRetrieveUserParameters() {
         UserParameters userParameters = new UserParameters(
-                Goal.LOSING_WEIGHT,
+                60,
                 Gender.MALE,
                 24,
                 165,
@@ -85,7 +85,7 @@ public class UserParametersWorkerTest {
         // сохраняем в БД параметры пользователя
         userParametersWorker.initCache();
         UserParameters userParameters = new UserParameters(
-                Goal.LOSING_WEIGHT,
+                60,
                 Gender.MALE,
                 24,
                 165,

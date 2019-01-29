@@ -99,6 +99,12 @@
     <string name="harris_benedict">Харриса-Бенедикта</string>
     <string name="mifflin_jeor">Миффлина-Джеора</string>
 
+    <string name="target_weight">Желаемый вес</string>
+    <string name="kg">\ кг</string>
+    <string name="cm">\ см</string>
+    <string name="kcal">\ ккал</string>
+    <string name="years">\ лет</string>
+
     <string-array name="goals_array">
         <item name="losing_weight">Снижение веса</item>
         <item name="maintaining_current_weight">Сохранение веса</item>

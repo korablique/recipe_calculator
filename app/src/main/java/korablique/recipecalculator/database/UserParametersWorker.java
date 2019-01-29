@@ -90,7 +90,16 @@ public class UserParametersWorker {
             int formulaId = userEntity.getFormulaId();
             Formula formula = Formula.fromId(formulaId);
 
-            userParameters = new UserParameters(goal, gender, age, height, weight, lifestyle, formula);
+            // TODO: 25.01.19 после изменений в БД получить targetWeight из БД
+            int targetWeight;
+            if (goal == Goal.LOSING_WEIGHT) {
+                targetWeight = weight - 1;
+            } else if (goal == Goal.MAINTAINING_CURRENT_WEIGHT) {
+                targetWeight = weight;
+            } else {
+                targetWeight = weight + 1;
+            }
+            userParameters = new UserParameters(targetWeight, gender, age, height, weight, lifestyle, formula);
         }
         return userParameters;
     }
