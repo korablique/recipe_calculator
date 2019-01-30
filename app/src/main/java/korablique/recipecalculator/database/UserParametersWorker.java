@@ -74,8 +74,7 @@ public class UserParametersWorker {
 
         UserParameters userParameters = null;
         if (userEntity != null) {
-            int goalId = userEntity.getGoalId();
-            Goal goal = Goal.fromId(goalId);
+            int targetWeight = userEntity.getTargetWeight();
 
             int genderId = userEntity.getGenderId();
             Gender gender = Gender.fromId(genderId);
@@ -90,15 +89,6 @@ public class UserParametersWorker {
             int formulaId = userEntity.getFormulaId();
             Formula formula = Formula.fromId(formulaId);
 
-            // TODO: 25.01.19 после изменений в БД получить targetWeight из БД
-            int targetWeight;
-            if (goal == Goal.LOSING_WEIGHT) {
-                targetWeight = weight - 1;
-            } else if (goal == Goal.MAINTAINING_CURRENT_WEIGHT) {
-                targetWeight = weight;
-            } else {
-                targetWeight = weight + 1;
-            }
             userParameters = new UserParameters(targetWeight, gender, age, height, weight, lifestyle, formula);
         }
         return userParameters;
@@ -110,7 +100,7 @@ public class UserParametersWorker {
             AppDatabase database = databaseHolder.getDatabase();
             UserParametersDao userDao = database.userParametersDao();
             UserParametersEntity userParametersEntity = new UserParametersEntity(
-                    userParameters.getGoal().getId(),
+                    userParameters.getTargetWeight(),
                     userParameters.getGender().getId(),
                     userParameters.getAge(),
                     userParameters.getHeight(),

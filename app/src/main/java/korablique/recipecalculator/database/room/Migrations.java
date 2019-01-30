@@ -1,10 +1,14 @@
 package korablique.recipecalculator.database.room;
 
+import androidx.annotation.NonNull;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 import korablique.recipecalculator.database.FoodstuffsContract;
 import korablique.recipecalculator.database.HistoryContract;
+import korablique.recipecalculator.database.LegacyDatabaseValues;
 import korablique.recipecalculator.database.UserParametersContract;
+
+import static korablique.recipecalculator.database.UserParametersContract.USER_PARAMETERS_TABLE_NAME;
 
 public class Migrations {
     private Migrations() {}
@@ -42,20 +46,37 @@ public class Migrations {
             database.execSQL(
                     "CREATE TABLE user_params_tmp (" +
                             UserParametersContract.ID + " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
-                            UserParametersContract.COLUMN_NAME_GOAL + " INTEGER NOT NULL, " +
+                            LegacyDatabaseValues.COLUMN_NAME_GOAL + " INTEGER NOT NULL, " +
                             UserParametersContract.COLUMN_NAME_GENDER + " INTEGER NOT NULL, " +
                             UserParametersContract.COLUMN_NAME_AGE + " INTEGER NOT NULL, " +
                             UserParametersContract.COLUMN_NAME_HEIGHT + " INTEGER NOT NULL, " +
                             UserParametersContract.COLUMN_NAME_USER_WEIGHT + " INTEGER NOT NULL, " +
                             UserParametersContract.COLUMN_NAME_LIFESTYLE + " INTEGER NOT NULL, " +
                             UserParametersContract.COLUMN_NAME_FORMULA + " INTEGER NOT NULL)");
-            replaceTable(database, "user_params_tmp", UserParametersContract.USER_PARAMETERS_TABLE_NAME);
+            replaceTable(database, "user_params_tmp", USER_PARAMETERS_TABLE_NAME);
 
             // Drop versions table - Room now controls DB versioning
             database.execSQL("DROP TABLE " + LegacyDatabaseUpdater.TABLE_DATABASE_VERSION);
 
             // Create an index manually - Room expects the index since it's declare in the Entity.
             database.execSQL("CREATE INDEX index_history_foodstuff_id ON history(foodstuff_id)");
+        }
+    };
+
+    static final Migration MIGRATION_2_3 = new Migration(2, 3) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("DROP TABLE " + USER_PARAMETERS_TABLE_NAME);
+            database.execSQL(
+                    "CREATE TABLE " + USER_PARAMETERS_TABLE_NAME +" (" +
+                            UserParametersContract.ID + " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                            UserParametersContract.COLUMN_NAME_TARGET_WEIGHT + " INTEGER NOT NULL, " +
+                            UserParametersContract.COLUMN_NAME_GENDER + " INTEGER NOT NULL, " +
+                            UserParametersContract.COLUMN_NAME_AGE + " INTEGER NOT NULL, " +
+                            UserParametersContract.COLUMN_NAME_HEIGHT + " INTEGER NOT NULL, " +
+                            UserParametersContract.COLUMN_NAME_USER_WEIGHT + " INTEGER NOT NULL, " +
+                            UserParametersContract.COLUMN_NAME_LIFESTYLE + " INTEGER NOT NULL, " +
+                            UserParametersContract.COLUMN_NAME_FORMULA + " INTEGER NOT NULL)");
         }
     };
 

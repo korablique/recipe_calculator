@@ -137,7 +137,7 @@ public class HistoryActivity extends BaseActivity {
 
     private void initializeActivity(UserParameters userParameters) {
         final Rates rates = RateCalculator.calculate(
-                userParameters.getGoal(),
+                userParameters.getTargetWeight(),
                 userParameters.getGender(),
                 userParameters.getAge(),
                 userParameters.getHeight(),

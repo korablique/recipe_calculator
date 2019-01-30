@@ -15,6 +15,7 @@ import korablique.recipecalculator.TestEnvironmentDetector;
 import korablique.recipecalculator.database.DatabaseThreadExecutor;
 
 import static korablique.recipecalculator.database.room.Migrations.MIGRATION_1_2;
+import static korablique.recipecalculator.database.room.Migrations.MIGRATION_2_3;
 
 /**
  * Владелец объекта БД. Отвечает за его хранение и инициализацию.
@@ -66,7 +67,7 @@ public class DatabaseHolder {
         // Все фоновые операции Room должен выполнять на специальном фоновом БД-потоке.
         builder.setQueryExecutor(databaseThreadExecutor::execute);
         // Сообщим о миграциях.
-        builder.addMigrations(MIGRATION_1_2);
+        builder.addMigrations(MIGRATION_1_2, MIGRATION_2_3);
         // Позволим работу на главном потоке в тестах.
         if (TestEnvironmentDetector.isInTests()) {
             builder.allowMainThreadQueries();

@@ -30,7 +30,6 @@ import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.model.Formula;
 import korablique.recipecalculator.model.FullName;
 import korablique.recipecalculator.model.Gender;
-import korablique.recipecalculator.model.Goal;
 import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;

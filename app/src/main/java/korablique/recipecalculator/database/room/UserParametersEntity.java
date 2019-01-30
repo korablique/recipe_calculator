@@ -12,9 +12,9 @@ public class UserParametersEntity {
     @ColumnInfo(name = UserParametersContract.ID)
     @PrimaryKey(autoGenerate = true)
     private long id;
-
-    @ColumnInfo(name = COLUMN_NAME_GOAL)
-    private int goalId;
+    
+    @ColumnInfo(name = COLUMN_NAME_TARGET_WEIGHT)
+    private int targetWeight;
 
     @ColumnInfo(name = COLUMN_NAME_GENDER)
     private int genderId;
@@ -35,14 +35,14 @@ public class UserParametersEntity {
     private int formulaId;
 
     public UserParametersEntity(
-            int goalId,
+            int targetWeight,
             int genderId,
             int age,
             int height,
             int weight,
             int lifestyleId,
             int formulaId) {
-        this.goalId = goalId;
+        this.targetWeight = targetWeight;
         this.genderId = genderId;
         this.age = age;
         this.height = height;
@@ -51,12 +51,12 @@ public class UserParametersEntity {
         this.formulaId = formulaId;
     }
 
-    public int getGoalId() {
-        return goalId;
+    public int getTargetWeight() {
+        return targetWeight;
     }
 
-    public void setGoalId(int goalId) {
-        this.goalId = goalId;
+    public void setTargetWeight(int targetWeight) {
+        this.targetWeight = targetWeight;
     }
 
     public int getGenderId() {
