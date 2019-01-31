@@ -55,8 +55,8 @@ import static org.hamcrest.CoreMatchers.allOf;
 public class BucketListActivityTest {
     private Context context = InstrumentationRegistry.getTargetContext();
     private DatabaseHolder databaseHolder;
-    private MainThreadExecutor mainThreadExecutor = new SyncMainThreadExecutor();
-    private DatabaseThreadExecutor databaseThreadExecutor = new InstantDatabaseThreadExecutor();
+    private MainThreadExecutor mainThreadExecutor;
+    private DatabaseThreadExecutor databaseThreadExecutor;
     private DatabaseWorker databaseWorker;
     private HistoryWorker historyWorker;
     private UserParametersWorker userParametersWorker;
@@ -69,9 +69,9 @@ public class BucketListActivityTest {
                     .withManualStart()
                     .withSingletones(() -> {
                         context = InstrumentationRegistry.getTargetContext();
-                        databaseHolder = new DatabaseHolder(context, databaseThreadExecutor);
                         mainThreadExecutor = new SyncMainThreadExecutor();
                         databaseThreadExecutor = new InstantDatabaseThreadExecutor();
+                        databaseHolder = new DatabaseHolder(context, databaseThreadExecutor);
                         databaseWorker = new DatabaseWorker(
                                 databaseHolder, mainThreadExecutor, new InstantDatabaseThreadExecutor());
                         historyWorker = new HistoryWorker(
@@ -80,7 +80,7 @@ public class BucketListActivityTest {
                                 databaseHolder, mainThreadExecutor, databaseThreadExecutor);
                         foodstuffsList = new FoodstuffsList(databaseWorker);
                         userNameProvider = new UserNameProvider(context);
-                        return Arrays.asList(mainThreadExecutor, databaseWorker,
+                        return Arrays.asList(mainThreadExecutor, databaseThreadExecutor, databaseWorker,
                                 historyWorker, userParametersWorker, foodstuffsList, userNameProvider);
                     })
                     .withActivityScoped((target) -> {

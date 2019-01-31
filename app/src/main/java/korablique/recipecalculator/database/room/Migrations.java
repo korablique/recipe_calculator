@@ -66,6 +66,8 @@ public class Migrations {
     static final Migration MIGRATION_2_3 = new Migration(2, 3) {
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase database) {
+            // удаляем старую таблицу и создаём новую с желаемым весом вместо цели,
+            // т.к. цель (похудеть/набрать) нельзя однозначно конвертировать в вес
             database.execSQL("DROP TABLE " + USER_PARAMETERS_TABLE_NAME);
             database.execSQL(
                     "CREATE TABLE " + USER_PARAMETERS_TABLE_NAME +" (" +

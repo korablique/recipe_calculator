@@ -54,6 +54,8 @@ public class MigrationTest {
         // MigrationTestHelper automatically verifies the schema changes,
         // but you need to validate that the data was migrated properly.
         Cursor cursor = db.query("SELECT * FROM " + USER_PARAMETERS_TABLE_NAME);
+        // убеждаемся, что таблица пуста, т к при миграции мы удаляем её и создаём заново,
+        // не перенося старые данные
         Assert.assertTrue(!cursor.moveToFirst());
     }
 }
