@@ -28,6 +28,7 @@ import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.history.HistoryActivity;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
@@ -60,22 +61,27 @@ public class BucketListActivityTest {
     private HistoryWorker historyWorker;
     private UserParametersWorker userParametersWorker;
     private FoodstuffsList foodstuffsList;
+    private UserNameProvider userNameProvider;
 
     @Rule
     public ActivityTestRule<BucketListActivity> activityRule =
             InjectableActivityTestRule.forActivity(BucketListActivity.class)
                     .withManualStart()
                     .withSingletones(() -> {
+                        context = InstrumentationRegistry.getTargetContext();
                         databaseHolder = new DatabaseHolder(context, databaseThreadExecutor);
-                        databaseWorker =
-                                new DatabaseWorker(databaseHolder, mainThreadExecutor, databaseThreadExecutor);
-                        historyWorker =
-                                new HistoryWorker(databaseHolder, mainThreadExecutor, databaseThreadExecutor);
-                        userParametersWorker =
-                                new UserParametersWorker(databaseHolder, mainThreadExecutor, databaseThreadExecutor);
+                        mainThreadExecutor = new SyncMainThreadExecutor();
+                        databaseThreadExecutor = new InstantDatabaseThreadExecutor();
+                        databaseWorker = new DatabaseWorker(
+                                databaseHolder, mainThreadExecutor, new InstantDatabaseThreadExecutor());
+                        historyWorker = new HistoryWorker(
+                                databaseHolder, mainThreadExecutor, databaseThreadExecutor);
+                        userParametersWorker = new UserParametersWorker(
+                                databaseHolder, mainThreadExecutor, databaseThreadExecutor);
                         foodstuffsList = new FoodstuffsList(databaseWorker);
-                        return Arrays.asList(mainThreadExecutor, databaseHolder, databaseWorker,
-                                historyWorker, userParametersWorker, foodstuffsList);
+                        userNameProvider = new UserNameProvider(context);
+                        return Arrays.asList(mainThreadExecutor, databaseWorker,
+                                historyWorker, userParametersWorker, foodstuffsList, userNameProvider);
                     })
                     .withActivityScoped((target) -> {
                         BaseActivity activity = (BaseActivity) target;

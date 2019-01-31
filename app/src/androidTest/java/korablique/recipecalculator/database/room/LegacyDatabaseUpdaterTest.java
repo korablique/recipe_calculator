@@ -13,15 +13,19 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.io.IOException;
 
+import androidx.room.testing.MigrationTestHelper;
+import androidx.sqlite.db.SupportSQLiteDatabase;
+import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory;
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.LargeTest;
 import androidx.test.runner.AndroidJUnit4;
 import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseUtils;
-import korablique.recipecalculator.database.LegacyDatabaseValues;
 import korablique.recipecalculator.database.FoodstuffsContract;
 import korablique.recipecalculator.database.HistoryContract;
+import korablique.recipecalculator.database.LegacyDatabaseValues;
 import korablique.recipecalculator.database.UserParametersContract;
 import korablique.recipecalculator.model.Formula;
 import korablique.recipecalculator.model.Gender;
@@ -41,37 +45,45 @@ import static korablique.recipecalculator.database.HistoryContract.COLUMN_NAME_D
 import static korablique.recipecalculator.database.HistoryContract.COLUMN_NAME_FOODSTUFF_ID;
 import static korablique.recipecalculator.database.HistoryContract.COLUMN_NAME_WEIGHT;
 import static korablique.recipecalculator.database.HistoryContract.HISTORY_TABLE_NAME;
-import static korablique.recipecalculator.database.room.LegacyDatabaseUpdater.COLUMN_NAME_VERSION;
-import static korablique.recipecalculator.database.room.LegacyDatabaseUpdater.TABLE_DATABASE_VERSION;
+import static korablique.recipecalculator.database.LegacyDatabaseValues.COLUMN_NAME_COEFFICIENT;
+import static korablique.recipecalculator.database.LegacyDatabaseValues.COLUMN_NAME_GOAL;
 import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_AGE;
-import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_COEFFICIENT;
 import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_FORMULA;
 import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_GENDER;
-import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_GOAL;
 import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_HEIGHT;
 import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_LIFESTYLE;
 import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_USER_WEIGHT;
 import static korablique.recipecalculator.database.UserParametersContract.USER_PARAMETERS_TABLE_NAME;
+import static korablique.recipecalculator.database.room.LegacyDatabaseUpdater.COLUMN_NAME_VERSION;
+import static korablique.recipecalculator.database.room.LegacyDatabaseUpdater.TABLE_DATABASE_VERSION;
+import static korablique.recipecalculator.database.room.MigrationTest.TEST_DB;
+import static korablique.recipecalculator.database.room.Migrations.MIGRATION_1_2;
 
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class LegacyDatabaseUpdaterTest {
     private Context context;
-    private DatabaseHolder databaseHolder;
     private File dbFile;
+    private MigrationTestHelper helper;
+
+    public LegacyDatabaseUpdaterTest() {
+        helper = new MigrationTestHelper(InstrumentationRegistry.getInstrumentation(),
+                AppDatabase.class.getCanonicalName(),
+                new FrameworkSQLiteOpenHelperFactory());
+    }
 
     @Before
     public void setUp() {
         context = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
         DatabaseThreadExecutor databaseThreadExecutor = new InstantDatabaseThreadExecutor();
-        databaseHolder = new DatabaseHolder(context, databaseThreadExecutor);
+        DatabaseHolder databaseHolder = new DatabaseHolder(context, databaseThreadExecutor);
 
         dbFile = databaseHolder.getDBFile();
-        deleteDatabase();
+        deleteDatabase(databaseHolder);
     }
 
-    public void deleteDatabase() {
+    public void deleteDatabase(DatabaseHolder databaseHolder) {
         // Закроем соединение с БД.
         databaseHolder.closeDatabaseConnection();
         // Удалим всё содержимое папки с БД.
@@ -89,13 +101,15 @@ public class LegacyDatabaseUpdaterTest {
 
     @After
     public void tearDown() {
-        deleteDatabase();
+        DatabaseThreadExecutor databaseThreadExecutor = new InstantDatabaseThreadExecutor();
+        DatabaseHolder databaseHolder = new DatabaseHolder(context, databaseThreadExecutor);
+        deleteDatabase(databaseHolder);
     }
 
     @Test
-    public void databaseUpgradesFrom1toAtLeast2version() {
+    public void databaseUpgradesFrom1toAtLeast2version() throws IOException {
         // Создадим файл базы данных НЕ используя DatabaseHolder
-        try (SQLiteDatabase database1 = SQLiteDatabase.openOrCreateDatabase(databaseHolder.getDBFile(), null)) {
+        try (SQLiteDatabase database1 = SQLiteDatabase.openOrCreateDatabase(dbFile, null)) {
             database1.setVersion(1);
 
             Assert.assertFalse(DatabaseUtils.tableExists(database1, FOODSTUFFS_TABLE_NAME));
@@ -113,8 +127,7 @@ public class LegacyDatabaseUpdaterTest {
             Assert.assertFalse(DatabaseUtils.tableExists(database1, USER_PARAMETERS_TABLE_NAME));
         }
 
-        // Заставить DatabaseHolder проинициализировать БД
-        AppDatabase database2 = databaseHolder.getDatabase();
+        SupportSQLiteDatabase database2 = helper.runMigrationsAndValidate(dbFile.getAbsolutePath(), 2, true, MIGRATION_1_2);
 
         // Убедиться, что БД имеет как минимум 2 версию
         Assert.assertTrue(DatabaseUtils.tableExists(database2, FOODSTUFFS_TABLE_NAME));
@@ -124,11 +137,11 @@ public class LegacyDatabaseUpdaterTest {
     }
 
     @Test
-    public void databaseUpgradesFrom2toAtLeast3version() {
+    public void databaseUpgradesFrom2toAtLeast3version() throws IOException {
         long foodstuffId = -1;
         String foodstuffName = "Apple";
         // Создадим файл базы данных НЕ используя DatabaseHolder
-        try (SQLiteDatabase database1 = SQLiteDatabase.openOrCreateDatabase(databaseHolder.getDBFile(), null)) {
+        try (SQLiteDatabase database1 = SQLiteDatabase.openOrCreateDatabase(dbFile, null)) {
             database1.setVersion(1);
 
             Assert.assertFalse(DatabaseUtils.tableExists(database1, FOODSTUFFS_TABLE_NAME));
@@ -177,8 +190,7 @@ public class LegacyDatabaseUpdaterTest {
             foodstuffId = database1.insert(FOODSTUFFS_TABLE_NAME, null, values);
         }
 
-        // Заставляем DatabaseHolder проинициализировать БД
-        AppDatabase database2 = databaseHolder.getDatabase();
+        SupportSQLiteDatabase database2 = helper.runMigrationsAndValidate(dbFile.getAbsolutePath(), 2, true, MIGRATION_1_2);
 
         // Убедиться, что БД имеет 3 версию, т.е. проверить наличие столбца name_nocase
         Assert.assertTrue(isColumnExist(database2, FOODSTUFFS_TABLE_NAME, COLUMN_NAME_FOODSTUFF_NAME_NOCASE));
@@ -197,12 +209,12 @@ public class LegacyDatabaseUpdaterTest {
     }
 
     @Test
-    public void databaseUpgradesFrom3to4version() {
+    public void databaseUpgradesFrom3to4version() throws IOException {
         int userAge = 25;
         int userHeight = 158;
         int userWeight = 48;
         // Создадим файл базы данных НЕ используя DatabaseHolder
-        try (SQLiteDatabase database1 = SQLiteDatabase.openOrCreateDatabase(databaseHolder.getDBFile(), null)) {
+        try (SQLiteDatabase database1 = SQLiteDatabase.openOrCreateDatabase(dbFile, null)) {
             database1.setVersion(1);
 
             // Заполнить файл табличками для 3 версии:
@@ -255,8 +267,7 @@ public class LegacyDatabaseUpdaterTest {
             database1.insert(USER_PARAMETERS_TABLE_NAME, null, values);
         }
 
-        // Заставляем DatabaseHolder проинициализировать БД
-        AppDatabase database2 = databaseHolder.getDatabase();
+        SupportSQLiteDatabase database2 = helper.runMigrationsAndValidate(dbFile.getAbsolutePath(), 2, true, MIGRATION_1_2);
 
         // Убедиться, что БД имеет 4 версию
         Cursor cursor = database2.query("SELECT * FROM " + USER_PARAMETERS_TABLE_NAME, null);
@@ -279,7 +290,7 @@ public class LegacyDatabaseUpdaterTest {
         Assert.assertEquals(Formula.HARRIS_BENEDICT.getId(), formulaId);
     }
 
-    public boolean isColumnExist(AppDatabase database, String tableName, String columnName) {
+    public boolean isColumnExist(SupportSQLiteDatabase database, String tableName, String columnName) {
         try (Cursor cursor = database.query("PRAGMA table_info(" + tableName + ")", null)) {
             while (cursor.moveToNext()) {
                 String currentColumnName = cursor.getString(cursor.getColumnIndex("name"));

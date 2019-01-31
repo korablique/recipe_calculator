@@ -10,6 +10,9 @@ import korablique.recipecalculator.model.Lifestyle;
  * Значения из старых версий БД, нужные для эмиграции.
  */
 public class LegacyDatabaseValues {
+    public static final String COLUMN_NAME_COEFFICIENT = "coefficient";
+    public static final String COLUMN_NAME_GOAL = "goal";
+
     public static final String GOAL_LOSING_WEIGHT = "Снижение веса";
     public static final String GOAL_MAINTAINING_CURRENT_WEIGHT = "Сохранение веса";
     public static final String GOAL_MASS_GATHERING = "Набор веса";

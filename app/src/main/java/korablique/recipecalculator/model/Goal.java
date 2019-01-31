@@ -52,4 +52,14 @@ public enum Goal {
             throw new IllegalArgumentException("Has no element with this id: " + id);
         }
     }
+
+    public static Goal fromTargetWeight(int targetWeight, int currentWeight) {
+        if (targetWeight < currentWeight) {
+            return Goal.LOSING_WEIGHT;
+        } else if (targetWeight == currentWeight) {
+            return Goal.MAINTAINING_CURRENT_WEIGHT;
+        } else {
+            return Goal.MASS_GATHERING;
+        }
+    }
 }

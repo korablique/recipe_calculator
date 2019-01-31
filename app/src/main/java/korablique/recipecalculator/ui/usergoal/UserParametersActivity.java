@@ -30,7 +30,6 @@ import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.model.Formula;
 import korablique.recipecalculator.model.FullName;
 import korablique.recipecalculator.model.Gender;
-import korablique.recipecalculator.model.Goal;
 import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
@@ -145,8 +144,7 @@ public class UserParametersActivity extends BaseActivity {
     }
 
     private UserParameters extractUserParameters() {
-        int goalSelectedPosition = ((Spinner) findViewById(R.id.goal_spinner)).getSelectedItemPosition();
-        Goal goal = Goal.POSITIONS.get(goalSelectedPosition);
+        int targetWeight = Integer.parseInt(((EditText) findViewById(R.id.target_weight)).getText().toString());
 
         int genderSelectedPosition = ((Spinner) findViewById(R.id.gender_spinner)).getSelectedItemPosition();
         Gender gender = Gender.POSITIONS.get(genderSelectedPosition - 1);
@@ -161,7 +159,7 @@ public class UserParametersActivity extends BaseActivity {
         int formulaSelectedPosition = ((Spinner) findViewById(R.id.formula_spinner)).getSelectedItemPosition();
         Formula formula = Formula.POSITIONS.get(formulaSelectedPosition);
 
-        return new UserParameters(goal, gender, age, height, weight, lifestyle, formula);
+        return new UserParameters(targetWeight, gender, age, height, weight, lifestyle, formula);
     }
 
     private void fillWithOldUserParameters(UserParameters oldUserParams) {
@@ -169,7 +167,7 @@ public class UserParametersActivity extends BaseActivity {
         EditText heightView = findViewById(R.id.height);
         EditText weightView = findViewById(R.id.weight);
         Spinner genderSpinner = findViewById(R.id.gender_spinner);
-        Spinner goalSpinner = findViewById(R.id.goal_spinner);
+        EditText targetWeightView = findViewById(R.id.target_weight);
         Spinner lifestyleSpinner = findViewById(R.id.lifestyle_spinner);
         Spinner formulaSpinner = findViewById(R.id.formula_spinner);
 
@@ -180,8 +178,8 @@ public class UserParametersActivity extends BaseActivity {
         Gender gender = oldUserParams.getGender();
         genderSpinner.setSelection(Gender.POSITIONS_REVERSED.get(gender) + 1);
 
-        Goal goal = oldUserParams.getGoal();
-        goalSpinner.setSelection(Goal.POSITIONS_REVERSED.get(goal));
+        int targetWeight = oldUserParams.getTargetWeight();
+        targetWeightView.setText(String.valueOf(targetWeight));
 
         Lifestyle lifestyle = oldUserParams.getLifestyle();
         lifestyleSpinner.setSelection(Lifestyle.POSITIONS_REVERSED.get(lifestyle));

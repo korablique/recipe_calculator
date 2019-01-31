@@ -99,13 +99,13 @@ public class HistoryActivityTest {
 
         databaseHolder.getDatabase().clearAllTables();
 
-        Goal goal = Goal.LOSING_WEIGHT;
+        int targetWeight = 60;
         Gender gender = Gender.MALE;
         int age = 24, height = 165, weight = 63;
         Lifestyle lifestyle = Lifestyle.PASSIVE_LIFESTYLE;
         Formula formula = Formula.HARRIS_BENEDICT;
         UserParameters userParameters = new UserParameters(
-                goal, gender, age, height, weight, lifestyle, formula);
+                targetWeight, gender, age, height, weight, lifestyle, formula);
         userParametersWorker.saveUserParameters(userParameters);
     }
 

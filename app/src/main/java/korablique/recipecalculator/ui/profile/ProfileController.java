@@ -89,12 +89,12 @@ public class ProfileController extends FragmentCallbacks.Observer {
     private void fillUserData(View fragmentView, UserParameters userParameters) {
         TextView ageTextView = fragmentView.findViewById(R.id.age);
         TextView heightTextView = fragmentView.findViewById(R.id.height);
-        TextView goalTextView = fragmentView.findViewById(R.id.goal);
+        TextView targetWeightTextView = fragmentView.findViewById(R.id.target_weight);
         TextView weightTextView = fragmentView.findViewById(R.id.weight_value);
 
         ageTextView.setText(String.valueOf(userParameters.getAge()));
         heightTextView.setText(String.valueOf(userParameters.getHeight()));
-        goalTextView.setText(userParameters.getGoal().getStringRes());
+        targetWeightTextView.setText(String.valueOf(userParameters.getTargetWeight()));
         weightTextView.setText(String.valueOf(userParameters.getWeight()));
     }
 

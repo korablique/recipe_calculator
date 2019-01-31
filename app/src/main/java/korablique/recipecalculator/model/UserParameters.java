@@ -6,7 +6,7 @@ import android.os.Parcelable;
 import java.util.Objects;
 
 public class UserParameters implements Parcelable {
-    private final Goal goal;
+    private final int targetWeight;
     private final Gender gender;
     private final int age;
     private final int height;
@@ -15,14 +15,14 @@ public class UserParameters implements Parcelable {
     private final Formula formula;
 
     public UserParameters(
-            Goal goal,
+            int targetWeight,
             Gender gender,
             int age,
             int height,
             int weight,
             Lifestyle lifestyle,
             Formula formula) {
-        this.goal = goal;
+        this.targetWeight = targetWeight;
         this.gender = gender;
         this.age = age;
         this.height = height;
@@ -32,7 +32,7 @@ public class UserParameters implements Parcelable {
     }
 
     protected UserParameters(Parcel in) {
-        goal = (Goal) in.readSerializable();
+        targetWeight = in.readInt();
         gender = (Gender) in.readSerializable();
         age = in.readInt();
         height = in.readInt();
@@ -42,7 +42,17 @@ public class UserParameters implements Parcelable {
     }
 
     public Goal getGoal() {
-        return goal;
+        if (targetWeight < weight) {
+            return Goal.LOSING_WEIGHT;
+        } else if (targetWeight == weight) {
+            return Goal.MAINTAINING_CURRENT_WEIGHT;
+        } else {
+            return Goal.MASS_GATHERING;
+        }
+    }
+
+    public int getTargetWeight() {
+        return targetWeight;
     }
 
     public Gender getGender() {
@@ -78,14 +88,14 @@ public class UserParameters implements Parcelable {
                 height == that.height &&
                 weight == that.weight &&
                 Objects.equals(lifestyle, that.lifestyle) &&
-                Objects.equals(goal, that.goal) &&
+                targetWeight == that.targetWeight &&
                 Objects.equals(gender, that.gender) &&
                 Objects.equals(formula, that.formula);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(goal, gender, age, height, weight, lifestyle, formula);
+        return Objects.hash(targetWeight, gender, age, height, weight, lifestyle, formula);
     }
 
     public static final Creator<UserParameters> CREATOR = new Creator<UserParameters>() {
@@ -107,7 +117,7 @@ public class UserParameters implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeSerializable(goal);
+        parcel.writeInt(targetWeight);
         parcel.writeSerializable(gender);
         parcel.writeInt(age);
         parcel.writeInt(height);

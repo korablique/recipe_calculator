@@ -3,15 +3,12 @@ package korablique.recipecalculator.ui.history;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.annotation.Nullable;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.crashlytics.android.Crashlytics;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
 import com.tapadoo.alerter.Alerter;
 
 import java.util.ArrayList;
@@ -20,6 +17,9 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import io.reactivex.Single;
 import korablique.recipecalculator.FloatUtils;
 import korablique.recipecalculator.R;
@@ -41,7 +41,7 @@ import korablique.recipecalculator.ui.Card;
 import korablique.recipecalculator.ui.CardDisplaySource;
 import korablique.recipecalculator.ui.KeyboardHandler;
 import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
-import korablique.recipecalculator.ui.usergoal.UserGoalActivity;
+import korablique.recipecalculator.ui.usergoal.UserParametersActivity;
 
 import static korablique.recipecalculator.IntentConstants.FIND_FOODSTUFF_REQUEST;
 import static korablique.recipecalculator.IntentConstants.NAME;
@@ -104,7 +104,7 @@ public class HistoryActivity extends BaseActivity {
                 initializeActivity(parameters.get());
                 tryToAddFoodstuffsFrom(getIntent());
             } else {
-                Intent intent = new Intent(HistoryActivity.this, UserGoalActivity.class);
+                Intent intent = new Intent(HistoryActivity.this, UserParametersActivity.class);
                 startActivity(intent);
                 finish();
             }
@@ -137,7 +137,7 @@ public class HistoryActivity extends BaseActivity {
 
     private void initializeActivity(UserParameters userParameters) {
         final Rates rates = RateCalculator.calculate(
-                userParameters.getGoal(),
+                userParameters.getTargetWeight(),
                 userParameters.getGender(),
                 userParameters.getAge(),
                 userParameters.getHeight(),

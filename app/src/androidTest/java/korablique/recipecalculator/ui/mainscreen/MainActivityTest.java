@@ -169,7 +169,7 @@ public class MainActivityTest {
 
         // сохраняем userParameters в БД
         UserParameters userParameters = new UserParameters(
-                Goal.LOSING_WEIGHT, Gender.FEMALE, 25, 158, 48, Lifestyle.PASSIVE_LIFESTYLE, Formula.HARRIS_BENEDICT);
+                45, Gender.FEMALE, 25, 158, 48, Lifestyle.PASSIVE_LIFESTYLE, Formula.HARRIS_BENEDICT);
         userParametersWorker.saveUserParameters(userParameters);
 
         // каждый тест должен сам сделать launchActivity()
