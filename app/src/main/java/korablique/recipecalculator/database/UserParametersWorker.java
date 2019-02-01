@@ -94,6 +94,56 @@ public class UserParametersWorker {
         return userParameters;
     }
 
+    /**
+     * Преобразует вызов {@link #requestFirstUserParametersImpl}, который должен быть
+     * сделан на потоке БД, в создание Observable.
+     */
+    public Single<Optional<UserParameters>> requestFirstUserParameters() {
+        Single<Optional<UserParameters>> result = Single.create((subscriber) -> {
+            UserParameters params = requestFirstUserParametersImpl();
+            if (params != null) {
+                subscriber.onSuccess(Optional.of(params));
+            } else {
+                subscriber.onSuccess(Optional.empty());
+            }
+        });
+        result = result.subscribeOn(databaseThreadExecutor.asScheduler())
+                .observeOn(mainThreadExecutor.asScheduler())
+                .cache();
+        return result;
+    }
+
+    /**
+     * Делает фактический запрос к БД, должен быть вызван на потоке БД.
+     */
+    @Nullable
+    private UserParameters requestFirstUserParametersImpl() {
+        AppDatabase database = databaseHolder.getDatabase();
+        UserParametersDao userDao = database.userParametersDao();
+        UserParametersEntity userEntity = userDao.loadFirstUserParameters();
+
+        UserParameters userParameters = null;
+        if (userEntity != null) {
+            int targetWeight = userEntity.getTargetWeight();
+
+            int genderId = userEntity.getGenderId();
+            Gender gender = Gender.fromId(genderId);
+
+            int age = userEntity.getAge();
+            int height = userEntity.getHeight();
+            int weight = userEntity.getWeight();
+
+            int lifestyleId = userEntity.getLifestyleId();
+            Lifestyle lifestyle = Lifestyle.fromId(lifestyleId);
+
+            int formulaId = userEntity.getFormulaId();
+            Formula formula = Formula.fromId(formulaId);
+
+            userParameters = new UserParameters(targetWeight, gender, age, height, weight, lifestyle, formula);
+        }
+        return userParameters;
+    }
+
     public Completable saveUserParameters(
             final UserParameters userParameters) {
         Completable result = Completable.create((subscriber) -> {
