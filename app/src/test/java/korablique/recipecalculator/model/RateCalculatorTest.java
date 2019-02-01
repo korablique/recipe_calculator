@@ -16,7 +16,7 @@ public class RateCalculatorTest {
     @Test
     public void ratesCalculatedCorrectly() {
         Rates rates1 = RateCalculator.calculate(
-                Goal.LOSING_WEIGHT,
+                40,
                 Gender.FEMALE,
                 24,
                 158,
@@ -29,7 +29,7 @@ public class RateCalculatorTest {
         Assert.assertTrue("Carbs", FloatUtils.areFloatsEquals(146.05344f, rates1.getCarbs()));
 
         Rates rates2 = RateCalculator.calculate(
-                Goal.MASS_GATHERING,
+                70,
                 Gender.MALE,
                 24,
                 165,
