@@ -3,7 +3,7 @@ package korablique.recipecalculator.model;
 public class GoalCalculator {
     private GoalCalculator() {}
 
-    public static int percentDone(int currentWeight, int firstWeight, int targetWeight) {
+    public static int calculateProgressPercantage(int currentWeight, int firstWeight, int targetWeight) {
         if (currentWeight == targetWeight) {
             return 100;
         }

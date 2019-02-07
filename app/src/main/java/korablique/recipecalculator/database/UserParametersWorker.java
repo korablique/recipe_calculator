@@ -1,9 +1,8 @@
 package korablique.recipecalculator.database;
 
-import androidx.annotation.Nullable;
-
 import io.reactivex.Completable;
 import io.reactivex.Single;
+import korablique.recipecalculator.base.Function0arg;
 import korablique.recipecalculator.base.Optional;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.database.room.AppDatabase;
@@ -12,7 +11,6 @@ import korablique.recipecalculator.database.room.UserParametersDao;
 import korablique.recipecalculator.database.room.UserParametersEntity;
 import korablique.recipecalculator.model.Formula;
 import korablique.recipecalculator.model.Gender;
-import korablique.recipecalculator.model.Goal;
 import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.UserParameters;
 
@@ -44,64 +42,39 @@ public class UserParametersWorker {
         return cachedUserParameters;
     }
 
-    /**
-     * Преобразует вызов {@link #requestCurrentUserParametersImpl}, который должен быть
-     * сделан на потоке БД, в создание Observable.
-     */
     private Single<Optional<UserParameters>> requestCurrentUserParametersObservable() {
-        Single<Optional<UserParameters>> result = Single.create((subscriber) -> {
-            UserParameters params = requestCurrentUserParametersImpl();
-            if (params != null) {
-                subscriber.onSuccess(Optional.of(params));
-            } else {
-                subscriber.onSuccess(Optional.empty());
-            }
+        return requestUserParametersByFunction(() -> {
+            AppDatabase database = databaseHolder.getDatabase();
+            UserParametersDao userDao = database.userParametersDao();
+            return userDao.loadCurrentUserParameters();
         });
-        result = result.subscribeOn(databaseThreadExecutor.asScheduler())
-                .observeOn(mainThreadExecutor.asScheduler())
-                .cache();
-        return result;
     }
 
-    /**
-     * Делает фактический запрос к БД, должен быть вызван на потоке БД.
-     */
-    @Nullable
-    private UserParameters requestCurrentUserParametersImpl() {
-        AppDatabase database = databaseHolder.getDatabase();
-        UserParametersDao userDao = database.userParametersDao();
-        UserParametersEntity userEntity = userDao.loadCurrentUserParameters();
-
-        UserParameters userParameters = null;
-        if (userEntity != null) {
-            int targetWeight = userEntity.getTargetWeight();
-
-            int genderId = userEntity.getGenderId();
-            Gender gender = Gender.fromId(genderId);
-
-            int age = userEntity.getAge();
-            int height = userEntity.getHeight();
-            int weight = userEntity.getWeight();
-
-            int lifestyleId = userEntity.getLifestyleId();
-            Lifestyle lifestyle = Lifestyle.fromId(lifestyleId);
-
-            int formulaId = userEntity.getFormulaId();
-            Formula formula = Formula.fromId(formulaId);
-
-            userParameters = new UserParameters(targetWeight, gender, age, height, weight, lifestyle, formula);
-        }
-        return userParameters;
-    }
-
-    /**
-     * Преобразует вызов {@link #requestFirstUserParametersImpl}, который должен быть
-     * сделан на потоке БД, в создание Observable.
-     */
     public Single<Optional<UserParameters>> requestFirstUserParameters() {
+        return requestUserParametersByFunction(() -> {
+            AppDatabase database = databaseHolder.getDatabase();
+            UserParametersDao userDao = database.userParametersDao();
+            return userDao.loadFirstUserParameters();
+        });
+    }
+
+    /**
+     * Makes actual request to database.
+     * @param function function retrieves concrete user parameters (first/current)
+     */
+    private Single<Optional<UserParameters>> requestUserParametersByFunction(
+            Function0arg<UserParametersEntity> function) {
         Single<Optional<UserParameters>> result = Single.create((subscriber) -> {
-            UserParameters params = requestFirstUserParametersImpl();
-            if (params != null) {
+            UserParametersEntity entity = function.call();
+            if (entity != null) {
+                UserParameters params = new UserParameters(
+                        entity.getTargetWeight(),
+                        Gender.fromId(entity.getGenderId()),
+                        entity.getAge(),
+                        entity.getHeight(),
+                        entity.getWeight(),
+                        Lifestyle.fromId(entity.getLifestyleId()),
+                        Formula.fromId(entity.getFormulaId()));
                 subscriber.onSuccess(Optional.of(params));
             } else {
                 subscriber.onSuccess(Optional.empty());
@@ -111,37 +84,6 @@ public class UserParametersWorker {
                 .observeOn(mainThreadExecutor.asScheduler())
                 .cache();
         return result;
-    }
-
-    /**
-     * Делает фактический запрос к БД, должен быть вызван на потоке БД.
-     */
-    @Nullable
-    private UserParameters requestFirstUserParametersImpl() {
-        AppDatabase database = databaseHolder.getDatabase();
-        UserParametersDao userDao = database.userParametersDao();
-        UserParametersEntity userEntity = userDao.loadFirstUserParameters();
-
-        UserParameters userParameters = null;
-        if (userEntity != null) {
-            int targetWeight = userEntity.getTargetWeight();
-
-            int genderId = userEntity.getGenderId();
-            Gender gender = Gender.fromId(genderId);
-
-            int age = userEntity.getAge();
-            int height = userEntity.getHeight();
-            int weight = userEntity.getWeight();
-
-            int lifestyleId = userEntity.getLifestyleId();
-            Lifestyle lifestyle = Lifestyle.fromId(lifestyleId);
-
-            int formulaId = userEntity.getFormulaId();
-            Formula formula = Formula.fromId(formulaId);
-
-            userParameters = new UserParameters(targetWeight, gender, age, height, weight, lifestyle, formula);
-        }
-        return userParameters;
     }
 
     public Completable saveUserParameters(

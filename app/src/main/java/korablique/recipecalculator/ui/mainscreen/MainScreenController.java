@@ -19,6 +19,7 @@ import javax.inject.Inject;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
+import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.base.FragmentCallbacks;
 import korablique.recipecalculator.dagger.FragmentScope;
 import korablique.recipecalculator.database.FoodstuffsList;
@@ -44,7 +45,7 @@ import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
 public class MainScreenController extends FragmentCallbacks.Observer {
     private static final int SEARCH_SUGGESTIONS_NUMBER = 3;
     private BaseActivity context;
-    private MainScreenFragment fragment;
+    private BaseFragment fragment;
     private Lifecycle lifecycle;
     private final FoodstuffsList foodstuffsList;
     private final TopList topList;
@@ -72,7 +73,7 @@ public class MainScreenController extends FragmentCallbacks.Observer {
     @Inject
     MainScreenController(
             BaseActivity context,
-            MainScreenFragment fragment,
+            BaseFragment fragment,
             FragmentCallbacks fragmentCallbacks,
             Lifecycle lifecycle,
             TopList topList,

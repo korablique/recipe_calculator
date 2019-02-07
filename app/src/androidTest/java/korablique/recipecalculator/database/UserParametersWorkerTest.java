@@ -73,11 +73,11 @@ public class UserParametersWorkerTest {
 
         Single<Optional<UserParameters>> retrievedParamsObservable =
                 userParametersWorker.requestCurrentUserParameters();
-        UserParameters[] retreivedParams = new UserParameters[1];
+        UserParameters[] retrievedParams = new UserParameters[1];
         retrievedParamsObservable.subscribe((params) -> {
-            retreivedParams[0] = params.get();
+            retrievedParams[0] = params.get();
         });
-        Assert.assertEquals(userParameters, retreivedParams[0]);
+        Assert.assertEquals(userParameters, retrievedParams[0]);
     }
 
     @Test
@@ -110,5 +110,25 @@ public class UserParametersWorkerTest {
         // Через шпиона убеждаемся, что UserParamsWorker взаимодействовал с БД,
         // т.к. у него 100% отсутствовал кеш и достать параметры юзера он больше ни откуда не мог
         verify(spiedDatabaseThreadExecutor).asScheduler();
+    }
+
+    @Test
+    public void requestFirstUserParametersWorksCorrectly() {
+        UserParameters userParameters1 = new UserParameters(
+                50, Gender.FEMALE, 30, 160, 60, Lifestyle.PASSIVE_LIFESTYLE, Formula.HARRIS_BENEDICT);
+        UserParameters userParameters2 = new UserParameters(
+                50, Gender.FEMALE, 31, 160, 59, Lifestyle.INSIGNIFICANT_ACTIVITY, Formula.HARRIS_BENEDICT);
+        UserParameters userParameters3 = new UserParameters(
+                50, Gender.FEMALE, 31, 160, 58, Lifestyle.INSIGNIFICANT_ACTIVITY, Formula.MIFFLIN_JEOR);
+        userParametersWorker.saveUserParameters(userParameters1);
+        userParametersWorker.saveUserParameters(userParameters2);
+        userParametersWorker.saveUserParameters(userParameters3);
+        Single<Optional<UserParameters>> firstParamsSingle = userParametersWorker.requestFirstUserParameters();
+
+        UserParameters[] retrievedParams = new UserParameters[1];
+        firstParamsSingle.subscribe((params) -> {
+            retrievedParams[0] = params.get();
+        });
+        Assert.assertEquals(userParameters1, retrievedParams[0]);
     }
 }

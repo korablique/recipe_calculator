@@ -19,7 +19,6 @@ import korablique.recipecalculator.base.RxFragmentSubscriptions;
 import korablique.recipecalculator.dagger.FragmentScope;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.model.FullName;
-import korablique.recipecalculator.model.Goal;
 import korablique.recipecalculator.model.GoalCalculator;
 import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.model.RateCalculator;
@@ -38,7 +37,7 @@ public class ProfileController extends FragmentCallbacks.Observer {
     private UserNameProvider userNameProvider;
 
     @Inject
-    ProfileController(
+    public ProfileController(
             BaseFragment fragment,
             FragmentCallbacks fragmentCallbacks,
             UserParametersWorker userParametersWorker,
@@ -67,22 +66,8 @@ public class ProfileController extends FragmentCallbacks.Observer {
 
         subscriptions.subscribe(singlePair, new Consumer<Pair<Optional<UserParameters>, Optional<UserParameters>>>() {
             @Override
-            public void accept(Pair<Optional<UserParameters>, Optional<UserParameters>> optionalOptionalPair) {
-                // заполняем профиль последними параметрами пользоваетля
-
-                UserParameters lastUserParameters = optionalOptionalPair.second.get();
-                fillUserData(fragmentView, lastUserParameters);
-
-                Rates rates = RateCalculator.calculate(lastUserParameters);
-                fillNutritionRates(fragmentView, rates);
-
-                // рассчитываем процент достижения цели
-                UserParameters firstUserParameters = optionalOptionalPair.first.get();
-                int currentWeight = lastUserParameters.getWeight();
-                int firstWeight = firstUserParameters.getWeight();
-                int targetWeight = lastUserParameters.getTargetWeight();
-                int percentDone = GoalCalculator.percentDone(currentWeight, firstWeight, targetWeight);
-                setPercentDoneProgress(percentDone);
+            public void accept(Pair<Optional<UserParameters>, Optional<UserParameters>> firstAndLastParams) {
+                fillProfile(firstAndLastParams.first.get(), firstAndLastParams.second.get(), fragmentView);
             }
         });
 
@@ -104,27 +89,14 @@ public class ProfileController extends FragmentCallbacks.Observer {
                 firstParamsSingle.zipWith(lastParamsSingle, Pair::create);
         subscriptions.subscribe(pairSingle, new Consumer<Pair<Optional<UserParameters>, Optional<UserParameters>>>() {
             @Override
-            public void accept(Pair<Optional<UserParameters>, Optional<UserParameters>> optionalOptionalPair) {
-                UserParameters firstParams = optionalOptionalPair.first.get();
-                if (!optionalOptionalPair.first.isPresent()) {
+            public void accept(Pair<Optional<UserParameters>, Optional<UserParameters>> firstAndLastParams) {
+                UserParameters firstParams = firstAndLastParams.first.get();
+                if (!firstAndLastParams.first.isPresent()) {
                     throw new IllegalStateException("It is impossible for the first user parameters to be missing");
                 }
-                if (optionalOptionalPair.second.isPresent()) {
-                    UserParameters lastParams = optionalOptionalPair.second.get();
-                    View fragmentView = fragment.getView();
-
-                    fillUserData(fragmentView, lastParams);
-
-                    Rates rates = RateCalculator.calculate(lastParams);
-                    fillNutritionRates(fragmentView, rates);
-
-                    fillUserName(fragmentView, userNameProvider.getUserName());
-
-                    int currentWeight = lastParams.getWeight();
-                    int firstWeight = firstParams.getWeight();
-                    int targetWeight = lastParams.getTargetWeight();
-                    int percentDone = GoalCalculator.percentDone(currentWeight, firstWeight, targetWeight);
-                    setPercentDoneProgress(percentDone);
+                if (firstAndLastParams.second.isPresent()) {
+                    UserParameters lastParams = firstAndLastParams.second.get();
+                    fillProfile(firstParams, lastParams, fragment.getView());
                 }
             }
         });
@@ -162,16 +134,29 @@ public class ProfileController extends FragmentCallbacks.Observer {
 
     private void fillUserName(View fragmentView, FullName userFullName) {
         TextView nameView = fragmentView.findViewById(R.id.user_name);
-        String nameAndSurname = userFullName.getFirstName() + " " + userFullName.getLastName();
-        nameView.setText(nameAndSurname);
+        nameView.setText(userFullName.toString());
     }
 
-    private void setPercentDoneProgress(int percentDone) {
-        FragmentActivity context = fragment.getActivity();
-        TextView percentView = context.findViewById(R.id.done_percent);
+    private void setPercentDoneProgress(int percentDone, View fragmentView) {
+        TextView percentView = fragmentView.findViewById(R.id.done_percent);
         percentView.setText(String.valueOf(percentDone));
 
-        CircularProgressBar circularProgressBar = context.findViewById(R.id.circular_progress);
+        CircularProgressBar circularProgressBar = fragmentView.findViewById(R.id.circular_progress);
         circularProgressBar.setProgress(percentDone);
+    }
+
+    private void fillProfile(UserParameters firstParams, UserParameters lastParams, View fragmentView) {
+        fillUserData(fragmentView, lastParams);
+
+        Rates rates = RateCalculator.calculate(lastParams);
+        fillNutritionRates(fragmentView, rates);
+
+        fillUserName(fragmentView, userNameProvider.getUserName());
+
+        int currentWeight = lastParams.getWeight();
+        int firstWeight = firstParams.getWeight();
+        int targetWeight = lastParams.getTargetWeight();
+        int percentDone = GoalCalculator.calculateProgressPercantage(currentWeight, firstWeight, targetWeight);
+        setPercentDoneProgress(percentDone, fragmentView);
     }
 }
