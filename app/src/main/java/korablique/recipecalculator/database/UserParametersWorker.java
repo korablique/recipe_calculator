@@ -18,7 +18,9 @@ public class UserParametersWorker {
     private DatabaseHolder databaseHolder;
     private final DatabaseThreadExecutor databaseThreadExecutor;
     private final MainThreadExecutor mainThreadExecutor;
-    private volatile Single<Optional<UserParameters>> cachedUserParameters;
+    private volatile Single<Optional<UserParameters>> cachedCurrentUserParameters;
+    private volatile Single<Optional<UserParameters>> cachedFirstUserParameters;
+
 
     public UserParametersWorker(
             DatabaseHolder databaseHolder,
@@ -30,16 +32,18 @@ public class UserParametersWorker {
     }
 
     public void initCache() {
-        cachedUserParameters = requestCurrentUserParametersObservable();
+        cachedCurrentUserParameters = requestCurrentUserParametersObservable();
+        cachedFirstUserParameters = requestFirstUserParametersObservable();
         // Форсируем моментальный старт ленивого запроса, чтобы запрос в БД фактически стартовал.
-        cachedUserParameters.subscribe();
+        cachedCurrentUserParameters.subscribe();
+        cachedFirstUserParameters.subscribe();
     }
 
     public Single<Optional<UserParameters>> requestCurrentUserParameters() {
-        if (cachedUserParameters == null) {
-            cachedUserParameters = requestCurrentUserParametersObservable();
+        if (cachedCurrentUserParameters == null) {
+            cachedCurrentUserParameters = requestCurrentUserParametersObservable();
         }
-        return cachedUserParameters;
+        return cachedCurrentUserParameters;
     }
 
     private Single<Optional<UserParameters>> requestCurrentUserParametersObservable() {
@@ -51,6 +55,13 @@ public class UserParametersWorker {
     }
 
     public Single<Optional<UserParameters>> requestFirstUserParameters() {
+        if (cachedFirstUserParameters == null) {
+            cachedFirstUserParameters = requestFirstUserParametersObservable();
+        }
+        return cachedFirstUserParameters;
+    }
+
+    private Single<Optional<UserParameters>> requestFirstUserParametersObservable() {
         return requestUserParametersByFunction(() -> {
             AppDatabase database = databaseHolder.getDatabase();
             UserParametersDao userDao = database.userParametersDao();
@@ -107,7 +118,7 @@ public class UserParametersWorker {
 
             // Мы вставили новые параметры пользователя в БД, нужно не забыть
             // обновить закешированное значение.
-            cachedUserParameters = Single.just(Optional.of(userParameters));
+            cachedCurrentUserParameters = Single.just(Optional.of(userParameters));
             subscriber.onComplete();
         });
 

@@ -116,14 +116,13 @@ class PluralProgressBar : View {
         return colors
     }
 
-    /**
-     * @param barIndex index from 0 to 9, depending on how many colors were specified in the layout.
-     * @param progress progress from 0 to 100
-     * @throws IllegalArgumentException if sum of all passed progresses is bigger than 100
-     */
-    fun setProgress(barIndex: Int, progress: Float) {
-        bars[barIndex].progress = progress
+    fun setProgress(vararg progress: Float) {
+        progress.forEachIndexed { index, value ->
+            bars[index].progress = value
+        }
+        recalculateAllBounds()
 
+        // check if nutrition sum > 100
         var totalProgress = 0
         for (bar in bars) {
             totalProgress += Math.floor(bar.progress.toDouble()).toInt()
@@ -137,21 +136,13 @@ class PluralProgressBar : View {
 
             throw IllegalStateException("Sum of all progresses must be <=100, but is $totalProgress, progress: $varsValuesStr")
         }
-
-        recalculateAllBounds()
-    }
-
-    fun setProgress(vararg progress: Float) {
-        progress.forEachIndexed { index, value ->
-            setProgress(index, value)
-        }
     }
 
     private fun recalculateAllBounds() {
         // Background takes entire view's size
         backgroundBar.setBounds(bounds)
 
-        // Let's move all the bars to their right places according to view's size and
+        // Let's move all the bars to their appropriate places according to view's size and
         // bar's progresses.
         val viewWidth = bounds.width()
         var currentLeft = bounds.left
@@ -162,6 +153,7 @@ class PluralProgressBar : View {
             bar.setBounds(currentLeft, bounds.top, currentRight, bounds.bottom)
             currentLeft = currentRight
         }
+        invalidate()
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
