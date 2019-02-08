@@ -143,6 +143,7 @@
             android:background="#FFFFFF">
 
             <com.mikhaellopez.circularprogressbar.CircularProgressBar
+                android:id="@+id/circular_progress"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_gravity="center"

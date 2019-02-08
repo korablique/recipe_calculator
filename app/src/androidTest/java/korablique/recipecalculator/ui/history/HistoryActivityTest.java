@@ -23,16 +23,15 @@ import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
-import korablique.recipecalculator.database.room.DatabaseHolder;
 import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
+import korablique.recipecalculator.database.room.DatabaseHolder;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Formula;
 import korablique.recipecalculator.model.Gender;
-import korablique.recipecalculator.model.Goal;
 import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.UserParameters;
@@ -130,8 +129,9 @@ public class HistoryActivityTest {
         mActivityRule.launchActivity(null);
 
         addItem();
+        double weight = 100.0;
         onView(withId(R.id.recycler_view)).perform(actionOnItemAtPosition(1, click()));
-        onView(withId(R.id.weight_edit_text)).perform(replaceText("100"));
+        onView(withId(R.id.weight_edit_text)).perform(replaceText(String.valueOf(weight)));
         onView(withId(R.id.button_ok)).perform(click());
 
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
@@ -142,7 +142,7 @@ public class HistoryActivityTest {
             }
         });
         onView(withId(R.id.recycler_view)).perform(actionOnItemAtPosition(1, click()));
-        onView(withId(R.id.weight_edit_text)).check(matches(withText("100.0")));
+        onView(withId(R.id.weight_edit_text)).check(matches(withText(String.valueOf(weight))));
     }
 
     @Test
@@ -152,11 +152,13 @@ public class HistoryActivityTest {
         addItem();
         onView(withId(R.id.recycler_view)).perform(actionOnItemAtPosition(1, click()));
 
-        onView(withId(R.id.name_edit_text)).perform(replaceText("new name"));
-        onView(withId(R.id.protein_edit_text)).perform(replaceText("10"));
-        onView(withId(R.id.fats_edit_text)).perform(replaceText("10"));
-        onView(withId(R.id.carbs_edit_text)).perform(replaceText("10"));
-        onView(withId(R.id.calories_edit_text)).perform(replaceText("100"));
+        String foodstuffName = "new name";
+        double protein = 10.0, fats = 10.0, carbs = 10.0, calories = 100.0;
+        onView(withId(R.id.name_edit_text)).perform(replaceText(foodstuffName));
+        onView(withId(R.id.protein_edit_text)).perform(replaceText(String.valueOf(protein)));
+        onView(withId(R.id.fats_edit_text)).perform(replaceText(String.valueOf(fats)));
+        onView(withId(R.id.carbs_edit_text)).perform(replaceText(String.valueOf(carbs)));
+        onView(withId(R.id.calories_edit_text)).perform(replaceText(String.valueOf(calories)));
         onView(withId(R.id.button_ok)).perform(click());
 
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
@@ -168,11 +170,11 @@ public class HistoryActivityTest {
         });
 
         onView(withId(R.id.recycler_view)).perform(actionOnItemAtPosition(1, click()));
-        onView(withId(R.id.name_edit_text)).check(matches(withText("new name")));
-        onView(withId(R.id.protein_edit_text)).check(matches(withText("10.0")));
-        onView(withId(R.id.fats_edit_text)).check(matches(withText("10.0")));
-        onView(withId(R.id.carbs_edit_text)).check(matches(withText("10.0")));
-        onView(withId(R.id.calories_edit_text)).check(matches(withText("100.0")));
+        onView(withId(R.id.name_edit_text)).check(matches(withText(foodstuffName)));
+        onView(withId(R.id.protein_edit_text)).check(matches(withText(String.valueOf(protein))));
+        onView(withId(R.id.fats_edit_text)).check(matches(withText(String.valueOf(fats))));
+        onView(withId(R.id.carbs_edit_text)).check(matches(withText(String.valueOf(carbs))));
+        onView(withId(R.id.calories_edit_text)).check(matches(withText(String.valueOf(calories))));
     }
 
     @Test
@@ -182,19 +184,21 @@ public class HistoryActivityTest {
         addItem();
         onView(withId(R.id.recycler_view)).perform(actionOnItemAtPosition(1, click()));
 
-        onView(withId(R.id.name_edit_text)).perform(replaceText("new name"));
-        onView(withId(R.id.protein_edit_text)).perform(replaceText("10"));
-        onView(withId(R.id.fats_edit_text)).perform(replaceText("10"));
-        onView(withId(R.id.carbs_edit_text)).perform(replaceText("10"));
-        onView(withId(R.id.calories_edit_text)).perform(replaceText("100"));
+        String foodstuffName = "new name";
+        double protein = 10.0, fats = 10.0, carbs = 10.0, calories = 100.0;
+        onView(withId(R.id.name_edit_text)).perform(replaceText(foodstuffName));
+        onView(withId(R.id.protein_edit_text)).perform(replaceText(String.valueOf(protein)));
+        onView(withId(R.id.fats_edit_text)).perform(replaceText(String.valueOf(fats)));
+        onView(withId(R.id.carbs_edit_text)).perform(replaceText(String.valueOf(carbs)));
+        onView(withId(R.id.calories_edit_text)).perform(replaceText(String.valueOf(calories)));
         onView(withId(R.id.button_ok)).perform(click());
 
         onView(withId(R.id.recycler_view)).perform(actionOnItemAtPosition(1, click()));
-        onView(withId(R.id.name_edit_text)).check(matches(withText("new name")));
-        onView(withId(R.id.protein_edit_text)).check(matches(withText("10.0")));
-        onView(withId(R.id.fats_edit_text)).check(matches(withText("10.0")));
-        onView(withId(R.id.carbs_edit_text)).check(matches(withText("10.0")));
-        onView(withId(R.id.calories_edit_text)).check(matches(withText("100.0")));
+        onView(withId(R.id.name_edit_text)).check(matches(withText(foodstuffName)));
+        onView(withId(R.id.protein_edit_text)).check(matches(withText(String.valueOf(protein))));
+        onView(withId(R.id.fats_edit_text)).check(matches(withText(String.valueOf(fats))));
+        onView(withId(R.id.carbs_edit_text)).check(matches(withText(String.valueOf(carbs))));
+        onView(withId(R.id.calories_edit_text)).check(matches(withText(String.valueOf(calories))));
     }
 
     @Test

@@ -1,11 +1,16 @@
 package korablique.recipecalculator.ui.profile;
 
+import android.util.Pair;
 import android.view.View;
 import android.widget.TextView;
 
+import com.mikhaellopez.circularprogressbar.CircularProgressBar;
+
 import javax.inject.Inject;
 
+import androidx.fragment.app.FragmentActivity;
 import io.reactivex.Single;
+import io.reactivex.functions.Consumer;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.base.FragmentCallbacks;
@@ -14,6 +19,7 @@ import korablique.recipecalculator.base.RxFragmentSubscriptions;
 import korablique.recipecalculator.dagger.FragmentScope;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.model.FullName;
+import korablique.recipecalculator.model.GoalCalculator;
 import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.model.RateCalculator;
 import korablique.recipecalculator.model.Rates;
@@ -31,7 +37,7 @@ public class ProfileController extends FragmentCallbacks.Observer {
     private UserNameProvider userNameProvider;
 
     @Inject
-    ProfileController(
+    public ProfileController(
             BaseFragment fragment,
             FragmentCallbacks fragmentCallbacks,
             UserParametersWorker userParametersWorker,
@@ -49,14 +55,20 @@ public class ProfileController extends FragmentCallbacks.Observer {
         FullName userFullName = userNameProvider.getUserName();
         fillUserName(fragmentView, userFullName);
 
-        Single<Optional<UserParameters>> paramsSingle =
+        Single<Optional<UserParameters>> lastParamsSingle =
                 userParametersWorker.requestCurrentUserParameters();
-        subscriptions.subscribe(paramsSingle, (Optional<UserParameters> parameters) -> {
-            UserParameters userParameters = parameters.get();
-            fillUserData(fragmentView, userParameters);
 
-            Rates rates = RateCalculator.calculate(userParameters);
-            fillNutritionRates(fragmentView, rates);
+        Single<Optional<UserParameters>> firstParamsSingle =
+                userParametersWorker.requestFirstUserParameters();
+
+        Single<Pair<Optional<UserParameters>, Optional<UserParameters>>> singlePair = firstParamsSingle.zipWith(lastParamsSingle,
+                Pair::create);
+
+        subscriptions.subscribe(singlePair, new Consumer<Pair<Optional<UserParameters>, Optional<UserParameters>>>() {
+            @Override
+            public void accept(Pair<Optional<UserParameters>, Optional<UserParameters>> firstAndLastParams) {
+                fillProfile(firstAndLastParams.first.get(), firstAndLastParams.second.get(), fragmentView);
+            }
         });
 
         // редактирование профиля
@@ -69,19 +81,23 @@ public class ProfileController extends FragmentCallbacks.Observer {
     @Override
     public void onFragmentStart() {
         // обновляет данные пользователя, если они редактировались
-        Single<Optional<UserParameters>> paramsSingle =
+        Single<Optional<UserParameters>> lastParamsSingle =
                 userParametersWorker.requestCurrentUserParameters();
-        subscriptions.subscribe(paramsSingle, (Optional<UserParameters> parameters) -> {
-            if (parameters.isPresent()) {
-                View fragmentView = fragment.getView();
-
-                UserParameters userParameters = parameters.get();
-                fillUserData(fragmentView, userParameters);
-
-                Rates rates = RateCalculator.calculate(userParameters);
-                fillNutritionRates(fragmentView, rates);
-
-                fillUserName(fragmentView, userNameProvider.getUserName());
+        Single<Optional<UserParameters>> firstParamsSingle =
+                userParametersWorker.requestFirstUserParameters();
+        Single<Pair<Optional<UserParameters>, Optional<UserParameters>>> pairSingle =
+                firstParamsSingle.zipWith(lastParamsSingle, Pair::create);
+        subscriptions.subscribe(pairSingle, new Consumer<Pair<Optional<UserParameters>, Optional<UserParameters>>>() {
+            @Override
+            public void accept(Pair<Optional<UserParameters>, Optional<UserParameters>> firstAndLastParams) {
+                UserParameters firstParams = firstAndLastParams.first.get();
+                if (!firstAndLastParams.first.isPresent()) {
+                    throw new IllegalStateException("It is impossible for the first user parameters to be missing");
+                }
+                if (firstAndLastParams.second.isPresent()) {
+                    UserParameters lastParams = firstAndLastParams.second.get();
+                    fillProfile(firstParams, lastParams, fragment.getView());
+                }
             }
         });
     }
@@ -118,7 +134,29 @@ public class ProfileController extends FragmentCallbacks.Observer {
 
     private void fillUserName(View fragmentView, FullName userFullName) {
         TextView nameView = fragmentView.findViewById(R.id.user_name);
-        String nameAndSurname = userFullName.getFirstName() + " " + userFullName.getLastName();
-        nameView.setText(nameAndSurname);
+        nameView.setText(userFullName.toString());
+    }
+
+    private void setPercentDoneProgress(int percentDone, View fragmentView) {
+        TextView percentView = fragmentView.findViewById(R.id.done_percent);
+        percentView.setText(String.valueOf(percentDone));
+
+        CircularProgressBar circularProgressBar = fragmentView.findViewById(R.id.circular_progress);
+        circularProgressBar.setProgress(percentDone);
+    }
+
+    private void fillProfile(UserParameters firstParams, UserParameters lastParams, View fragmentView) {
+        fillUserData(fragmentView, lastParams);
+
+        Rates rates = RateCalculator.calculate(lastParams);
+        fillNutritionRates(fragmentView, rates);
+
+        fillUserName(fragmentView, userNameProvider.getUserName());
+
+        int currentWeight = lastParams.getWeight();
+        int firstWeight = firstParams.getWeight();
+        int targetWeight = lastParams.getTargetWeight();
+        int percentDone = GoalCalculator.calculateProgressPercantage(currentWeight, firstWeight, targetWeight);
+        setPercentDoneProgress(percentDone, fragmentView);
     }
 }

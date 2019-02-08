@@ -24,6 +24,7 @@ import java.util.List;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
 import androidx.test.InstrumentationRegistry;
+import androidx.test.espresso.matcher.ViewMatchers;
 import androidx.test.filters.LargeTest;
 import androidx.test.rule.ActivityTestRule;
 import androidx.test.runner.AndroidJUnit4;
@@ -31,26 +32,36 @@ import korablique.recipecalculator.IntentConstants;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.base.BaseActivity;
+import korablique.recipecalculator.base.BaseFragment;
+import korablique.recipecalculator.base.FragmentCallbacks;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
-import korablique.recipecalculator.database.room.DatabaseHolder;
+import korablique.recipecalculator.base.RxFragmentSubscriptions;
+import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
+import korablique.recipecalculator.database.room.DatabaseHolder;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Formula;
+import korablique.recipecalculator.model.FullName;
 import korablique.recipecalculator.model.Gender;
-import korablique.recipecalculator.model.Goal;
+import korablique.recipecalculator.model.GoalCalculator;
 import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.PopularProductsUtils;
+import korablique.recipecalculator.model.RateCalculator;
+import korablique.recipecalculator.model.Rates;
 import korablique.recipecalculator.model.TopList;
+import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
+import korablique.recipecalculator.ui.profile.ProfileController;
+import korablique.recipecalculator.ui.profile.ProfileFragment;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.SyncMainThreadExecutor;
@@ -67,7 +78,9 @@ import static androidx.test.espresso.intent.matcher.IntentMatchers.hasAction;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasExtras;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static androidx.test.espresso.matcher.ViewMatchers.withEffectiveVisibility;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
+import static androidx.test.espresso.matcher.ViewMatchers.withParent;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertContains;
 import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertNotContains;
@@ -78,7 +91,8 @@ import static org.hamcrest.Matchers.not;
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class MainActivityTest {
-    private SyncMainThreadExecutor mainThreadExecutor = new SyncMainThreadExecutor();
+    private DatabaseThreadExecutor databaseThreadExecutor = new InstantDatabaseThreadExecutor();
+    private MainThreadExecutor mainThreadExecutor = new SyncMainThreadExecutor();
     private DatabaseHolder databaseHolder;
     private DatabaseWorker databaseWorker;
     private HistoryWorker historyWorker;
@@ -88,13 +102,14 @@ public class MainActivityTest {
     private Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
     private Foodstuff[] foodstuffs;
     private BucketList bucketList = BucketList.getInstance();
+    private UserParameters userParameters;
+    private UserNameProvider userNameProvider;
 
     @Rule
     public ActivityTestRule<MainActivity> mActivityRule =
             InjectableActivityTestRule.forActivity(MainActivity.class)
                 .withManualStart()
                 .withSingletones(() -> {
-                    DatabaseThreadExecutor databaseThreadExecutor = new InstantDatabaseThreadExecutor();
                     databaseHolder = new DatabaseHolder(context, databaseThreadExecutor);
                     databaseWorker = new DatabaseWorker(
                             databaseHolder, mainThreadExecutor, databaseThreadExecutor);
@@ -104,8 +119,9 @@ public class MainActivityTest {
                             databaseHolder, mainThreadExecutor, databaseThreadExecutor);
                     foodstuffsList = new FoodstuffsList(databaseWorker);
                     topList = new TopList(context, databaseWorker, historyWorker);
+                    userNameProvider = new UserNameProvider(context);
                     return Arrays.asList(databaseWorker, historyWorker, userParametersWorker,
-                            foodstuffsList, databaseHolder);
+                            foodstuffsList, databaseHolder, userNameProvider);
                 })
                 .withActivityScoped((injectionTarget) -> {
                     if (!(injectionTarget instanceof MainActivity)) {
@@ -119,12 +135,23 @@ public class MainActivityTest {
                     return Collections.singletonList(controller);
                 })
                 .withFragmentScoped((injectionTarget -> {
-                    MainScreenFragment fragment = (MainScreenFragment) injectionTarget;
+                    BaseFragment fragment = (BaseFragment) injectionTarget;
+                    FragmentCallbacks fragmentCallbacks = fragment.getFragmentCallbacks();
+                    RxFragmentSubscriptions subscriptions = new RxFragmentSubscriptions(fragmentCallbacks);
                     BaseActivity activity = (BaseActivity) fragment.getActivity();
                     Lifecycle lifecycle = activity.getLifecycle();
-                    MainScreenController controller = new MainScreenController(
-                            activity, fragment, fragment.getFragmentCallbacks(), lifecycle, topList, foodstuffsList);
-                    return Collections.singletonList(controller);
+                    if (fragment instanceof MainScreenFragment) {
+                        MainScreenController mainScreenController = new MainScreenController(
+                                activity, fragment, fragment.getFragmentCallbacks(), lifecycle, topList, foodstuffsList);
+                        return Arrays.asList(subscriptions, mainScreenController);
+
+                    } else if (fragment instanceof ProfileFragment) {
+                        ProfileController profileController = new ProfileController(
+                                fragment, fragmentCallbacks, userParametersWorker, subscriptions, userNameProvider);
+                        return Arrays.asList(subscriptions, profileController);
+                    } else {
+                        throw new IllegalStateException("There is no such fragment class");
+                    }
                 }))
                 .build();
 
@@ -168,9 +195,12 @@ public class MainActivityTest {
         historyWorker.saveGroupOfFoodstuffsToHistory(newEntries);
 
         // сохраняем userParameters в БД
-        UserParameters userParameters = new UserParameters(
+        userParameters = new UserParameters(
                 45, Gender.FEMALE, 25, 158, 48, Lifestyle.PASSIVE_LIFESTYLE, Formula.HARRIS_BENEDICT);
         userParametersWorker.saveUserParameters(userParameters);
+
+        FullName fullName = new FullName("Yulia", "Zhilyaeva");
+        userNameProvider.saveUserName(fullName);
 
         // каждый тест должен сам сделать launchActivity()
     }
@@ -344,6 +374,41 @@ public class MainActivityTest {
         });
         instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
         onView(withId(R.id.selected_foodstuffs_counter)).check(matches(not(isDisplayed())));
+    }
+
+    @Test
+    public void profileDisplaysCorrectUserParameters() {
+        mActivityRule.launchActivity(null);
+        onView(allOf(withText(R.string.profile), withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)))
+                .perform(click());
+        // сейчас в UserParametersWorker'е только одни параметры.
+        // проверяем, что они отображаются в профиле
+        onView(withId(R.id.age)).check(matches(withText(String.valueOf(userParameters.getAge()))));
+        onView(withId(R.id.height)).check(matches(withText(String.valueOf(userParameters.getHeight()))));
+        onView(withId(R.id.target_weight)).check(matches(withText(String.valueOf(userParameters.getTargetWeight()))));
+        onView(withId(R.id.weight_value)).check(matches(withText(String.valueOf(userParameters.getWeight()))));
+        onView(withId(R.id.user_name)).check(matches(withText(userNameProvider.getUserName().toString())));
+
+        // проверяем, что отображаются правильные нормы
+        Rates rates = RateCalculator.calculate(userParameters);
+        onView(withId(R.id.calorie_intake)).check(matches(withText(String.valueOf(Math.round(rates.getCalories())))));
+        onView(allOf(
+                withParent(withId(R.id.protein_layout)),
+                withId(R.id.nutrition_text_view)))
+                .check(matches(withText(String.format("%.1f", rates.getProtein()))));
+        onView(allOf(
+                withParent(withId(R.id.fats_layout)),
+                withId(R.id.nutrition_text_view)))
+                .check(matches(withText(String.valueOf(String.format("%.1f", rates.getFats())))));
+        onView(allOf(
+                withParent(withId(R.id.carbs_layout)),
+                withId(R.id.nutrition_text_view)))
+                .check(matches(withText(String.valueOf(String.format("%.1f", rates.getCarbs())))));
+
+        // проверяем процент достижения цели
+        int percent = GoalCalculator.calculateProgressPercantage(
+                userParameters.getWeight(), userParameters.getWeight(), userParameters.getTargetWeight());
+        onView(withId(R.id.done_percent)).check(matches(withText(String.valueOf(percent))));
     }
 
     private List<Foodstuff> extractFoodstuffsTopFromDB() {
