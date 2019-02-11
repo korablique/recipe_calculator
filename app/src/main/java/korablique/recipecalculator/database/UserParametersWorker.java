@@ -119,6 +119,7 @@ public class UserParametersWorker {
             // Мы вставили новые параметры пользователя в БД, нужно не забыть
             // обновить закешированное значение.
             cachedCurrentUserParameters = Single.just(Optional.of(userParameters));
+            cachedFirstUserParameters = requestFirstUserParameters();
             subscriber.onComplete();
         });
 
