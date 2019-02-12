@@ -52,18 +52,19 @@ public class UserParametersActivity extends BaseActivity {
         // гендер
         List<String> genderList = new ArrayList<>(Arrays.asList(getResources().getStringArray(R.array.gender_array)));
         int disableItemIndex = 0;
-        ArrayAdapterWithDisabledItem genderAdapter = new ArrayAdapterWithDisabledItem(
+        ArrayAdapter<String> genderAdapter = new ArrayAdapterWithDisabledItem(
                 this, android.R.layout.simple_spinner_item, genderList, disableItemIndex);
         genderAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         Spinner genderSpinner = findViewById(R.id.gender_spinner);
         genderSpinner.setAdapter(genderAdapter);
 
         // образ жизни
-        Spinner lifestyleSpinner = findViewById(R.id.lifestyle_spinner);
-        ArrayAdapter<CharSequence> lifestyleAdapter = ArrayAdapter.createFromResource(this,
-                R.array.physical_activity_array, android.R.layout.simple_spinner_item);
+        List<String> lifestyleList = new ArrayList<>(Arrays.asList(getResources().getStringArray(R.array.physical_activity_array)));
+        ArrayAdapter<String> lifestyleAdapter = new RobotoMonoArrayAdapter(this, android.R.layout.simple_spinner_item, lifestyleList);
         lifestyleAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        Spinner lifestyleSpinner = findViewById(R.id.lifestyle_spinner);
         lifestyleSpinner.setAdapter(lifestyleAdapter);
+
         lifestyleSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -77,6 +78,13 @@ public class UserParametersActivity extends BaseActivity {
                 ((TextView) findViewById(R.id.description)).setText("");
             }
         });
+
+        // формула
+        List<String> formulaList = new ArrayList<>(Arrays.asList(getResources().getStringArray(R.array.formula_array)));
+        ArrayAdapter<String> formulaAdapter = new RobotoMonoArrayAdapter(this, android.R.layout.simple_spinner_item, formulaList);
+        formulaAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        Spinner formulaSpinner = findViewById(R.id.formula_spinner);
+        formulaSpinner.setAdapter(formulaAdapter);
 
         Button saveUserParamsButton = findViewById(R.id.button_save);
         saveUserParamsButton.setOnClickListener(new View.OnClickListener() {
