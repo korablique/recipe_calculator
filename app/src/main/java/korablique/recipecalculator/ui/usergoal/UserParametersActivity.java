@@ -3,6 +3,7 @@ package korablique.recipecalculator.ui.usergoal;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.InputFilter;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -34,6 +35,7 @@ import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.ui.ArrayAdapterWithDisabledItem;
+import korablique.recipecalculator.ui.DecimalDigitsInputFilter;
 import korablique.recipecalculator.ui.mainscreen.MainActivity;
 
 public class UserParametersActivity extends BaseActivity {
@@ -48,6 +50,11 @@ public class UserParametersActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_parameters);
+
+        TextView currentWeightView = findViewById(R.id.weight);
+        currentWeightView.setFilters(new InputFilter[] {new DecimalDigitsInputFilter()});
+        TextView targetWeightView = findViewById(R.id.target_weight);
+        targetWeightView.setFilters(new InputFilter[] {new DecimalDigitsInputFilter()});
 
         // гендер
         List<String> genderList = new ArrayList<>(Arrays.asList(getResources().getStringArray(R.array.gender_array)));
