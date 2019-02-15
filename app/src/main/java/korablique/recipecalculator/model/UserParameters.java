@@ -6,20 +6,20 @@ import android.os.Parcelable;
 import java.util.Objects;
 
 public class UserParameters implements Parcelable {
-    private final int targetWeight;
+    private final float targetWeight;
     private final Gender gender;
     private final int age;
     private final int height;
-    private final int weight;
+    private final float weight;
     private final Lifestyle lifestyle;
     private final Formula formula;
 
     public UserParameters(
-            int targetWeight,
+            float targetWeight,
             Gender gender,
             int age,
             int height,
-            int weight,
+            float weight,
             Lifestyle lifestyle,
             Formula formula) {
         this.targetWeight = targetWeight;
@@ -51,7 +51,7 @@ public class UserParameters implements Parcelable {
         }
     }
 
-    public int getTargetWeight() {
+    public float getTargetWeight() {
         return targetWeight;
     }
 
@@ -67,7 +67,7 @@ public class UserParameters implements Parcelable {
         return height;
     }
 
-    public int getWeight() {
+    public float getWeight() {
         return weight;
     }
 
@@ -117,11 +117,11 @@ public class UserParameters implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeInt(targetWeight);
+        parcel.writeFloat(targetWeight);
         parcel.writeSerializable(gender);
         parcel.writeInt(age);
         parcel.writeInt(height);
-        parcel.writeInt(weight);
+        parcel.writeFloat(weight);
         parcel.writeSerializable(lifestyle);
         parcel.writeSerializable(formula);
     }

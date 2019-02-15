@@ -406,7 +406,7 @@ public class MainActivityTest {
                 .check(matches(withText(String.valueOf(String.format("%.1f", rates.getCarbs())))));
 
         // проверяем процент достижения цели
-        int percent = GoalCalculator.calculateProgressPercantage(
+        int percent = GoalCalculator.calculateProgressPercentage(
                 userParameters.getWeight(), userParameters.getWeight(), userParameters.getTargetWeight());
         onView(withId(R.id.done_percent)).check(matches(withText(String.valueOf(percent))));
     }
