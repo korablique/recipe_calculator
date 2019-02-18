@@ -26,6 +26,7 @@ import korablique.recipecalculator.model.Rates;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.ui.NutritionValuesWrapper;
+import korablique.recipecalculator.ui.TextUtils;
 import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
 import korablique.recipecalculator.ui.usergoal.UserParametersActivity;
 
@@ -108,13 +109,11 @@ public class ProfileController extends FragmentCallbacks.Observer {
         TextView targetWeightTextView = fragmentView.findViewById(R.id.target_weight);
         TextView weightTextView = fragmentView.findViewById(R.id.weight_value);
 
-        Resources resources = fragmentView.getResources();
         ageTextView.setText(String.valueOf(userParameters.getAge()));
         heightTextView.setText(String.valueOf(userParameters.getHeight()));
-        targetWeightTextView.setText(resources.getString(
-                R.string.one_digit_precision_float, userParameters.getTargetWeight()).replace(',', '.'));
-        weightTextView.setText(resources.getString(
-                R.string.one_digit_precision_float, userParameters.getWeight()).replace(',', '.'));
+
+        targetWeightTextView.setText(TextUtils.getDecimalString(userParameters.getTargetWeight()));
+        weightTextView.setText(TextUtils.getDecimalString(userParameters.getWeight()));
     }
 
     private void fillNutritionRates(View fragmentView, Rates rates) {
