@@ -16,11 +16,11 @@ public class RateCalculator {
     }
 
     public static Rates calculate(
-            int targetWeight,
+            float targetWeight,
             Gender gender,
             int age,
             int height,
-            int currentWeight,
+            float currentWeight,
             Lifestyle lifestyle,
             Formula formula) {
         // 1) рассчитываем базальный метаболизм

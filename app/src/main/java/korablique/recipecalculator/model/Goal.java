@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import korablique.recipecalculator.FloatUtils;
 import korablique.recipecalculator.R;
 
 public enum Goal {
@@ -53,11 +54,11 @@ public enum Goal {
         }
     }
 
-    public static Goal fromTargetWeight(int targetWeight, int currentWeight) {
-        if (targetWeight < currentWeight) {
-            return Goal.LOSING_WEIGHT;
-        } else if (targetWeight == currentWeight) {
+    public static Goal fromTargetWeight(float targetWeight, float currentWeight) {
+        if (FloatUtils.areFloatsEquals(targetWeight, currentWeight)) {
             return Goal.MAINTAINING_CURRENT_WEIGHT;
+        } else if (targetWeight < currentWeight) {
+            return Goal.LOSING_WEIGHT;
         } else {
             return Goal.MASS_GATHERING;
         }

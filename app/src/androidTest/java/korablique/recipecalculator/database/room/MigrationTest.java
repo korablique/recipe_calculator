@@ -15,9 +15,13 @@ import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory;
 import androidx.test.filters.LargeTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
+import korablique.recipecalculator.FloatUtils;
 
+import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_TARGET_WEIGHT;
+import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_USER_WEIGHT;
 import static korablique.recipecalculator.database.UserParametersContract.USER_PARAMETERS_TABLE_NAME;
 import static korablique.recipecalculator.database.room.Migrations.MIGRATION_2_3;
+import static korablique.recipecalculator.database.room.Migrations.MIGRATION_3_4;
 
 @RunWith(AndroidJUnit4.class)
 @LargeTest
@@ -57,5 +61,25 @@ public class MigrationTest {
         // убеждаемся, что таблица пуста, т к при миграции мы удаляем её и создаём заново,
         // не перенося старые данные
         Assert.assertTrue(!cursor.moveToFirst());
+    }
+
+    @Test
+    public void migrate3To4() throws IOException {
+        SupportSQLiteDatabase db = helper.createDatabase(TEST_DB, 3);
+        int id = 1, targetWeight = 45, genderId = 1, age = 25, height = 158, weight = 48, lifestyleId = 0, formulaId = 0;
+        db.execSQL("INSERT INTO " + USER_PARAMETERS_TABLE_NAME + " VALUES (" +
+                + id + ", " + targetWeight + ", " + genderId + ", " + age + ", " + height + ", "
+                + weight + ", " + lifestyleId + ", " + formulaId + ")");
+        db.close();
+
+        db = helper.runMigrationsAndValidate(TEST_DB, 4, true, MIGRATION_3_4);
+        Cursor cursor = db.query("SELECT * FROM " + USER_PARAMETERS_TABLE_NAME);
+        while (cursor.moveToNext()) {
+            float targetWeightFloat = cursor.getFloat(cursor.getColumnIndex(COLUMN_NAME_TARGET_WEIGHT));
+            Assert.assertTrue(FloatUtils.areFloatsEquals(targetWeight, targetWeightFloat));
+
+            float weightFloat = cursor.getFloat(cursor.getColumnIndex(COLUMN_NAME_USER_WEIGHT));
+            Assert.assertTrue(FloatUtils.areFloatsEquals(weight, weightFloat));
+        }
     }
 }

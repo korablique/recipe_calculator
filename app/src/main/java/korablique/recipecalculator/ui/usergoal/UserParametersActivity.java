@@ -34,6 +34,7 @@ import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.ui.ArrayAdapterWithDisabledItem;
+import korablique.recipecalculator.ui.TextUtils;
 import korablique.recipecalculator.ui.mainscreen.MainActivity;
 
 public class UserParametersActivity extends BaseActivity {
@@ -152,14 +153,14 @@ public class UserParametersActivity extends BaseActivity {
     }
 
     private UserParameters extractUserParameters() {
-        int targetWeight = Integer.parseInt(((EditText) findViewById(R.id.target_weight)).getText().toString());
+        float targetWeight = Float.parseFloat(((EditText) findViewById(R.id.target_weight)).getText().toString());
 
         int genderSelectedPosition = ((Spinner) findViewById(R.id.gender_spinner)).getSelectedItemPosition();
         Gender gender = Gender.POSITIONS.get(genderSelectedPosition - 1);
 
         int age = Integer.parseInt(((EditText) findViewById(R.id.age)).getText().toString());
         int height = Integer.parseInt(((EditText) findViewById(R.id.height)).getText().toString());
-        int weight = Integer.parseInt(((EditText) findViewById(R.id.weight)).getText().toString());
+        float weight = Float.parseFloat(((EditText) findViewById(R.id.weight)).getText().toString());
 
         int lifestyleSelectedPosition = ((Spinner) findViewById(R.id.lifestyle_spinner)).getSelectedItemPosition();
         Lifestyle lifestyle = Lifestyle.POSITIONS.get(lifestyleSelectedPosition);
@@ -181,13 +182,11 @@ public class UserParametersActivity extends BaseActivity {
 
         ageView.setText(String.valueOf(oldUserParams.getAge()));
         heightView.setText(String.valueOf(oldUserParams.getHeight()));
-        weightView.setText(String.valueOf(oldUserParams.getWeight()));
+        weightView.setText(TextUtils.getDecimalString(oldUserParams.getWeight()));
+        targetWeightView.setText(TextUtils.getDecimalString(oldUserParams.getTargetWeight()));
 
         Gender gender = oldUserParams.getGender();
         genderSpinner.setSelection(Gender.POSITIONS_REVERSED.get(gender) + 1);
-
-        int targetWeight = oldUserParams.getTargetWeight();
-        targetWeightView.setText(String.valueOf(targetWeight));
 
         Lifestyle lifestyle = oldUserParams.getLifestyle();
         lifestyleSpinner.setSelection(Lifestyle.POSITIONS_REVERSED.get(lifestyle));

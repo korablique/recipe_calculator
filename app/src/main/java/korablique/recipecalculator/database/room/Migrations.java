@@ -82,6 +82,25 @@ public class Migrations {
         }
     };
 
+    static final Migration MIGRATION_3_4 = new Migration(3, 4) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            // store weight and target weight in float (REAL)
+            String tmpTableName = "user_params_tmp";
+            database.execSQL(
+                    "CREATE TABLE " + tmpTableName +" (" +
+                            UserParametersContract.ID + " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                            UserParametersContract.COLUMN_NAME_TARGET_WEIGHT + " REAL NOT NULL, " +
+                            UserParametersContract.COLUMN_NAME_GENDER + " INTEGER NOT NULL, " +
+                            UserParametersContract.COLUMN_NAME_AGE + " INTEGER NOT NULL, " +
+                            UserParametersContract.COLUMN_NAME_HEIGHT + " INTEGER NOT NULL, " +
+                            UserParametersContract.COLUMN_NAME_USER_WEIGHT + " REAL NOT NULL, " +
+                            UserParametersContract.COLUMN_NAME_LIFESTYLE + " INTEGER NOT NULL, " +
+                            UserParametersContract.COLUMN_NAME_FORMULA + " INTEGER NOT NULL)");
+            replaceTable(database, tmpTableName, USER_PARAMETERS_TABLE_NAME);
+        }
+    };
+
     private static void replaceTable(
             SupportSQLiteDatabase database, String tmpTableName, String targetTableName) {
         database.execSQL("INSERT INTO " + tmpTableName + " SELECT * FROM " + targetTableName);

@@ -14,7 +14,7 @@ public class UserParametersEntity {
     private long id;
     
     @ColumnInfo(name = COLUMN_NAME_TARGET_WEIGHT)
-    private int targetWeight;
+    private float targetWeight;
 
     @ColumnInfo(name = COLUMN_NAME_GENDER)
     private int genderId;
@@ -26,7 +26,7 @@ public class UserParametersEntity {
     private int height;
 
     @ColumnInfo(name = COLUMN_NAME_USER_WEIGHT)
-    private int weight;
+    private float weight;
 
     @ColumnInfo(name = COLUMN_NAME_LIFESTYLE)
     private int lifestyleId;
@@ -35,11 +35,11 @@ public class UserParametersEntity {
     private int formulaId;
 
     public UserParametersEntity(
-            int targetWeight,
+            float targetWeight,
             int genderId,
             int age,
             int height,
-            int weight,
+            float weight,
             int lifestyleId,
             int formulaId) {
         this.targetWeight = targetWeight;
@@ -51,11 +51,11 @@ public class UserParametersEntity {
         this.formulaId = formulaId;
     }
 
-    public int getTargetWeight() {
+    public float getTargetWeight() {
         return targetWeight;
     }
 
-    public void setTargetWeight(int targetWeight) {
+    public void setTargetWeight(float targetWeight) {
         this.targetWeight = targetWeight;
     }
 
@@ -83,11 +83,11 @@ public class UserParametersEntity {
         this.height = height;
     }
 
-    public int getWeight() {
+    public float getWeight() {
         return weight;
     }
 
-    public void setWeight(int weight) {
+    public void setWeight(float weight) {
         this.weight = weight;
     }
 

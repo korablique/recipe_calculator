@@ -1,5 +1,6 @@
 package korablique.recipecalculator.ui.profile;
 
+import android.content.res.Resources;
 import android.util.Pair;
 import android.view.View;
 import android.widget.TextView;
@@ -8,7 +9,6 @@ import com.mikhaellopez.circularprogressbar.CircularProgressBar;
 
 import javax.inject.Inject;
 
-import androidx.fragment.app.FragmentActivity;
 import io.reactivex.Single;
 import io.reactivex.functions.Consumer;
 import korablique.recipecalculator.R;
@@ -26,6 +26,7 @@ import korablique.recipecalculator.model.Rates;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.ui.NutritionValuesWrapper;
+import korablique.recipecalculator.ui.TextUtils;
 import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
 import korablique.recipecalculator.ui.usergoal.UserParametersActivity;
 
@@ -110,8 +111,9 @@ public class ProfileController extends FragmentCallbacks.Observer {
 
         ageTextView.setText(String.valueOf(userParameters.getAge()));
         heightTextView.setText(String.valueOf(userParameters.getHeight()));
-        targetWeightTextView.setText(String.valueOf(userParameters.getTargetWeight()));
-        weightTextView.setText(String.valueOf(userParameters.getWeight()));
+
+        targetWeightTextView.setText(TextUtils.getDecimalString(userParameters.getTargetWeight()));
+        weightTextView.setText(TextUtils.getDecimalString(userParameters.getWeight()));
     }
 
     private void fillNutritionRates(View fragmentView, Rates rates) {
@@ -153,10 +155,10 @@ public class ProfileController extends FragmentCallbacks.Observer {
 
         fillUserName(fragmentView, userNameProvider.getUserName());
 
-        int currentWeight = lastParams.getWeight();
-        int firstWeight = firstParams.getWeight();
-        int targetWeight = lastParams.getTargetWeight();
-        int percentDone = GoalCalculator.calculateProgressPercantage(currentWeight, firstWeight, targetWeight);
+        float currentWeight = lastParams.getWeight();
+        float firstWeight = firstParams.getWeight();
+        float targetWeight = lastParams.getTargetWeight();
+        int percentDone = GoalCalculator.calculateProgressPercentage(currentWeight, firstWeight, targetWeight);
         setPercentDoneProgress(percentDone, fragmentView);
     }
 }
