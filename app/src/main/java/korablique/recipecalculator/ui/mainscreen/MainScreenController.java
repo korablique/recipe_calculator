@@ -1,12 +1,7 @@
 package korablique.recipecalculator.ui.mainscreen;
 
-import androidx.lifecycle.Lifecycle;
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.view.View;
 
 import com.arlib.floatingsearchview.FloatingSearchView;
@@ -17,6 +12,12 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import androidx.lifecycle.Lifecycle;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import io.reactivex.Single;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.disposables.Disposables;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.BaseFragment;
@@ -69,6 +70,12 @@ public class MainScreenController extends FragmentCallbacks.Observer {
     // Активти требует от всех своих компонентов, в т.ч. от fm,
     // а fm требует сохранение стейта от всех своих компонентов, и т.д.)
     private Runnable dialogAction;
+
+    // Disposable чтобы отменить последний начатый поиск при старте нового.
+    // Такая отмена нужна на случай, если поиск 2 будет быстрее поиска 1 - чтобы между
+    // поисками не было состояния гонки и именно последний поиск всегда был отображен.
+    // По-умолчанию Disposables.empty() чтобы не нужно было делать проверки на null.
+    private Disposable lastSearchDisposable = Disposables.empty();
 
     @Inject
     MainScreenController(
@@ -211,8 +218,10 @@ public class MainScreenController extends FragmentCallbacks.Observer {
 
     private void configureSuggesionsDisplaying() {
         searchView.setOnQueryChangeListener((oldQuery, newQuery) -> {
+            lastSearchDisposable.dispose();
             //get suggestions based on newQuery
-            foodstuffsList.requestFoodstuffsLike(newQuery, SEARCH_SUGGESTIONS_NUMBER, result -> {
+            Single<List<Foodstuff>> searchResult = foodstuffsList.requestFoodstuffsLike(newQuery, SEARCH_SUGGESTIONS_NUMBER);
+            lastSearchDisposable = searchResult.subscribe((result) -> {
                 //pass them on to the search view
                 List<FoodstuffSearchSuggestion> newSuggestions = new ArrayList<>();
                 for (Foodstuff foodstuff : result) {

@@ -1,7 +1,5 @@
 package korablique.recipecalculator.database;
 
-import android.content.Context;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -9,9 +7,13 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import io.reactivex.Single;
 import korablique.recipecalculator.base.Callback;
+import korablique.recipecalculator.base.executors.ComputationThreadsExecutor;
+import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
+import korablique.recipecalculator.util.FuzzySearcher;
 
 @Singleton
 public class FoodstuffsList {
@@ -27,6 +29,8 @@ public class FoodstuffsList {
     public final static int BATCH_SIZE = 100;
     private List<Foodstuff> all = new ArrayList<>();
     private final DatabaseWorker databaseWorker;
+    private final MainThreadExecutor mainThreadExecutor;
+    private final ComputationThreadsExecutor computationThreadsExecutor;
     private boolean allLoaded;
     private boolean inProcess;
     private List<Callback<List<Foodstuff>>> batchCallbacks = new ArrayList<>();
@@ -34,8 +38,13 @@ public class FoodstuffsList {
     private List<Observer> observers = new ArrayList<>();
 
     @Inject
-    public FoodstuffsList(DatabaseWorker databaseWorker) {
+    public FoodstuffsList(
+            DatabaseWorker databaseWorker,
+            MainThreadExecutor mainThreadExecutor,
+            ComputationThreadsExecutor computationThreadsExecutor) {
         this.databaseWorker = databaseWorker;
+        this.mainThreadExecutor = mainThreadExecutor;
+        this.computationThreadsExecutor = computationThreadsExecutor;
     }
 
     /**
@@ -130,19 +139,30 @@ public class FoodstuffsList {
         });
     }
 
-    public void requestFoodstuffsLike(String nameQuery, int limit, Callback<List<Foodstuff>> callback) {
-        getAllFoodstuffs(foodstuffs -> {}, foodstuffs -> {
-            List<Foodstuff> result = new ArrayList<>();
-            for (Foodstuff foodstuff : all) {
-                if (foodstuff.getName().toLowerCase().contains(nameQuery.toLowerCase())) {
-                    result.add(foodstuff);
-                    if (result.size() == limit) {
-                        break;
-                    }
-                }
-            }
-            callback.onResult(result);
+    public Single<List<Foodstuff>> requestFoodstuffsLike(String nameQuery) {
+        return requestFoodstuffsLike(nameQuery, Integer.MAX_VALUE);
+    }
+
+    public Single<List<Foodstuff>> requestFoodstuffsLike(String nameQuery, int limit) {
+        Single<List<Foodstuff>> allFoodstuffsSingle = Single.create((subscription) -> {
+            getAllFoodstuffs(foodstuffs -> {}, allFoodstuffs -> {
+                subscription.onSuccess(allFoodstuffs);
+            });
         });
+
+        // Perform search on a computation thread and then pass the result to the main thread.
+        return allFoodstuffsSingle
+            .observeOn(computationThreadsExecutor.asScheduler())
+            .map(allFoodstuffs -> requestFoodstuffsLikeImpl(nameQuery, allFoodstuffs, limit))
+            .observeOn(mainThreadExecutor.asScheduler());
+    }
+
+    private List<Foodstuff> requestFoodstuffsLikeImpl(String nameQuery, List<Foodstuff> foodstuffs, int limit) {
+        return FuzzySearcher.search(
+                nameQuery.toLowerCase(),
+                foodstuffs,
+                (foodstuff) -> foodstuff.getName().toLowerCase(),
+                limit);
     }
 
     public void addObserver(Observer o) {

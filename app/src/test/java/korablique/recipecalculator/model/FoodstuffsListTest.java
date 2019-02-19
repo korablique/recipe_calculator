@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import korablique.recipecalculator.BuildConfig;
+import korablique.recipecalculator.base.executors.ComputationThreadsExecutor;
+import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.DatabaseWorker.FinishCallback;
 import korablique.recipecalculator.database.DatabaseWorker.FoodstuffsBatchReceiveCallback;
@@ -72,7 +74,8 @@ public class FoodstuffsListTest {
                 any(FoodstuffsBatchReceiveCallback.class),
                 any(FinishCallback.class));
 
-        foodstuffsList = new FoodstuffsList(databaseWorker);
+        foodstuffsList = new FoodstuffsList(
+                databaseWorker, mock(MainThreadExecutor.class), mock(ComputationThreadsExecutor.class));
     }
 
     // Если клиент вызвал метод, в его коллбек через неопределенное время придут фудстафы.
