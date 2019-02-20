@@ -1,6 +1,5 @@
 package korablique.recipecalculator.ui.profile;
 
-import android.content.res.Resources;
 import android.util.Pair;
 import android.view.View;
 import android.widget.TextView;
@@ -97,11 +96,11 @@ public class ProfileController extends FragmentCallbacks.Observer {
         subscriptions.subscribe(pairSingle, new Consumer<Pair<Optional<UserParameters>, Optional<UserParameters>>>() {
             @Override
             public void accept(Pair<Optional<UserParameters>, Optional<UserParameters>> firstAndLastParams) {
-                UserParameters firstParams = firstAndLastParams.first.get();
                 if (!firstAndLastParams.first.isPresent()) {
                     throw new IllegalStateException("It is impossible for the first user parameters to be missing");
                 }
                 if (firstAndLastParams.second.isPresent()) {
+                    UserParameters firstParams = firstAndLastParams.first.get();
                     UserParameters lastParams = firstAndLastParams.second.get();
                     fillProfile(firstParams, lastParams, fragment.getView());
                 }

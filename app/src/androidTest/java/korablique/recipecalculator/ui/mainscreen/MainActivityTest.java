@@ -44,6 +44,7 @@ import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.database.room.DatabaseHolder;
+import korablique.recipecalculator.model.DateOfBirth;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Formula;
 import korablique.recipecalculator.model.FullName;
@@ -202,7 +203,7 @@ public class MainActivityTest {
 
         // сохраняем userParameters в БД
         userParameters = new UserParameters(
-                45, Gender.FEMALE, 25, 158, 48, Lifestyle.PASSIVE_LIFESTYLE, Formula.HARRIS_BENEDICT);
+                45, Gender.FEMALE, new DateOfBirth(27, 9, 1993), 158, 48.5f, Lifestyle.PASSIVE_LIFESTYLE, Formula.HARRIS_BENEDICT);
         userParametersWorker.saveUserParameters(userParameters);
 
         FullName fullName = new FullName("Yulia", "Zhilyaeva");

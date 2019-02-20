@@ -9,6 +9,7 @@ import korablique.recipecalculator.database.room.AppDatabase;
 import korablique.recipecalculator.database.room.DatabaseHolder;
 import korablique.recipecalculator.database.room.UserParametersDao;
 import korablique.recipecalculator.database.room.UserParametersEntity;
+import korablique.recipecalculator.model.DateOfBirth;
 import korablique.recipecalculator.model.Formula;
 import korablique.recipecalculator.model.Gender;
 import korablique.recipecalculator.model.Lifestyle;
@@ -81,7 +82,7 @@ public class UserParametersWorker {
                 UserParameters params = new UserParameters(
                         entity.getTargetWeight(),
                         Gender.fromId(entity.getGenderId()),
-                        entity.getAge(),
+                        new DateOfBirth(entity.getDateOfBirth()),
                         entity.getHeight(),
                         entity.getWeight(),
                         Lifestyle.fromId(entity.getLifestyleId()),
@@ -105,7 +106,7 @@ public class UserParametersWorker {
             UserParametersEntity userParametersEntity = new UserParametersEntity(
                     userParameters.getTargetWeight(),
                     userParameters.getGender().getId(),
-                    userParameters.getAge(),
+                    userParameters.getDateOfBirth().toString(),
                     userParameters.getHeight(),
                     userParameters.getWeight(),
                     userParameters.getLifestyle().getId(),
@@ -116,10 +117,6 @@ public class UserParametersWorker {
                 subscriber.onError(new IllegalStateException("Could not insert user parameters"));
             }
 
-            // Мы вставили новые параметры пользователя в БД, нужно не забыть
-            // обновить закешированное значение.
-            cachedCurrentUserParameters = Single.just(Optional.of(userParameters));
-            cachedFirstUserParameters = requestFirstUserParameters();
             subscriber.onComplete();
         });
 
@@ -133,6 +130,26 @@ public class UserParametersWorker {
         // saveUserParameters и не особо интересоваться моментом, когда сохранение будет завершено,
         // т.е. вообще не подписываться на Completable).
         result.subscribe();
+
+        // Мы вставили новые параметры пользователя в БД, нужно не забыть
+        // обновить закешированное значение.
+        cachedCurrentUserParameters = Single.just(Optional.of(userParameters));
+
+        // для тестов, т.к. там не вызывается initCache()
+        if (cachedFirstUserParameters == null) {
+            cachedFirstUserParameters = cachedCurrentUserParameters;
+        }
+
+        cachedFirstUserParameters = cachedFirstUserParameters
+            .flatMap((cachedFirstVal) -> {
+                if (cachedFirstVal.isPresent()) {
+                    return Single.just(cachedFirstVal);
+                } else {
+                    // если первых параметров нет - значит, они ещё не успели сохраниться,
+                    // поэтому возвращаем сохраняемые (т.к. они и есть первые)
+                    return Single.just(Optional.of(userParameters));
+                }
+            });
 
         return result;
     }

@@ -17,6 +17,7 @@ import io.reactivex.Completable;
 import io.reactivex.Single;
 import korablique.recipecalculator.base.Optional;
 import korablique.recipecalculator.database.room.DatabaseHolder;
+import korablique.recipecalculator.model.DateOfBirth;
 import korablique.recipecalculator.model.Formula;
 import korablique.recipecalculator.model.Gender;
 import korablique.recipecalculator.model.Goal;
@@ -57,7 +58,7 @@ public class UserParametersWorkerTest {
         UserParameters userParameters = new UserParameters(
                 60,
                 Gender.MALE,
-                24,
+                new DateOfBirth(20, 7, 1993),
                 165,
                 64,
                 Lifestyle.INSIGNIFICANT_ACTIVITY,
@@ -87,7 +88,7 @@ public class UserParametersWorkerTest {
         UserParameters userParameters = new UserParameters(
                 60,
                 Gender.MALE,
-                24,
+                new DateOfBirth(20, 7, 1993),
                 165,
                 64,
                 Lifestyle.INSIGNIFICANT_ACTIVITY,
@@ -114,12 +115,13 @@ public class UserParametersWorkerTest {
 
     @Test
     public void requestFirstUserParametersWorksCorrectly() {
+        DateOfBirth dateOfBirth = new DateOfBirth(10, 10, 1989);
         UserParameters userParameters1 = new UserParameters(
-                50, Gender.FEMALE, 30, 160, 60, Lifestyle.PASSIVE_LIFESTYLE, Formula.HARRIS_BENEDICT);
+                50, Gender.FEMALE, dateOfBirth, 160, 60, Lifestyle.PASSIVE_LIFESTYLE, Formula.HARRIS_BENEDICT);
         UserParameters userParameters2 = new UserParameters(
-                50, Gender.FEMALE, 31, 160, 59, Lifestyle.INSIGNIFICANT_ACTIVITY, Formula.HARRIS_BENEDICT);
+                50, Gender.FEMALE, dateOfBirth, 160, 59, Lifestyle.INSIGNIFICANT_ACTIVITY, Formula.HARRIS_BENEDICT);
         UserParameters userParameters3 = new UserParameters(
-                50, Gender.FEMALE, 31, 160, 58, Lifestyle.INSIGNIFICANT_ACTIVITY, Formula.MIFFLIN_JEOR);
+                50, Gender.FEMALE, dateOfBirth, 160, 58, Lifestyle.INSIGNIFICANT_ACTIVITY, Formula.MIFFLIN_JEOR);
         userParametersWorker.saveUserParameters(userParameters1);
         userParametersWorker.saveUserParameters(userParameters2);
         userParametersWorker.saveUserParameters(userParameters3);

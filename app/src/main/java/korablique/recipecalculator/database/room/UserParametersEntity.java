@@ -1,11 +1,19 @@
 package korablique.recipecalculator.database.room;
 
+import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 import korablique.recipecalculator.database.UserParametersContract;
 
-import static korablique.recipecalculator.database.UserParametersContract.*;
+import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_DATE_OF_BIRTH;
+import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_FORMULA;
+import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_GENDER;
+import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_HEIGHT;
+import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_LIFESTYLE;
+import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_TARGET_WEIGHT;
+import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_USER_WEIGHT;
+import static korablique.recipecalculator.database.UserParametersContract.USER_PARAMETERS_TABLE_NAME;
 
 @Entity(tableName = USER_PARAMETERS_TABLE_NAME)
 public class UserParametersEntity {
@@ -19,8 +27,9 @@ public class UserParametersEntity {
     @ColumnInfo(name = COLUMN_NAME_GENDER)
     private int genderId;
 
-    @ColumnInfo(name = COLUMN_NAME_AGE)
-    private int age;
+    @NonNull
+    @ColumnInfo(name = COLUMN_NAME_DATE_OF_BIRTH)
+    private String dateOfBirth;
 
     @ColumnInfo(name = COLUMN_NAME_HEIGHT)
     private int height;
@@ -37,14 +46,14 @@ public class UserParametersEntity {
     public UserParametersEntity(
             float targetWeight,
             int genderId,
-            int age,
+            @NonNull String dateOfBirth,
             int height,
             float weight,
             int lifestyleId,
             int formulaId) {
         this.targetWeight = targetWeight;
         this.genderId = genderId;
-        this.age = age;
+        this.dateOfBirth = dateOfBirth;
         this.height = height;
         this.weight = weight;
         this.lifestyleId = lifestyleId;
@@ -67,12 +76,12 @@ public class UserParametersEntity {
         this.genderId = genderId;
     }
 
-    public int getAge() {
-        return age;
+    public String getDateOfBirth() {
+        return dateOfBirth;
     }
 
-    public void setAge(int age) {
-        this.age = age;
+    public void setDateOfBirth(String dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
     }
 
     public int getHeight() {
