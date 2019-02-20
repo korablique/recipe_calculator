@@ -5,6 +5,8 @@ import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.TextView;
 
 import junit.framework.Assert;
 
@@ -28,6 +30,7 @@ import androidx.test.espresso.matcher.ViewMatchers;
 import androidx.test.filters.LargeTest;
 import androidx.test.rule.ActivityTestRule;
 import androidx.test.runner.AndroidJUnit4;
+import korablique.recipecalculator.FloatUtils;
 import korablique.recipecalculator.IntentConstants;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.ActivityCallbacks;
@@ -43,6 +46,7 @@ import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.database.room.DatabaseHolder;
+import korablique.recipecalculator.model.DateOfBirth;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Formula;
 import korablique.recipecalculator.model.FullName;
@@ -57,6 +61,7 @@ import korablique.recipecalculator.model.TopList;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.model.WeightedFoodstuff;
+import korablique.recipecalculator.ui.TextUtils;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
@@ -196,7 +201,7 @@ public class MainActivityTest {
 
         // сохраняем userParameters в БД
         userParameters = new UserParameters(
-                45, Gender.FEMALE, 25, 158, 48, Lifestyle.PASSIVE_LIFESTYLE, Formula.HARRIS_BENEDICT);
+                45, Gender.FEMALE, new DateOfBirth(27, 9, 1993), 158, 48, Lifestyle.PASSIVE_LIFESTYLE, Formula.HARRIS_BENEDICT);
         userParametersWorker.saveUserParameters(userParameters);
 
         FullName fullName = new FullName("Yulia", "Zhilyaeva");
@@ -385,8 +390,8 @@ public class MainActivityTest {
         // проверяем, что они отображаются в профиле
         onView(withId(R.id.age)).check(matches(withText(String.valueOf(userParameters.getAge()))));
         onView(withId(R.id.height)).check(matches(withText(String.valueOf(userParameters.getHeight()))));
-        onView(withId(R.id.target_weight)).check(matches(withText(String.valueOf(userParameters.getTargetWeight()))));
-        onView(withId(R.id.weight_value)).check(matches(withText(String.valueOf(userParameters.getWeight()))));
+        onView(withId(R.id.target_weight)).check(matches(withText(TextUtils.getDecimalString(userParameters.getTargetWeight()))));
+        onView(withId(R.id.weight_value)).check(matches(withText(TextUtils.getDecimalString(userParameters.getWeight()))));
         onView(withId(R.id.user_name)).check(matches(withText(userNameProvider.getUserName().toString())));
 
         // проверяем, что отображаются правильные нормы
@@ -395,15 +400,15 @@ public class MainActivityTest {
         onView(allOf(
                 withParent(withId(R.id.protein_layout)),
                 withId(R.id.nutrition_text_view)))
-                .check(matches(withText(String.format("%.1f", rates.getProtein()))));
+                .check(matches(withText(String.format("%.1f", rates.getProtein()).replace(',', '.'))));
         onView(allOf(
                 withParent(withId(R.id.fats_layout)),
                 withId(R.id.nutrition_text_view)))
-                .check(matches(withText(String.valueOf(String.format("%.1f", rates.getFats())))));
+                .check(matches(withText(String.valueOf(String.format("%.1f", rates.getFats()).replace(',', '.')))));
         onView(allOf(
                 withParent(withId(R.id.carbs_layout)),
                 withId(R.id.nutrition_text_view)))
-                .check(matches(withText(String.valueOf(String.format("%.1f", rates.getCarbs())))));
+                .check(matches(withText(String.valueOf(String.format("%.1f", rates.getCarbs()).replace(',', '.')))));
 
         // проверяем процент достижения цели
         int percent = GoalCalculator.calculateProgressPercentage(
