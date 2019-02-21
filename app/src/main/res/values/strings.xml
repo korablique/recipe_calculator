@@ -67,10 +67,11 @@
     <string name="recommended_nutrition_ratio">Рекомендуемое БЖУ</string>
     <string name="how_it_is_calculated">Рассчитывается по формуле</string>
     <string name="last_measurements_date">Дата последних измерений</string>
-    <string name="user_weight">Вес:</string>
-    <string name="hips">Бёдра:</string>
-    <string name="chest">Грудь:</string>
-    <string name="waist">Талия:</string>
+    <string name="user_weight_with_colon">Вес:</string>
+    <string name="hips_with_colon">Бёдра:</string>
+    <string name="chest_with_colon">Грудь:</string>
+    <string name="waist_with_colon">Талия:</string>
+    <string name="user_weight">Вес</string>
     <string name="reached">Достигнуто</string>
     <string name="percent">%</string>
     <string name="set_user_params">Изменить данные</string>

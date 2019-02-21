@@ -111,33 +111,28 @@
                 layout="@layout/nutrition_progress_with_values_without_calories" />
         </FrameLayout>
 
-        <include
-            android:id="@+id/measurements_header"
-            layout="@layout/measurements_header"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@id/nutrition_parent_layout" />
-
         <FrameLayout
             android:id="@+id/measurements_parent_layout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            app:layout_constraintWidth_percent="0.65"
-            android:padding="16dp"
+            android:layout_marginTop="16dp"
             android:background="#FFFFFF"
-            app:layout_constraintTop_toBottomOf="@id/measurements_header">
+            android:padding="16dp"
+            app:layout_constraintTop_toBottomOf="@id/nutrition_parent_layout"
+            app:layout_constraintWidth_percent="0.65"
+            tools:layout_editor_absoluteX="0dp">
 
-            <include
-                layout="@layout/measurements_layout" />
+            <include layout="@layout/measurements_layout" />
         </FrameLayout>
 
         <FrameLayout
             android:id="@+id/progress_bar_parent"
             android:layout_width="0dp"
             android:layout_height="0dp"
+            android:layout_marginTop="16dp"
             app:layout_constraintStart_toEndOf="@id/measurements_parent_layout"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/measurements_header"
+            app:layout_constraintTop_toBottomOf="@id/nutrition_parent_layout"
             app:layout_constraintBottom_toTopOf="@id/done"
             android:layout_marginStart="5dp"
             android:background="#FFFFFF">
@@ -162,25 +157,25 @@
 
                 <TextView
                     android:id="@+id/done_percent"
+                    style="@style/MontserratBoldProgress"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:layout_marginBottom="5dp"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
+                    android:text="65"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    style="@style/MontserratBoldProgress"
-                    android:text="65" />
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
 
                 <TextView
+                    style="@style/RobotoMonoHintText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    style="@style/RobotoMonoHintText"
+                    android:layout_marginTop="8dp"
                     android:text="@string/percent"
                     app:layout_constraintStart_toEndOf="@id/done_percent"
-                    app:layout_constraintTop_toTopOf="@id/done_percent"
-                    android:layout_marginTop="8dp"/>
+                    app:layout_constraintTop_toTopOf="@id/done_percent" />
             </androidx.constraintlayout.widget.ConstraintLayout>
         </FrameLayout>
 
