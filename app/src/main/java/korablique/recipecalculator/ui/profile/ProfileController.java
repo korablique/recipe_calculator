@@ -7,6 +7,12 @@ import android.widget.TextView;
 
 import com.mikhaellopez.circularprogressbar.CircularProgressBar;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.Random;
+
 import javax.inject.Inject;
 
 import io.reactivex.Single;
@@ -107,13 +113,20 @@ public class ProfileController extends FragmentCallbacks.Observer {
         TextView ageTextView = fragmentView.findViewById(R.id.age);
         TextView heightTextView = fragmentView.findViewById(R.id.height);
         TextView targetWeightTextView = fragmentView.findViewById(R.id.target_weight);
-        TextView weightTextView = fragmentView.findViewById(R.id.weight_value);
+
+        TextView weightMeasurementTextView = fragmentView.findViewById(R.id.current_weight_measurement_value);
+        TextView targetWeightMeasurementTextView = fragmentView.findViewById(R.id.target_weight_measurement_value);
 
         ageTextView.setText(String.valueOf(userParameters.getAge()));
         heightTextView.setText(String.valueOf(userParameters.getHeight()));
+        targetWeightTextView.setText(String.valueOf(userParameters.getTargetWeight()));
+        weightMeasurementTextView.setText(String.valueOf(userParameters.getWeight()));
+        targetWeightMeasurementTextView.setText(String.valueOf(userParameters.getTargetWeight()));
 
-        targetWeightTextView.setText(TextUtils.getDecimalString(userParameters.getTargetWeight()));
-        weightTextView.setText(TextUtils.getDecimalString(userParameters.getWeight()));
+        // случайная дата
+        TextView lastMeasurementDate = fragmentView.findViewById(R.id.last_measurement_date_measurement_value);
+        DateFormat format = new SimpleDateFormat("dd.MM.yyyy", Locale.UK);
+        lastMeasurementDate.setText(format.format(new Date(Math.abs(new Random().nextInt()))));
     }
 
     private void fillNutritionRates(View fragmentView, Rates rates) {
