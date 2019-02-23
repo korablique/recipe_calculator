@@ -86,6 +86,7 @@ import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.
 import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertNotContains;
 import static korablique.recipecalculator.util.EspressoUtils.matches;
 import static org.hamcrest.CoreMatchers.allOf;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 
 @RunWith(AndroidJUnit4.class)
@@ -383,10 +384,11 @@ public class MainActivityTest {
                 .perform(click());
         // сейчас в UserParametersWorker'е только одни параметры.
         // проверяем, что они отображаются в профиле
-        onView(withId(R.id.age)).check(matches(withText(String.valueOf(userParameters.getAge()))));
+        String ageString = String.valueOf(userParameters.getAge());
+        onView(withId(R.id.age)).check(matches((withText(containsString(ageString)))));
         onView(withId(R.id.height)).check(matches(withText(String.valueOf(userParameters.getHeight()))));
         onView(withId(R.id.target_weight)).check(matches(withText(String.valueOf(userParameters.getTargetWeight()))));
-        onView(withId(R.id.weight_value)).check(matches(withText(String.valueOf(userParameters.getWeight()))));
+        onView(withId(R.id.current_weight_measurement_value)).check(matches(withText(String.valueOf(userParameters.getWeight()))));
         onView(withId(R.id.user_name)).check(matches(withText(userNameProvider.getUserName().toString())));
 
         // проверяем, что отображаются правильные нормы
@@ -395,15 +397,15 @@ public class MainActivityTest {
         onView(allOf(
                 withParent(withId(R.id.protein_layout)),
                 withId(R.id.nutrition_text_view)))
-                .check(matches(withText(String.format("%.1f", rates.getProtein()))));
+                .check(matches(withText(String.format("%.1f", rates.getProtein()).replace(',', '.'))));
         onView(allOf(
                 withParent(withId(R.id.fats_layout)),
                 withId(R.id.nutrition_text_view)))
-                .check(matches(withText(String.valueOf(String.format("%.1f", rates.getFats())))));
+                .check(matches(withText(String.valueOf(String.format("%.1f", rates.getFats()).replace(',', '.')))));
         onView(allOf(
                 withParent(withId(R.id.carbs_layout)),
                 withId(R.id.nutrition_text_view)))
-                .check(matches(withText(String.valueOf(String.format("%.1f", rates.getCarbs())))));
+                .check(matches(withText(String.valueOf(String.format("%.1f", rates.getCarbs()).replace(',', '.')))));
 
         // проверяем процент достижения цели
         int percent = GoalCalculator.calculateProgressPercentage(
