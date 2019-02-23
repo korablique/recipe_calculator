@@ -117,7 +117,10 @@ public class ProfileController extends FragmentCallbacks.Observer {
         TextView weightMeasurementTextView = fragmentView.findViewById(R.id.current_weight_measurement_value);
         TextView targetWeightMeasurementTextView = fragmentView.findViewById(R.id.target_weight_measurement_value);
 
-        ageTextView.setText(String.valueOf(userParameters.getAge()));
+        int age = userParameters.getAge();
+        String ageString = fragmentView.getResources().getQuantityString(R.plurals.years_old, age, age);
+        ageTextView.setText(ageString);
+
         heightTextView.setText(String.valueOf(userParameters.getHeight()));
         targetWeightTextView.setText(String.valueOf(userParameters.getTargetWeight()));
         weightMeasurementTextView.setText(String.valueOf(userParameters.getWeight()));
