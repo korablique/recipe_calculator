@@ -156,9 +156,17 @@ public class ProfileController extends FragmentCallbacks.Observer {
     }
 
     private void setPercentDoneProgress(int percentDone, View fragmentView) {
-        TextView percentView = fragmentView.findViewById(R.id.done_percent);
-        percentView.setText(String.valueOf(percentDone));
-
+        if (percentDone < 100) {
+            fragmentView.findViewById(R.id.done_percent_sign).setVisibility(View.VISIBLE);
+            fragmentView.findViewById(R.id.done_checkmark).setVisibility(View.GONE);
+            TextView percentView = fragmentView.findViewById(R.id.done_percent);
+            percentView.setVisibility(View.VISIBLE);
+            percentView.setText(String.valueOf(percentDone));
+        } else {
+            fragmentView.findViewById(R.id.done_percent_sign).setVisibility(View.GONE);
+            fragmentView.findViewById(R.id.done_checkmark).setVisibility(View.VISIBLE);
+            fragmentView.findViewById(R.id.done_percent).setVisibility(View.GONE);
+        }
         CircularProgressBar circularProgressBar = fragmentView.findViewById(R.id.circular_progress);
         circularProgressBar.setProgress(percentDone);
     }

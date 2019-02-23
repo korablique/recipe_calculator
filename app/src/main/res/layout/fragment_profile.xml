@@ -168,7 +168,16 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
+                <ImageView
+                    android:id="@+id/done_checkmark"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="10dp"
+                    android:src="@drawable/ic_checkmark"
+                    android:visibility="gone"/>
+
                 <TextView
+                    android:id="@+id/done_percent_sign"
                     style="@style/RobotoMonoHintText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
