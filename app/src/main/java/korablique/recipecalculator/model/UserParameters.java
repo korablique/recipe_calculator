@@ -3,6 +3,8 @@ package korablique.recipecalculator.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import org.joda.time.LocalDate;
+
 import java.util.Calendar;
 import java.util.Objects;
 
@@ -11,7 +13,7 @@ import korablique.recipecalculator.FloatUtils;
 public class UserParameters implements Parcelable {
     private final float targetWeight;
     private final Gender gender;
-    private final DateOfBirth dateOfBirth;
+    private final LocalDate dateOfBirth;
     private final int height;
     private final float weight;
     private final Lifestyle lifestyle;
@@ -20,7 +22,7 @@ public class UserParameters implements Parcelable {
     public UserParameters(
             float targetWeight,
             Gender gender,
-            DateOfBirth dateOfBirth,
+            LocalDate dateOfBirth,
             int height,
             float weight,
             Lifestyle lifestyle,
@@ -37,7 +39,10 @@ public class UserParameters implements Parcelable {
     protected UserParameters(Parcel in) {
         targetWeight = in.readInt();
         gender = (Gender) in.readSerializable();
-        dateOfBirth = in.readParcelable(DateOfBirth.class.getClassLoader());
+        int day = in.readInt();
+        int month = in.readInt();
+        int year = in.readInt();
+        dateOfBirth = new LocalDate(year, month, day);
         height = in.readInt();
         weight = in.readInt();
         lifestyle = (Lifestyle) in.readSerializable();
@@ -62,20 +67,18 @@ public class UserParameters implements Parcelable {
         return gender;
     }
 
-    public DateOfBirth getDateOfBirth() {
+    public LocalDate getDateOfBirth() {
         return dateOfBirth;
     }
 
     public int getAge() {
-        Calendar dob = Calendar.getInstance();
+        Calendar dateOfBirthCalendar = Calendar.getInstance();
+        dateOfBirthCalendar.setTime(dateOfBirth.toDate());
         Calendar today = Calendar.getInstance();
 
-        // т к месяцы с нуля
-        dob.set(dateOfBirth.getYear(), dateOfBirth.getMonth() - 1, dateOfBirth.getDay());
+        int age = today.get(Calendar.YEAR) - dateOfBirthCalendar.get(Calendar.YEAR);
 
-        int age = today.get(Calendar.YEAR) - dob.get(Calendar.YEAR);
-
-        if (today.get(Calendar.DAY_OF_YEAR) < dob.get(Calendar.DAY_OF_YEAR)){
+        if (today.get(Calendar.DAY_OF_YEAR) < dateOfBirthCalendar.get(Calendar.DAY_OF_YEAR)){
             --age;
         }
         return age;
@@ -102,7 +105,7 @@ public class UserParameters implements Parcelable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         UserParameters that = (UserParameters) o;
-        return dateOfBirth.toString().equals(that.dateOfBirth.toString()) &&
+        return Objects.equals(dateOfBirth, that.dateOfBirth) &&
                 height == that.height &&
                 FloatUtils.areFloatsEquals(weight, that.weight) &&
                 Objects.equals(lifestyle, that.lifestyle) &&
@@ -137,7 +140,9 @@ public class UserParameters implements Parcelable {
     public void writeToParcel(Parcel parcel, int i) {
         parcel.writeFloat(targetWeight);
         parcel.writeSerializable(gender);
-        parcel.writeParcelable(dateOfBirth, 0);
+        parcel.writeInt(dateOfBirth.getDayOfMonth());
+        parcel.writeInt(dateOfBirth.getMonthOfYear());
+        parcel.writeInt(dateOfBirth.getYear());
         parcel.writeInt(height);
         parcel.writeFloat(weight);
         parcel.writeSerializable(lifestyle);

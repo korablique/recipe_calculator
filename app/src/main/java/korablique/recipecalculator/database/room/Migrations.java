@@ -111,7 +111,9 @@ public class Migrations {
                             UserParametersContract.ID + " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
                             UserParametersContract.COLUMN_NAME_TARGET_WEIGHT + " REAL NOT NULL, " +
                             UserParametersContract.COLUMN_NAME_GENDER + " INTEGER NOT NULL, " +
-                            UserParametersContract.COLUMN_NAME_DATE_OF_BIRTH + " TEXT NOT NULL, " +
+                            UserParametersContract.COLUMN_NAME_DAY_OF_BIRTH + " INTEGER NOT NULL, " +
+                            UserParametersContract.COLUMN_NAME_MONTH_OF_BIRTH + " INTEGER NOT NULL, " +
+                            UserParametersContract.COLUMN_NAME_YEAR_OF_BIRTH + " INTEGER NOT NULL, " +
                             UserParametersContract.COLUMN_NAME_HEIGHT + " INTEGER NOT NULL, " +
                             UserParametersContract.COLUMN_NAME_USER_WEIGHT + " REAL NOT NULL, " +
                             UserParametersContract.COLUMN_NAME_LIFESTYLE + " INTEGER NOT NULL, " +

@@ -1,5 +1,7 @@
 package korablique.recipecalculator.database;
 
+import org.joda.time.LocalDate;
+
 import io.reactivex.Completable;
 import io.reactivex.Single;
 import korablique.recipecalculator.base.Function0arg;
@@ -9,7 +11,6 @@ import korablique.recipecalculator.database.room.AppDatabase;
 import korablique.recipecalculator.database.room.DatabaseHolder;
 import korablique.recipecalculator.database.room.UserParametersDao;
 import korablique.recipecalculator.database.room.UserParametersEntity;
-import korablique.recipecalculator.model.DateOfBirth;
 import korablique.recipecalculator.model.Formula;
 import korablique.recipecalculator.model.Gender;
 import korablique.recipecalculator.model.Lifestyle;
@@ -82,7 +83,7 @@ public class UserParametersWorker {
                 UserParameters params = new UserParameters(
                         entity.getTargetWeight(),
                         Gender.fromId(entity.getGenderId()),
-                        new DateOfBirth(entity.getDateOfBirth()),
+                        new LocalDate(entity.getYearOfBirth(), entity.getMonthOfBirth(), entity.getDayOfBirth()),
                         entity.getHeight(),
                         entity.getWeight(),
                         Lifestyle.fromId(entity.getLifestyleId()),
@@ -103,10 +104,14 @@ public class UserParametersWorker {
         Completable result = Completable.create((subscriber) -> {
             AppDatabase database = databaseHolder.getDatabase();
             UserParametersDao userDao = database.userParametersDao();
+            LocalDate dateOfBirth = userParameters.getDateOfBirth();
+            int day = dateOfBirth.getDayOfMonth();
+            int month = dateOfBirth.getMonthOfYear();
+            int year = dateOfBirth.getYear();
             UserParametersEntity userParametersEntity = new UserParametersEntity(
                     userParameters.getTargetWeight(),
                     userParameters.getGender().getId(),
-                    userParameters.getDateOfBirth().toString(),
+                    day, month, year,
                     userParameters.getHeight(),
                     userParameters.getWeight(),
                     userParameters.getLifestyle().getId(),

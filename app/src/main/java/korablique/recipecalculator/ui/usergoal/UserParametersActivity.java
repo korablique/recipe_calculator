@@ -14,11 +14,10 @@ import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 
-import java.text.SimpleDateFormat;
+import org.joda.time.LocalDate;
+
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -30,7 +29,6 @@ import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.Optional;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.database.UserParametersWorker;
-import korablique.recipecalculator.model.DateOfBirth;
 import korablique.recipecalculator.model.Formula;
 import korablique.recipecalculator.model.FullName;
 import korablique.recipecalculator.model.Gender;
@@ -42,8 +40,6 @@ import korablique.recipecalculator.ui.TextUtils;
 import korablique.recipecalculator.ui.mainscreen.MainActivity;
 
 public class UserParametersActivity extends BaseActivity {
-    public static final String DATE_OF_BIRTH = "DATE_OF_BIRTH";
-    public static final String DATE_PICKER_FRAGMENT_TAG = "DATE_PICKER";
     @Inject
     UserParametersWorker userParametersWorker;
     @Inject
@@ -123,24 +119,22 @@ public class UserParametersActivity extends BaseActivity {
         dateOfBirthView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DatePickerFragment datePickerFragment = new DatePickerFragment();
                 EditText dateOfBirthView = findViewById(R.id.date_of_birth);
                 String dateOfBirthString = dateOfBirthView.getText().toString();
-                if (!dateOfBirthString.isEmpty()) {
-                    DateOfBirth dateOfBirth = new DateOfBirth(dateOfBirthString);
-                    Bundle bundle = new Bundle();
-                    bundle.putParcelable(DATE_OF_BIRTH, dateOfBirth);
-                    datePickerFragment.setArguments(bundle);
-                }
 
-                datePickerFragment.setOnDateSetListener(new DatePickerFragment.MyOnDateSetListener() {
+                DatePickerFragment datePickerFragment;
+                if (dateOfBirthString.isEmpty()) {
+                    datePickerFragment = DatePickerFragment.showDialog(getSupportFragmentManager());
+                } else {
+                    LocalDate dateOfBirth = parseDateOfBirth(dateOfBirthString);
+                    datePickerFragment = DatePickerFragment.showDialog(getSupportFragmentManager(), dateOfBirth);
+                }
+                datePickerFragment.setOnDateSetListener(new DatePickerFragment.DateSetListener() {
                     @Override
-                    public void onDateSet(int year, int month, int dayOfMonth) {
-                        // т к месяцы с нуля
-                        dateOfBirthView.setText(getFormattedDateString(new DateOfBirth(dayOfMonth, month + 1, year)));
+                    public void onDateSet(LocalDate date) {
+                        dateOfBirthView.setText(date.toString("dd.MM.yyyy"));
                     }
                 });
-                datePickerFragment.show(getSupportFragmentManager(), DATE_PICKER_FRAGMENT_TAG);
             }
         });
 
@@ -191,7 +185,7 @@ public class UserParametersActivity extends BaseActivity {
         Gender gender = Gender.POSITIONS.get(genderSelectedPosition - 1);
 
         String dateOfBirthString = ((EditText) findViewById(R.id.date_of_birth)).getText().toString();
-        DateOfBirth dateOfBirth = new DateOfBirth(dateOfBirthString);
+        LocalDate dateOfBirth = parseDateOfBirth(dateOfBirthString);
 
         int height = Integer.parseInt(((EditText) findViewById(R.id.height)).getText().toString());
         float weight = Float.parseFloat(((EditText) findViewById(R.id.weight)).getText().toString());
@@ -214,8 +208,8 @@ public class UserParametersActivity extends BaseActivity {
         Spinner lifestyleSpinner = findViewById(R.id.lifestyle_spinner);
         Spinner formulaSpinner = findViewById(R.id.formula_spinner);
 
-        DateOfBirth dateOfBirth = oldUserParams.getDateOfBirth();
-        dateOfBirthView.setText(getFormattedDateString(dateOfBirth));
+        LocalDate dateOfBirth = oldUserParams.getDateOfBirth();
+        dateOfBirthView.setText(dateOfBirth.toString("dd.MM.yyyy"));
 
         heightView.setText(String.valueOf(oldUserParams.getHeight()));
         weightView.setText(TextUtils.getDecimalString(oldUserParams.getWeight()));
@@ -231,17 +225,19 @@ public class UserParametersActivity extends BaseActivity {
         formulaSpinner.setSelection(Formula.POSITIONS_REVERSED.get(formula));
     }
 
-    private String getFormattedDateString(DateOfBirth dateOfBirth) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(dateOfBirth.getYear(), dateOfBirth.getMonth() - 1, dateOfBirth.getDay());
-        Date date = calendar.getTime();
-        return new SimpleDateFormat("dd.MM.yyyy").format(date);
+    private LocalDate parseDateOfBirth(String dateString) {
+        String[] dateSplited = dateString.split("\\.");
+        int day = Integer.parseInt(dateSplited[0]);
+        int month = Integer.parseInt(dateSplited[1]);
+        int year = Integer.parseInt(dateSplited[2]);
+        return new LocalDate(year, month, day);
     }
 
     private void fillUserName(FullName userFullName) {
         EditText firstNameEditText = findViewById(R.id.first_name);
         firstNameEditText.setText(userFullName.getFirstName());
         EditText lastNameEditText = findViewById(R.id.last_name);
+
         lastNameEditText.setText(userFullName.getLastName());
     }
 }

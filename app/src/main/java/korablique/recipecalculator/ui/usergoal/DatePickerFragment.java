@@ -5,19 +5,22 @@ import android.app.Dialog;
 import android.os.Bundle;
 import android.widget.DatePicker;
 
+import org.joda.time.LocalDate;
+
 import java.util.Calendar;
 
 import androidx.fragment.app.DialogFragment;
-import korablique.recipecalculator.model.DateOfBirth;
-
-import static korablique.recipecalculator.ui.usergoal.UserParametersActivity.DATE_OF_BIRTH;
+import androidx.fragment.app.FragmentManager;
 
 public class DatePickerFragment extends DialogFragment implements DatePickerDialog.OnDateSetListener {
-    public interface MyOnDateSetListener {
-        void onDateSet(int year, int month, int dayOfMonth);
+    public static final String DATE_PICKER_FRAGMENT_TAG = "DATE_PICKER";
+    public static final String DATE_OF_BIRTH = "DATE_OF_BIRTH";
+    public interface DateSetListener {
+        void onDateSet(LocalDate date);
+
     }
 
-    private MyOnDateSetListener onDateSetListener;
+    private DateSetListener onDateSetListener;
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -26,10 +29,11 @@ public class DatePickerFragment extends DialogFragment implements DatePickerDial
 
         Bundle args = getArguments();
         if (args != null && args.containsKey(DATE_OF_BIRTH)) {
-            DateOfBirth dateOfBirth = args.getParcelable(DATE_OF_BIRTH);
-            day = dateOfBirth.getDay();
-            month = dateOfBirth.getMonth() - 1;
-            year = dateOfBirth.getYear();
+            long dateLong = args.getLong(DATE_OF_BIRTH);
+            LocalDate date = new LocalDate(dateLong);
+            day = date.getDayOfMonth();
+            month = date.getMonthOfYear() - 1;
+            year = date.getYear();
         } else {
             final Calendar c = Calendar.getInstance();
             year = c.get(Calendar.YEAR);
@@ -43,11 +47,27 @@ public class DatePickerFragment extends DialogFragment implements DatePickerDial
 
     @Override
     public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-        // Do something with the date chosen by the user
-        onDateSetListener.onDateSet(year, month, dayOfMonth);
+        LocalDate simpleDate = new LocalDate(year, month + 1, dayOfMonth);
+        onDateSetListener.onDateSet(simpleDate);
     }
 
-    public void setOnDateSetListener(MyOnDateSetListener listener) {
+    public void setOnDateSetListener(DateSetListener listener) {
         onDateSetListener = listener;
+    }
+
+    public static DatePickerFragment showDialog(FragmentManager fragmentManager) {
+        DatePickerFragment datePickerFragment = new DatePickerFragment();
+        datePickerFragment.show(fragmentManager, DATE_PICKER_FRAGMENT_TAG);
+        return datePickerFragment;
+    }
+
+    public static DatePickerFragment showDialog(FragmentManager fragmentManager, LocalDate date) {
+        DatePickerFragment datePickerFragment = new DatePickerFragment();
+        Bundle bundle = new Bundle();
+        long dateLong = date.toDate().getTime();
+        bundle.putLong(DATE_OF_BIRTH, dateLong);
+        datePickerFragment.setArguments(bundle);
+        datePickerFragment.show(fragmentManager, DATE_PICKER_FRAGMENT_TAG);
+        return datePickerFragment;
     }
 }

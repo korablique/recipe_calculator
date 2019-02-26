@@ -3,6 +3,7 @@ package korablique.recipecalculator.database;
 import android.content.Context;
 import android.util.MutableBoolean;
 
+import org.joda.time.LocalDate;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,10 +18,8 @@ import io.reactivex.Completable;
 import io.reactivex.Single;
 import korablique.recipecalculator.base.Optional;
 import korablique.recipecalculator.database.room.DatabaseHolder;
-import korablique.recipecalculator.model.DateOfBirth;
 import korablique.recipecalculator.model.Formula;
 import korablique.recipecalculator.model.Gender;
-import korablique.recipecalculator.model.Goal;
 import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
@@ -58,7 +57,7 @@ public class UserParametersWorkerTest {
         UserParameters userParameters = new UserParameters(
                 60,
                 Gender.MALE,
-                new DateOfBirth(20, 7, 1993),
+                new LocalDate(1993, 7, 20),
                 165,
                 64,
                 Lifestyle.INSIGNIFICANT_ACTIVITY,
@@ -88,7 +87,7 @@ public class UserParametersWorkerTest {
         UserParameters userParameters = new UserParameters(
                 60,
                 Gender.MALE,
-                new DateOfBirth(20, 7, 1993),
+                new LocalDate(1993, 7, 20),
                 165,
                 64,
                 Lifestyle.INSIGNIFICANT_ACTIVITY,
@@ -115,7 +114,7 @@ public class UserParametersWorkerTest {
 
     @Test
     public void requestFirstUserParametersWorksCorrectly() {
-        DateOfBirth dateOfBirth = new DateOfBirth(10, 10, 1989);
+        LocalDate dateOfBirth = new LocalDate(1989, 10, 10);
         UserParameters userParameters1 = new UserParameters(
                 50, Gender.FEMALE, dateOfBirth, 160, 60, Lifestyle.PASSIVE_LIFESTYLE, Formula.HARRIS_BENEDICT);
         UserParameters userParameters2 = new UserParameters(
