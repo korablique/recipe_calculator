@@ -4,6 +4,7 @@ import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
 
+import org.joda.time.LocalDate;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -102,11 +103,12 @@ public class HistoryActivityTest {
 
         int targetWeight = 60;
         Gender gender = Gender.MALE;
-        int age = 24, height = 165, weight = 63;
+        LocalDate dateOfBirth = new LocalDate(1993, 9, 27);
+        int height = 165, weight = 63;
         Lifestyle lifestyle = Lifestyle.PASSIVE_LIFESTYLE;
         Formula formula = Formula.HARRIS_BENEDICT;
         UserParameters userParameters = new UserParameters(
-                targetWeight, gender, age, height, weight, lifestyle, formula);
+                targetWeight, gender, dateOfBirth, height, weight, lifestyle, formula);
         userParametersWorker.saveUserParameters(userParameters);
     }
 

@@ -9,6 +9,7 @@ import android.view.View;
 import junit.framework.Assert;
 
 import org.hamcrest.Matcher;
+import org.joda.time.LocalDate;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -58,6 +59,7 @@ import korablique.recipecalculator.model.TopList;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.model.WeightedFoodstuff;
+import korablique.recipecalculator.ui.TextUtils;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
@@ -202,7 +204,7 @@ public class MainActivityTest {
 
         // сохраняем userParameters в БД
         userParameters = new UserParameters(
-                45, Gender.FEMALE, 25, 158, 48, Lifestyle.PASSIVE_LIFESTYLE, Formula.HARRIS_BENEDICT);
+                45, Gender.FEMALE, new LocalDate(1993, 9, 27), 158, 48, Lifestyle.PASSIVE_LIFESTYLE, Formula.HARRIS_BENEDICT);
         userParametersWorker.saveUserParameters(userParameters);
 
         FullName fullName = new FullName("Yulia", "Zhilyaeva");
