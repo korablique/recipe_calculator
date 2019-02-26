@@ -12,11 +12,13 @@ import org.junit.runner.RunWith;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.LargeTest;
 import androidx.test.rule.ActivityTestRule;
 import androidx.test.runner.AndroidJUnit4;
+import io.reactivex.Single;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
@@ -32,6 +34,7 @@ import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.history.HistoryActivity;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
+import korablique.recipecalculator.util.InstantComputationsThreadsExecutor;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.SyncMainThreadExecutor;
 
@@ -73,12 +76,13 @@ public class BucketListActivityTest {
                         databaseThreadExecutor = new InstantDatabaseThreadExecutor();
                         databaseHolder = new DatabaseHolder(context, databaseThreadExecutor);
                         databaseWorker = new DatabaseWorker(
-                                databaseHolder, mainThreadExecutor, new InstantDatabaseThreadExecutor());
+                                databaseHolder, mainThreadExecutor, databaseThreadExecutor);
                         historyWorker = new HistoryWorker(
                                 databaseHolder, mainThreadExecutor, databaseThreadExecutor);
                         userParametersWorker = new UserParametersWorker(
                                 databaseHolder, mainThreadExecutor, databaseThreadExecutor);
-                        foodstuffsList = new FoodstuffsList(databaseWorker);
+                        foodstuffsList = new FoodstuffsList(
+                                databaseWorker, mainThreadExecutor, new InstantComputationsThreadsExecutor());
                         userNameProvider = new UserNameProvider(context);
                         return Arrays.asList(mainThreadExecutor, databaseThreadExecutor, databaseWorker,
                                 historyWorker, userParametersWorker, foodstuffsList, userNameProvider);
@@ -147,11 +151,10 @@ public class BucketListActivityTest {
         onView(withId(R.id.dish_name_edit_text)).perform(typeText(dishName), closeSoftKeyboard());
         onView(withId(R.id.save_button)).perform(click());
 
-        final boolean[] saved = new boolean[1];
-        foodstuffsList.requestFoodstuffsLike(
+        Single<List<Foodstuff>> foodstuffs = foodstuffsList.requestFoodstuffsLike(
                 dishName,
-                DatabaseWorker.NO_LIMIT,
-                foodstuffs -> saved[0] = foodstuffs.size() == 1);
-        Assert.assertTrue(saved[0]);
+                DatabaseWorker.NO_LIMIT);
+
+        Assert.assertEquals(1, foodstuffs.blockingGet().size());
     }
 }

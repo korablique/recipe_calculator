@@ -26,7 +26,7 @@ public abstract class MainScreenActivityModule {
     }
 
     @FragmentScope
-    @ContributesAndroidInjector
+    @ContributesAndroidInjector(modules = { BaseFragmentModule.class, SearchResultsFragmentModule.class })
     abstract SearchResultsFragment searchResultsFragmentInjector();
 
     @FragmentScope

@@ -36,6 +36,7 @@ import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.base.FragmentCallbacks;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.base.RxFragmentSubscriptions;
+import korablique.recipecalculator.base.executors.ComputationThreadsExecutor;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
@@ -63,6 +64,7 @@ import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
 import korablique.recipecalculator.ui.profile.ProfileController;
 import korablique.recipecalculator.ui.profile.ProfileFragment;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
+import korablique.recipecalculator.util.InstantComputationsThreadsExecutor;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.SyncMainThreadExecutor;
 
@@ -93,6 +95,8 @@ import static org.hamcrest.Matchers.not;
 @LargeTest
 public class MainActivityTest {
     private DatabaseThreadExecutor databaseThreadExecutor = new InstantDatabaseThreadExecutor();
+    private ComputationThreadsExecutor computationThreadsExecutor =
+            new InstantComputationsThreadsExecutor();
     private MainThreadExecutor mainThreadExecutor = new SyncMainThreadExecutor();
     private DatabaseHolder databaseHolder;
     private DatabaseWorker databaseWorker;
@@ -118,7 +122,8 @@ public class MainActivityTest {
                             databaseHolder, mainThreadExecutor, databaseThreadExecutor);
                     userParametersWorker = new UserParametersWorker(
                             databaseHolder, mainThreadExecutor, databaseThreadExecutor);
-                    foodstuffsList = new FoodstuffsList(databaseWorker);
+                    foodstuffsList =
+                            new FoodstuffsList(databaseWorker, mainThreadExecutor, computationThreadsExecutor);
                     topList = new TopList(context, databaseWorker, historyWorker);
                     userNameProvider = new UserNameProvider(context);
                     return Arrays.asList(databaseWorker, historyWorker, userParametersWorker,

@@ -38,6 +38,7 @@ import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.Card;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
+import korablique.recipecalculator.util.InstantComputationsThreadsExecutor;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.SyncMainThreadExecutor;
 
@@ -80,7 +81,8 @@ public class HistoryActivityTest {
                         databaseHolder, new SyncMainThreadExecutor(), databaseThreadExecutor);
                 userParametersWorker = new UserParametersWorker(
                         databaseHolder, new SyncMainThreadExecutor(), databaseThreadExecutor);
-                foodstuffsList = new FoodstuffsList(databaseWorker);
+                foodstuffsList = new FoodstuffsList(databaseWorker, mainThreadExecutor,
+                        new InstantComputationsThreadsExecutor());
                 return Arrays.asList(mainThreadExecutor, databaseHolder, databaseWorker,
                         historyWorker, userParametersWorker, foodstuffsList);
             })
