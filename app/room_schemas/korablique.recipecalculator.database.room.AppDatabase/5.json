@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 5,
-    "identityHash": "695688fd4b763954bf00a400ffd07346",
+    "identityHash": "075323b139be3f61eb8f8d04aaf4e4d4",
     "entities": [
       {
         "tableName": "foodstuffs",
@@ -68,7 +68,7 @@
       },
       {
         "tableName": "user_parameters",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `target_weight` REAL NOT NULL, `gender` INTEGER NOT NULL, `date_of_birth` TEXT NOT NULL, `height` INTEGER NOT NULL, `weight` REAL NOT NULL, `lifestyle` INTEGER NOT NULL, `formula` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `target_weight` REAL NOT NULL, `gender` INTEGER NOT NULL, `day_of_birth` INTEGER NOT NULL, `month_of_birth` INTEGER NOT NULL, `year_of_birth` INTEGER NOT NULL, `height` INTEGER NOT NULL, `weight` REAL NOT NULL, `lifestyle` INTEGER NOT NULL, `formula` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -89,9 +89,21 @@
             "notNull": true
           },
           {
-            "fieldPath": "dateOfBirth",
-            "columnName": "date_of_birth",
-            "affinity": "TEXT",
+            "fieldPath": "dayOfBirth",
+            "columnName": "day_of_birth",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "monthOfBirth",
+            "columnName": "month_of_birth",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "yearOfBirth",
+            "columnName": "year_of_birth",
+            "affinity": "INTEGER",
             "notNull": true
           },
           {
@@ -191,7 +203,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"695688fd4b763954bf00a400ffd07346\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"075323b139be3f61eb8f8d04aaf4e4d4\")"
     ]
   }
 }

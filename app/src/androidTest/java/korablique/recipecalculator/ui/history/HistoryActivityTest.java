@@ -4,6 +4,7 @@ import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
 
+import org.joda.time.LocalDate;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -29,7 +30,6 @@ import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.database.room.DatabaseHolder;
-import korablique.recipecalculator.model.DateOfBirth;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Formula;
 import korablique.recipecalculator.model.Gender;
@@ -101,7 +101,7 @@ public class HistoryActivityTest {
 
         int targetWeight = 60;
         Gender gender = Gender.MALE;
-        DateOfBirth dateOfBirth = new DateOfBirth(27, 9, 1993);
+        LocalDate dateOfBirth = new LocalDate(1993, 9, 27);
         int height = 165, weight = 63;
         Lifestyle lifestyle = Lifestyle.PASSIVE_LIFESTYLE;
         Formula formula = Formula.HARRIS_BENEDICT;
