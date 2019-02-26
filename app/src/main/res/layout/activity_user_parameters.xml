@@ -136,9 +136,9 @@
                     android:layout_marginTop="16dp"
                     app:layout_constraintTop_toBottomOf="@+id/line1" />
 
-                <!--date of birth-->
+                <!--age-->
                 <TextView
-                    android:id="@+id/date_of_birth_text_view"
+                    android:id="@+id/age_text_view"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     app:layout_constraintStart_toStartOf="parent"
@@ -146,10 +146,10 @@
                     android:layout_marginStart="4.5dp"
                     android:layout_marginTop="13dp"
                     style="@style/RobotoMonoHintText"
-                    android:text="@string/date_of_birth" />
+                    android:text="@string/age" />
 
                 <EditText
-                    android:id="@+id/date_of_birth"
+                    android:id="@+id/age"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:layout_constraintStart_toStartOf="parent"
@@ -157,7 +157,7 @@
                     android:layout_marginTop="5dp"
                     android:backgroundTint="@color/colorAccent"
                     style="@style/RobotoMonoText"
-                    android:focusable="false" />
+                    android:inputType="number" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <FrameLayout

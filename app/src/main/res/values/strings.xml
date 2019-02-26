@@ -23,7 +23,6 @@
     <string name="goal">Цель</string>
     <string name="gender">Пол</string>
     <string name="age">Возраст</string>
-    <string name="date_of_birth">Дата рождения</string>
     <string name="height">Рост</string>
     <string name="weight">Вес</string>
     <string name="physical_activity">Коэффициент физ. активности:</string>

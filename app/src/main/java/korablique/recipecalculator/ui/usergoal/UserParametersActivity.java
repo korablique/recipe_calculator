@@ -14,8 +14,6 @@ import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 
-import org.joda.time.LocalDate;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -115,34 +113,10 @@ public class UserParametersActivity extends BaseActivity {
             }
         });
 
-        EditText dateOfBirthView = findViewById(R.id.date_of_birth);
-        dateOfBirthView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                EditText dateOfBirthView = findViewById(R.id.date_of_birth);
-                String dateOfBirthString = dateOfBirthView.getText().toString();
-
-                DatePickerFragment datePickerFragment;
-                if (dateOfBirthString.isEmpty()) {
-                    datePickerFragment = DatePickerFragment.showDialog(getSupportFragmentManager());
-                } else {
-                    LocalDate dateOfBirth = parseDateOfBirth(dateOfBirthString);
-                    datePickerFragment = DatePickerFragment.showDialog(getSupportFragmentManager(), dateOfBirth);
-                }
-                datePickerFragment.setOnDateSetListener(new DatePickerFragment.DateSetListener() {
-                    @Override
-                    public void onDateSet(LocalDate date) {
-                        dateOfBirthView.setText(date.toString("dd.MM.yyyy"));
-                    }
-                });
-            }
-        });
-
         Single<Optional<UserParameters>> oldUserParamsSingle = userParametersWorker.requestCurrentUserParameters();
         subscriptions.subscribe(oldUserParamsSingle, userParametersOptional -> {
             if (userParametersOptional.isPresent()) {
-                UserParameters oldUserParams = userParametersOptional.get();
-                fillWithOldUserParameters(oldUserParams);
+                fillWithOldUserParameters(userParametersOptional.get());
                 fillUserName(userNameProvider.getUserName());
             }
         });
@@ -166,7 +140,7 @@ public class UserParametersActivity extends BaseActivity {
     private boolean allFieldsFilled() {
         EditText nameView = findViewById(R.id.first_name);
         EditText surnameView = findViewById(R.id.last_name);
-        EditText ageView = findViewById(R.id.date_of_birth);
+        EditText ageView = findViewById(R.id.age);
         EditText heightView = findViewById(R.id.height);
         EditText weightView = findViewById(R.id.weight);
         Spinner genderSpinner = findViewById(R.id.gender_spinner);
@@ -184,9 +158,7 @@ public class UserParametersActivity extends BaseActivity {
         int genderSelectedPosition = ((Spinner) findViewById(R.id.gender_spinner)).getSelectedItemPosition();
         Gender gender = Gender.POSITIONS.get(genderSelectedPosition - 1);
 
-        String dateOfBirthString = ((EditText) findViewById(R.id.date_of_birth)).getText().toString();
-        LocalDate dateOfBirth = parseDateOfBirth(dateOfBirthString);
-
+        int age = Integer.parseInt(((EditText) findViewById(R.id.age)).getText().toString());
         int height = Integer.parseInt(((EditText) findViewById(R.id.height)).getText().toString());
         float weight = Float.parseFloat(((EditText) findViewById(R.id.weight)).getText().toString());
 
@@ -196,11 +168,11 @@ public class UserParametersActivity extends BaseActivity {
         int formulaSelectedPosition = ((Spinner) findViewById(R.id.formula_spinner)).getSelectedItemPosition();
         Formula formula = Formula.POSITIONS.get(formulaSelectedPosition);
 
-        return new UserParameters(targetWeight, gender, dateOfBirth, height, weight, lifestyle, formula);
+        return new UserParameters(targetWeight, gender, age, height, weight, lifestyle, formula);
     }
 
     private void fillWithOldUserParameters(UserParameters oldUserParams) {
-        EditText dateOfBirthView = findViewById(R.id.date_of_birth);
+        EditText ageView = findViewById(R.id.age);
         EditText heightView = findViewById(R.id.height);
         EditText weightView = findViewById(R.id.weight);
         Spinner genderSpinner = findViewById(R.id.gender_spinner);
@@ -208,9 +180,7 @@ public class UserParametersActivity extends BaseActivity {
         Spinner lifestyleSpinner = findViewById(R.id.lifestyle_spinner);
         Spinner formulaSpinner = findViewById(R.id.formula_spinner);
 
-        LocalDate dateOfBirth = oldUserParams.getDateOfBirth();
-        dateOfBirthView.setText(dateOfBirth.toString("dd.MM.yyyy"));
-
+        ageView.setText(String.valueOf(oldUserParams.getAge()));
         heightView.setText(String.valueOf(oldUserParams.getHeight()));
         weightView.setText(TextUtils.getDecimalString(oldUserParams.getWeight()));
         targetWeightView.setText(TextUtils.getDecimalString(oldUserParams.getTargetWeight()));
@@ -225,19 +195,10 @@ public class UserParametersActivity extends BaseActivity {
         formulaSpinner.setSelection(Formula.POSITIONS_REVERSED.get(formula));
     }
 
-    private LocalDate parseDateOfBirth(String dateString) {
-        String[] dateSplited = dateString.split("\\.");
-        int day = Integer.parseInt(dateSplited[0]);
-        int month = Integer.parseInt(dateSplited[1]);
-        int year = Integer.parseInt(dateSplited[2]);
-        return new LocalDate(year, month, day);
-    }
-
     private void fillUserName(FullName userFullName) {
         EditText firstNameEditText = findViewById(R.id.first_name);
         firstNameEditText.setText(userFullName.getFirstName());
         EditText lastNameEditText = findViewById(R.id.last_name);
-
         lastNameEditText.setText(userFullName.getLastName());
     }
 }

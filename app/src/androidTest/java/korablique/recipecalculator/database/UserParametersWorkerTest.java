@@ -3,7 +3,6 @@ package korablique.recipecalculator.database;
 import android.content.Context;
 import android.util.MutableBoolean;
 
-import org.joda.time.LocalDate;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,6 +19,7 @@ import korablique.recipecalculator.base.Optional;
 import korablique.recipecalculator.database.room.DatabaseHolder;
 import korablique.recipecalculator.model.Formula;
 import korablique.recipecalculator.model.Gender;
+import korablique.recipecalculator.model.Goal;
 import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
@@ -57,7 +57,7 @@ public class UserParametersWorkerTest {
         UserParameters userParameters = new UserParameters(
                 60,
                 Gender.MALE,
-                new LocalDate(1993, 7, 20),
+                24,
                 165,
                 64,
                 Lifestyle.INSIGNIFICANT_ACTIVITY,
@@ -87,7 +87,7 @@ public class UserParametersWorkerTest {
         UserParameters userParameters = new UserParameters(
                 60,
                 Gender.MALE,
-                new LocalDate(1993, 7, 20),
+                24,
                 165,
                 64,
                 Lifestyle.INSIGNIFICANT_ACTIVITY,
@@ -114,13 +114,12 @@ public class UserParametersWorkerTest {
 
     @Test
     public void requestFirstUserParametersWorksCorrectly() {
-        LocalDate dateOfBirth = new LocalDate(1989, 10, 10);
         UserParameters userParameters1 = new UserParameters(
-                50, Gender.FEMALE, dateOfBirth, 160, 60, Lifestyle.PASSIVE_LIFESTYLE, Formula.HARRIS_BENEDICT);
+                50, Gender.FEMALE, 30, 160, 60, Lifestyle.PASSIVE_LIFESTYLE, Formula.HARRIS_BENEDICT);
         UserParameters userParameters2 = new UserParameters(
-                50, Gender.FEMALE, dateOfBirth, 160, 59, Lifestyle.INSIGNIFICANT_ACTIVITY, Formula.HARRIS_BENEDICT);
+                50, Gender.FEMALE, 31, 160, 59, Lifestyle.INSIGNIFICANT_ACTIVITY, Formula.HARRIS_BENEDICT);
         UserParameters userParameters3 = new UserParameters(
-                50, Gender.FEMALE, dateOfBirth, 160, 58, Lifestyle.INSIGNIFICANT_ACTIVITY, Formula.MIFFLIN_JEOR);
+                50, Gender.FEMALE, 31, 160, 58, Lifestyle.INSIGNIFICANT_ACTIVITY, Formula.MIFFLIN_JEOR);
         userParametersWorker.saveUserParameters(userParameters1);
         userParametersWorker.saveUserParameters(userParameters2);
         userParametersWorker.saveUserParameters(userParameters3);

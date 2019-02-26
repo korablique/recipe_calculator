@@ -22,7 +22,6 @@ import static korablique.recipecalculator.database.UserParametersContract.COLUMN
 import static korablique.recipecalculator.database.UserParametersContract.USER_PARAMETERS_TABLE_NAME;
 import static korablique.recipecalculator.database.room.Migrations.MIGRATION_2_3;
 import static korablique.recipecalculator.database.room.Migrations.MIGRATION_3_4;
-import static korablique.recipecalculator.database.room.Migrations.MIGRATION_4_5;
 
 @RunWith(AndroidJUnit4.class)
 @LargeTest
@@ -82,20 +81,5 @@ public class MigrationTest {
             float weightFloat = cursor.getFloat(cursor.getColumnIndex(COLUMN_NAME_USER_WEIGHT));
             Assert.assertTrue(FloatUtils.areFloatsEquals(weight, weightFloat));
         }
-    }
-
-    @Test
-    public void migrate4To5() throws IOException {
-        SupportSQLiteDatabase db = helper.createDatabase(TEST_DB, 4);
-        int id = 1, genderId = 1, age = 25, height = 158, lifestyleId = 0, formulaId = 0;
-        float targetWeight = 45, weight = 47.5f;
-        db.execSQL("INSERT INTO " + USER_PARAMETERS_TABLE_NAME + " VALUES (" +
-                + id + ", " + targetWeight + ", " + genderId + ", " + age + ", " + height + ", "
-                + weight + ", " + lifestyleId + ", " + formulaId + ")");
-        db.close();
-
-        db = helper.runMigrationsAndValidate(TEST_DB, 5, true, MIGRATION_4_5);
-        Cursor cursor = db.query("SELECT * FROM " + USER_PARAMETERS_TABLE_NAME);
-        Assert.assertTrue(!cursor.moveToFirst());
     }
 }
