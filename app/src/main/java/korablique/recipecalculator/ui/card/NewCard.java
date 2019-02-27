@@ -20,6 +20,8 @@ import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.NutritionValuesWrapper;
 import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
 
+import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
+
 public class NewCard {
     public interface OnAddFoodstuffButtonClickListener {
         void onClick(WeightedFoodstuff foodstuff);
@@ -52,7 +54,7 @@ public class NewCard {
         editButton = cardLayout.findViewById(R.id.frame_layout_button_edit);
         closeButton = cardLayout.findViewById(R.id.button_close_layout);
         weightEditText = cardLayout.findViewById(R.id.weight_edit_text);
-        weightEditText.setText(String.valueOf(DEFAULT_WEIGHT));
+        weightEditText.setText(toDecimalString(DEFAULT_WEIGHT));
         updateAddButtonEnability(weightEditText.getText());
 
         nameTextView = cardLayout.findViewById(R.id.foodstuff_name_text_view);
@@ -72,7 +74,7 @@ public class NewCard {
     public void setFoodstuff(WeightedFoodstuff weightedFoodstuff) {
         setFoodstuffImpl(weightedFoodstuff.withoutWeight());
         nutritionValuesWrapper.setNutrition(Nutrition.of(weightedFoodstuff));
-        weightEditText.setText(String.valueOf(weightedFoodstuff.getWeight()));
+        weightEditText.setText(toDecimalString(weightedFoodstuff.getWeight()));
         weightEditText.setSelection(weightEditText.getText().length());
     }
 

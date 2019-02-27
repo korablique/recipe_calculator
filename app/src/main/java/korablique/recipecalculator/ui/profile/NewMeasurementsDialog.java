@@ -15,7 +15,7 @@ import androidx.fragment.app.FragmentManager;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseBottomDialog;
 import korablique.recipecalculator.model.UserParameters;
-import korablique.recipecalculator.util.TextUtils;
+import korablique.recipecalculator.ui.DecimalUtils;
 import korablique.recipecalculator.util.TimeUtils;
 
 public class NewMeasurementsDialog extends BaseBottomDialog {
@@ -47,7 +47,7 @@ public class NewMeasurementsDialog extends BaseBottomDialog {
         UserParameters lastParams = args.getParcelable(LAST_PARAMS);
         float lastWeight = lastParams.getWeight();
         TextView lastValue = dialogLayout.findViewById(R.id.last_measurement_value);
-        lastValue.setText(TextUtils.getDecimalString(lastWeight));
+        lastValue.setText(DecimalUtils.toDecimalString(lastWeight));
 
         // предыдущая дата взвешивания
         TextView lastMeasurementHeader = dialogLayout.findViewById(R.id.last_measurement_header);

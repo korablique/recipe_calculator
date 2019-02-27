@@ -28,9 +28,12 @@ import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.NutritionValuesWrapper;
+import korablique.recipecalculator.ui.DecimalUtils;
 import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.history.HistoryActivity;
 import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
+
+import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
 
 public class BucketListActivity extends BaseActivity {
     public static final String EXTRA_FOODSTUFFS_LIST = "EXTRA_FOODSTUFFS_LIST";
@@ -65,7 +68,7 @@ public class BucketListActivity extends BaseActivity {
         saveAsSingleFoodstuffButton = findViewById(R.id.save_as_single_foodstuff_button);
 
         totalWeightEditText = findViewById(R.id.total_weight_edit_text);
-        totalWeightEditText.setText(String.valueOf(totalWeight));
+        totalWeightEditText.setText(toDecimalString(totalWeight));
         totalWeightEditText.addTextChangedListener(new TextWatcherAdapter() {
             @Override
             public void afterTextChanged(Editable s) {
@@ -86,7 +89,7 @@ public class BucketListActivity extends BaseActivity {
                 CardDialog.hideCard(BucketListActivity.this);
 
                 double newTotalWeight = countTotalWeight(adapter.getItems());
-                totalWeightEditText.setText(String.valueOf(newTotalWeight));
+                totalWeightEditText.setText(toDecimalString(newTotalWeight));
 
                 updateNutritionWrappers(adapter.getItems(), newTotalWeight);
             });
@@ -109,14 +112,14 @@ public class BucketListActivity extends BaseActivity {
                 adapter.deleteItem(position);
                 bucketList.remove(deleting);
                 double newWeight = countTotalWeight(adapter.getItems());
-                totalWeightEditText.setText(String.valueOf(newWeight));
+                totalWeightEditText.setText(toDecimalString(newWeight));
                 updateNutritionWrappers(adapter.getItems(), newWeight);
 
                 Snackbar snackbar = Snackbar.make(foodstuffsListRecyclerView,
                         R.string.deleted, Snackbar.LENGTH_SHORT);
                 snackbar.setAction(R.string.undo, v -> {
                     adapter.addItem(deleting, position);
-                    totalWeightEditText.setText(String.valueOf(newWeight + deleting.getWeight()));
+                    totalWeightEditText.setText(toDecimalString(newWeight + deleting.getWeight()));
                     updateNutritionWrappers(adapter.getItems(), newWeight + deleting.getWeight());
                 });
                 snackbar.show();
