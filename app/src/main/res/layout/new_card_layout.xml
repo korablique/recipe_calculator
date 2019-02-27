@@ -51,25 +51,14 @@
                 android:src="@drawable/ic_edit_black" />
         </FrameLayout>
 
-        <FrameLayout
-            android:id="@+id/button_close_layout"
+        <include layout="@layout/button_close"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_marginEnd="16dp"
             android:layout_marginRight="16dp"
             android:layout_marginTop="20dp"
-            android:background="@drawable/button_close_background"
-            android:foreground="?attr/selectableItemBackground"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <ImageView
-                android:id="@+id/button_close"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_gravity="center"
-                android:src="@drawable/ic_close" />
-        </FrameLayout>
+            app:layout_constraintTop_toTopOf="parent" />
 
         <include
             android:id="@+id/nutrition_progress_with_values"

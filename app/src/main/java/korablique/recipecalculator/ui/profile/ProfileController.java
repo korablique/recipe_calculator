@@ -2,6 +2,7 @@ package korablique.recipecalculator.ui.profile;
 
 import android.util.Pair;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.mikhaellopez.circularprogressbar.CircularProgressBar;
@@ -87,25 +88,48 @@ public class ProfileController extends FragmentCallbacks.Observer {
     @Override
     public void onFragmentStart() {
         // обновляет данные пользователя, если они редактировались
+        requestFirstAndCurrentUserParams((firstAndLastParams) -> {
+            if (!firstAndLastParams.first.isPresent()) {
+                throw new IllegalStateException("It is impossible for the first user parameters to be missing");
+            }
+            if (firstAndLastParams.second.isPresent()) {
+                UserParameters firstParams = firstAndLastParams.first.get();
+                UserParameters lastParams = firstAndLastParams.second.get();
+                fillProfile(firstParams, lastParams, fragment.getView());
+            }
+        });
+
+        Button setCurrentWeightButton = fragment.getView().findViewById(R.id.set_current_weight);
+        setCurrentWeightButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // к моменту нажатия на кнопку ввода нового веса данные пользователя могли измениться
+                // (он мог уже один раз на неё нажать и изменить вес),
+                // поэтому запрашиваем их ещё раз
+                requestFirstAndCurrentUserParams((firstAndLastParams) -> {
+                    UserParameters lastParams = firstAndLastParams.second.get();
+                    NewMeasurementsDialog newMeasurementsDialog =
+                            NewMeasurementsDialog.showDialog(fragment.getFragmentManager(), lastParams);
+                    newMeasurementsDialog.setOnSaveNewMeasurementsListener(new NewMeasurementsDialog.OnSaveNewMeasurementsListener() {
+                        @Override
+                        public void onSave(UserParameters newUserParams) {
+                            userParametersWorker.saveUserParameters(newUserParams);
+                            fillProfile(firstAndLastParams.first.get(), newUserParams,  fragment.getView());
+                        }
+                    });
+                });
+            }
+        });
+    }
+
+    private void requestFirstAndCurrentUserParams(Consumer<Pair<Optional<UserParameters>, Optional<UserParameters>>> consumer) {
         Single<Optional<UserParameters>> lastParamsSingle =
                 userParametersWorker.requestCurrentUserParameters();
         Single<Optional<UserParameters>> firstParamsSingle =
                 userParametersWorker.requestFirstUserParameters();
         Single<Pair<Optional<UserParameters>, Optional<UserParameters>>> pairSingle =
                 firstParamsSingle.zipWith(lastParamsSingle, Pair::create);
-        subscriptions.subscribe(pairSingle, new Consumer<Pair<Optional<UserParameters>, Optional<UserParameters>>>() {
-            @Override
-            public void accept(Pair<Optional<UserParameters>, Optional<UserParameters>> firstAndLastParams) {
-                if (!firstAndLastParams.first.isPresent()) {
-                    throw new IllegalStateException("It is impossible for the first user parameters to be missing");
-                }
-                if (firstAndLastParams.second.isPresent()) {
-                    UserParameters firstParams = firstAndLastParams.first.get();
-                    UserParameters lastParams = firstAndLastParams.second.get();
-                    fillProfile(firstParams, lastParams, fragment.getView());
-                }
-            }
-        });
+        subscriptions.subscribe(pairSingle, consumer);
     }
 
     private void fillUserData(View fragmentView, UserParameters userParameters) {

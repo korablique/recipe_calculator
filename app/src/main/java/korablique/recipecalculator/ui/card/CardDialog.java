@@ -1,23 +1,18 @@
 package korablique.recipecalculator.ui.card;
 
-import android.app.Dialog;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.FragmentActivity;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
 
-import korablique.recipecalculator.R;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentActivity;
+import korablique.recipecalculator.base.BaseBottomDialog;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 
-public class CardDialog extends DialogFragment {
+public class CardDialog extends BaseBottomDialog {
     private static final String CLICKED_FOODSTUFF = "CLICKED_FOODSTUFF";
     private static final String CLICKED_WEIGHTED_FOODSTUFF = "CLICKED_WEIGHTED_FOODSTUFF";
     private static final String FOODSTUFF_CARD = "FOODSTUFF_CARD";
@@ -47,23 +42,6 @@ public class CardDialog extends DialogFragment {
         }
 
         return card.getCardLayout();
-    }
-
-    @Override
-    @NonNull public Dialog onCreateDialog(Bundle savedInstanceState) {
-        Dialog dialog1 = super.onCreateDialog(savedInstanceState);
-        dialog1.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog1.setOnShowListener(dialog -> {
-            WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
-            layoutParams.copyFrom(dialog1.getWindow().getAttributes());
-            layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
-            layoutParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
-            layoutParams.gravity = Gravity.BOTTOM;
-            dialog1.getWindow().setAttributes(layoutParams);
-            dialog1.getWindow().setBackgroundDrawable(getContext().getResources().getDrawable(R.drawable.new_card_background));
-        });
-        dialog1.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
-        return dialog1;
     }
 
     public void setOnAddFoodstuffButtonClickListener(NewCard.OnAddFoodstuffButtonClickListener listener) {

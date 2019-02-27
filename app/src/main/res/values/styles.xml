@@ -53,6 +53,7 @@
     <style name="VioletButton" parent="BroccalcButton">
         <item name="android:background">@drawable/violet_button_selector</item>
         <item name="android:textColor">#FFFFFFFF</item>
+        <item name="android:fontFamily">@font/roboto_mono</item>
     </style>
 
     <style name="VioletLiningButton" parent="BroccalcButton">
