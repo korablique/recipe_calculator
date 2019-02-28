@@ -15,7 +15,7 @@ public class BaseBottomDialog extends DialogFragment {
     @NonNull
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         Dialog dialog1 = super.onCreateDialog(savedInstanceState);
-        dialog1.requestWindowFeature(Window.FEATURE_NO_TITLE); // TODO: 27.02.19 эта строчка нужна для android 5+?
+        dialog1.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog1.setOnShowListener(dialog -> {
             WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
             layoutParams.copyFrom(dialog1.getWindow().getAttributes());

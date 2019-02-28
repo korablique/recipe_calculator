@@ -132,7 +132,7 @@ public class UserParametersActivity extends BaseActivity {
                 datePickerFragment.setOnDateSetListener(new DatePickerFragment.DateSetListener() {
                     @Override
                     public void onDateSet(LocalDate date) {
-                        dateOfBirthView.setText(date.toString("dd.MM.yyyy"));
+                        dateOfBirthView.setText(date.toString(getString(R.string.date_format)));
                     }
                 });
             }
@@ -209,7 +209,7 @@ public class UserParametersActivity extends BaseActivity {
         Spinner formulaSpinner = findViewById(R.id.formula_spinner);
 
         LocalDate dateOfBirth = oldUserParams.getDateOfBirth();
-        dateOfBirthView.setText(dateOfBirth.toString("dd.MM.yyyy"));
+        dateOfBirthView.setText(dateOfBirth.toString(getString(R.string.date_format)));
 
         heightView.setText(String.valueOf(oldUserParams.getHeight()));
         weightView.setText(TextUtils.getDecimalString(oldUserParams.getWeight()));

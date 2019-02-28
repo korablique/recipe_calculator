@@ -38,10 +38,12 @@ public class NewMeasurementsDialog extends BaseBottomDialog {
         TextView lastMeasurementHeader = dialogLayout.findViewById(R.id.last_measurement_header);
         Random random = new Random();
         LocalDate randomDate = new LocalDate(new Date(random.nextInt()));
-        lastMeasurementHeader.setText(getString(R.string.last_measurements, randomDate.toString("dd.MM.yyyy")));
+        lastMeasurementHeader.setText(getString(
+                R.string.last_measurements, randomDate.toString(getString(R.string.date_format))));
         // сегодняшняя дата
         TextView newMeasurementHeader = dialogLayout.findViewById(R.id.new_measurement_header);
-        newMeasurementHeader.setText(getString(R.string.new_measurements, LocalDate.now().toString("dd.MM.yyyy")));
+        newMeasurementHeader.setText(getString(
+                R.string.new_measurements, LocalDate.now().toString(getString(R.string.date_format))));
         // предыдущее значение веса
         Bundle args = getArguments();
         if (args == null || !args.containsKey(LAST_PARAMS)) {

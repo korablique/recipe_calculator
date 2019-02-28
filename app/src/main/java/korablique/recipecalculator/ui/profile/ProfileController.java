@@ -151,7 +151,7 @@ public class ProfileController extends FragmentCallbacks.Observer {
 
         // случайная дата
         TextView lastMeasurementDate = fragmentView.findViewById(R.id.last_measurement_date_measurement_value);
-        DateFormat format = new SimpleDateFormat("dd.MM.yyyy", Locale.UK);
+        DateFormat format = new SimpleDateFormat(fragment.getString(R.string.date_format), Locale.UK);
         lastMeasurementDate.setText(format.format(new Date(Math.abs(new Random().nextInt()))));
     }
 
