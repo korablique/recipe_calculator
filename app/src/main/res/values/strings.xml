@@ -106,6 +106,9 @@
     <string name="cm">\ см</string>
     <string name="kcal">\ ккал</string>
     <string name="years">\ лет</string>
+    <string name="last_measurements">Предыдущее значение на %s</string>
+    <string name="new_measurements">Текущее значение на %s</string>
+    <string name="date_format">dd.MM.yyyy</string>
 
     <string-array name="goals_array">
         <item name="losing_weight">Снижение веса</item>
