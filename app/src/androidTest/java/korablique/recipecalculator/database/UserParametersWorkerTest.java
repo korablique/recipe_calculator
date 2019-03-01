@@ -3,6 +3,8 @@ package korablique.recipecalculator.database;
 import android.content.Context;
 import android.util.MutableBoolean;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.junit.Assert;
 import org.junit.Before;
@@ -61,7 +63,8 @@ public class UserParametersWorkerTest {
                 165,
                 64,
                 Lifestyle.INSIGNIFICANT_ACTIVITY,
-                Formula.HARRIS_BENEDICT);
+                Formula.HARRIS_BENEDICT,
+                DateTime.now(DateTimeZone.UTC).getMillis());
 
         MutableBoolean saved = new MutableBoolean(false);
         Completable callback = userParametersWorker.saveUserParameters(userParameters);
@@ -91,7 +94,8 @@ public class UserParametersWorkerTest {
                 165,
                 64,
                 Lifestyle.INSIGNIFICANT_ACTIVITY,
-                Formula.HARRIS_BENEDICT);
+                Formula.HARRIS_BENEDICT,
+                DateTime.now(DateTimeZone.UTC).getMillis());
         userParametersWorker.saveUserParameters(userParameters);
 
         reset(spiedDatabaseThreadExecutor);
@@ -115,12 +119,15 @@ public class UserParametersWorkerTest {
     @Test
     public void requestFirstUserParametersWorksCorrectly() {
         LocalDate dateOfBirth = new LocalDate(1989, 10, 10);
-        UserParameters userParameters1 = new UserParameters(
-                50, Gender.FEMALE, dateOfBirth, 160, 60, Lifestyle.PASSIVE_LIFESTYLE, Formula.HARRIS_BENEDICT);
-        UserParameters userParameters2 = new UserParameters(
-                50, Gender.FEMALE, dateOfBirth, 160, 59, Lifestyle.INSIGNIFICANT_ACTIVITY, Formula.HARRIS_BENEDICT);
-        UserParameters userParameters3 = new UserParameters(
-                50, Gender.FEMALE, dateOfBirth, 160, 58, Lifestyle.INSIGNIFICANT_ACTIVITY, Formula.MIFFLIN_JEOR);
+        DateTime date1 = new DateTime(2019, 1, 1, 12, 0, DateTimeZone.UTC);
+        UserParameters userParameters1 = new UserParameters(50, Gender.FEMALE, dateOfBirth,
+                160, 60, Lifestyle.PASSIVE_LIFESTYLE, Formula.HARRIS_BENEDICT, date1.getMillis());
+        DateTime date2 = new DateTime(2019, 2, 1, 12, 0, DateTimeZone.UTC);
+        UserParameters userParameters2 = new UserParameters(50, Gender.FEMALE, dateOfBirth,
+                160, 59, Lifestyle.INSIGNIFICANT_ACTIVITY, Formula.HARRIS_BENEDICT, date2.getMillis());
+        DateTime date3 = new DateTime(2019, 3, 1, 12, 0, DateTimeZone.UTC);
+        UserParameters userParameters3 = new UserParameters(50, Gender.FEMALE, dateOfBirth,
+                160, 58, Lifestyle.INSIGNIFICANT_ACTIVITY, Formula.MIFFLIN_JEOR, date3.getMillis());
         userParametersWorker.saveUserParameters(userParameters1);
         userParametersWorker.saveUserParameters(userParameters2);
         userParametersWorker.saveUserParameters(userParameters3);

@@ -13,6 +13,7 @@ public final class UserParametersContract {
     public static final String COLUMN_NAME_USER_WEIGHT = "weight";
     public static final String COLUMN_NAME_LIFESTYLE = "lifestyle";
     public static final String COLUMN_NAME_FORMULA = "formula";
+    public static final String COLUMN_NAME_MEASUREMENTS_TIMESTAMP = "measurements_timestamp";
 
     private UserParametersContract() {}
 }

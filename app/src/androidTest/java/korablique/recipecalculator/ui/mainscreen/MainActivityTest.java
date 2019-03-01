@@ -9,6 +9,8 @@ import android.view.View;
 import junit.framework.Assert;
 
 import org.hamcrest.Matcher;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.junit.After;
 import org.junit.Before;
@@ -59,7 +61,6 @@ import korablique.recipecalculator.model.TopList;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.model.WeightedFoodstuff;
-import korablique.recipecalculator.ui.TextUtils;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
@@ -203,8 +204,8 @@ public class MainActivityTest {
         historyWorker.saveGroupOfFoodstuffsToHistory(newEntries);
 
         // сохраняем userParameters в БД
-        userParameters = new UserParameters(
-                45, Gender.FEMALE, new LocalDate(1993, 9, 27), 158, 48, Lifestyle.PASSIVE_LIFESTYLE, Formula.HARRIS_BENEDICT);
+        userParameters = new UserParameters(45, Gender.FEMALE, new LocalDate(1993, 9, 27),
+                158, 48, Lifestyle.PASSIVE_LIFESTYLE, Formula.HARRIS_BENEDICT, DateTime.now(DateTimeZone.UTC).getMillis());
         userParametersWorker.saveUserParameters(userParameters);
 
         FullName fullName = new FullName("Yulia", "Zhilyaeva");
@@ -418,6 +419,40 @@ public class MainActivityTest {
         int percent = GoalCalculator.calculateProgressPercentage(
                 userParameters.getWeight(), userParameters.getWeight(), userParameters.getTargetWeight());
         onView(withId(R.id.done_percent)).check(matches(withText(String.valueOf(percent))));
+    }
+
+    @Test
+    public void measurementsCardDisplaysPreviousDate() {
+        databaseHolder.getDatabase().clearAllTables();
+        // сохраняем параметры на дату в прошлом 12.8+1.2019 12:00
+        DateTime lastDate = new DateTime(2019, 8, 12, 12, 12, 0, DateTimeZone.UTC);
+        UserParameters lastParams = new UserParameters(45, Gender.FEMALE, new LocalDate(1993, 9, 27),
+                158, 49.6f, Lifestyle.ACTIVE_LIFESTYLE, Formula.HARRIS_BENEDICT, lastDate.getMillis());
+        userParametersWorker.saveUserParameters(lastParams);
+
+        mActivityRule.launchActivity(null);
+        // переходим в профиль
+        onView(allOf(withText(R.string.profile), withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)))
+                .perform(click());
+        // открываем карточку
+        onView(withId(R.id.set_current_weight)).perform(click());
+        // сверяем, что дата прошлых измерений правильная
+        String dateMustBe = lastDate.toString(mActivityRule.getActivity().getString(R.string.date_format));
+        onView(withId(R.id.last_measurement_header)).check(matches(withText(containsString(dateMustBe))));
+    }
+
+    @Test
+    public void measurementsCardDisplaysTodaysDate() {
+        mActivityRule.launchActivity(null);
+        // переходим в профиль
+        onView(allOf(withText(R.string.profile), withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)))
+                .perform(click());
+        // открываем карточку
+        onView(withId(R.id.set_current_weight)).perform(click());
+        // проверяем сегодняшнюю дату
+        DateTime todaysDate = DateTime.now(DateTimeZone.UTC);
+        String dateMustBe = todaysDate.toString(mActivityRule.getActivity().getString(R.string.date_format));
+        onView(withId(R.id.new_measurement_header)).check(matches(withText(containsString(dateMustBe))));
     }
 
     private List<Foodstuff> extractFoodstuffsTopFromDB() {

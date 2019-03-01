@@ -14,6 +14,8 @@ import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 
 import java.util.ArrayList;
@@ -196,7 +198,9 @@ public class UserParametersActivity extends BaseActivity {
         int formulaSelectedPosition = ((Spinner) findViewById(R.id.formula_spinner)).getSelectedItemPosition();
         Formula formula = Formula.POSITIONS.get(formulaSelectedPosition);
 
-        return new UserParameters(targetWeight, gender, dateOfBirth, height, weight, lifestyle, formula);
+        long nowTimestamp = DateTime.now(DateTimeZone.UTC).getMillis();
+
+        return new UserParameters(targetWeight, gender, dateOfBirth, height, weight, lifestyle, formula, nowTimestamp);
     }
 
     private void fillWithOldUserParameters(UserParameters oldUserParams) {
