@@ -3,7 +3,7 @@ package korablique.recipecalculator.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import korablique.recipecalculator.FloatUtils;
+import korablique.recipecalculator.util.FloatUtils;
 
 public class WeightedFoodstuff implements Parcelable {
     private final Foodstuff foodstuff;

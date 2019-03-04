@@ -11,7 +11,7 @@ import java.util.ArrayList;
 
 import korablique.recipecalculator.BuildConfig;
 import korablique.recipecalculator.DishNutritionCalculator;
-import korablique.recipecalculator.FloatUtils;
+import korablique.recipecalculator.util.FloatUtils;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class)

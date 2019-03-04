@@ -1,11 +1,14 @@
 package korablique.recipecalculator.ui.profile;
 
 import android.util.Pair;
+import android.util.TimeUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
 import com.mikhaellopez.circularprogressbar.CircularProgressBar;
+
+import org.joda.time.DateTime;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -32,7 +35,6 @@ import korablique.recipecalculator.model.Rates;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.ui.NutritionValuesWrapper;
-import korablique.recipecalculator.ui.TextUtils;
 import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
 import korablique.recipecalculator.ui.usergoal.UserParametersActivity;
 
@@ -149,10 +151,10 @@ public class ProfileController extends FragmentCallbacks.Observer {
         weightMeasurementTextView.setText(String.valueOf(userParameters.getWeight()));
         targetWeightMeasurementTextView.setText(String.valueOf(userParameters.getTargetWeight()));
 
-        // случайная дата
         TextView lastMeasurementDate = fragmentView.findViewById(R.id.last_measurement_date_measurement_value);
-        DateFormat format = new SimpleDateFormat(fragment.getString(R.string.date_format), Locale.UK);
-        lastMeasurementDate.setText(format.format(new Date(Math.abs(new Random().nextInt()))));
+        DateTime measurementsDate = new DateTime(userParameters.getMeasurementsTimestamp());
+        String measurementsDateString = measurementsDate.toString(fragmentView.getResources().getString(R.string.date_format));
+        lastMeasurementDate.setText(measurementsDateString);
     }
 
     private void fillNutritionRates(View fragmentView, Rates rates) {

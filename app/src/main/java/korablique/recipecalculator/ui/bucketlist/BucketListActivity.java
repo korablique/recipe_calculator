@@ -21,7 +21,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import korablique.recipecalculator.DishNutritionCalculator;
-import korablique.recipecalculator.FloatUtils;
+import korablique.recipecalculator.util.FloatUtils;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.database.FoodstuffsList;

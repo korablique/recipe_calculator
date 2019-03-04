@@ -9,14 +9,14 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentManager;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseBottomDialog;
 import korablique.recipecalculator.model.UserParameters;
-import korablique.recipecalculator.ui.TextUtils;
+import korablique.recipecalculator.util.TextUtils;
+import korablique.recipecalculator.util.TimeUtils;
 
 public class NewMeasurementsDialog extends BaseBottomDialog {
     public interface OnSaveNewMeasurementsListener {
@@ -36,7 +36,7 @@ public class NewMeasurementsDialog extends BaseBottomDialog {
         // сегодняшняя дата
         TextView newMeasurementHeader = dialogLayout.findViewById(R.id.new_measurement_header);
         newMeasurementHeader.setText(getString(
-                R.string.new_measurements, DateTime.now(DateTimeZone.UTC).toString(getString(R.string.date_format))));
+                R.string.new_measurements, DateTime.now().toString(getString(R.string.date_format))));
 
         // предыдущее значение веса
         Bundle args = getArguments();
@@ -51,7 +51,7 @@ public class NewMeasurementsDialog extends BaseBottomDialog {
 
         // предыдущая дата взвешивания
         TextView lastMeasurementHeader = dialogLayout.findViewById(R.id.last_measurement_header);
-        DateTime lastDate = new DateTime(lastParams.getMeasurementsTimestamp(), DateTimeZone.UTC);
+        DateTime lastDate = new DateTime(lastParams.getMeasurementsTimestamp());
         lastMeasurementHeader.setText(getString(
                 R.string.last_measurements, lastDate.toString(getString(R.string.date_format))));
 
@@ -71,7 +71,7 @@ public class NewMeasurementsDialog extends BaseBottomDialog {
                         newWeight,
                         lastParams.getLifestyle(),
                         lastParams.getFormula(),
-                        DateTime.now(DateTimeZone.UTC).getMillis());
+                        TimeUtils.currentMillis());
                 onSaveNewMeasurementsListener.onSave(paramsWithNewWeight);
                 dismiss();
             }

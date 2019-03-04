@@ -44,6 +44,7 @@ import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.InstantComputationsThreadsExecutor;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.SyncMainThreadExecutor;
+import korablique.recipecalculator.util.TimeUtils;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
@@ -110,7 +111,7 @@ public class HistoryActivityTest {
         Lifestyle lifestyle = Lifestyle.PASSIVE_LIFESTYLE;
         Formula formula = Formula.HARRIS_BENEDICT;
         UserParameters userParameters = new UserParameters(targetWeight, gender, dateOfBirth,
-                height, weight, lifestyle, formula, DateTime.now(DateTimeZone.UTC).getMillis());
+                height, weight, lifestyle, formula, TimeUtils.currentMillis());
         userParametersWorker.saveUserParameters(userParameters);
     }
 

@@ -14,7 +14,7 @@ import java.util.List;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 
-import static korablique.recipecalculator.FloatUtils.areFloatsEquals;
+import static korablique.recipecalculator.util.FloatUtils.areFloatsEquals;
 
 public class SelectedFoodstuffsSnackbar {
     private static final long DURATION = 250L;

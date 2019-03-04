@@ -1,4 +1,4 @@
-package korablique.recipecalculator.ui;
+package korablique.recipecalculator.util;
 
 import java.text.DecimalFormat;
 

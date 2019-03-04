@@ -8,7 +8,7 @@ import org.joda.time.LocalDate;
 import java.util.Calendar;
 import java.util.Objects;
 
-import korablique.recipecalculator.FloatUtils;
+import korablique.recipecalculator.util.FloatUtils;
 
 public class UserParameters implements Parcelable {
     private final float targetWeight;
@@ -120,7 +120,7 @@ public class UserParameters implements Parcelable {
                 FloatUtils.areFloatsEquals(targetWeight, that.targetWeight) &&
                 Objects.equals(gender, that.gender) &&
                 Objects.equals(formula, that.formula) &&
-                Objects.equals(measurementsTimestamp, that.measurementsTimestamp);
+                measurementsTimestamp == that.measurementsTimestamp;
     }
 
     @Override

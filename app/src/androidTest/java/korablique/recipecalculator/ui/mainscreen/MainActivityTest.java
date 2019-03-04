@@ -70,6 +70,7 @@ import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.InstantComputationsThreadsExecutor;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.SyncMainThreadExecutor;
+import korablique.recipecalculator.util.TimeUtils;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
@@ -205,7 +206,7 @@ public class MainActivityTest {
 
         // сохраняем userParameters в БД
         userParameters = new UserParameters(45, Gender.FEMALE, new LocalDate(1993, 9, 27),
-                158, 48, Lifestyle.PASSIVE_LIFESTYLE, Formula.HARRIS_BENEDICT, DateTime.now(DateTimeZone.UTC).getMillis());
+                158, 48, Lifestyle.PASSIVE_LIFESTYLE, Formula.HARRIS_BENEDICT, TimeUtils.currentMillis());
         userParametersWorker.saveUserParameters(userParameters);
 
         FullName fullName = new FullName("Yulia", "Zhilyaeva");
@@ -398,6 +399,9 @@ public class MainActivityTest {
         onView(withId(R.id.target_weight)).check(matches(withText(String.valueOf(userParameters.getTargetWeight()))));
         onView(withId(R.id.current_weight_measurement_value)).check(matches(withText(String.valueOf(userParameters.getWeight()))));
         onView(withId(R.id.user_name)).check(matches(withText(userNameProvider.getUserName().toString())));
+        DateTime measurementsDate = new DateTime(userParameters.getMeasurementsTimestamp());
+        String measurementsDateString = measurementsDate.toString(mActivityRule.getActivity().getString(R.string.date_format));
+        onView(withId(R.id.last_measurement_date_measurement_value)).check(matches(withText(measurementsDateString)));
 
         // проверяем, что отображаются правильные нормы
         Rates rates = RateCalculator.calculate(userParameters);

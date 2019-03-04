@@ -15,7 +15,7 @@ import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory;
 import androidx.test.filters.LargeTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
-import korablique.recipecalculator.FloatUtils;
+import korablique.recipecalculator.util.FloatUtils;
 
 import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_TARGET_WEIGHT;
 import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_USER_WEIGHT;

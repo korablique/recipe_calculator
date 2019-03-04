@@ -26,6 +26,7 @@ import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.InstantMainThreadExecutor;
+import korablique.recipecalculator.util.TimeUtils;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.never;
@@ -64,7 +65,7 @@ public class UserParametersWorkerTest {
                 64,
                 Lifestyle.INSIGNIFICANT_ACTIVITY,
                 Formula.HARRIS_BENEDICT,
-                DateTime.now(DateTimeZone.UTC).getMillis());
+                TimeUtils.currentMillis());
 
         MutableBoolean saved = new MutableBoolean(false);
         Completable callback = userParametersWorker.saveUserParameters(userParameters);
@@ -95,7 +96,7 @@ public class UserParametersWorkerTest {
                 64,
                 Lifestyle.INSIGNIFICANT_ACTIVITY,
                 Formula.HARRIS_BENEDICT,
-                DateTime.now(DateTimeZone.UTC).getMillis());
+                TimeUtils.currentMillis());
         userParametersWorker.saveUserParameters(userParameters);
 
         reset(spiedDatabaseThreadExecutor);
