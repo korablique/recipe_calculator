@@ -14,6 +14,8 @@ import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 
 import java.util.ArrayList;
@@ -36,8 +38,9 @@ import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.ui.ArrayAdapterWithDisabledItem;
-import korablique.recipecalculator.ui.TextUtils;
+import korablique.recipecalculator.util.TextUtils;
 import korablique.recipecalculator.ui.mainscreen.MainActivity;
+import korablique.recipecalculator.util.TimeUtils;
 
 public class UserParametersActivity extends BaseActivity {
     @Inject
@@ -196,7 +199,9 @@ public class UserParametersActivity extends BaseActivity {
         int formulaSelectedPosition = ((Spinner) findViewById(R.id.formula_spinner)).getSelectedItemPosition();
         Formula formula = Formula.POSITIONS.get(formulaSelectedPosition);
 
-        return new UserParameters(targetWeight, gender, dateOfBirth, height, weight, lifestyle, formula);
+        long nowTimestamp = TimeUtils.currentMillis();
+
+        return new UserParameters(targetWeight, gender, dateOfBirth, height, weight, lifestyle, formula, nowTimestamp);
     }
 
     private void fillWithOldUserParameters(UserParameters oldUserParams) {

@@ -1,5 +1,7 @@
 package korablique.recipecalculator.database;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 
 import io.reactivex.Completable;
@@ -87,7 +89,8 @@ public class UserParametersWorker {
                         entity.getHeight(),
                         entity.getWeight(),
                         Lifestyle.fromId(entity.getLifestyleId()),
-                        Formula.fromId(entity.getFormulaId()));
+                        Formula.fromId(entity.getFormulaId()),
+                        entity.getMeasurementsTimestamp());
                 subscriber.onSuccess(Optional.of(params));
             } else {
                 subscriber.onSuccess(Optional.empty());
@@ -115,7 +118,8 @@ public class UserParametersWorker {
                     userParameters.getHeight(),
                     userParameters.getWeight(),
                     userParameters.getLifestyle().getId(),
-                    userParameters.getFormula().getId());
+                    userParameters.getFormula().getId(),
+                    userParameters.getMeasurementsTimestamp());
             long insertedParamsId = userDao.insertUserParameters(userParametersEntity);
 
             if (insertedParamsId < 0) {

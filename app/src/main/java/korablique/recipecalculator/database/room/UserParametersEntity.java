@@ -1,6 +1,5 @@
 package korablique.recipecalculator.database.room;
 
-import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
@@ -11,6 +10,7 @@ import static korablique.recipecalculator.database.UserParametersContract.COLUMN
 import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_GENDER;
 import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_HEIGHT;
 import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_LIFESTYLE;
+import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_MEASUREMENTS_TIMESTAMP;
 import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_MONTH_OF_BIRTH;
 import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_TARGET_WEIGHT;
 import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_USER_WEIGHT;
@@ -50,6 +50,9 @@ public class UserParametersEntity {
     @ColumnInfo(name = COLUMN_NAME_FORMULA)
     private int formulaId;
 
+    @ColumnInfo(name = COLUMN_NAME_MEASUREMENTS_TIMESTAMP)
+    private long measurementsTimestamp;
+
     public UserParametersEntity(
             float targetWeight,
             int genderId,
@@ -59,7 +62,8 @@ public class UserParametersEntity {
             int height,
             float weight,
             int lifestyleId,
-            int formulaId) {
+            int formulaId,
+            long measurementsTimestamp) {
         this.targetWeight = targetWeight;
         this.genderId = genderId;
         this.dayOfBirth = dayOfBirth;
@@ -69,6 +73,7 @@ public class UserParametersEntity {
         this.weight = weight;
         this.lifestyleId = lifestyleId;
         this.formulaId = formulaId;
+        this.measurementsTimestamp = measurementsTimestamp;
     }
 
     public float getTargetWeight() {
@@ -149,5 +154,13 @@ public class UserParametersEntity {
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    public long getMeasurementsTimestamp() {
+        return measurementsTimestamp;
+    }
+
+    public void setMeasurementsTimestamp(long measurementsTimestamp) {
+        this.measurementsTimestamp = measurementsTimestamp;
     }
 }

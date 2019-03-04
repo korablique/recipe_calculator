@@ -121,6 +121,27 @@ public class Migrations {
         }
     };
 
+    static final Migration MIGRATION_5_6 = new Migration(5, 6) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            // store date (timestamp) when user made his measurements
+            database.execSQL("DROP TABLE " + USER_PARAMETERS_TABLE_NAME);
+            database.execSQL(
+                    "CREATE TABLE " + USER_PARAMETERS_TABLE_NAME +" (" +
+                            UserParametersContract.ID + " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                            UserParametersContract.COLUMN_NAME_TARGET_WEIGHT + " REAL NOT NULL, " +
+                            UserParametersContract.COLUMN_NAME_GENDER + " INTEGER NOT NULL, " +
+                            UserParametersContract.COLUMN_NAME_DAY_OF_BIRTH + " INTEGER NOT NULL, " +
+                            UserParametersContract.COLUMN_NAME_MONTH_OF_BIRTH + " INTEGER NOT NULL, " +
+                            UserParametersContract.COLUMN_NAME_YEAR_OF_BIRTH + " INTEGER NOT NULL, " +
+                            UserParametersContract.COLUMN_NAME_HEIGHT + " INTEGER NOT NULL, " +
+                            UserParametersContract.COLUMN_NAME_USER_WEIGHT + " REAL NOT NULL, " +
+                            UserParametersContract.COLUMN_NAME_LIFESTYLE + " INTEGER NOT NULL, " +
+                            UserParametersContract.COLUMN_NAME_FORMULA + " INTEGER NOT NULL," +
+                            UserParametersContract.COLUMN_NAME_MEASUREMENTS_TIMESTAMP + " INTEGER NOT NULL)");
+        }
+    };
+
     private static void replaceTable(
             SupportSQLiteDatabase database, String tmpTableName, String targetTableName) {
         database.execSQL("INSERT INTO " + tmpTableName + " SELECT * FROM " + targetTableName);

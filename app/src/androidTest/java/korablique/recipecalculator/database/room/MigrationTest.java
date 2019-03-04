@@ -15,7 +15,7 @@ import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory;
 import androidx.test.filters.LargeTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
-import korablique.recipecalculator.FloatUtils;
+import korablique.recipecalculator.util.FloatUtils;
 
 import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_TARGET_WEIGHT;
 import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_USER_WEIGHT;
@@ -23,6 +23,7 @@ import static korablique.recipecalculator.database.UserParametersContract.USER_P
 import static korablique.recipecalculator.database.room.Migrations.MIGRATION_2_3;
 import static korablique.recipecalculator.database.room.Migrations.MIGRATION_3_4;
 import static korablique.recipecalculator.database.room.Migrations.MIGRATION_4_5;
+import static korablique.recipecalculator.database.room.Migrations.MIGRATION_5_6;
 
 @RunWith(AndroidJUnit4.class)
 @LargeTest
@@ -95,6 +96,29 @@ public class MigrationTest {
         db.close();
 
         db = helper.runMigrationsAndValidate(TEST_DB, 5, true, MIGRATION_4_5);
+        Cursor cursor = db.query("SELECT * FROM " + USER_PARAMETERS_TABLE_NAME);
+        Assert.assertTrue(!cursor.moveToFirst());
+    }
+
+    @Test
+    public void migrate5To6() throws IOException {
+        SupportSQLiteDatabase db = helper.createDatabase(TEST_DB, 5);
+        int id = 1, genderId = 1, day = 1, month = 2, year = 1993, height = 158, lifestyleId = 0, formulaId = 0;
+        float targetWeight = 45, weight = 47.5f;
+        db.execSQL("INSERT INTO " + USER_PARAMETERS_TABLE_NAME + " VALUES (" +
+                id + ", " +
+                targetWeight + ", " +
+                genderId + ", " +
+                day + ", " +
+                month + ", " +
+                year + ", " +
+                height + ", " +
+                weight + ", " +
+                lifestyleId + ", " +
+                formulaId + ")");
+        db.close();
+
+        db = helper.runMigrationsAndValidate(TEST_DB, 6, true, MIGRATION_5_6);
         Cursor cursor = db.query("SELECT * FROM " + USER_PARAMETERS_TABLE_NAME);
         Assert.assertTrue(!cursor.moveToFirst());
     }

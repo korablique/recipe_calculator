@@ -1,4 +1,4 @@
-package korablique.recipecalculator;
+package korablique.recipecalculator.util;
 
 public class FloatUtils {
     private FloatUtils() {}

@@ -8,7 +8,7 @@ import org.joda.time.LocalDate;
 import java.util.Calendar;
 import java.util.Objects;
 
-import korablique.recipecalculator.FloatUtils;
+import korablique.recipecalculator.util.FloatUtils;
 
 public class UserParameters implements Parcelable {
     private final float targetWeight;
@@ -18,6 +18,7 @@ public class UserParameters implements Parcelable {
     private final float weight;
     private final Lifestyle lifestyle;
     private final Formula formula;
+    private final long measurementsTimestamp;
 
     public UserParameters(
             float targetWeight,
@@ -26,7 +27,8 @@ public class UserParameters implements Parcelable {
             int height,
             float weight,
             Lifestyle lifestyle,
-            Formula formula) {
+            Formula formula,
+            long measurementsTimestamp) {
         this.targetWeight = targetWeight;
         this.gender = gender;
         this.dateOfBirth = dateOfBirth;
@@ -34,6 +36,7 @@ public class UserParameters implements Parcelable {
         this.weight = weight;
         this.lifestyle = lifestyle;
         this.formula = formula;
+        this.measurementsTimestamp = measurementsTimestamp;
     }
 
     protected UserParameters(Parcel in) {
@@ -47,6 +50,7 @@ public class UserParameters implements Parcelable {
         weight = in.readInt();
         lifestyle = (Lifestyle) in.readSerializable();
         formula = (Formula) in.readSerializable();
+        measurementsTimestamp = in.readLong();
     }
 
     public Goal getGoal() {
@@ -100,6 +104,10 @@ public class UserParameters implements Parcelable {
         return formula;
     }
 
+    public long getMeasurementsTimestamp() {
+        return measurementsTimestamp;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -111,12 +119,13 @@ public class UserParameters implements Parcelable {
                 Objects.equals(lifestyle, that.lifestyle) &&
                 FloatUtils.areFloatsEquals(targetWeight, that.targetWeight) &&
                 Objects.equals(gender, that.gender) &&
-                Objects.equals(formula, that.formula);
+                Objects.equals(formula, that.formula) &&
+                measurementsTimestamp == that.measurementsTimestamp;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(targetWeight, gender, dateOfBirth, height, weight, lifestyle, formula);
+        return Objects.hash(targetWeight, gender, dateOfBirth, height, weight, lifestyle, formula, measurementsTimestamp);
     }
 
     public static final Creator<UserParameters> CREATOR = new Creator<UserParameters>() {
@@ -147,6 +156,7 @@ public class UserParameters implements Parcelable {
         parcel.writeFloat(weight);
         parcel.writeSerializable(lifestyle);
         parcel.writeSerializable(formula);
+        parcel.writeLong(measurementsTimestamp);
     }
 }
 
