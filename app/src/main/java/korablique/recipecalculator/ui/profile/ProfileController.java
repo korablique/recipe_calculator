@@ -38,6 +38,8 @@ import korablique.recipecalculator.ui.NutritionValuesWrapper;
 import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
 import korablique.recipecalculator.ui.usergoal.UserParametersActivity;
 
+import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
+
 @FragmentScope
 public class ProfileController extends FragmentCallbacks.Observer {
     private BaseFragment fragment;
@@ -146,10 +148,10 @@ public class ProfileController extends FragmentCallbacks.Observer {
         String ageString = fragmentView.getResources().getQuantityString(R.plurals.years_old, age, age);
         ageTextView.setText(ageString);
 
-        heightTextView.setText(String.valueOf(userParameters.getHeight()));
-        targetWeightTextView.setText(String.valueOf(userParameters.getTargetWeight()));
-        weightMeasurementTextView.setText(String.valueOf(userParameters.getWeight()));
-        targetWeightMeasurementTextView.setText(String.valueOf(userParameters.getTargetWeight()));
+        heightTextView.setText(userParameters.getHeight());
+        targetWeightTextView.setText(toDecimalString(userParameters.getTargetWeight()));
+        weightMeasurementTextView.setText(toDecimalString(userParameters.getWeight()));
+        targetWeightMeasurementTextView.setText(toDecimalString(userParameters.getTargetWeight()));
 
         TextView lastMeasurementDate = fragmentView.findViewById(R.id.last_measurement_date_measurement_value);
         DateTime measurementsDate = new DateTime(userParameters.getMeasurementsTimestamp());
@@ -165,7 +167,7 @@ public class ProfileController extends FragmentCallbacks.Observer {
         nutritionValues.setNutrition(nutrition);
 
         TextView calorieIntakeView = fragmentView.findViewById(R.id.calorie_intake);
-        calorieIntakeView.setText(String.valueOf(Math.round(rates.getCalories())));
+        calorieIntakeView.setText(toDecimalString(rates.getCalories()));
 
         PluralProgressBar progressBar = fragmentView.findViewById(R.id.new_nutrition_progress_bar);
         float nutritionSum = (float) (nutrition.getProtein() + nutrition.getFats() + nutrition.getCarbs());

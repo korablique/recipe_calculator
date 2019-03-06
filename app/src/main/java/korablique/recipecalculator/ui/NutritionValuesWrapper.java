@@ -13,6 +13,8 @@ import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
 
+import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
+
 public class NutritionValuesWrapper {
     private ViewGroup layout;
     private Context context;
@@ -64,11 +66,7 @@ public class NutritionValuesWrapper {
     }
 
     private void setNutritionValue(TextView nutritionTextView, double nutritionValue) {
-        // Заменяем запятую на точку, потому что когда делаешь getString()
-        // вместо точки образуется запятая из-за локали,
-        // а Double.valueOf() не может распарсить строку с запятой
-        nutritionTextView.setText(context.getString(R.string.one_digit_precision_float,
-                nutritionValue).replace(',', '.'));
+        nutritionTextView.setText(toDecimalString(nutritionValue));
     }
 
     public double getProteinValue() {

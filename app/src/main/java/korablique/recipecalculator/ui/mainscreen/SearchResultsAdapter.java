@@ -15,6 +15,8 @@ import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.ui.MyViewHolder;
 
+import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
+
 
 public class SearchResultsAdapter extends RecyclerView.Adapter<MyViewHolder> {
     public interface OnItemClickedObserver {
@@ -39,7 +41,7 @@ public class SearchResultsAdapter extends RecyclerView.Adapter<MyViewHolder> {
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
         ViewGroup item = holder.getItem();
         setTextViewText(item, R.id.name, searchResults.get(position).getName());
-        setTextViewText(item, R.id.extra_info_block, searchResults.get(position).getCalories());
+        setTextViewText(item, R.id.extra_info_block, toDecimalString(searchResults.get(position).getCalories()));
         item.setOnClickListener(v -> {
             onItemClickedObserver.onItemClicked(searchResults.get(position), holder.getAdapterPosition());
         });

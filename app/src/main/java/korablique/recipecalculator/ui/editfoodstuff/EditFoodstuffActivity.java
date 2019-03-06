@@ -25,6 +25,7 @@ import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
 
 import static korablique.recipecalculator.IntentConstants.EDIT_FOODSTUFF_REQUEST;
 import static korablique.recipecalculator.IntentConstants.EDIT_RESULT;
+import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
 import static korablique.recipecalculator.ui.card.NewCard.EDITED_FOODSTUFF;
 
 public class EditFoodstuffActivity extends BaseActivity {
@@ -157,10 +158,10 @@ public class EditFoodstuffActivity extends BaseActivity {
 
     private void setDisplayingFoodstuff(Foodstuff editingFoodstuff) {
         foodstuffNameEditText.setText(editingFoodstuff.getName());
-        proteinEditText.setText(String.valueOf(editingFoodstuff.getProtein()));
-        fatsEditText.setText(String.valueOf(editingFoodstuff.getFats()));
-        carbsEditText.setText(String.valueOf(editingFoodstuff.getCarbs()));
-        caloriesEditText.setText(String.valueOf(editingFoodstuff.getCalories()));
+        proteinEditText.setText(toDecimalString(editingFoodstuff.getProtein()));
+        fatsEditText.setText(toDecimalString(editingFoodstuff.getFats()));
+        carbsEditText.setText(toDecimalString(editingFoodstuff.getCarbs()));
+        caloriesEditText.setText(toDecimalString(editingFoodstuff.getCalories()));
 
         Nutrition editingFoodstuffNutrition = Nutrition.of100gramsOf(editingFoodstuff);
         pluralProgressBar.setProgress(
