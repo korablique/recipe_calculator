@@ -40,14 +40,14 @@ public class UserParameters implements Parcelable {
     }
 
     protected UserParameters(Parcel in) {
-        targetWeight = in.readInt();
+        targetWeight = in.readFloat();
         gender = (Gender) in.readSerializable();
         int day = in.readInt();
         int month = in.readInt();
         int year = in.readInt();
         dateOfBirth = new LocalDate(year, month, day);
         height = in.readInt();
-        weight = in.readInt();
+        weight = in.readFloat();
         lifestyle = (Lifestyle) in.readSerializable();
         formula = (Formula) in.readSerializable();
         measurementsTimestamp = in.readLong();

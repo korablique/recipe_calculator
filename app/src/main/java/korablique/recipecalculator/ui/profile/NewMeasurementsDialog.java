@@ -11,6 +11,7 @@ import android.widget.TextView;
 import org.joda.time.DateTime;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentManager;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseBottomDialog;
@@ -93,11 +94,21 @@ public class NewMeasurementsDialog extends BaseBottomDialog {
     }
 
     public static NewMeasurementsDialog showDialog(FragmentManager fragmentManager, UserParameters lastParams) {
+        NewMeasurementsDialog existingDialog = findDialog(fragmentManager);
+        if (existingDialog != null) {
+            return existingDialog;
+        }
+
         NewMeasurementsDialog dialog = new NewMeasurementsDialog();
         Bundle args = new Bundle();
         args.putParcelable(LAST_PARAMS, lastParams);
         dialog.setArguments(args);
         dialog.show(fragmentManager, NEW_MEASUREMENTS_DIALOG_TAG);
         return dialog;
+    }
+
+    @Nullable
+    public static NewMeasurementsDialog findDialog(FragmentManager fragmentManager) {
+        return (NewMeasurementsDialog) fragmentManager.findFragmentByTag(NEW_MEASUREMENTS_DIALOG_TAG);
     }
 }
