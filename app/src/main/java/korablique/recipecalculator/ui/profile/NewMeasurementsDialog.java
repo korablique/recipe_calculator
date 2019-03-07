@@ -94,11 +94,6 @@ public class NewMeasurementsDialog extends BaseBottomDialog {
     }
 
     public static NewMeasurementsDialog showDialog(FragmentManager fragmentManager, UserParameters lastParams) {
-        NewMeasurementsDialog existingDialog = findDialog(fragmentManager);
-        if (existingDialog != null) {
-            return existingDialog;
-        }
-
         NewMeasurementsDialog dialog = new NewMeasurementsDialog();
         Bundle args = new Bundle();
         args.putParcelable(LAST_PARAMS, lastParams);

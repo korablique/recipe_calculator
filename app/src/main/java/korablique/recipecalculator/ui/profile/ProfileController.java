@@ -87,11 +87,11 @@ public class ProfileController extends FragmentCallbacks.Observer {
             UserParametersActivity.start(fragment.getContext());
         });
 
-        requestFirstAndCurrentUserParams(new Consumer<Pair<Optional<UserParameters>, Optional<UserParameters>>>() {
-            @Override
-            public void accept(Pair<Optional<UserParameters>, Optional<UserParameters>> firstAndLastParamsOptional) throws Exception {
-                NewMeasurementsDialog measurementsDialog = NewMeasurementsDialog.findDialog(fragment.getFragmentManager());
-                if (measurementsDialog != null) {
+        NewMeasurementsDialog measurementsDialog = NewMeasurementsDialog.findDialog(fragment.getFragmentManager());
+        if (measurementsDialog != null) {
+            requestFirstAndCurrentUserParams(new Consumer<Pair<Optional<UserParameters>, Optional<UserParameters>>>() {
+                @Override
+                public void accept(Pair<Optional<UserParameters>, Optional<UserParameters>> firstAndLastParamsOptional) throws Exception {
                     measurementsDialog.setOnSaveNewMeasurementsListener(new NewMeasurementsDialog.OnSaveNewMeasurementsListener() {
                         @Override
                         public void onSave(UserParameters newUserParams) {
@@ -100,8 +100,8 @@ public class ProfileController extends FragmentCallbacks.Observer {
                         }
                     });
                 }
-            }
-        });
+            });
+        }
     }
 
     @Override
