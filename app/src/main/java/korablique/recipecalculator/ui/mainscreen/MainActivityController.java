@@ -14,9 +14,11 @@ import korablique.recipecalculator.ui.profile.ProfileFragment;
 import korablique.recipecalculator.ui.usergoal.UserParametersActivity;
 
 public class MainActivityController extends ActivityCallbacks.Observer {
+    private static final String BOTTOM_NAVIGATION_VIEW_SELECTED_ITEM_ID = "BOTTOM_NAVIGATION_VIEW_SELECTED_ITEM_ID";
     private MainActivity context;
     private UserParametersWorker userParametersWorker;
     private RxActivitySubscriptions subscriptions;
+    private BottomNavigationView bottomNavigationView;
 
     public MainActivityController(
             MainActivity context,
@@ -41,7 +43,7 @@ public class MainActivityController extends ActivityCallbacks.Observer {
             }
         });
 
-        BottomNavigationView bottomNavigationView = context.findViewById(R.id.navigation);
+        bottomNavigationView = context.findViewById(R.id.navigation);
         bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
             switch (item.getItemId()) {
                 case R.id.menu_item_foodstuffs:
@@ -55,5 +57,17 @@ public class MainActivityController extends ActivityCallbacks.Observer {
         });
 
         MainScreenFragment.show(context);
+    }
+
+    @Override
+    public void onActivitySaveInstanceState(Bundle outState) {
+        super.onActivitySaveInstanceState(outState);
+        outState.putInt(BOTTOM_NAVIGATION_VIEW_SELECTED_ITEM_ID, bottomNavigationView.getSelectedItemId());
+    }
+
+    @Override
+    public void onActivityRestoreInstanceState(Bundle savedInstanceState) {
+        super.onActivityRestoreInstanceState(savedInstanceState);
+        bottomNavigationView.setSelectedItemId(savedInstanceState.getInt(BOTTOM_NAVIGATION_VIEW_SELECTED_ITEM_ID));
     }
 }

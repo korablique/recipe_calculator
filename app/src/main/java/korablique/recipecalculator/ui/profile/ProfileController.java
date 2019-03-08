@@ -46,6 +46,7 @@ public class ProfileController extends FragmentCallbacks.Observer {
     private UserParametersWorker userParametersWorker;
     private RxFragmentSubscriptions subscriptions;
     private UserNameProvider userNameProvider;
+    private NewMeasurementsDialog.OnSaveNewMeasurementsListener saveNewMeasurementsListener;
 
     @Inject
     public ProfileController(
@@ -87,6 +88,22 @@ public class ProfileController extends FragmentCallbacks.Observer {
         editProfileButton.setOnClickListener(view -> {
             UserParametersActivity.start(fragment.getContext());
         });
+
+        NewMeasurementsDialog measurementsDialog = NewMeasurementsDialog.findDialog(fragment.getFragmentManager());
+        if (measurementsDialog != null) {
+            requestFirstAndCurrentUserParams(new Consumer<Pair<Optional<UserParameters>, Optional<UserParameters>>>() {
+                @Override
+                public void accept(Pair<Optional<UserParameters>, Optional<UserParameters>> firstAndLastParamsOptional) throws Exception {
+                    measurementsDialog.setOnSaveNewMeasurementsListener(new NewMeasurementsDialog.OnSaveNewMeasurementsListener() {
+                        @Override
+                        public void onSave(UserParameters newUserParams) {
+                            userParametersWorker.saveUserParameters(newUserParams);
+                            fillProfile(firstAndLastParamsOptional.first.get(), newUserParams, fragmentView);
+                        }
+                    });
+                }
+            });
+        }
     }
 
     @Override
