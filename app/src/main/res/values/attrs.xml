@@ -18,4 +18,14 @@
         <attr name="color9" format="color"/>
         <attr name="background_bar_color" format="color"/>
     </declare-styleable>
+
+    <declare-styleable name="EditProgressText">
+        <attr name="color_underline_filled" format="color"/>
+        <attr name="color_underline_empty_focused" format="color"/>
+        <attr name="max_value" format="float"/>
+        <!--Override Android's common attributes for easier use in code-->
+        <attr name="android:colorControlNormal"/>
+        <attr name="android:background"/>
+        <attr name="android:inputType"/>
+    </declare-styleable>
 </resources>

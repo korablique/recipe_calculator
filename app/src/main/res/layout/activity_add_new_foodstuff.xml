@@ -83,15 +83,16 @@
                 android:background="@drawable/new_card_protein_icon" />
         </LinearLayout>
 
-        <EditText
+        <korablique.recipecalculator.ui.EditProgressText
             android:id="@+id/protein_value"
             style="@style/RobotoMonoText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:inputType="numberDecimal"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/row_fake_top_2"
             app:layout_constraintWidth_percent="0.5"
+            custom:color_underline_filled="#FFFF8E77"
+            custom:max_value="100"
             tools:text="17" />
 
         <!--fats-->
@@ -124,15 +125,16 @@
                 android:background="@drawable/new_card_fats_icon" />
         </LinearLayout>
 
-        <EditText
+        <korablique.recipecalculator.ui.EditProgressText
             android:id="@+id/fats_value"
             style="@style/RobotoMonoText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:inputType="numberDecimal"
             app:layout_constraintStart_toEndOf="@id/protein_value"
             app:layout_constraintTop_toBottomOf="@id/row_fake_top_2"
             app:layout_constraintWidth_percent="0.5"
+            custom:color_underline_filled="#FFFFE982"
+            custom:max_value="100"
             tools:text="2" />
 
         <View
@@ -172,15 +174,16 @@
                 android:background="@drawable/new_card_carbs_icon" />
         </LinearLayout>
 
-        <EditText
+        <korablique.recipecalculator.ui.EditProgressText
             android:id="@+id/carbs_value"
             style="@style/RobotoMonoText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:inputType="numberDecimal"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/row_fake_top_3"
             app:layout_constraintWidth_percent="0.5"
+            custom:color_underline_filled="#FF5768E9"
+            custom:max_value="100"
             tools:text="68" />
 
         <!--calories-->
