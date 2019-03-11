@@ -21,6 +21,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import korablique.recipecalculator.DishNutritionCalculator;
+import korablique.recipecalculator.ui.card.NewCard;
 import korablique.recipecalculator.util.FloatUtils;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
@@ -28,12 +29,16 @@ import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.NutritionValuesWrapper;
+import korablique.recipecalculator.ui.DecimalUtils;
 import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.history.HistoryActivity;
 import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
 
+import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
+
 public class BucketListActivity extends BaseActivity {
     public static final String EXTRA_FOODSTUFFS_LIST = "EXTRA_FOODSTUFFS_LIST";
+    private static final String DISPLAYED_IN_CARD_FOODSTUFF_POSITION = "DISPLAYED_IN_CARD_FOODSTUFF_POSITION";
     private PluralProgressBar pluralProgressBar;
     private NutritionValuesWrapper nutritionValuesWrapper;
     @Inject
@@ -43,6 +48,8 @@ public class BucketListActivity extends BaseActivity {
     private Button saveToHistoryButton;
     private Button saveAsSingleFoodstuffButton;
     private BucketList bucketList;
+    private int displayedInCardFoodstuffPosition;
+    private NewCard.OnAddFoodstuffButtonClickListener onAddFoodstuffButtonClickListener;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -65,7 +72,7 @@ public class BucketListActivity extends BaseActivity {
         saveAsSingleFoodstuffButton = findViewById(R.id.save_as_single_foodstuff_button);
 
         totalWeightEditText = findViewById(R.id.total_weight_edit_text);
-        totalWeightEditText.setText(String.valueOf(totalWeight));
+        totalWeightEditText.setText(toDecimalString(totalWeight));
         totalWeightEditText.addTextChangedListener(new TextWatcherAdapter() {
             @Override
             public void afterTextChanged(Editable s) {
@@ -78,18 +85,29 @@ public class BucketListActivity extends BaseActivity {
             updateSaveButtonsEnability();
         };
 
-        BucketListAdapter.OnItemClickedObserver onItemClickedObserver = (foodstuff, position) -> {
-            CardDialog cardDialog = CardDialog.showCard(BucketListActivity.this, foodstuff);
-            cardDialog.prohibitEditing(true);
-            cardDialog.setOnAddFoodstuffButtonClickListener(newFoodstuff -> {
-                adapter.replaceItem(newFoodstuff, position);
+        onAddFoodstuffButtonClickListener = new NewCard.OnAddFoodstuffButtonClickListener() {
+            @Override
+            public void onClick(WeightedFoodstuff newFoodstuff) {
+                adapter.replaceItem(newFoodstuff, displayedInCardFoodstuffPosition);
                 CardDialog.hideCard(BucketListActivity.this);
 
                 double newTotalWeight = countTotalWeight(adapter.getItems());
-                totalWeightEditText.setText(String.valueOf(newTotalWeight));
+                totalWeightEditText.setText(toDecimalString(newTotalWeight));
 
                 updateNutritionWrappers(adapter.getItems(), newTotalWeight);
-            });
+            }
+        };
+
+        CardDialog existingCardDialog = CardDialog.findCard(this);
+        if (existingCardDialog != null) {
+            existingCardDialog.setOnAddFoodstuffButtonClickListener(onAddFoodstuffButtonClickListener);
+        }
+
+        BucketListAdapter.OnItemClickedObserver onItemClickedObserver = (foodstuff, position) -> {
+            displayedInCardFoodstuffPosition = position;
+            CardDialog cardDialog = CardDialog.showCard(BucketListActivity.this, foodstuff);
+            cardDialog.prohibitEditing(true);
+            cardDialog.setOnAddFoodstuffButtonClickListener(onAddFoodstuffButtonClickListener);
         };
 
         adapter = new BucketListAdapter(R.layout.new_foodstuff_layout, onItemsCountChangeListener, onItemClickedObserver);
@@ -109,14 +127,14 @@ public class BucketListActivity extends BaseActivity {
                 adapter.deleteItem(position);
                 bucketList.remove(deleting);
                 double newWeight = countTotalWeight(adapter.getItems());
-                totalWeightEditText.setText(String.valueOf(newWeight));
+                totalWeightEditText.setText(toDecimalString(newWeight));
                 updateNutritionWrappers(adapter.getItems(), newWeight);
 
                 Snackbar snackbar = Snackbar.make(foodstuffsListRecyclerView,
                         R.string.deleted, Snackbar.LENGTH_SHORT);
                 snackbar.setAction(R.string.undo, v -> {
                     adapter.addItem(deleting, position);
-                    totalWeightEditText.setText(String.valueOf(newWeight + deleting.getWeight()));
+                    totalWeightEditText.setText(toDecimalString(newWeight + deleting.getWeight()));
                     updateNutritionWrappers(adapter.getItems(), newWeight + deleting.getWeight());
                 });
                 snackbar.show();
@@ -165,6 +183,22 @@ public class BucketListActivity extends BaseActivity {
 
         View cancelView = findViewById(R.id.button_close);
         cancelView.setOnClickListener(view -> BucketListActivity.this.finish());
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(DISPLAYED_IN_CARD_FOODSTUFF_POSITION, displayedInCardFoodstuffPosition);
+    }
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        displayedInCardFoodstuffPosition = savedInstanceState.getInt(DISPLAYED_IN_CARD_FOODSTUFF_POSITION);
+        CardDialog cardDialog = CardDialog.findCard(this);
+        if (cardDialog != null) {
+            cardDialog.setOnAddFoodstuffButtonClickListener(onAddFoodstuffButtonClickListener);
+        }
     }
 
     private void updateNutritionWrappers(List<WeightedFoodstuff> foodstuffs, double totalWeight) {

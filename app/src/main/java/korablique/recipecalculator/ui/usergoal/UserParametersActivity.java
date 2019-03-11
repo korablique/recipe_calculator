@@ -38,7 +38,7 @@ import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.ui.ArrayAdapterWithDisabledItem;
-import korablique.recipecalculator.util.TextUtils;
+import korablique.recipecalculator.ui.DecimalUtils;
 import korablique.recipecalculator.ui.mainscreen.MainActivity;
 import korablique.recipecalculator.util.TimeUtils;
 
@@ -217,8 +217,8 @@ public class UserParametersActivity extends BaseActivity {
         dateOfBirthView.setText(dateOfBirth.toString(getString(R.string.date_format)));
 
         heightView.setText(String.valueOf(oldUserParams.getHeight()));
-        weightView.setText(TextUtils.getDecimalString(oldUserParams.getWeight()));
-        targetWeightView.setText(TextUtils.getDecimalString(oldUserParams.getTargetWeight()));
+        weightView.setText(DecimalUtils.toDecimalString(oldUserParams.getWeight()));
+        targetWeightView.setText(DecimalUtils.toDecimalString(oldUserParams.getTargetWeight()));
 
         Gender gender = oldUserParams.getGender();
         genderSpinner.setSelection(Gender.POSITIONS_REVERSED.get(gender) + 1);

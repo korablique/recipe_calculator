@@ -35,12 +35,15 @@ import korablique.recipecalculator.ui.NutritionValuesWrapper;
 import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
 import korablique.recipecalculator.ui.usergoal.UserParametersActivity;
 
+import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
+
 @FragmentScope
 public class ProfileController extends FragmentCallbacks.Observer {
     private BaseFragment fragment;
     private UserParametersWorker userParametersWorker;
     private RxFragmentSubscriptions subscriptions;
     private UserNameProvider userNameProvider;
+    private NewMeasurementsDialog.OnSaveNewMeasurementsListener saveNewMeasurementsListener;
 
     @Inject
     public ProfileController(
@@ -97,6 +100,22 @@ public class ProfileController extends FragmentCallbacks.Observer {
         chartEntries.add(new Entry(9, 60));
         chartEntries.add(new Entry(10, 45));
         chartWrapper.setData(chartEntries);
+
+        NewMeasurementsDialog measurementsDialog = NewMeasurementsDialog.findDialog(fragment.getFragmentManager());
+        if (measurementsDialog != null) {
+            requestFirstAndCurrentUserParams(new Consumer<Pair<Optional<UserParameters>, Optional<UserParameters>>>() {
+                @Override
+                public void accept(Pair<Optional<UserParameters>, Optional<UserParameters>> firstAndLastParamsOptional) throws Exception {
+                    measurementsDialog.setOnSaveNewMeasurementsListener(new NewMeasurementsDialog.OnSaveNewMeasurementsListener() {
+                        @Override
+                        public void onSave(UserParameters newUserParams) {
+                            userParametersWorker.saveUserParameters(newUserParams);
+                            fillProfile(firstAndLastParamsOptional.first.get(), newUserParams, fragmentView);
+                        }
+                    });
+                }
+            });
+        }
     }
 
     @Override
@@ -159,9 +178,9 @@ public class ProfileController extends FragmentCallbacks.Observer {
         ageTextView.setText(ageString);
 
         heightTextView.setText(String.valueOf(userParameters.getHeight()));
-        targetWeightTextView.setText(String.valueOf(userParameters.getTargetWeight()));
-        weightMeasurementTextView.setText(String.valueOf(userParameters.getWeight()));
-        targetWeightMeasurementTextView.setText(String.valueOf(userParameters.getTargetWeight()));
+        targetWeightTextView.setText(toDecimalString(userParameters.getTargetWeight()));
+        weightMeasurementTextView.setText(toDecimalString(userParameters.getWeight()));
+        targetWeightMeasurementTextView.setText(toDecimalString(userParameters.getTargetWeight()));
 
         TextView lastMeasurementDate = fragmentView.findViewById(R.id.last_measurement_date_measurement_value);
         DateTime measurementsDate = new DateTime(userParameters.getMeasurementsTimestamp());
@@ -177,7 +196,7 @@ public class ProfileController extends FragmentCallbacks.Observer {
         nutritionValues.setNutrition(nutrition);
 
         TextView calorieIntakeView = fragmentView.findViewById(R.id.calorie_intake);
-        calorieIntakeView.setText(String.valueOf(Math.round(rates.getCalories())));
+        calorieIntakeView.setText(toDecimalString(rates.getCalories()));
 
         PluralProgressBar progressBar = fragmentView.findViewById(R.id.new_nutrition_progress_bar);
         float nutritionSum = (float) (nutrition.getProtein() + nutrition.getFats() + nutrition.getCarbs());
