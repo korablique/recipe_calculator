@@ -1,20 +1,18 @@
 package korablique.recipecalculator.ui.profile;
 
 import android.util.Pair;
-import android.util.TimeUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.data.Entry;
 import com.mikhaellopez.circularprogressbar.CircularProgressBar;
 
 import org.joda.time.DateTime;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-import java.util.Random;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -88,6 +86,22 @@ public class ProfileController extends FragmentCallbacks.Observer {
         editProfileButton.setOnClickListener(view -> {
             UserParametersActivity.start(fragment.getContext());
         });
+
+        // заполнение графика случайными данными
+        LineChart chart = fragmentView.findViewById(R.id.chart);
+        ChartWrapper chartWrapper = new ChartWrapper(chart);
+        List<Entry> chartEntries = new ArrayList<>();
+        chartEntries.add(new Entry(1, 44));
+        chartEntries.add(new Entry(2, 40));
+        chartEntries.add(new Entry(3, 46));
+        chartEntries.add(new Entry(4, 47));
+        chartEntries.add(new Entry(5, 48));
+        chartEntries.add(new Entry(6, 44));
+        chartEntries.add(new Entry(7, 30));
+        chartEntries.add(new Entry(8, 50));
+        chartEntries.add(new Entry(9, 60));
+        chartEntries.add(new Entry(10, 45));
+        chartWrapper.addData(chartEntries);
 
         NewMeasurementsDialog measurementsDialog = NewMeasurementsDialog.findDialog(fragment.getFragmentManager());
         if (measurementsDialog != null) {
@@ -165,7 +179,7 @@ public class ProfileController extends FragmentCallbacks.Observer {
         String ageString = fragmentView.getResources().getQuantityString(R.plurals.years_old, age, age);
         ageTextView.setText(ageString);
 
-        heightTextView.setText(userParameters.getHeight());
+        heightTextView.setText(String.valueOf(userParameters.getHeight()));
         targetWeightTextView.setText(toDecimalString(userParameters.getTargetWeight()));
         weightMeasurementTextView.setText(toDecimalString(userParameters.getWeight()));
         targetWeightMeasurementTextView.setText(toDecimalString(userParameters.getTargetWeight()));

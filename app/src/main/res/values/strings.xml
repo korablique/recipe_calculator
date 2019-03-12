@@ -109,6 +109,8 @@
     <string name="last_measurements">Предыдущее значение на %s</string>
     <string name="new_measurements">Текущее значение на %s</string>
     <string name="date_format">dd.MM.yyyy</string>
+    <string name="progress">Прогресс</string>
+    <string name="weight_change">Изменение веса, кг</string>
 
     <string-array name="goals_array">
         <item name="losing_weight">Снижение веса</item>
