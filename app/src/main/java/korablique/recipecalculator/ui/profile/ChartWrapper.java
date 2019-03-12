@@ -22,26 +22,25 @@ public class ChartWrapper {
     private LineChart chart;
     private LineDataSet dataSet;
 
-    public ChartWrapper(View parentView) {
-        setUpChartUi(parentView);
+    public ChartWrapper(LineChart chart) {
+        this.chart = chart;
+        setUpChartUi();
     }
 
-    private void setUpChartUi(View parentView) {
-        chart = parentView.findViewById(R.id.chart);
-
-        Resources resources = parentView.getResources();
-        int lineColor = resources.getColor(R.color.broccalcRed);
-        int highLightColor = resources.getColor(R.color.broccalcYellow);
+    private void setUpChartUi() {
+        Resources resources = chart.getResources();
+        int lineColor = resources.getColor(R.color.colorRed);
+        int highLightColor = resources.getColor(R.color.colorYellow);
         int textColor = resources.getColor(R.color.colorPrimaryText);
         int secondaryTextColor = resources.getColor(R.color.colorSecondaryText);
-        int gridColor = resources.getColor(R.color.broccalcBackground);
+        int gridColor = resources.getColor(R.color.colorBackground);
         int chartBackgroundColor = resources.getColor(android.R.color.white);
         float smallTextSize = 12f;
-        Typeface robotoMonoMediumTypeface = ResourcesCompat.getFont(parentView.getContext(), R.font.roboto_mono_medium);
-        Typeface robotoMonoRegularTypeface = ResourcesCompat.getFont(parentView.getContext(), R.font.roboto_mono_regular);
+        Typeface robotoMonoMediumTypeface = ResourcesCompat.getFont(chart.getContext(), R.font.roboto_mono_medium);
+        Typeface robotoMonoRegularTypeface = ResourcesCompat.getFont(chart.getContext(), R.font.roboto_mono_regular);
 
         // пока передаем null, т к сейчас только настраиваем UI
-        dataSet = new LineDataSet(null, "Изменение веса, кг");
+        dataSet = new LineDataSet(null, resources.getString(R.string.weight_change));
         dataSet.setColor(lineColor);
         dataSet.setCircleColor(lineColor);
         dataSet.setDrawCircleHole(false);
@@ -87,7 +86,7 @@ public class ChartWrapper {
         chart.invalidate(); // refresh
     }
 
-    public void setData(List<Entry> entries) {
+    public void addData(List<Entry> entries) {
         for (Entry entry : entries) {
             dataSet.addEntry(entry);
         }

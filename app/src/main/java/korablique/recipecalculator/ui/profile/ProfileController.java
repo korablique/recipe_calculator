@@ -5,6 +5,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.data.Entry;
 import com.mikhaellopez.circularprogressbar.CircularProgressBar;
 
@@ -87,7 +88,8 @@ public class ProfileController extends FragmentCallbacks.Observer {
         });
 
         // заполнение графика случайными данными
-        ChartWrapper chartWrapper = new ChartWrapper(fragmentView);
+        LineChart chart = fragmentView.findViewById(R.id.chart);
+        ChartWrapper chartWrapper = new ChartWrapper(chart);
         List<Entry> chartEntries = new ArrayList<>();
         chartEntries.add(new Entry(1, 44));
         chartEntries.add(new Entry(2, 40));
@@ -99,7 +101,7 @@ public class ProfileController extends FragmentCallbacks.Observer {
         chartEntries.add(new Entry(8, 50));
         chartEntries.add(new Entry(9, 60));
         chartEntries.add(new Entry(10, 45));
-        chartWrapper.setData(chartEntries);
+        chartWrapper.addData(chartEntries);
 
         NewMeasurementsDialog measurementsDialog = NewMeasurementsDialog.findDialog(fragment.getFragmentManager());
         if (measurementsDialog != null) {
