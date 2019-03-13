@@ -13,11 +13,11 @@
         android:id="@+id/new_nutrition_progress_bar"
         android:layout_width="match_parent"
         android:layout_height="10dp"
-        custom:color0="#FFFF8E77"
-        custom:color1="#FFFFE982"
-        custom:color2="#FF5768E9"
+        custom:color0="@color/colorRed"
+        custom:color1="@color/colorYellow"
+        custom:color2="@color/colorPrimary"
         custom:corners_radii="10dp"
-        custom:background_bar_color="#EFF1F6"/>
+        custom:background_bar_color="@color/colorBackground"/>
 
     <!--табличка БЖУК-->
     <LinearLayout

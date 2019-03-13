@@ -16,7 +16,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingBottom="16dp"
-            android:background="@color/colorAccent">
+            android:background="@color/colorAccent"
+            app:layout_constraintTop_toTopOf="parent">
 
             <ImageView
                 android:id="@+id/imageView"
@@ -89,13 +90,52 @@
             android:layout_marginTop="16dp"
             app:layout_constraintTop_toBottomOf="@id/constraint_layout" />
 
+        <LinearLayout
+            android:id="@+id/progress_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#EFF1F6"
+            app:layout_constraintTop_toBottomOf="@id/set_current_weight"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginBottom="16dp"
+                style="@style/MontserratHeaderText"
+                android:text="@string/progress"/>
+        </LinearLayout>
+
+        <FrameLayout
+            android:id="@+id/chart_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="8dp"
+            android:background="#FFFFFF"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/progress_layout">
+
+            <com.github.mikephil.charting.charts.LineChart
+                android:id="@+id/chart"
+                android:layout_width="match_parent"
+                android:layout_height="150dp" />
+        </FrameLayout>
+
         <!--рекомендуемое БЖУ-->
         <include
             android:id="@+id/recommended_header"
             layout="@layout/recommended_nutrition_ration_header"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@id/set_current_weight" />
+            app:layout_constraintTop_toBottomOf="@id/chart_layout" />
 
         <FrameLayout
             android:id="@+id/nutrition_parent_layout"
@@ -119,8 +159,8 @@
             android:background="#FFFFFF"
             android:padding="16dp"
             app:layout_constraintTop_toBottomOf="@id/nutrition_parent_layout"
-            app:layout_constraintWidth_percent="0.65"
-            tools:layout_editor_absoluteX="0dp">
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintWidth_percent="0.65">
 
             <include layout="@layout/measurements_layout" />
         </FrameLayout>
