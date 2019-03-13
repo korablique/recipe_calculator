@@ -61,9 +61,12 @@ import korablique.recipecalculator.model.TopList;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.model.WeightedFoodstuff;
+import korablique.recipecalculator.ui.DecimalUtils;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
+import korablique.recipecalculator.ui.history.HistoryController;
+import korablique.recipecalculator.ui.history.HistoryFragment;
 import korablique.recipecalculator.ui.profile.ProfileController;
 import korablique.recipecalculator.ui.profile.ProfileFragment;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
@@ -110,6 +113,7 @@ public class MainActivityTest {
     private TopList topList;
     private Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
     private Foodstuff[] foodstuffs;
+    private List<Long> foodstuffsIds = new ArrayList<>();
     private BucketList bucketList = BucketList.getInstance();
     private UserParameters userParameters;
     private UserNameProvider userNameProvider;
@@ -159,6 +163,10 @@ public class MainActivityTest {
                         ProfileController profileController = new ProfileController(
                                 fragment, fragmentCallbacks, userParametersWorker, subscriptions, userNameProvider);
                         return Arrays.asList(subscriptions, profileController);
+                    } else if (fragment instanceof HistoryFragment) {
+                        HistoryController historyController = new HistoryController(
+                                activity, (HistoryFragment) fragment, fragmentCallbacks, historyWorker);
+                        return Arrays.asList(subscriptions, historyController);
                     } else {
                         throw new IllegalStateException("There is no such fragment class");
                     }
@@ -182,7 +190,6 @@ public class MainActivityTest {
         foodstuffs[5] = Foodstuff.withName("bread").withNutrition(1, 1, 1, 1);
         foodstuffs[6] = Foodstuff.withName("banana").withNutrition(1, 1, 1, 1);
 
-        List<Long> foodstuffsIds = new ArrayList<>();
         databaseWorker.saveGroupOfFoodstuffs(foodstuffs, (ids) -> {
             foodstuffsIds.addAll(ids);
         });
@@ -396,8 +403,13 @@ public class MainActivityTest {
         String ageString = String.valueOf(userParameters.getAge());
         onView(withId(R.id.age)).check(matches((withText(containsString(ageString)))));
         onView(withId(R.id.height)).check(matches(withText(String.valueOf(userParameters.getHeight()))));
-        onView(withId(R.id.target_weight)).check(matches(withText(String.valueOf(userParameters.getTargetWeight()))));
-        onView(withId(R.id.current_weight_measurement_value)).check(matches(withText(String.valueOf(userParameters.getWeight()))));
+
+        String targetWeightString = DecimalUtils.toDecimalString(userParameters.getTargetWeight());
+        onView(withId(R.id.target_weight)).check(matches(withText(targetWeightString)));
+
+        String currentWeightString = DecimalUtils.toDecimalString(userParameters.getWeight());
+        onView(withId(R.id.current_weight_measurement_value)).check(matches(withText(currentWeightString)));
+
         onView(withId(R.id.user_name)).check(matches(withText(userNameProvider.getUserName().toString())));
         DateTime measurementsDate = new DateTime(userParameters.getMeasurementsTimestamp());
         String measurementsDateString = measurementsDate.toString(mActivityRule.getActivity().getString(R.string.date_format));
@@ -405,19 +417,19 @@ public class MainActivityTest {
 
         // проверяем, что отображаются правильные нормы
         Rates rates = RateCalculator.calculate(userParameters);
-        onView(withId(R.id.calorie_intake)).check(matches(withText(String.valueOf(Math.round(rates.getCalories())))));
+        onView(withId(R.id.calorie_intake)).check(matches(withText(DecimalUtils.toDecimalString(rates.getCalories()))));
         onView(allOf(
                 withParent(withId(R.id.protein_layout)),
                 withId(R.id.nutrition_text_view)))
-                .check(matches(withText(String.format("%.1f", rates.getProtein()).replace(',', '.'))));
+                .check(matches(withText(DecimalUtils.toDecimalString(rates.getProtein()))));
         onView(allOf(
                 withParent(withId(R.id.fats_layout)),
                 withId(R.id.nutrition_text_view)))
-                .check(matches(withText(String.valueOf(String.format("%.1f", rates.getFats()).replace(',', '.')))));
+                .check(matches(withText(DecimalUtils.toDecimalString(rates.getFats()))));
         onView(allOf(
                 withParent(withId(R.id.carbs_layout)),
                 withId(R.id.nutrition_text_view)))
-                .check(matches(withText(String.valueOf(String.format("%.1f", rates.getCarbs()).replace(',', '.')))));
+                .check(matches(withText(DecimalUtils.toDecimalString(rates.getCarbs()))));
 
         // проверяем процент достижения цели
         int percent = GoalCalculator.calculateProgressPercentage(
@@ -457,6 +469,38 @@ public class MainActivityTest {
         DateTime todaysDate = DateTime.now(DateTimeZone.UTC);
         String dateMustBe = todaysDate.toString(mActivityRule.getActivity().getString(R.string.date_format));
         onView(withId(R.id.new_measurement_header)).check(matches(withText(containsString(dateMustBe))));
+    }
+
+    @Test
+    public void todaysFoodstuffsDisplayedInHistory() {
+        // добавим ещё продуктов на сегодня (в БД уже есть несколько продуктов на др дату)
+        NewHistoryEntry[] newEntries = new NewHistoryEntry[3];
+        DateTime today = DateTime.now();
+        newEntries[0] = new NewHistoryEntry(foodstuffsIds.get(0), 100,
+                new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 8, 0).toDate());
+        newEntries[1] = new NewHistoryEntry(foodstuffsIds.get(5), 100,
+                new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 9, 0).toDate());
+        newEntries[2] = new NewHistoryEntry(foodstuffsIds.get(6), 100,
+                new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 10, 0).toDate());
+        historyWorker.saveGroupOfFoodstuffsToHistory(newEntries);
+        mActivityRule.launchActivity(null);
+
+        onView(withId(R.id.menu_item_history)).perform(click());
+
+        Matcher<View> foodstuffBelowMatcher1 = allOf(
+                withText(containsString(foodstuffs[0].getName())),
+                matches(isCompletelyBelow(withId(R.id.title_layout))));
+        onView(foodstuffBelowMatcher1).check(matches(isDisplayed()));
+
+        Matcher<View> foodstuffBelowMatcher2 = allOf(
+                withText(containsString(foodstuffs[5].getName())),
+                matches(isCompletelyBelow(withText(containsString(foodstuffs[0].getName())))));
+        onView(foodstuffBelowMatcher2).check(matches(isDisplayed()));
+
+        Matcher<View> foodstuffBelowMatcher3 = allOf(
+                withText(containsString(foodstuffs[6].getName())),
+                matches(isCompletelyBelow(withText(containsString(foodstuffs[5].getName())))));
+        onView(foodstuffBelowMatcher3).check(matches(isDisplayed()));
     }
 
     private List<Foodstuff> extractFoodstuffsTopFromDB() {

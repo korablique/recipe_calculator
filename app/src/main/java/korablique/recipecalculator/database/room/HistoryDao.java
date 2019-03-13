@@ -2,15 +2,12 @@ package korablique.recipecalculator.database.room;
 
 import android.database.Cursor;
 
-import androidx.room.Dao;
-import androidx.room.Delete;
-import androidx.room.Insert;
-import androidx.room.Query;
-
 import java.util.List;
 
+import androidx.room.Dao;
+import androidx.room.Insert;
+import androidx.room.Query;
 import korablique.recipecalculator.database.FoodstuffsContract;
-import korablique.recipecalculator.database.HistoryContract;
 
 import static korablique.recipecalculator.database.FoodstuffsContract.FOODSTUFFS_TABLE_NAME;
 import static korablique.recipecalculator.database.HistoryContract.COLUMN_NAME_DATE;
@@ -39,6 +36,13 @@ public interface HistoryDao {
             " WHERE " + COLUMN_NAME_DATE + " >= :from AND " + COLUMN_NAME_DATE + " <= :to" +
             " ORDER BY " + COLUMN_NAME_DATE + " ASC")
     List<Long> loadFoodstuffsIdsForPeriod(long from, long to);
+
+    @Query("SELECT * FROM " + HISTORY_TABLE_NAME + " LEFT OUTER JOIN " + FOODSTUFFS_TABLE_NAME +
+            " ON " + HISTORY_TABLE_NAME + "." + COLUMN_NAME_FOODSTUFF_ID +
+            "=" + FOODSTUFFS_TABLE_NAME + "." + FoodstuffsContract.ID +
+            " WHERE " + COLUMN_NAME_DATE + " >= :from AND " + COLUMN_NAME_DATE + " <= :to" +
+            " ORDER BY " + COLUMN_NAME_DATE + " ASC")
+    Cursor loadHistoryForPeriod(long from, long to);
 
     @Query("SELECT * FROM " + HISTORY_TABLE_NAME + " LEFT OUTER JOIN " + FOODSTUFFS_TABLE_NAME +
             " ON " + HISTORY_TABLE_NAME + "." + COLUMN_NAME_FOODSTUFF_ID +

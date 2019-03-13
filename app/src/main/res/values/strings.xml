@@ -110,12 +110,6 @@
     <string name="new_measurements">Текущее значение на %s</string>
     <string name="date_format">dd.MM.yyyy</string>
 
-    <string-array name="goals_array">
-        <item name="losing_weight">Снижение веса</item>
-        <item name="maintaining_current_weight">Сохранение веса</item>
-        <item name="mass_gathering">Набор веса</item>
-    </string-array>
-
     <string-array name="gender_array">
         <item name="not_selected">—</item>
         <item name="male">Мужской</item>
@@ -141,5 +135,12 @@
     <string-array name="formula_array">
         <item name="harris_benedict">Харриса-Бенедикта</item>
         <item name="mifflin_jeor">Миффлина-Джеора</item>
+    </string-array>
+
+    <string-array name="period_array">
+        <item name="day">День</item>
+        <item name="week">Неделя</item>
+        <item name="month">Месяц</item>
+        <item name="year">Год</item>
     </string-array>
 </resources>

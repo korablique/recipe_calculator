@@ -261,4 +261,39 @@ public class HistoryWorker {
             mainThreadExecutor.execute(() -> callback.onResult(foodstuffIdsForPeriod));
         });
     }
+
+    public void requestHistoryForPeriod(
+            final long from,
+            final long to,
+            @NonNull RequestHistoryCallback callback) {
+        databaseThreadExecutor.execute(() -> {
+            AppDatabase database = databaseHolder.getDatabase();
+            HistoryDao historyDao = database.historyDao();
+            Cursor cursor = historyDao.loadHistoryForPeriod(from, to);
+            List<HistoryEntry> historyForPeriod = new ArrayList<>();
+            while (cursor.moveToNext()) {
+                long foodstuffId = cursor.getLong(
+                        cursor.getColumnIndex(COLUMN_NAME_FOODSTUFF_ID));
+                double weight = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_WEIGHT));
+                String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_FOODSTUFF_NAME));
+                double protein = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_PROTEIN));
+                double fats = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_FATS));
+                double carbs = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CARBS));
+                double calories = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CALORIES));
+
+                WeightedFoodstuff foodstuff = Foodstuff
+                        .withId(foodstuffId)
+                        .withName(name)
+                        .withNutrition(protein, fats, carbs, calories)
+                        .withWeight(weight);
+
+                long time = cursor.getLong(cursor.getColumnIndex(COLUMN_NAME_DATE));
+                long historyId = cursor.getLong(cursor.getColumnIndex(HistoryContract.ID));
+                HistoryEntry historyEntry = new HistoryEntry(historyId, foodstuff, new Date(time));
+                historyForPeriod.add(historyEntry);
+            }
+
+            callback.onResult(historyForPeriod);
+        });
+    }
 }

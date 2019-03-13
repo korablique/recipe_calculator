@@ -10,6 +10,8 @@ import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.dagger.ActivityScope;
 import korablique.recipecalculator.dagger.FragmentScope;
 import korablique.recipecalculator.database.UserParametersWorker;
+import korablique.recipecalculator.ui.history.HistoryFragment;
+import korablique.recipecalculator.ui.history.HistoryFragmentModule;
 import korablique.recipecalculator.ui.profile.ProfileFragment;
 import korablique.recipecalculator.ui.profile.ProfileFragmentModule;
 
@@ -36,6 +38,10 @@ public abstract class MainScreenActivityModule {
     @FragmentScope
     @ContributesAndroidInjector(modules = { BaseFragmentModule.class, ProfileFragmentModule.class })
     abstract ProfileFragment profileFragmentInjector();
+
+    @FragmentScope
+    @ContributesAndroidInjector(modules = { BaseFragmentModule.class, HistoryFragmentModule.class })
+    abstract HistoryFragment historyFragmentInjector();
 
     @ActivityScope
     @Provides

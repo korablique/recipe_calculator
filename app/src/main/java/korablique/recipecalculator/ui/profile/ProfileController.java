@@ -165,7 +165,7 @@ public class ProfileController extends FragmentCallbacks.Observer {
         String ageString = fragmentView.getResources().getQuantityString(R.plurals.years_old, age, age);
         ageTextView.setText(ageString);
 
-        heightTextView.setText(userParameters.getHeight());
+        heightTextView.setText(String.valueOf(userParameters.getHeight()));
         targetWeightTextView.setText(toDecimalString(userParameters.getTargetWeight()));
         weightMeasurementTextView.setText(toDecimalString(userParameters.getWeight()));
         targetWeightMeasurementTextView.setText(toDecimalString(userParameters.getTargetWeight()));
