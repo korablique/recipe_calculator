@@ -83,7 +83,7 @@
                 android:background="@drawable/new_card_protein_icon" />
         </LinearLayout>
 
-        <korablique.recipecalculator.ui.EditProgressText
+        <korablique.recipecalculator.ui.numbersediting.EditProgressText
             android:id="@+id/protein_value"
             style="@style/RobotoMonoText"
             android:layout_width="0dp"
@@ -125,7 +125,7 @@
                 android:background="@drawable/new_card_fats_icon" />
         </LinearLayout>
 
-        <korablique.recipecalculator.ui.EditProgressText
+        <korablique.recipecalculator.ui.numbersediting.EditProgressText
             android:id="@+id/fats_value"
             style="@style/RobotoMonoText"
             android:layout_width="0dp"
@@ -174,7 +174,7 @@
                 android:background="@drawable/new_card_carbs_icon" />
         </LinearLayout>
 
-        <korablique.recipecalculator.ui.EditProgressText
+        <korablique.recipecalculator.ui.numbersediting.EditProgressText
             android:id="@+id/carbs_value"
             style="@style/RobotoMonoText"
             android:layout_width="0dp"

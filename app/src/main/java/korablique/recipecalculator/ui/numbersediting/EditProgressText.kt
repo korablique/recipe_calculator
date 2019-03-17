@@ -1,9 +1,10 @@
-package korablique.recipecalculator.ui
+package korablique.recipecalculator.ui.numbersediting
 
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.text.InputFilter
 import android.text.InputType
 import android.util.AttributeSet
 import android.util.TypedValue.COMPLEX_UNIT_DIP
@@ -16,6 +17,7 @@ import korablique.recipecalculator.R
 import korablique.recipecalculator.ui.inputfilters.DecimalNumberInputFilter
 import java.lang.IllegalStateException
 import korablique.recipecalculator.ui.inputfilters.NumericBoundsInputFilter
+import java.lang.IllegalArgumentException
 
 
 // Bright red default color so that it would be easy to spot a mistake in code
@@ -44,6 +46,8 @@ class EditProgressText : EditText {
 
     private val minValue = 0f
     private val maxValue: Float
+
+    private val inputFiltersBase: Array<InputFilter>
 
     // % of progress from minValue to maxValue
     private var realProgress = 0f
@@ -115,9 +119,11 @@ class EditProgressText : EditText {
         if (!hasInputType) {
             inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
         }
-        filters = arrayOf(
+
+        inputFiltersBase = arrayOf(
                 NumericBoundsInputFilter.withBounds(minValue, maxValue),
                 DecimalNumberInputFilter.of1DigitAfterPoint())
+        filters = inputFiltersBase
 
         constructed = true
     }
@@ -137,9 +143,9 @@ class EditProgressText : EditText {
         }
 
         // Let's calculate current progress by the new text.
-        val displayedNumber = text.toString().toFloatOrNull()
+        val displayedNumber = getDisplayedNumber()
         realProgress = when (displayedNumber) {
-            null -> minValue
+            null -> 0f
             else -> displayedNumber / maxValue
         }
 
@@ -158,6 +164,10 @@ class EditProgressText : EditText {
             invalidate()
         }
         progressAnimator.start()
+    }
+
+    fun getDisplayedNumber(): Float? {
+        return text.toString().toFloatOrNull()
     }
 
     public override fun onDraw(canvas: Canvas) {
@@ -188,5 +198,13 @@ class EditProgressText : EditText {
 
     private fun dpToPixels(dip: Float): Float {
         return applyDimension(COMPLEX_UNIT_DIP, dip, resources.displayMetrics)
+    }
+
+    fun setIntermediateMax(intermediateMax: Float) {
+        if (intermediateMax < minValue || maxValue < intermediateMax) {
+            throw IllegalArgumentException("Intermediate max must be within absolute min-max bounds")
+        }
+        val intermediateMaxFilter = NumericBoundsInputFilter.withBounds(minValue, intermediateMax)
+        filters = inputFiltersBase + intermediateMaxFilter
     }
 }
