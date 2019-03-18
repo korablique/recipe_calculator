@@ -10,6 +10,7 @@ import korablique.recipecalculator.base.Optional;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.model.UserParameters;
+import korablique.recipecalculator.ui.history.HistoryFragment;
 import korablique.recipecalculator.ui.profile.ProfileFragment;
 import korablique.recipecalculator.ui.usergoal.UserParametersActivity;
 
@@ -48,6 +49,9 @@ public class MainActivityController extends ActivityCallbacks.Observer {
             switch (item.getItemId()) {
                 case R.id.menu_item_foodstuffs:
                     MainScreenFragment.show(context);
+                    break;
+                case R.id.menu_item_history:
+                    HistoryFragment.show(context.getSupportFragmentManager());
                     break;
                 case R.id.menu_item_profile:
                     ProfileFragment.show(context);
