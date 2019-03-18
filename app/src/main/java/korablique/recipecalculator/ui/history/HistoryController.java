@@ -1,6 +1,5 @@
 package korablique.recipecalculator.ui.history;
 
-import android.os.Bundle;
 import android.view.View;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -16,12 +15,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
-import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.base.FragmentCallbacks;
 import korablique.recipecalculator.dagger.FragmentScope;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.model.HistoryEntry;
-import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.mainscreen.MainScreenFragment;
 
 @FragmentScope
@@ -54,11 +51,10 @@ public class HistoryController extends FragmentCallbacks.Observer {
 
         RecyclerView recyclerView = fragmentView.findViewById(R.id.history_list);
         LinearLayoutManager layoutManager = new LinearLayoutManager(fragmentView.getContext());
-        layoutManager.setOrientation(RecyclerView.VERTICAL);
         recyclerView.setLayoutManager(layoutManager);
         NewHistoryAdapter adapter = new NewHistoryAdapter(fragmentView.getContext());
         recyclerView.setAdapter(adapter);
-        MyDividerItemDecoration dividerItemDecoration = new MyDividerItemDecoration(recyclerView.getContext(),
+        DividerItemDecorationWithoutDividerAfterLastItem dividerItemDecoration = new DividerItemDecorationWithoutDividerAfterLastItem(recyclerView.getContext(),
                 DividerItemDecoration.VERTICAL);
         dividerItemDecoration.setDrawable(fragmentView.getResources().getDrawable(R.drawable.divider));
         recyclerView.addItemDecoration(dividerItemDecoration);
