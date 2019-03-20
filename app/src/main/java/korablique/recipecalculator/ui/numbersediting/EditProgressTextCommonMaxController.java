@@ -28,7 +28,7 @@ public class EditProgressTextCommonMaxController {
     }
 
     private float getOtherViewsSumValue(EditProgressText view) {
-        float otherViewsSumValue = 0.f;
+        float otherViewsSumValue = 0f;
         for (EditProgressText otherView : views) {
             if (otherView == view) {
                 continue;
@@ -36,7 +36,7 @@ public class EditProgressTextCommonMaxController {
 
             Float otherViewValue = otherView.getDisplayedNumber();
             if (otherViewValue == null) {
-                otherViewValue = 0.f;
+                otherViewValue = 0f;
             }
             otherViewsSumValue += otherViewValue;
         }

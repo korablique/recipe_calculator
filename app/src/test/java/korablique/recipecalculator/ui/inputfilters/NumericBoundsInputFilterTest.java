@@ -20,6 +20,7 @@ public class NumericBoundsInputFilterTest {
 
         Assert.assertEquals("", filterPastedText("-10.1", filter));
         Assert.assertNull(filterPastedText("-10", filter));
+        Assert.assertNull(filterPastedText("5", filter));
         Assert.assertNull(filterPastedText("10", filter));
         Assert.assertEquals("", filterPastedText("10.1", filter));
     }

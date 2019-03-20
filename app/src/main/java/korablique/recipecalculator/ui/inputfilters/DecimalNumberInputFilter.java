@@ -37,7 +37,7 @@ public class DecimalNumberInputFilter implements InputFilter {
         }
 
         Matcher matcher = pattern.matcher(result);
-        if(!matcher.matches()) {
+        if (!matcher.matches()) {
             // Result not matching regex is not ok
             return "";
         }

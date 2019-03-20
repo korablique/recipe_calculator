@@ -47,12 +47,15 @@ class EditProgressText : EditText {
     private val minValue = 0f
     private val maxValue: Float
 
-    private val inputFiltersBase: Array<InputFilter>
+    // Main set of input filters used to filter our values.
+    private val mainInputFilters: Array<InputFilter>
 
     // % of progress from minValue to maxValue
     private var realProgress = 0f
-    // Same as realProgress, but it's actually displayed on screen when
-    // realProgress changes - the value changes are animated.
+    // Changes gradually from old realProgress to new realProgress value
+    // (for example, instead of instant change from 0f to 0.5f,
+    // it would do 0f, 0.01f, 0.02f, ..., 0.49f, 0.5f).
+    // This is used for visual progress animation.
     private var displayedProgress = realProgress
     // Animates displayedProgress.
     private var progressAnimator = ValueAnimator()
@@ -100,7 +103,7 @@ class EditProgressText : EditText {
         if (!isBackgroundSpecified) {
             // When EditText has no specified background, Android adds a background with
             // underline to it.
-            // Os if background is not specified, we set transparent color as the background
+            // So if background is not specified, we set transparent color as the background
             // so that the Android's underline would be gone (and we could draw our own).
             setBackgroundColor(ContextCompat.getColor(context, android.R.color.transparent))
             // Default background also adds paddings somehow. Since we removed the default
@@ -120,10 +123,10 @@ class EditProgressText : EditText {
             inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
         }
 
-        inputFiltersBase = arrayOf(
+        mainInputFilters = arrayOf(
                 NumericBoundsInputFilter.withBounds(minValue, maxValue),
                 DecimalNumberInputFilter.of1DigitAfterPoint())
-        filters = inputFiltersBase
+        setFilters(mainInputFilters)
 
         constructed = true
     }
@@ -153,8 +156,9 @@ class EditProgressText : EditText {
         progressAnimator.cancel()
         progressAnimator = ValueAnimator.ofFloat(displayedProgress, realProgress)
 
-        // Max duration is 1000 milliseconds, used duration is calculated by the
+        // Max duration is 1000 milliseconds, duration used for animation is calculated by the
         // difference between displayedProgress and realProgress.
+        // E.g. if realProgress==1f && displayedProgress==0.5f, duration would be 500.
         val duration = 1000 * Math.abs(displayedProgress - realProgress)
         progressAnimator.duration = duration.toLong()
 
@@ -186,13 +190,18 @@ class EditProgressText : EditText {
 
         val left = paddingLeft.toFloat()
         val right = width.toFloat() - paddingRight
-        // Note that we apply a 'padding' to the drawn underline - its value
-        // is copied from the real EditText's underline by eye (so very approximately, but it looks
-        // same as the real underline).
+        // Note we use the UNDERLINE_BOTTOM_PADDING constant as bottom padding value (instead
+        // of calling getBottomPadding()). The value of UNDERLINE_BOTTOM_PADDING is the closest
+        // I could get to the real EditText's underline padding.
         val bottom = height.toFloat() - dpToPixels(UNDERLINE_BOTTOM_PADDING)
+
+        // The X coord of right side of progress.
+        // If View's left==10 && right=90 && displayedProgress==0.5, progressX would be 50.
         val progressX = left + (right - left) * displayedProgress
 
+        // Draw progress line filled with color from the left side of the View to progressX.
         canvas.drawLine(left, bottom, progressX, bottom, filledUnderlinePaint)
+        // Draw thin gray line from progressX to the right side of the View.
         canvas.drawLine(progressX, bottom, right, bottom, emptyUnderlinePaint)
     }
 
@@ -200,11 +209,15 @@ class EditProgressText : EditText {
         return applyDimension(COMPLEX_UNIT_DIP, dip, resources.displayMetrics)
     }
 
+    /**
+     * Sets an intermediate max value.
+     * E.g. if minValue==0f && maxValue==100f, you may want to temporarily set 50f as a max.
+     */
     fun setIntermediateMax(intermediateMax: Float) {
         if (intermediateMax < minValue || maxValue < intermediateMax) {
             throw IllegalArgumentException("Intermediate max must be within absolute min-max bounds")
         }
         val intermediateMaxFilter = NumericBoundsInputFilter.withBounds(minValue, intermediateMax)
-        filters = inputFiltersBase + intermediateMaxFilter
+        setFilters(mainInputFilters + intermediateMaxFilter)
     }
 }
