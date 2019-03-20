@@ -6,12 +6,10 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.data.Entry;
 import com.mikhaellopez.circularprogressbar.CircularProgressBar;
 
 import org.joda.time.DateTime;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -33,6 +31,7 @@ import korablique.recipecalculator.model.Rates;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.ui.NutritionValuesWrapper;
+import korablique.recipecalculator.ui.chart.ChartWrapper;
 import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
 import korablique.recipecalculator.ui.usergoal.UserParametersActivity;
 
@@ -45,6 +44,7 @@ public class ProfileController extends FragmentCallbacks.Observer {
     private RxFragmentSubscriptions subscriptions;
     private UserNameProvider userNameProvider;
     private NewMeasurementsDialog.OnSaveNewMeasurementsListener saveNewMeasurementsListener;
+    private ChartWrapper chartWrapper;
 
     @Inject
     public ProfileController(
@@ -62,6 +62,9 @@ public class ProfileController extends FragmentCallbacks.Observer {
 
     @Override
     public void onFragmentViewCreated(View fragmentView) {
+        LineChart chart = fragmentView.findViewById(R.id.chart);
+        chartWrapper = new ChartWrapper(chart);
+
         FullName userFullName = userNameProvider.getUserName();
         fillUserName(fragmentView, userFullName);
 
@@ -87,21 +90,7 @@ public class ProfileController extends FragmentCallbacks.Observer {
             UserParametersActivity.start(fragment.getContext());
         });
 
-        // заполнение графика случайными данными
-        LineChart chart = fragmentView.findViewById(R.id.chart);
-        ChartWrapper chartWrapper = new ChartWrapper(chart);
-        List<Entry> chartEntries = new ArrayList<>();
-        chartEntries.add(new Entry(1, 44));
-        chartEntries.add(new Entry(2, 40));
-        chartEntries.add(new Entry(3, 46));
-        chartEntries.add(new Entry(4, 47));
-        chartEntries.add(new Entry(5, 48));
-        chartEntries.add(new Entry(6, 44));
-        chartEntries.add(new Entry(7, 30));
-        chartEntries.add(new Entry(8, 50));
-        chartEntries.add(new Entry(9, 60));
-        chartEntries.add(new Entry(10, 45));
-        chartWrapper.addData(chartEntries);
+        fillChart();
 
         NewMeasurementsDialog measurementsDialog = NewMeasurementsDialog.findDialog(fragment.getFragmentManager());
         if (measurementsDialog != null) {
@@ -113,11 +102,24 @@ public class ProfileController extends FragmentCallbacks.Observer {
                         public void onSave(UserParameters newUserParams) {
                             userParametersWorker.saveUserParameters(newUserParams);
                             fillProfile(firstAndLastParamsOptional.first.get(), newUserParams, fragmentView);
+
+                            fillChart();
                         }
                     });
                 }
             });
         }
+    }
+
+    private void fillChart() {
+        Single<Optional<List<UserParameters>>> allUserParamsSingle = userParametersWorker.requestAllUserParameters();
+        subscriptions.subscribe(allUserParamsSingle, new Consumer<Optional<List<UserParameters>>>() {
+            @Override
+            public void accept(Optional<List<UserParameters>> userParamsListOptional) {
+                List<UserParameters> userParametersList = userParamsListOptional.get();
+                chartWrapper.setData(userParametersList);
+            }
+        });
     }
 
     @Override
@@ -131,6 +133,7 @@ public class ProfileController extends FragmentCallbacks.Observer {
                 UserParameters firstParams = firstAndLastParams.first.get();
                 UserParameters lastParams = firstAndLastParams.second.get();
                 fillProfile(firstParams, lastParams, fragment.getView());
+                fillChart();
             }
         });
 
@@ -150,6 +153,8 @@ public class ProfileController extends FragmentCallbacks.Observer {
                         public void onSave(UserParameters newUserParams) {
                             userParametersWorker.saveUserParameters(newUserParams);
                             fillProfile(firstAndLastParams.first.get(), newUserParams,  fragment.getView());
+
+                            fillChart();
                         }
                     });
                 });

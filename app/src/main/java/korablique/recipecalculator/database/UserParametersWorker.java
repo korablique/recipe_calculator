@@ -1,8 +1,9 @@
 package korablique.recipecalculator.database;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import io.reactivex.Completable;
 import io.reactivex.Single;
@@ -92,6 +93,36 @@ public class UserParametersWorker {
                         Formula.fromId(entity.getFormulaId()),
                         entity.getMeasurementsTimestamp());
                 subscriber.onSuccess(Optional.of(params));
+            } else {
+                subscriber.onSuccess(Optional.empty());
+            }
+        });
+        result = result.subscribeOn(databaseThreadExecutor.asScheduler())
+                .observeOn(mainThreadExecutor.asScheduler())
+                .cache();
+        return result;
+    }
+
+    public Single<Optional<List<UserParameters>>> requestAllUserParameters() {
+        Single<Optional<List<UserParameters>>> result = Single.create((subscriber) -> {
+            AppDatabase database = databaseHolder.getDatabase();
+            UserParametersDao userDao = database.userParametersDao();
+            List<UserParametersEntity> entities = userDao.loadAllUserParameters();
+            if (entities != null) {
+                List<UserParameters> userParamsList = new ArrayList<>();
+                for (UserParametersEntity entity : entities) {
+                    UserParameters params = new UserParameters(
+                            entity.getTargetWeight(),
+                            Gender.fromId(entity.getGenderId()),
+                            new LocalDate(entity.getYearOfBirth(), entity.getMonthOfBirth(), entity.getDayOfBirth()),
+                            entity.getHeight(),
+                            entity.getWeight(),
+                            Lifestyle.fromId(entity.getLifestyleId()),
+                            Formula.fromId(entity.getFormulaId()),
+                            entity.getMeasurementsTimestamp());
+                    userParamsList.add(params);
+                }
+                subscriber.onSuccess(Optional.of(userParamsList));
             } else {
                 subscriber.onSuccess(Optional.empty());
             }
