@@ -1,10 +1,9 @@
 package korablique.recipecalculator.database;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.LocalDate;
+import java.util.List;
 
 import io.reactivex.Completable;
+import io.reactivex.Observable;
 import io.reactivex.Single;
 import korablique.recipecalculator.base.Function0arg;
 import korablique.recipecalculator.base.Optional;
@@ -13,9 +12,6 @@ import korablique.recipecalculator.database.room.AppDatabase;
 import korablique.recipecalculator.database.room.DatabaseHolder;
 import korablique.recipecalculator.database.room.UserParametersDao;
 import korablique.recipecalculator.database.room.UserParametersEntity;
-import korablique.recipecalculator.model.Formula;
-import korablique.recipecalculator.model.Gender;
-import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.UserParameters;
 
 public class UserParametersWorker {
@@ -82,18 +78,31 @@ public class UserParametersWorker {
         Single<Optional<UserParameters>> result = Single.create((subscriber) -> {
             UserParametersEntity entity = function.call();
             if (entity != null) {
-                UserParameters params = new UserParameters(
-                        entity.getTargetWeight(),
-                        Gender.fromId(entity.getGenderId()),
-                        new LocalDate(entity.getYearOfBirth(), entity.getMonthOfBirth(), entity.getDayOfBirth()),
-                        entity.getHeight(),
-                        entity.getWeight(),
-                        Lifestyle.fromId(entity.getLifestyleId()),
-                        Formula.fromId(entity.getFormulaId()),
-                        entity.getMeasurementsTimestamp());
+                UserParameters params = EntityConverter.toUserParameters(entity);
                 subscriber.onSuccess(Optional.of(params));
             } else {
                 subscriber.onSuccess(Optional.empty());
+            }
+        });
+        result = result.subscribeOn(databaseThreadExecutor.asScheduler())
+                .observeOn(mainThreadExecutor.asScheduler())
+                .cache();
+        return result;
+    }
+
+    public Observable<UserParameters> requestAllUserParameters() {
+        Observable<UserParameters> result = Observable.create((subscriber) -> {
+            AppDatabase database = databaseHolder.getDatabase();
+            UserParametersDao userDao = database.userParametersDao();
+            List<UserParametersEntity> entities = userDao.loadAllUserParameters();
+            if (entities != null) {
+                for (UserParametersEntity entity : entities) {
+                    UserParameters userParameters = EntityConverter.toUserParameters(entity);
+                    subscriber.onNext(userParameters);
+                }
+                subscriber.onComplete();
+            } else {
+                subscriber.onComplete();
             }
         });
         result = result.subscribeOn(databaseThreadExecutor.asScheduler())
@@ -107,19 +116,7 @@ public class UserParametersWorker {
         Completable result = Completable.create((subscriber) -> {
             AppDatabase database = databaseHolder.getDatabase();
             UserParametersDao userDao = database.userParametersDao();
-            LocalDate dateOfBirth = userParameters.getDateOfBirth();
-            int day = dateOfBirth.getDayOfMonth();
-            int month = dateOfBirth.getMonthOfYear();
-            int year = dateOfBirth.getYear();
-            UserParametersEntity userParametersEntity = new UserParametersEntity(
-                    userParameters.getTargetWeight(),
-                    userParameters.getGender().getId(),
-                    day, month, year,
-                    userParameters.getHeight(),
-                    userParameters.getWeight(),
-                    userParameters.getLifestyle().getId(),
-                    userParameters.getFormula().getId(),
-                    userParameters.getMeasurementsTimestamp());
+            UserParametersEntity userParametersEntity = EntityConverter.toEntity(userParameters);
             long insertedParamsId = userDao.insertUserParameters(userParametersEntity);
 
             if (insertedParamsId < 0) {
