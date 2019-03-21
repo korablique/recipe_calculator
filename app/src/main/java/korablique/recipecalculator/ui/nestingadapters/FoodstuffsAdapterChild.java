@@ -13,7 +13,10 @@ import java.util.List;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.ui.DecimalUtils;
 import korablique.recipecalculator.ui.MyViewHolder;
+
+import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
 
 public class FoodstuffsAdapterChild extends AdapterChild {
     public interface ClickObserver {
@@ -89,8 +92,7 @@ public class FoodstuffsAdapterChild extends AdapterChild {
     }
 
     private void setCalories(View foodstuffView, double calories) {
-        setTextViewText(foodstuffView, R.id.extra_info_block, context.getString(
-                R.string.one_digit_precision_float, calories));
+        setTextViewText(foodstuffView, R.id.extra_info_block, toDecimalString(calories));
     }
 
     public List<Foodstuff> getItems() {

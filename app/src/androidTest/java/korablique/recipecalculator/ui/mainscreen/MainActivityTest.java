@@ -93,6 +93,7 @@ import static androidx.test.espresso.matcher.ViewMatchers.withParent;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertContains;
 import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertNotContains;
+import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
 import static korablique.recipecalculator.util.EspressoUtils.matches;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.Matchers.containsString;
@@ -404,10 +405,10 @@ public class MainActivityTest {
         onView(withId(R.id.age)).check(matches((withText(containsString(ageString)))));
         onView(withId(R.id.height)).check(matches(withText(String.valueOf(userParameters.getHeight()))));
 
-        String targetWeightString = DecimalUtils.toDecimalString(userParameters.getTargetWeight());
+        String targetWeightString = toDecimalString(userParameters.getTargetWeight());
         onView(withId(R.id.target_weight)).check(matches(withText(targetWeightString)));
 
-        String currentWeightString = DecimalUtils.toDecimalString(userParameters.getWeight());
+        String currentWeightString = toDecimalString(userParameters.getWeight());
         onView(withId(R.id.current_weight_measurement_value)).check(matches(withText(currentWeightString)));
 
         onView(withId(R.id.user_name)).check(matches(withText(userNameProvider.getUserName().toString())));
@@ -417,19 +418,19 @@ public class MainActivityTest {
 
         // проверяем, что отображаются правильные нормы
         Rates rates = RateCalculator.calculate(userParameters);
-        onView(withId(R.id.calorie_intake)).check(matches(withText(DecimalUtils.toDecimalString(rates.getCalories()))));
+        onView(withId(R.id.calorie_intake)).check(matches(withText(toDecimalString(rates.getCalories()))));
         onView(allOf(
                 withParent(withId(R.id.protein_layout)),
                 withId(R.id.nutrition_text_view)))
-                .check(matches(withText(DecimalUtils.toDecimalString(rates.getProtein()))));
+                .check(matches(withText(toDecimalString(rates.getProtein()))));
         onView(allOf(
                 withParent(withId(R.id.fats_layout)),
                 withId(R.id.nutrition_text_view)))
-                .check(matches(withText(DecimalUtils.toDecimalString(rates.getFats()))));
+                .check(matches(withText(toDecimalString(rates.getFats()))));
         onView(allOf(
                 withParent(withId(R.id.carbs_layout)),
                 withId(R.id.nutrition_text_view)))
-                .check(matches(withText(DecimalUtils.toDecimalString(rates.getCarbs()))));
+                .check(matches(withText(toDecimalString(rates.getCarbs()))));
 
         // проверяем процент достижения цели
         int percent = GoalCalculator.calculateProgressPercentage(
