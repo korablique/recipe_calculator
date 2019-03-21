@@ -112,11 +112,10 @@ public class ProfileController extends FragmentCallbacks.Observer {
     }
 
     private void fillChart() {
-        Single<Optional<List<UserParameters>>> allUserParamsSingle = userParametersWorker.requestAllUserParameters();
-        subscriptions.subscribe(allUserParamsSingle, new Consumer<Optional<List<UserParameters>>>() {
+        Single<List<UserParameters>> allUserParamsSingle = userParametersWorker.requestAllUserParameters().toList();
+        subscriptions.subscribe(allUserParamsSingle, new Consumer<List<UserParameters>>() {
             @Override
-            public void accept(Optional<List<UserParameters>> userParamsListOptional) {
-                List<UserParameters> userParametersList = userParamsListOptional.get();
+            public void accept(List<UserParameters> userParametersList) {
                 chartWrapper.setData(userParametersList);
             }
         });
