@@ -12,11 +12,6 @@ public class MainThreadExecutorImpl implements MainThreadExecutor {
     private Scheduler scheduler = AndroidSchedulers.mainThread();
 
     @Override
-    public void execute(Runnable runnable) {
-        scheduler.scheduleDirect(runnable);
-    }
-
-    @Override
     public void executeDelayed(long delayMillis, Runnable runnable) {
         scheduler.scheduleDirect(runnable, delayMillis, TimeUnit.MILLISECONDS);
     }
