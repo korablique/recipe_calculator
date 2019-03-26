@@ -23,10 +23,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:fontFamily="@font/roboto_mono"
-            android:textStyle="bold"
-            android:textColor="#FF373B4F"
-            android:textSize="14sp"
+            style="@style/RobotoMonoBoldText"
             android:text="@string/selected_foodstuffs_summary"/>
         <include
             layout="@layout/nutrition_progress_with_values"

@@ -13,13 +13,19 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseFragment;
+import korablique.recipecalculator.base.RxFragmentSubscriptions;
 import korablique.recipecalculator.database.HistoryWorker;
+import korablique.recipecalculator.database.UserParametersWorker;
 
 public class HistoryFragment extends BaseFragment {
     @Inject
     HistoryController historyController;
     @Inject
     HistoryWorker historyWorker;
+    @Inject
+    UserParametersWorker userParametersWorker;
+    @Inject
+    RxFragmentSubscriptions subscriptions;
 
     @Override
     protected View createView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {

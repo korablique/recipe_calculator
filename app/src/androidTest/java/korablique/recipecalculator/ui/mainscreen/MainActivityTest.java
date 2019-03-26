@@ -5,6 +5,7 @@ import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
 import android.view.View;
+import android.widget.ProgressBar;
 
 import junit.framework.Assert;
 
@@ -54,6 +55,7 @@ import korablique.recipecalculator.model.Gender;
 import korablique.recipecalculator.model.GoalCalculator;
 import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.NewHistoryEntry;
+import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.model.PopularProductsUtils;
 import korablique.recipecalculator.model.RateCalculator;
 import korablique.recipecalculator.model.Rates;
@@ -93,6 +95,7 @@ import static androidx.test.espresso.matcher.ViewMatchers.withParent;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertContains;
 import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertNotContains;
+import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
 import static korablique.recipecalculator.util.EspressoUtils.matches;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.Matchers.containsString;
@@ -165,7 +168,8 @@ public class MainActivityTest {
                         return Arrays.asList(subscriptions, profileController);
                     } else if (fragment instanceof HistoryFragment) {
                         HistoryController historyController = new HistoryController(
-                                activity, (HistoryFragment) fragment, fragmentCallbacks, historyWorker);
+                                activity, (HistoryFragment) fragment, fragmentCallbacks, historyWorker,
+                                userParametersWorker, subscriptions);
                         return Arrays.asList(subscriptions, historyController);
                     } else {
                         throw new IllegalStateException("There is no such fragment class");
@@ -404,10 +408,10 @@ public class MainActivityTest {
         onView(withId(R.id.age)).check(matches((withText(containsString(ageString)))));
         onView(withId(R.id.height)).check(matches(withText(String.valueOf(userParameters.getHeight()))));
 
-        String targetWeightString = DecimalUtils.toDecimalString(userParameters.getTargetWeight());
+        String targetWeightString = toDecimalString(userParameters.getTargetWeight());
         onView(withId(R.id.target_weight)).check(matches(withText(targetWeightString)));
 
-        String currentWeightString = DecimalUtils.toDecimalString(userParameters.getWeight());
+        String currentWeightString = toDecimalString(userParameters.getWeight());
         onView(withId(R.id.current_weight_measurement_value)).check(matches(withText(currentWeightString)));
 
         onView(withId(R.id.user_name)).check(matches(withText(userNameProvider.getUserName().toString())));
@@ -417,19 +421,19 @@ public class MainActivityTest {
 
         // проверяем, что отображаются правильные нормы
         Rates rates = RateCalculator.calculate(userParameters);
-        onView(withId(R.id.calorie_intake)).check(matches(withText(DecimalUtils.toDecimalString(rates.getCalories()))));
+        onView(withId(R.id.calorie_intake)).check(matches(withText(toDecimalString(rates.getCalories()))));
         onView(allOf(
                 withParent(withId(R.id.protein_layout)),
                 withId(R.id.nutrition_text_view)))
-                .check(matches(withText(DecimalUtils.toDecimalString(rates.getProtein()))));
+                .check(matches(withText(toDecimalString(rates.getProtein()))));
         onView(allOf(
                 withParent(withId(R.id.fats_layout)),
                 withId(R.id.nutrition_text_view)))
-                .check(matches(withText(DecimalUtils.toDecimalString(rates.getFats()))));
+                .check(matches(withText(toDecimalString(rates.getFats()))));
         onView(allOf(
                 withParent(withId(R.id.carbs_layout)),
                 withId(R.id.nutrition_text_view)))
-                .check(matches(withText(DecimalUtils.toDecimalString(rates.getCarbs()))));
+                .check(matches(withText(toDecimalString(rates.getCarbs()))));
 
         // проверяем процент достижения цели
         int percent = GoalCalculator.calculateProgressPercentage(
@@ -501,6 +505,72 @@ public class MainActivityTest {
                 withText(containsString(foodstuffs[6].getName())),
                 matches(isCompletelyBelow(withText(containsString(foodstuffs[5].getName())))));
         onView(foodstuffBelowMatcher3).check(matches(isDisplayed()));
+    }
+
+    @Test
+    public void todaysTotalNutritionDisplayedInHistory() {
+        // добавляем продукты на сегодня
+        NewHistoryEntry[] newEntries = new NewHistoryEntry[3];
+        DateTime today = DateTime.now();
+        newEntries[0] = new NewHistoryEntry(foodstuffsIds.get(0), 100,
+                new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 8, 0).toDate());
+        newEntries[1] = new NewHistoryEntry(foodstuffsIds.get(5), 100,
+                new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 9, 0).toDate());
+        newEntries[2] = new NewHistoryEntry(foodstuffsIds.get(6), 100,
+                new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 10, 0).toDate());
+        historyWorker.saveGroupOfFoodstuffsToHistory(newEntries);
+        mActivityRule.launchActivity(null);
+
+        Nutrition totalNutrition = Nutrition.of(foodstuffs[0].withWeight(100))
+                .plus(Nutrition.of(foodstuffs[5].withWeight(100)))
+                .plus(Nutrition.of(foodstuffs[6].withWeight(100)));
+        Rates rates = RateCalculator.calculate(userParameters);
+
+        onView(withId(R.id.menu_item_history)).perform(click());
+
+        // проверяем значение съеденного нутриента
+        Matcher<View> proteinMatcher = allOf(withParent(withId(R.id.protein_layout)), withId(R.id.nutrition_text_view));
+        onView(proteinMatcher).check(matches(withText(String.valueOf(toDecimalString(totalNutrition.getProtein())))));
+
+        Matcher<View> fatsMatcher = allOf(withParent(withId(R.id.fats_layout)), withId(R.id.nutrition_text_view));
+        onView(fatsMatcher).check(matches(withText(String.valueOf(toDecimalString(totalNutrition.getFats())))));
+
+        Matcher<View> carbsMatcher = allOf(withParent(withId(R.id.carbs_layout)), withId(R.id.nutrition_text_view));
+        onView(carbsMatcher).check(matches(withText(String.valueOf(toDecimalString(totalNutrition.getCarbs())))));
+
+        Matcher<View> caloriesMatcher = allOf(withParent(withId(R.id.calories_layout)), withId(R.id.nutrition_text_view));
+        onView(caloriesMatcher).check(matches(withText(String.valueOf(toDecimalString(totalNutrition.getCalories())))));
+
+        // проверяем значения норм БЖУК
+        Matcher<View> proteinRateMatcher = allOf(withParent(withId(R.id.protein_layout)), withId(R.id.of_n_grams));
+        onView(proteinRateMatcher).check(matches(withText(containsString(String.valueOf(Math.round(rates.getProtein()))))));
+
+        Matcher<View> fatsRateMatcher = allOf(withParent(withId(R.id.fats_layout)), withId(R.id.of_n_grams));
+        onView(fatsRateMatcher).check(matches(withText(containsString(String.valueOf(Math.round(rates.getFats()))))));
+
+        Matcher<View> carbsRateMatcher = allOf(withParent(withId(R.id.carbs_layout)), withId(R.id.of_n_grams));
+        onView(carbsRateMatcher).check(matches(withText(containsString(String.valueOf(Math.round(rates.getCarbs()))))));
+
+        Matcher<View> caloriesRateMatcher = allOf(withParent(withId(R.id.calories_layout)), withId(R.id.of_n_grams));
+        onView(caloriesRateMatcher).check(matches(withText(containsString(String.valueOf(Math.round(totalNutrition.getCalories()))))));
+
+        // проверяем прогресс
+        Activity activity = mActivityRule.getActivity();
+        ProgressBar proteinProgress = activity.findViewById(R.id.protein_layout).findViewById(R.id.nutrition_progress);
+        Assert.assertEquals(Math.round((float)totalNutrition.getProtein()), proteinProgress.getProgress());
+        Assert.assertEquals(Math.round(rates.getProtein()), proteinProgress.getMax());
+
+        ProgressBar fatsProgress = activity.findViewById(R.id.fats_layout).findViewById(R.id.nutrition_progress);
+        Assert.assertEquals(Math.round((float)totalNutrition.getFats()), fatsProgress.getProgress());
+        Assert.assertEquals(Math.round(rates.getFats()), fatsProgress.getMax());
+
+        ProgressBar carbsProgress = activity.findViewById(R.id.carbs_layout).findViewById(R.id.nutrition_progress);
+        Assert.assertEquals(Math.round((float)totalNutrition.getCarbs()), carbsProgress.getProgress());
+        Assert.assertEquals(Math.round(rates.getCarbs()), carbsProgress.getMax());
+
+        ProgressBar caloriesProgress = activity.findViewById(R.id.calories_layout).findViewById(R.id.nutrition_progress);
+        Assert.assertEquals(Math.round((float)totalNutrition.getCalories()), caloriesProgress.getProgress());
+        Assert.assertEquals(Math.round(rates.getCalories()), caloriesProgress.getMax());
     }
 
     private List<Foodstuff> extractFoodstuffsTopFromDB() {

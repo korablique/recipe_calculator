@@ -111,6 +111,9 @@
     <string name="date_format">dd.MM.yyyy</string>
     <string name="progress">Прогресс</string>
     <string name="weight_change">Изменение веса, кг</string>
+    <string name="total_for_day">Всего за день</string>
+    <string name="of_n_grams">из %d г</string>
+    <string name="of_n_calories">из %d ккал</string>
 
     <string-array name="gender_array">
         <item name="not_selected">—</item>

@@ -10,5 +10,6 @@
     <color name="colorDivider">#EFF1F6</color>
     <color name="colorRed">#FF8E77</color>
     <color name="colorYellow">#FFE982</color>
+    <color name="colorCalories">#9B9DA7</color>
     <color name="colorBackground">#EFF1F6</color>
 </resources>
