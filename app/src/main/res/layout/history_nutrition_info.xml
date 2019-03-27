@@ -34,7 +34,7 @@
         android:layout_marginTop="6dp"
         style="@style/Base.Widget.AppCompat.ProgressBar.Horizontal"
         android:progressDrawable="@drawable/progress_drawable"
-        android:progressTint="@color/colorRed" />
+        android:progressTint="@color/colorProtein" />
 
     <TextView
         android:id="@+id/of_n_grams"

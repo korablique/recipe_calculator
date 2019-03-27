@@ -292,8 +292,7 @@ public class HistoryWorker {
             subscriber.onComplete();
         });
         result = result.subscribeOn(databaseThreadExecutor.asScheduler())
-                .observeOn(mainThreadExecutor.asScheduler())
-                .cache();
+                .observeOn(mainThreadExecutor.asScheduler());
         return result;
     }
 }

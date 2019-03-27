@@ -8,8 +8,9 @@
     <color name="colorSecondaryText">#757575</color>
     <color name="colorIcons">#FFFFFF</color>
     <color name="colorDivider">#EFF1F6</color>
-    <color name="colorRed">#FF8E77</color>
-    <color name="colorYellow">#FFE982</color>
+    <color name="colorProtein">#FF8E77</color>
+    <color name="colorFats">#FFE982</color>
+    <color name="colorCarbs">#5768E9</color>
     <color name="colorCalories">#9B9DA7</color>
     <color name="colorBackground">#EFF1F6</color>
 </resources>

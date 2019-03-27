@@ -556,21 +556,23 @@ public class MainActivityTest {
 
         // проверяем прогресс
         Activity activity = mActivityRule.getActivity();
-        ProgressBar proteinProgress = activity.findViewById(R.id.protein_layout).findViewById(R.id.nutrition_progress);
-        Assert.assertEquals(Math.round((float)totalNutrition.getProtein()), proteinProgress.getProgress());
-        Assert.assertEquals(Math.round(rates.getProtein()), proteinProgress.getMax());
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+            ProgressBar proteinProgress = activity.findViewById(R.id.protein_layout).findViewById(R.id.nutrition_progress);
+            Assert.assertEquals(Math.round((float)totalNutrition.getProtein()), proteinProgress.getProgress());
+            Assert.assertEquals(Math.round(rates.getProtein()), proteinProgress.getMax());
 
-        ProgressBar fatsProgress = activity.findViewById(R.id.fats_layout).findViewById(R.id.nutrition_progress);
-        Assert.assertEquals(Math.round((float)totalNutrition.getFats()), fatsProgress.getProgress());
-        Assert.assertEquals(Math.round(rates.getFats()), fatsProgress.getMax());
+            ProgressBar fatsProgress = activity.findViewById(R.id.fats_layout).findViewById(R.id.nutrition_progress);
+            Assert.assertEquals(Math.round((float)totalNutrition.getFats()), fatsProgress.getProgress());
+            Assert.assertEquals(Math.round(rates.getFats()), fatsProgress.getMax());
 
-        ProgressBar carbsProgress = activity.findViewById(R.id.carbs_layout).findViewById(R.id.nutrition_progress);
-        Assert.assertEquals(Math.round((float)totalNutrition.getCarbs()), carbsProgress.getProgress());
-        Assert.assertEquals(Math.round(rates.getCarbs()), carbsProgress.getMax());
+            ProgressBar carbsProgress = activity.findViewById(R.id.carbs_layout).findViewById(R.id.nutrition_progress);
+            Assert.assertEquals(Math.round((float)totalNutrition.getCarbs()), carbsProgress.getProgress());
+            Assert.assertEquals(Math.round(rates.getCarbs()), carbsProgress.getMax());
 
-        ProgressBar caloriesProgress = activity.findViewById(R.id.calories_layout).findViewById(R.id.nutrition_progress);
-        Assert.assertEquals(Math.round((float)totalNutrition.getCalories()), caloriesProgress.getProgress());
-        Assert.assertEquals(Math.round(rates.getCalories()), caloriesProgress.getMax());
+            ProgressBar caloriesProgress = activity.findViewById(R.id.calories_layout).findViewById(R.id.nutrition_progress);
+            Assert.assertEquals(Math.round((float)totalNutrition.getCalories()), caloriesProgress.getProgress());
+            Assert.assertEquals(Math.round(rates.getCalories()), caloriesProgress.getMax());
+        });
     }
 
     private List<Foodstuff> extractFoodstuffsTopFromDB() {

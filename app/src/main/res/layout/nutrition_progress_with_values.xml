@@ -13,9 +13,9 @@
         android:id="@+id/new_nutrition_progress_bar"
         android:layout_width="match_parent"
         android:layout_height="10dp"
-        custom:color0="@color/colorRed"
-        custom:color1="@color/colorYellow"
-        custom:color2="@color/colorPrimary"
+        custom:color0="@color/colorProtein"
+        custom:color1="@color/colorFats"
+        custom:color2="@color/colorCarbs"
         custom:corners_radii="10dp"
         custom:background_bar_color="@color/colorBackground"/>
 
