@@ -17,6 +17,8 @@ import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.R;
 
+import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
+
 public class Card {
     private static long duration = 500L;
     private ViewGroup cardLayout;
@@ -326,14 +328,10 @@ public class Card {
         getWeightEditText().setText("");
         Context context = cardLayout.getContext();
         // заменяем запятые на точки, т.к. context.getString() возвращает строку с запятыми
-        getProteinEditText().setText(context.getString(R.string.one_digit_precision_float,
-                newFoodstuff.getProtein()).replace(',', '.'));
-        getFatsEditText().setText(context.getString(R.string.one_digit_precision_float,
-                newFoodstuff.getFats()).replace(',', '.'));
-        getCarbsEditText().setText(context.getString(R.string.one_digit_precision_float,
-                newFoodstuff.getCarbs()).replace(',', '.'));
-        getCaloriesEditText().setText(context.getString(R.string.one_digit_precision_float,
-                newFoodstuff.getCalories()).replace(',', '.'));
+        getProteinEditText().setText(toDecimalString(newFoodstuff.getProtein()));
+        getFatsEditText().setText(toDecimalString(newFoodstuff.getFats()));
+        getCarbsEditText().setText(toDecimalString(newFoodstuff.getCarbs()));
+        getCaloriesEditText().setText(toDecimalString(newFoodstuff.getCalories()));
     }
 
     public boolean isDisplayed() {

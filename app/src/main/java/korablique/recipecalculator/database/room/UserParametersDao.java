@@ -1,9 +1,12 @@
 package korablique.recipecalculator.database.room;
 
+import java.util.List;
+
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.Query;
 
+import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_MEASUREMENTS_TIMESTAMP;
 import static korablique.recipecalculator.database.UserParametersContract.ID;
 import static korablique.recipecalculator.database.UserParametersContract.USER_PARAMETERS_TABLE_NAME;
 
@@ -22,4 +25,8 @@ public interface UserParametersDao {
     @Query("SELECT * FROM " + USER_PARAMETERS_TABLE_NAME +
             " ORDER BY " + ID + " ASC LIMIT 1")
     UserParametersEntity loadFirstUserParameters();
+
+    @Query("SELECT * FROM " + USER_PARAMETERS_TABLE_NAME +
+            " ORDER BY " + COLUMN_NAME_MEASUREMENTS_TIMESTAMP + " ASC")
+    List<UserParametersEntity> loadAllUserParameters();
 }

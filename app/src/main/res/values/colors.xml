@@ -13,4 +13,5 @@
     <color name="colorCarbs">#5768E9</color>
     <color name="colorCalories">#9B9DA7</color>
     <color name="colorBackground">#EFF1F6</color>
+    <color name="colorFocusedUnderline">#A0A0A0</color>
 </resources>

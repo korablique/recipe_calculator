@@ -35,7 +35,6 @@
         Углеводы - %4$.1f\n
         Калорийность - %5$.1f\n</string>
     <string name="foodstuff_name_and_weight">%1$s, %2$.0f г</string>
-    <string name="one_digit_precision_float">%1$.1f</string>
     <string name="user_goal_finish_button_text">далее</string>
     <string name="top_header">Популярное</string>
     <string name="all_foodstuffs_header">Все продукты</string>

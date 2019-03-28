@@ -21,6 +21,8 @@ import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
+import korablique.recipecalculator.ui.numbersediting.EditProgressText;
+import korablique.recipecalculator.ui.numbersediting.EditProgressTextCommonMaxController;
 import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
 
 import static korablique.recipecalculator.IntentConstants.EDIT_FOODSTUFF_REQUEST;
@@ -34,11 +36,12 @@ public class EditFoodstuffActivity extends BaseActivity {
     FoodstuffsList foodstuffsList;
     private PluralProgressBar pluralProgressBar;
     private EditText foodstuffNameEditText;
-    private EditText proteinEditText;
-    private EditText fatsEditText;
-    private EditText carbsEditText;
+    private EditProgressText proteinEditText;
+    private EditProgressText fatsEditText;
+    private EditProgressText carbsEditText;
     private EditText caloriesEditText;
     private Button saveButton;
+    private EditProgressTextCommonMaxController nutritionsCommonMaxController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,6 +101,11 @@ public class EditFoodstuffActivity extends BaseActivity {
         cancelButton.setOnClickListener(v -> {
             finish();
         });
+
+        nutritionsCommonMaxController =
+                new EditProgressTextCommonMaxController(
+                        100f, proteinEditText, fatsEditText, carbsEditText);
+        nutritionsCommonMaxController.init();
 
         Intent receivedIntent = getIntent();
         if (EDIT_FOODSTUFF_ACTION.equals(receivedIntent.getAction())) {

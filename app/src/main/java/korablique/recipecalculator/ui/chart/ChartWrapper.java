@@ -1,8 +1,7 @@
-package korablique.recipecalculator.ui.profile;
+package korablique.recipecalculator.ui.chart;
 
 import android.content.res.Resources;
 import android.graphics.Typeface;
-import android.util.TypedValue;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Legend;
@@ -12,13 +11,17 @@ import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import androidx.core.content.res.ResourcesCompat;
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.model.UserParameters;
 
 public class ChartWrapper {
     private LineChart chart;
+    private LineData lineData;
+
     private LineDataSet dataSet;
 
     public ChartWrapper(LineChart chart) {
@@ -52,21 +55,16 @@ public class ChartWrapper {
 
         XAxis xAxis = chart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-        xAxis.setTextColor(textColor);
-        xAxis.setTextSize(smallTextSize);
-        xAxis.setTypeface(robotoMonoMediumTypeface);
-        xAxis.setDrawAxisLine(false);
+        xAxis.setEnabled(false);
         xAxis.setDrawGridLines(false);
-        float dip = 0.77f;
-        float px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dip, resources.getDisplayMetrics());
-        xAxis.setYOffset(px);
 
         YAxis yAxis = chart.getAxisLeft();
+        yAxis.setValueFormatter(new WeightValueFormatter());
         yAxis.setTextColor(textColor);
-        yAxis.setTextSize(smallTextSize);
         yAxis.setTypeface(robotoMonoMediumTypeface);
         yAxis.setDrawAxisLine(false);
         yAxis.setGridColor(gridColor);
+
         chart.getAxisRight().setEnabled(false);
 
         Legend legend = chart.getLegend();
@@ -77,7 +75,7 @@ public class ChartWrapper {
         legend.setTextColor(secondaryTextColor);
         legend.setTextSize(smallTextSize);
 
-        LineData lineData = new LineData(dataSet);
+        lineData = new LineData(dataSet);
         chart.setData(lineData);
         chart.setBackgroundColor(chartBackgroundColor);
         chart.getDescription().setEnabled(false);
@@ -85,11 +83,20 @@ public class ChartWrapper {
         chart.invalidate(); // refresh
     }
 
-    public void addData(List<Entry> entries) {
-        for (Entry entry : entries) {
-            dataSet.addEntry(entry);
+    public void setData(List<UserParameters> userParametersList) {
+        List<Entry> chartEntries = new ArrayList<>();
+        for (int index = 0; index < userParametersList.size(); index++) {
+            // здесь задаются координаты точек на графике,
+            // отображение значений по осям задаётся в Formatter'ах
+            float x = index;
+            float y = userParametersList.get(index).getWeight();
+            chartEntries.add(new Entry(x, y));
         }
-        chart.setData(new LineData(dataSet));
+        dataSet.clear();
+        for (Entry entry : chartEntries) {
+            lineData.addEntry(entry, lineData.getDataSetCount() - 1);
+        }
+        chart.notifyDataSetChanged();
         chart.invalidate();
     }
 }

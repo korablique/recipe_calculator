@@ -40,6 +40,7 @@ import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.Card;
+import korablique.recipecalculator.ui.DecimalUtils;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.InstantComputationsThreadsExecutor;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
@@ -58,6 +59,7 @@ import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertContains;
 import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertNotContains;
 import static korablique.recipecalculator.database.HistoryWorker.BATCH_SIZE;
+import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 
@@ -178,10 +180,10 @@ public class HistoryActivityTest {
 
         onView(withId(R.id.recycler_view)).perform(actionOnItemAtPosition(1, click()));
         onView(withId(R.id.name_edit_text)).check(matches(withText(foodstuffName)));
-        onView(withId(R.id.protein_edit_text)).check(matches(withText(String.valueOf(protein))));
-        onView(withId(R.id.fats_edit_text)).check(matches(withText(String.valueOf(fats))));
-        onView(withId(R.id.carbs_edit_text)).check(matches(withText(String.valueOf(carbs))));
-        onView(withId(R.id.calories_edit_text)).check(matches(withText(String.valueOf(calories))));
+        onView(withId(R.id.protein_edit_text)).check(matches(withText(toDecimalString(protein))));
+        onView(withId(R.id.fats_edit_text)).check(matches(withText(toDecimalString(fats))));
+        onView(withId(R.id.carbs_edit_text)).check(matches(withText(toDecimalString(carbs))));
+        onView(withId(R.id.calories_edit_text)).check(matches(withText(toDecimalString(calories))));
     }
 
     @Test
@@ -202,10 +204,10 @@ public class HistoryActivityTest {
 
         onView(withId(R.id.recycler_view)).perform(actionOnItemAtPosition(1, click()));
         onView(withId(R.id.name_edit_text)).check(matches(withText(foodstuffName)));
-        onView(withId(R.id.protein_edit_text)).check(matches(withText(String.valueOf(protein))));
-        onView(withId(R.id.fats_edit_text)).check(matches(withText(String.valueOf(fats))));
-        onView(withId(R.id.carbs_edit_text)).check(matches(withText(String.valueOf(carbs))));
-        onView(withId(R.id.calories_edit_text)).check(matches(withText(String.valueOf(calories))));
+        onView(withId(R.id.protein_edit_text)).check(matches(withText(toDecimalString(protein))));
+        onView(withId(R.id.fats_edit_text)).check(matches(withText(toDecimalString(fats))));
+        onView(withId(R.id.carbs_edit_text)).check(matches(withText(toDecimalString(carbs))));
+        onView(withId(R.id.calories_edit_text)).check(matches(withText(toDecimalString(calories))));
     }
 
     @Test

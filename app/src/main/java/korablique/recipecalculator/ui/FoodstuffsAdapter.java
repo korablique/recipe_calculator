@@ -16,6 +16,8 @@ import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 
+import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
+
 /**
  * @param <T> must be either Foodstuff or WeightedFoodstuff. This is enforced by the constructor
  * being private and 2 public factory methods playing the role of the constructor.
@@ -151,14 +153,10 @@ public class FoodstuffsAdapter<T> extends RecyclerView.Adapter<MyViewHolder> {
     }
 
     private void setNutritions(View foodstuffView, double protein, double fats, double carbs, double calories) {
-        setTextViewText(foodstuffView, R.id.protein, context.getString(
-                R.string.one_digit_precision_float, protein));
-        setTextViewText(foodstuffView, R.id.fats, context.getString(
-                R.string.one_digit_precision_float, fats));
-        setTextViewText(foodstuffView, R.id.carbs, context.getString(
-                R.string.one_digit_precision_float, carbs));
-        setTextViewText(foodstuffView, R.id.calories, context.getString(
-                R.string.one_digit_precision_float, calories));
+        setTextViewText(foodstuffView, R.id.protein, toDecimalString(protein));
+        setTextViewText(foodstuffView, R.id.fats, toDecimalString(fats));
+        setTextViewText(foodstuffView, R.id.carbs, toDecimalString(carbs));
+        setTextViewText(foodstuffView, R.id.calories, toDecimalString(calories));
     }
 
     private <TextType> void setTextViewText(View parent, int viewId, TextType text) {

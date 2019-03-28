@@ -20,7 +20,10 @@ import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.HistoryEntry;
 import korablique.recipecalculator.model.Rates;
 import korablique.recipecalculator.model.WeightedFoodstuff;
+import korablique.recipecalculator.ui.DecimalUtils;
 import korablique.recipecalculator.ui.MyViewHolder;
+
+import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
 
 
 public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -105,14 +108,10 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             double weight = foodstuff.getWeight();
             setTextViewText(item, R.id.name, context.getString(
                     R.string.foodstuff_name_and_weight, foodstuff.getName(), foodstuff.getWeight()));
-            setTextViewText(item, R.id.protein, context.getString(
-                    R.string.one_digit_precision_float, foodstuff.getProtein() * weight * 0.01));
-            setTextViewText(item, R.id.fats, context.getString(
-                    R.string.one_digit_precision_float, foodstuff.getFats() * weight * 0.01));
-            setTextViewText(item, R.id.carbs, context.getString(
-                    R.string.one_digit_precision_float, foodstuff.getCarbs() * weight * 0.01));
-            setTextViewText(item, R.id.calories, context.getString(
-                    R.string.one_digit_precision_float, foodstuff.getCalories() * weight * 0.01));
+            setTextViewText(item, R.id.protein, toDecimalString(foodstuff.getProtein() * weight * 0.01));
+            setTextViewText(item, R.id.fats, toDecimalString(foodstuff.getFats() * weight * 0.01));
+            setTextViewText(item, R.id.carbs, toDecimalString(foodstuff.getCarbs() * weight * 0.01));
+            setTextViewText(item, R.id.calories, toDecimalString(foodstuff.getCalories() * weight * 0.01));
             item.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
