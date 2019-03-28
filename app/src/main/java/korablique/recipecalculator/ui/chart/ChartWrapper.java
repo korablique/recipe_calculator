@@ -31,8 +31,8 @@ public class ChartWrapper {
 
     private void setUpChartUi() {
         Resources resources = chart.getResources();
-        int lineColor = resources.getColor(R.color.colorRed);
-        int highLightColor = resources.getColor(R.color.colorYellow);
+        int lineColor = resources.getColor(R.color.colorProtein);
+        int highLightColor = resources.getColor(R.color.colorFats);
         int textColor = resources.getColor(R.color.colorPrimaryText);
         int secondaryTextColor = resources.getColor(R.color.colorSecondaryText);
         int gridColor = resources.getColor(R.color.colorBackground);

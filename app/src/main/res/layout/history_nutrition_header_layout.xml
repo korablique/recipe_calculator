@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="12dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@android:color/white">
+
+    <!--нужен, т к NutritionValuesWrapper требует родительский лэйаут,
+    который мы получаем через findViewById,
+    но если задать id главному лэйауту, то findViewById возвращает null-->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/nutrition_parent_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/total_for_day"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginTop="4dp"
+            style="@style/RobotoMonoBoldText"
+            android:text="@string/total_for_day" />
+
+        <FrameLayout
+            android:id="@+id/protein_wrapper"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintWidth_percent="0.25"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/total_for_day"
+            android:layout_marginTop="7dp"
+            android:paddingEnd="16dp">
+
+            <include
+                android:id="@+id/protein_layout"
+                layout="@layout/history_nutrition_info"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/fats_wrapper"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintWidth_percent="0.25"
+            app:layout_constraintStart_toEndOf="@id/protein_wrapper"
+            app:layout_constraintTop_toBottomOf="@id/total_for_day"
+            android:layout_marginTop="7dp"
+            android:paddingEnd="16dp">
+
+            <include
+                android:id="@+id/fats_layout"
+                layout="@layout/history_nutrition_info"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/carbs_wrapper"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintWidth_percent="0.25"
+            app:layout_constraintStart_toEndOf="@id/fats_wrapper"
+            app:layout_constraintTop_toBottomOf="@id/total_for_day"
+            android:layout_marginTop="7dp"
+            android:paddingEnd="16dp">
+
+            <include
+                android:id="@+id/carbs_layout"
+                layout="@layout/history_nutrition_info"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintWidth_percent="0.25"
+            app:layout_constraintStart_toEndOf="@id/carbs_wrapper"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/total_for_day"
+            android:layout_marginTop="7dp">
+
+            <include
+                android:id="@+id/calories_layout"
+                layout="@layout/history_nutrition_info"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </FrameLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</FrameLayout>

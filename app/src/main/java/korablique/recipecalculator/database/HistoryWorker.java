@@ -11,6 +11,7 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import io.reactivex.Observable;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.database.room.AppDatabase;
 import korablique.recipecalculator.database.room.DatabaseHolder;
@@ -262,15 +263,11 @@ public class HistoryWorker {
         });
     }
 
-    public void requestHistoryForPeriod(
-            final long from,
-            final long to,
-            @NonNull RequestHistoryCallback callback) {
-        databaseThreadExecutor.execute(() -> {
+    public Observable<HistoryEntry> requestHistoryForPeriod(final long from, final long to) {
+        Observable<HistoryEntry> result = Observable.create((subscriber) -> {
             AppDatabase database = databaseHolder.getDatabase();
             HistoryDao historyDao = database.historyDao();
             Cursor cursor = historyDao.loadHistoryForPeriod(from, to);
-            List<HistoryEntry> historyForPeriod = new ArrayList<>();
             while (cursor.moveToNext()) {
                 long foodstuffId = cursor.getLong(
                         cursor.getColumnIndex(COLUMN_NAME_FOODSTUFF_ID));
@@ -290,10 +287,12 @@ public class HistoryWorker {
                 long time = cursor.getLong(cursor.getColumnIndex(COLUMN_NAME_DATE));
                 long historyId = cursor.getLong(cursor.getColumnIndex(HistoryContract.ID));
                 HistoryEntry historyEntry = new HistoryEntry(historyId, foodstuff, new Date(time));
-                historyForPeriod.add(historyEntry);
+                subscriber.onNext(historyEntry);
             }
-
-            callback.onResult(historyForPeriod);
+            subscriber.onComplete();
         });
+        result = result.subscribeOn(databaseThreadExecutor.asScheduler())
+                .observeOn(mainThreadExecutor.asScheduler());
+        return result;
     }
 }

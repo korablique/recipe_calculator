@@ -91,7 +91,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/row_fake_top_2"
             app:layout_constraintWidth_percent="0.5"
-            custom:color_underline_filled="@color/colorRed"
+            custom:color_underline_filled="@color/colorProtein"
             custom:max_value="100"
             tools:text="17" />
 
@@ -133,7 +133,7 @@
             app:layout_constraintStart_toEndOf="@id/protein_value"
             app:layout_constraintTop_toBottomOf="@id/row_fake_top_2"
             app:layout_constraintWidth_percent="0.5"
-            custom:color_underline_filled="@color/colorYellow"
+            custom:color_underline_filled="@color/colorFats"
             custom:max_value="100"
             tools:text="2" />
 
@@ -227,9 +227,9 @@
             android:layout_marginBottom="20dp"
             android:layout_marginLeft="9dp"
             android:layout_marginRight="9dp"
-            custom:color0="@color/colorRed"
-            custom:color1="@color/colorYellow"
-            custom:color2="#FF5768E9"
+            custom:color0="@color/colorProtein"
+            custom:color1="@color/colorFats"
+            custom:color2="@color/colorCarbs"
             custom:corners_radii="10dp"
             custom:background_bar_color="#EFF1F6"
             app:layout_constraintBottom_toTopOf="@+id/save_button"
