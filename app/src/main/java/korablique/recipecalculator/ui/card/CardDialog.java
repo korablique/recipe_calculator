@@ -7,7 +7,9 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
 import androidx.fragment.app.FragmentActivity;
+import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseBottomDialog;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.WeightedFoodstuff;
@@ -18,18 +20,23 @@ public class CardDialog extends BaseBottomDialog {
     private static final String FOODSTUFF_CARD = "FOODSTUFF_CARD";
     private NewCard card;
     private NewCard.OnAddFoodstuffButtonClickListener onAddFoodstuffButtonClickListener;
+    private int buttonTextRes;
     private NewCard.OnEditButtonClickListener onEditButtonClickListener;
     private NewCard.OnCloseButtonClickListener onCloseButtonClickListener = this::dismiss;
+    private NewCard.OnDeleteButtonClickListener onDeleteButtonClickListener;
     private boolean prohibitEditingFlag;
+    private boolean prohibitDeletingFlag;
+
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container,
                              Bundle savedInstanceState) {
         card = new NewCard(getContext(), container);
-        card.setOnAddFoodstuffButtonClickListener(onAddFoodstuffButtonClickListener);
+        card.setUpAddFoodstuffButton(onAddFoodstuffButtonClickListener, buttonTextRes);
         card.setOnEditButtonClickListener(onEditButtonClickListener);
         card.setOnCloseButtonClickListener(onCloseButtonClickListener);
+        card.setOnDeleteButtonClickListener(onDeleteButtonClickListener);
         card.prohibitEditing(prohibitEditingFlag);
 
         Bundle args = getArguments();
@@ -44,10 +51,12 @@ public class CardDialog extends BaseBottomDialog {
         return card.getCardLayout();
     }
 
-    public void setOnAddFoodstuffButtonClickListener(NewCard.OnAddFoodstuffButtonClickListener listener) {
+    public void setUpAddFoodstuffButton(
+            NewCard.OnAddFoodstuffButtonClickListener listener, @StringRes int buttonTextRes) {
         onAddFoodstuffButtonClickListener = listener;
+        this.buttonTextRes = buttonTextRes;
         if (card != null) {
-            card.setOnAddFoodstuffButtonClickListener(listener);
+            card.setUpAddFoodstuffButton(listener, buttonTextRes);
         }
     }
 
@@ -62,6 +71,13 @@ public class CardDialog extends BaseBottomDialog {
         onCloseButtonClickListener = listener;
         if (card != null) {
             card.setOnCloseButtonClickListener(listener);
+        }
+    }
+
+    public void setOnDeleteButtonClickListener(NewCard.OnDeleteButtonClickListener listener) {
+        onDeleteButtonClickListener = listener;
+        if (card != null) {
+            card.setOnDeleteButtonClickListener(listener);
         }
     }
 
@@ -98,16 +114,23 @@ public class CardDialog extends BaseBottomDialog {
         }
     }
 
+    public void prohibitDeleting(boolean flag) {
+        prohibitDeletingFlag = flag;
+        if (card != null) {
+            card.prohibitDeleting(flag);
+        }
+    }
+
     public static void hideCard(FragmentActivity activity) {
         CardDialog cardDialog = findCard(activity);
         if (cardDialog != null) {
             cardDialog.dismiss();
         }
     }
-
     // Метод нужен, чтоб обрабатывать такую ситуацию:
     // При смене конфигурации экрана (пересоздании активити) диалог уже может находиться в пересозданной активити.
-    // Если он уже существует, то ему надо задать setOnAddFoodstuffButtonClickListener
+    // Если он уже существует, то ему надо задать onAddFoodstuffButtonClickListener
+
     @Nullable public static CardDialog findCard(FragmentActivity activity) {
         return (CardDialog) activity.getSupportFragmentManager().findFragmentByTag(FOODSTUFF_CARD);
     }

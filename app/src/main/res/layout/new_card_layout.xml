@@ -29,17 +29,34 @@
             android:layout_marginStart="15dp"
             android:layout_marginLeft="15dp"
             android:layout_marginTop="20dp"
-            app:layout_constraintEnd_toStartOf="@+id/frame_layout_button_edit"
+            app:layout_constraintEnd_toStartOf="@+id/frame_layout_button_delete"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Чечевица" />
+
+        <FrameLayout
+            android:id="@+id/frame_layout_button_delete"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginTop="20dp"
+            app:layout_constraintEnd_toStartOf="@id/frame_layout_button_edit"
+            app:layout_constraintTop_toTopOf="parent"
+            android:background="@drawable/rectangular_button_click_selector">
+
+            <ImageView
+                android:id="@+id/button_delete"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_delete_black" />
+        </FrameLayout>
 
         <FrameLayout
             android:id="@+id/frame_layout_button_edit"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_marginTop="20dp"
-            app:layout_constraintEnd_toStartOf="@+id/button_close_layout"
+            app:layout_constraintEnd_toStartOf="@+id/button_close"
             app:layout_constraintTop_toTopOf="parent"
             android:background="@drawable/rectangular_button_click_selector">
 
@@ -52,6 +69,7 @@
         </FrameLayout>
 
         <include layout="@layout/button_close"
+            android:id="@+id/button_close"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_marginEnd="16dp"

@@ -80,6 +80,7 @@ import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.replaceText;
 import static androidx.test.espresso.assertion.PositionAssertions.isCompletelyAbove;
 import static androidx.test.espresso.assertion.PositionAssertions.isCompletelyBelow;
+import static androidx.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.intent.Intents.intended;
 import static androidx.test.espresso.intent.matcher.BundleMatchers.hasValue;
@@ -474,16 +475,7 @@ public class MainActivityTest {
 
     @Test
     public void todaysFoodstuffsDisplayedInHistory() {
-        // добавим ещё продуктов на сегодня (в БД уже есть несколько продуктов на др дату)
-        NewHistoryEntry[] newEntries = new NewHistoryEntry[3];
-        DateTime today = DateTime.now();
-        newEntries[0] = new NewHistoryEntry(foodstuffsIds.get(0), 100,
-                new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 8, 0).toDate());
-        newEntries[1] = new NewHistoryEntry(foodstuffsIds.get(5), 100,
-                new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 9, 0).toDate());
-        newEntries[2] = new NewHistoryEntry(foodstuffsIds.get(6), 100,
-                new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 10, 0).toDate());
-        historyWorker.saveGroupOfFoodstuffsToHistory(newEntries);
+        addFoodstuffsToday();
         mActivityRule.launchActivity(null);
 
         onView(withId(R.id.menu_item_history)).perform(click());
@@ -502,6 +494,49 @@ public class MainActivityTest {
                 withText(containsString(foodstuffs[6].getName())),
                 matches(isCompletelyBelow(withText(containsString(foodstuffs[5].getName())))));
         onView(foodstuffBelowMatcher3).check(matches(isDisplayed()));
+    }
+
+    @Test
+    public void deletingItemsInHistoryWorks() {
+        addFoodstuffsToday();
+        mActivityRule.launchActivity(null);
+        onView(withId(R.id.menu_item_history)).perform(click());
+
+        // нажать на элемент
+        onView(withText(containsString(foodstuffs[0].getName()))).perform(click());
+        // нажать на кнопку удаления в карточке
+        onView(withId(R.id.button_delete)).perform(click());
+        // проверить, что элемент удалился
+        onView(withText(containsString(foodstuffs[0].getName()))).check(doesNotExist());
+    }
+
+    @Test
+    public void editingItemsInHistoryWorks() {
+        addFoodstuffsToday();
+        mActivityRule.launchActivity(null);
+        onView(withId(R.id.menu_item_history)).perform(click());
+
+        // нажать на элемент
+        onView(withText(containsString(foodstuffs[0].getName()))).perform(click());
+        // отредактировать вес
+        int newWeight = 200;
+        onView(withId(R.id.weight_edit_text)).perform(replaceText(String.valueOf(newWeight)));
+        onView(withId(R.id.add_foodstuff_button)).perform(click());
+        // проверить, что элемент отредактировался
+        onView(withText(containsString(foodstuffs[0].getName()))).perform(click());
+        onView(withId(R.id.weight_edit_text)).check(matches(withText(String.valueOf(newWeight))));
+    }
+
+    private void addFoodstuffsToday() {
+        NewHistoryEntry[] newEntries = new NewHistoryEntry[3];
+        DateTime today = DateTime.now();
+        newEntries[0] = new NewHistoryEntry(foodstuffsIds.get(0), 100,
+                new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 8, 0).toDate());
+        newEntries[1] = new NewHistoryEntry(foodstuffsIds.get(5), 100,
+                new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 9, 0).toDate());
+        newEntries[2] = new NewHistoryEntry(foodstuffsIds.get(6), 100,
+                new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 10, 0).toDate());
+        historyWorker.saveGroupOfFoodstuffsToHistory(newEntries);
     }
 
     private List<Foodstuff> extractFoodstuffsTopFromDB() {

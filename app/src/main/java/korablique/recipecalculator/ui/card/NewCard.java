@@ -13,6 +13,7 @@ import android.widget.TextView;
 
 import com.arlib.floatingsearchview.util.adapter.TextWatcherAdapter;
 
+import androidx.annotation.StringRes;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
@@ -35,6 +36,10 @@ public class NewCard {
         void onClick();
     }
 
+    public interface OnDeleteButtonClickListener {
+        void onClick(WeightedFoodstuff foodstuff);
+    }
+
     public static final int DEFAULT_WEIGHT = 100;
     public static final String EDITED_FOODSTUFF = "EDITED_FOODSTUFF";
     private ViewGroup cardLayout;
@@ -44,6 +49,7 @@ public class NewCard {
     private Button addFoodstuffButton;
     private View editButton;
     private View closeButton;
+    private View deleteButton;
 
     private PluralProgressBar pluralProgressBar;
     private NutritionValuesWrapper nutritionValuesWrapper;
@@ -52,7 +58,8 @@ public class NewCard {
         cardLayout = (ViewGroup) LayoutInflater.from(context).inflate(R.layout.new_card_layout, parent);
         addFoodstuffButton = cardLayout.findViewById(R.id.add_foodstuff_button);
         editButton = cardLayout.findViewById(R.id.frame_layout_button_edit);
-        closeButton = cardLayout.findViewById(R.id.button_close_layout);
+        closeButton = cardLayout.findViewById(R.id.button_close);
+        deleteButton = cardLayout.findViewById(R.id.frame_layout_button_delete);
         weightEditText = cardLayout.findViewById(R.id.weight_edit_text);
         weightEditText.setText(toDecimalString(DEFAULT_WEIGHT));
         updateAddButtonEnability(weightEditText.getText());
@@ -114,37 +121,57 @@ public class NewCard {
         return cardLayout;
     }
 
-    public void setOnAddFoodstuffButtonClickListener(OnAddFoodstuffButtonClickListener listener) {
+    public void setUpAddFoodstuffButton(OnAddFoodstuffButtonClickListener listener, @StringRes int buttonTextRes) {
+        addFoodstuffButton.setText(buttonTextRes);
         addFoodstuffButton.setOnClickListener(v -> {
-            WeightedFoodstuff clickedFoodstuff = Foodstuff
-                    .withId(displayedFoodstuff.getId())
-                    .withName(nameTextView.getText().toString())
-                    .withNutrition(nutritionValuesWrapper.getFoodstuff().getProtein(),
-                            nutritionValuesWrapper.getFoodstuff().getFats(),
-                            nutritionValuesWrapper.getFoodstuff().getCarbs(),
-                            nutritionValuesWrapper.getFoodstuff().getCalories())
-                    .withWeight(Double.valueOf(weightEditText.getText().toString()));
+            WeightedFoodstuff clickedFoodstuff = extractWeightedFoodstuff();
             listener.onClick(clickedFoodstuff);
         });
     }
 
-    public void setOnEditButtonClickListener(OnEditButtonClickListener listener) {
+    private WeightedFoodstuff extractWeightedFoodstuff() {
+        return Foodstuff
+                .withId(displayedFoodstuff.getId())
+                .withName(nameTextView.getText().toString())
+                .withNutrition(nutritionValuesWrapper.getFoodstuff().getProtein(),
+                        nutritionValuesWrapper.getFoodstuff().getFats(),
+                        nutritionValuesWrapper.getFoodstuff().getCarbs(),
+                        nutritionValuesWrapper.getFoodstuff().getCalories())
+                .withWeight(Double.valueOf(weightEditText.getText().toString()));
+    }
+
+    void setOnEditButtonClickListener(OnEditButtonClickListener listener) {
         editButton.setOnClickListener(v -> {
             listener.onClick(displayedFoodstuff);
         });
     }
 
-    public void setOnCloseButtonClickListener(OnCloseButtonClickListener listener) {
+    void setOnCloseButtonClickListener(OnCloseButtonClickListener listener) {
         closeButton.setOnClickListener(v -> {
             listener.onClick();
         });
     }
 
-    public void prohibitEditing(boolean flag) {
+    void setOnDeleteButtonClickListener(OnDeleteButtonClickListener listener) {
+        deleteButton.setOnClickListener(v -> {
+            WeightedFoodstuff clickedFoodstuff = extractWeightedFoodstuff();
+            listener.onClick(clickedFoodstuff);
+        });
+    }
+
+    void prohibitEditing(boolean flag) {
         if (flag) {
             editButton.setVisibility(View.GONE);
         } else {
             editButton.setVisibility(View.VISIBLE);
+        }
+    }
+
+    void prohibitDeleting(boolean flag) {
+        if (flag) {
+            deleteButton.setVisibility(View.GONE);
+        } else {
+            deleteButton.setVisibility(View.VISIBLE);
         }
     }
 }

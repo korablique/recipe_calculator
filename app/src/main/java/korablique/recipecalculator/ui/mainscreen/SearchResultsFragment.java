@@ -13,17 +13,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
 
 import io.reactivex.Single;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.disposables.Disposables;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseFragment;
-import korablique.recipecalculator.base.Callback;
 import korablique.recipecalculator.base.RxFragmentSubscriptions;
 import korablique.recipecalculator.dagger.InjectorHolder;
 import korablique.recipecalculator.database.DatabaseWorker;
@@ -63,12 +59,12 @@ public class SearchResultsFragment extends BaseFragment {
         SearchResultsAdapter adapter = new SearchResultsAdapter((foodstuff, position) -> {
             CardDialog cardDialog = CardDialog.showCard(getActivity(), foodstuff);
             cardDialog.prohibitEditing(true);
-            cardDialog.setOnAddFoodstuffButtonClickListener(foodstuff1 -> {
+            cardDialog.setUpAddFoodstuffButton(foodstuff1 -> {
                 CardDialog.hideCard(getActivity());
                 BucketList bucketList = BucketList.getInstance();
                 bucketList.add(foodstuff1);
                 getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
-            });
+            }, R.string.add_foodstuff);
         });
         searchResultsRecyclerView.setAdapter(adapter);
 

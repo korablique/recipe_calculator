@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import com.google.android.material.snackbar.Snackbar;
+
+import androidx.annotation.StringRes;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import android.text.Editable;
@@ -29,7 +31,6 @@ import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.NutritionValuesWrapper;
-import korablique.recipecalculator.ui.DecimalUtils;
 import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.history.HistoryActivity;
 import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
@@ -39,6 +40,8 @@ import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
 public class BucketListActivity extends BaseActivity {
     public static final String EXTRA_FOODSTUFFS_LIST = "EXTRA_FOODSTUFFS_LIST";
     private static final String DISPLAYED_IN_CARD_FOODSTUFF_POSITION = "DISPLAYED_IN_CARD_FOODSTUFF_POSITION";
+    @StringRes
+    private static final int CARD_BUTTON_TEXT_RES = R.string.save;
     private PluralProgressBar pluralProgressBar;
     private NutritionValuesWrapper nutritionValuesWrapper;
     @Inject
@@ -100,14 +103,16 @@ public class BucketListActivity extends BaseActivity {
 
         CardDialog existingCardDialog = CardDialog.findCard(this);
         if (existingCardDialog != null) {
-            existingCardDialog.setOnAddFoodstuffButtonClickListener(onAddFoodstuffButtonClickListener);
+            existingCardDialog.setUpAddFoodstuffButton(onAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
         }
 
         BucketListAdapter.OnItemClickedObserver onItemClickedObserver = (foodstuff, position) -> {
             displayedInCardFoodstuffPosition = position;
             CardDialog cardDialog = CardDialog.showCard(BucketListActivity.this, foodstuff);
             cardDialog.prohibitEditing(true);
-            cardDialog.setOnAddFoodstuffButtonClickListener(onAddFoodstuffButtonClickListener);
+            // чтобы не запутать пользователя. для удаления продукта из выбранных нужно его смахнуть
+            cardDialog.prohibitDeleting(true);
+            cardDialog.setUpAddFoodstuffButton(onAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
         };
 
         adapter = new BucketListAdapter(R.layout.new_foodstuff_layout, onItemsCountChangeListener, onItemClickedObserver);
@@ -197,7 +202,7 @@ public class BucketListActivity extends BaseActivity {
         displayedInCardFoodstuffPosition = savedInstanceState.getInt(DISPLAYED_IN_CARD_FOODSTUFF_POSITION);
         CardDialog cardDialog = CardDialog.findCard(this);
         if (cardDialog != null) {
-            cardDialog.setOnAddFoodstuffButtonClickListener(onAddFoodstuffButtonClickListener);
+            cardDialog.setUpAddFoodstuffButton(onAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
         }
     }
 

@@ -162,7 +162,7 @@ public class HistoryActivityTest {
         onView(withId(R.id.recycler_view)).perform(actionOnItemAtPosition(1, click()));
 
         String foodstuffName = "new name";
-        double protein = 10.0, fats = 10.0, carbs = 10.0, calories = 100.0;
+        int protein = 10, fats = 10, carbs = 10, calories = 100;
         onView(withId(R.id.name_edit_text)).perform(replaceText(foodstuffName));
         onView(withId(R.id.protein_edit_text)).perform(replaceText(String.valueOf(protein)));
         onView(withId(R.id.fats_edit_text)).perform(replaceText(String.valueOf(fats)));
@@ -194,7 +194,7 @@ public class HistoryActivityTest {
         onView(withId(R.id.recycler_view)).perform(actionOnItemAtPosition(1, click()));
 
         String foodstuffName = "new name";
-        double protein = 10.0, fats = 10.0, carbs = 10.0, calories = 100.0;
+        int protein = 10, fats = 10, carbs = 10, calories = 100;
         onView(withId(R.id.name_edit_text)).perform(replaceText(foodstuffName));
         onView(withId(R.id.protein_edit_text)).perform(replaceText(String.valueOf(protein)));
         onView(withId(R.id.fats_edit_text)).perform(replaceText(String.valueOf(fats)));

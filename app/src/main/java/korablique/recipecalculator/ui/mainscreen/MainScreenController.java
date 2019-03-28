@@ -12,6 +12,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import androidx.annotation.StringRes;
 import androidx.lifecycle.Lifecycle;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -45,6 +46,8 @@ import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
 @FragmentScope
 public class MainScreenController extends FragmentCallbacks.Observer {
     private static final int SEARCH_SUGGESTIONS_NUMBER = 3;
+    @StringRes
+    private static final int CARD_BUTTON_TEXT_RES = R.string.add_foodstuff;
     private BaseActivity context;
     private BaseFragment fragment;
     private Lifecycle lifecycle;
@@ -148,7 +151,7 @@ public class MainScreenController extends FragmentCallbacks.Observer {
 
         CardDialog cardDialog = CardDialog.findCard(context);
         if (cardDialog != null) {
-            cardDialog.setOnAddFoodstuffButtonClickListener(cardDialogOnAddFoodstuffButtonClickListener);
+            cardDialog.setUpAddFoodstuffButton(cardDialogOnAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
             cardDialog.setOnEditButtonClickListener(cardDialogOnEditButtonClickListener);
         }
 
@@ -275,7 +278,7 @@ public class MainScreenController extends FragmentCallbacks.Observer {
     private void showCard(Foodstuff foodstuff) {
         dialogAction = () -> {
             CardDialog cardDialog = CardDialog.showCard(context, foodstuff);
-            cardDialog.setOnAddFoodstuffButtonClickListener(cardDialogOnAddFoodstuffButtonClickListener);
+            cardDialog.setUpAddFoodstuffButton(cardDialogOnAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
             cardDialog.setOnEditButtonClickListener(cardDialogOnEditButtonClickListener);
             dialogAction = null;
         };
