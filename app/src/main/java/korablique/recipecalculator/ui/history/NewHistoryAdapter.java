@@ -10,9 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 import korablique.recipecalculator.R;
-import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.HistoryEntry;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.MyViewHolder;
@@ -25,6 +25,7 @@ public class NewHistoryAdapter extends RecyclerView.Adapter<MyViewHolder> {
     }
     private List<HistoryEntry> historyEntries = new ArrayList<>();
     private Context context;
+    @Nullable
     private Observer onItemClickObserver;
 
     public NewHistoryAdapter(Context context) {
@@ -61,7 +62,9 @@ public class NewHistoryAdapter extends RecyclerView.Adapter<MyViewHolder> {
         item.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onItemClickObserver.onItemClicked(entry, position);
+                if (onItemClickObserver != null) {
+                    onItemClickObserver.onItemClicked(entry, position);
+                }
             }
         });
     }
@@ -132,7 +135,7 @@ public class NewHistoryAdapter extends RecyclerView.Adapter<MyViewHolder> {
         return -1;
     }
 
-    public void setOnItemClickObserver(Observer observer) {
+    public void setOnItemClickObserver(@Nullable Observer observer) {
         onItemClickObserver = observer;
     }
 }

@@ -52,6 +52,7 @@ import korablique.recipecalculator.model.Formula;
 import korablique.recipecalculator.model.FullName;
 import korablique.recipecalculator.model.Gender;
 import korablique.recipecalculator.model.GoalCalculator;
+import korablique.recipecalculator.model.HistoryEntry;
 import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.PopularProductsUtils;
@@ -503,11 +504,16 @@ public class MainActivityTest {
         onView(withId(R.id.menu_item_history)).perform(click());
 
         // нажать на элемент
-        onView(withText(containsString(foodstuffs[0].getName()))).perform(click());
+        Foodstuff deletedFoodstuff = foodstuffs[0];
+        onView(withText(containsString(deletedFoodstuff.getName()))).perform(click());
         // нажать на кнопку удаления в карточке
         onView(withId(R.id.button_delete)).perform(click());
         // проверить, что элемент удалился
-        onView(withText(containsString(foodstuffs[0].getName()))).check(doesNotExist());
+        onView(withText(containsString(deletedFoodstuff.getName()))).check(doesNotExist());
+        // перезапустить активити и убедиться, что элемент удалён
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
+        onView(withText(containsString(deletedFoodstuff.getName()))).check(doesNotExist());
     }
 
     @Test
@@ -517,14 +523,20 @@ public class MainActivityTest {
         onView(withId(R.id.menu_item_history)).perform(click());
 
         // нажать на элемент
-        onView(withText(containsString(foodstuffs[0].getName()))).perform(click());
+        Foodstuff editedFoodstuff = foodstuffs[0];
+        onView(withText(containsString(editedFoodstuff.getName()))).perform(click());
         // отредактировать вес
-        int newWeight = 200;
+        double newWeight = 200;
         onView(withId(R.id.weight_edit_text)).perform(replaceText(String.valueOf(newWeight)));
         onView(withId(R.id.add_foodstuff_button)).perform(click());
         // проверить, что элемент отредактировался
-        onView(withText(containsString(foodstuffs[0].getName()))).perform(click());
-        onView(withId(R.id.weight_edit_text)).check(matches(withText(String.valueOf(newWeight))));
+        onView(withText(containsString(editedFoodstuff.getName()))).perform(click());
+        onView(withId(R.id.weight_edit_text)).check(matches(withText(toDecimalString(newWeight))));
+        // перезапустить активити и убедиться, что элемент изменён
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
+        onView(withText(containsString(editedFoodstuff.getName()))).perform(click());
+        onView(withId(R.id.weight_edit_text)).check(matches(withText(toDecimalString(newWeight))));
     }
 
     private void addFoodstuffsToday() {

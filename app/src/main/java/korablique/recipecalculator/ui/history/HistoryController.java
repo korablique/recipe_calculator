@@ -94,6 +94,7 @@ public class HistoryController extends FragmentCallbacks.Observer {
         CardDialog existingCardDialog = CardDialog.findCard(context);
         if (existingCardDialog != null) {
             existingCardDialog.setUpAddFoodstuffButton(onAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
+            existingCardDialog.setOnDeleteButtonClickListener(onDeleteButtonClickListener);
         }
 
         DateTime today = DateTime.now();

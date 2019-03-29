@@ -20,6 +20,7 @@ public class CardDialog extends BaseBottomDialog {
     private static final String FOODSTUFF_CARD = "FOODSTUFF_CARD";
     private NewCard card;
     private NewCard.OnAddFoodstuffButtonClickListener onAddFoodstuffButtonClickListener;
+    @StringRes
     private int buttonTextRes;
     private NewCard.OnEditButtonClickListener onEditButtonClickListener;
     private NewCard.OnCloseButtonClickListener onCloseButtonClickListener = this::dismiss;
@@ -38,6 +39,7 @@ public class CardDialog extends BaseBottomDialog {
         card.setOnCloseButtonClickListener(onCloseButtonClickListener);
         card.setOnDeleteButtonClickListener(onDeleteButtonClickListener);
         card.prohibitEditing(prohibitEditingFlag);
+        card.prohibitDeleting(prohibitDeletingFlag);
 
         Bundle args = getArguments();
         if (args.containsKey(CLICKED_WEIGHTED_FOODSTUFF)) {
@@ -130,7 +132,6 @@ public class CardDialog extends BaseBottomDialog {
     // Метод нужен, чтоб обрабатывать такую ситуацию:
     // При смене конфигурации экрана (пересоздании активити) диалог уже может находиться в пересозданной активити.
     // Если он уже существует, то ему надо задать onAddFoodstuffButtonClickListener
-
     @Nullable public static CardDialog findCard(FragmentActivity activity) {
         return (CardDialog) activity.getSupportFragmentManager().findFragmentByTag(FOODSTUFF_CARD);
     }
