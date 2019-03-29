@@ -5,6 +5,7 @@ import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
 import android.view.View;
+import android.widget.ProgressBar;
 
 import junit.framework.Assert;
 
@@ -55,6 +56,7 @@ import korablique.recipecalculator.model.GoalCalculator;
 import korablique.recipecalculator.model.HistoryEntry;
 import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.NewHistoryEntry;
+import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.model.PopularProductsUtils;
 import korablique.recipecalculator.model.RateCalculator;
 import korablique.recipecalculator.model.Rates;
@@ -168,7 +170,8 @@ public class MainActivityTest {
                         return Arrays.asList(subscriptions, profileController);
                     } else if (fragment instanceof HistoryFragment) {
                         HistoryController historyController = new HistoryController(
-                                activity, (HistoryFragment) fragment, fragmentCallbacks, historyWorker);
+                                activity, fragmentCallbacks, historyWorker,
+                                userParametersWorker, subscriptions);
                         return Arrays.asList(subscriptions, historyController);
                     } else {
                         throw new IllegalStateException("There is no such fragment class");
@@ -507,7 +510,7 @@ public class MainActivityTest {
         Foodstuff deletedFoodstuff = foodstuffs[0];
         onView(withText(containsString(deletedFoodstuff.getName()))).perform(click());
         // нажать на кнопку удаления в карточке
-        onView(withId(R.id.button_delete)).perform(click());
+        onView(withId(R.id.frame_layout_button_delete)).perform(click());
         // проверить, что элемент удалился
         onView(withText(containsString(deletedFoodstuff.getName()))).check(doesNotExist());
         // перезапустить активити и убедиться, что элемент удалён
@@ -537,6 +540,65 @@ public class MainActivityTest {
         instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
         onView(withText(containsString(editedFoodstuff.getName()))).perform(click());
         onView(withId(R.id.weight_edit_text)).check(matches(withText(toDecimalString(newWeight))));
+    }
+
+    @Test
+    public void todaysTotalNutritionDisplayedInHistory() {
+        addFoodstuffsToday();
+        mActivityRule.launchActivity(null);
+
+        Nutrition totalNutrition = Nutrition.of(foodstuffs[0].withWeight(100))
+                .plus(Nutrition.of(foodstuffs[5].withWeight(100)))
+                .plus(Nutrition.of(foodstuffs[6].withWeight(100)));
+        Rates rates = RateCalculator.calculate(userParameters);
+
+        onView(withId(R.id.menu_item_history)).perform(click());
+
+        // проверяем значение съеденного нутриента
+        Matcher<View> proteinMatcher = allOf(withParent(withId(R.id.protein_layout)), withId(R.id.nutrition_text_view));
+        onView(proteinMatcher).check(matches(withText(String.valueOf(toDecimalString(totalNutrition.getProtein())))));
+
+        Matcher<View> fatsMatcher = allOf(withParent(withId(R.id.fats_layout)), withId(R.id.nutrition_text_view));
+        onView(fatsMatcher).check(matches(withText(String.valueOf(toDecimalString(totalNutrition.getFats())))));
+
+        Matcher<View> carbsMatcher = allOf(withParent(withId(R.id.carbs_layout)), withId(R.id.nutrition_text_view));
+        onView(carbsMatcher).check(matches(withText(String.valueOf(toDecimalString(totalNutrition.getCarbs())))));
+
+        Matcher<View> caloriesMatcher = allOf(withParent(withId(R.id.calories_layout)), withId(R.id.nutrition_text_view));
+        onView(caloriesMatcher).check(matches(withText(String.valueOf(toDecimalString(totalNutrition.getCalories())))));
+
+        // проверяем значения норм БЖУК
+        Matcher<View> proteinRateMatcher = allOf(withParent(withId(R.id.protein_layout)), withId(R.id.of_n_grams));
+        onView(proteinRateMatcher).check(matches(withText(containsString(String.valueOf(Math.round(rates.getProtein()))))));
+
+        Matcher<View> fatsRateMatcher = allOf(withParent(withId(R.id.fats_layout)), withId(R.id.of_n_grams));
+        onView(fatsRateMatcher).check(matches(withText(containsString(String.valueOf(Math.round(rates.getFats()))))));
+
+        Matcher<View> carbsRateMatcher = allOf(withParent(withId(R.id.carbs_layout)), withId(R.id.of_n_grams));
+        onView(carbsRateMatcher).check(matches(withText(containsString(String.valueOf(Math.round(rates.getCarbs()))))));
+
+        Matcher<View> caloriesRateMatcher = allOf(withParent(withId(R.id.calories_layout)), withId(R.id.of_n_grams));
+        onView(caloriesRateMatcher).check(matches(withText(containsString(String.valueOf(Math.round(totalNutrition.getCalories()))))));
+
+        // проверяем прогресс
+        Activity activity = mActivityRule.getActivity();
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+            ProgressBar proteinProgress = activity.findViewById(R.id.protein_layout).findViewById(R.id.nutrition_progress);
+            Assert.assertEquals(Math.round((float)totalNutrition.getProtein()), proteinProgress.getProgress());
+            Assert.assertEquals(Math.round(rates.getProtein()), proteinProgress.getMax());
+
+            ProgressBar fatsProgress = activity.findViewById(R.id.fats_layout).findViewById(R.id.nutrition_progress);
+            Assert.assertEquals(Math.round((float)totalNutrition.getFats()), fatsProgress.getProgress());
+            Assert.assertEquals(Math.round(rates.getFats()), fatsProgress.getMax());
+
+            ProgressBar carbsProgress = activity.findViewById(R.id.carbs_layout).findViewById(R.id.nutrition_progress);
+            Assert.assertEquals(Math.round((float)totalNutrition.getCarbs()), carbsProgress.getProgress());
+            Assert.assertEquals(Math.round(rates.getCarbs()), carbsProgress.getMax());
+
+            ProgressBar caloriesProgress = activity.findViewById(R.id.calories_layout).findViewById(R.id.nutrition_progress);
+            Assert.assertEquals(Math.round((float)totalNutrition.getCalories()), caloriesProgress.getProgress());
+            Assert.assertEquals(Math.round(rates.getCalories()), caloriesProgress.getMax());
+        });
     }
 
     private void addFoodstuffsToday() {

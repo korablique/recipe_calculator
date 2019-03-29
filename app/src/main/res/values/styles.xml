@@ -38,6 +38,13 @@
         <item name="android:textSize">14sp</item>
     </style>
 
+    <style name="RobotoMonoBoldText" parent="@style/TextAppearance.AppCompat">
+        <item name="android:fontFamily">@font/roboto_mono</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">#373B4F</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
     <style name="RobotoMonoHintText" parent="@style/TextAppearance.AppCompat">
         <item name="android:fontFamily">@font/roboto_mono</item>
         <item name="android:textColor">#FF9B9DA7</item>
