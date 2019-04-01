@@ -44,6 +44,8 @@ public class HistoryController extends FragmentCallbacks.Observer {
     private UserParametersWorker userParametersWorker;
     private RxFragmentSubscriptions subscriptions;
     private NewHistoryAdapter adapter;
+    private HistoryNutritionValuesWrapper nutritionValuesWrapper;
+    private NutritionProgressWrapper nutritionProgressWrapper;
     private NewCard.OnAddFoodstuffButtonClickListener onAddFoodstuffButtonClickListener
             = new NewCard.OnAddFoodstuffButtonClickListener() {
         @Override
@@ -51,6 +53,23 @@ public class HistoryController extends FragmentCallbacks.Observer {
             CardDialog.hideCard(context);
             long replacedItemId = adapter.replaceItem(foodstuff);
             historyWorker.editWeightInHistoryEntry(replacedItemId, foodstuff.getWeight());
+
+            // update wrappers
+            Nutrition updatedNutrition = Nutrition.zero();
+            for (HistoryEntry entry : adapter.getItems()) {
+                updatedNutrition = updatedNutrition.plus(Nutrition.of(entry.getFoodstuff()));
+            }
+            Single<Optional<UserParameters>> currentUserParamsSingle = userParametersWorker.requestCurrentUserParameters();
+            Nutrition finalUpdatedNutrition = updatedNutrition;
+            subscriptions.subscribe(currentUserParamsSingle, new Consumer<Optional<UserParameters>>() {
+                @Override
+                public void accept(Optional<UserParameters> userParametersOptional) throws Exception {
+                    UserParameters currentUserParams = userParametersOptional.get();
+                    Rates rates = RateCalculator.calculate(currentUserParams);
+                    nutritionProgressWrapper.setProgresses(finalUpdatedNutrition, rates);
+                    nutritionValuesWrapper.setNutrition(finalUpdatedNutrition, rates);
+                }
+            });
         }
     };
     private NewCard.OnDeleteButtonClickListener onDeleteButtonClickListener = new NewCard.OnDeleteButtonClickListener() {
@@ -59,6 +78,20 @@ public class HistoryController extends FragmentCallbacks.Observer {
             CardDialog.hideCard(context);
             HistoryEntry removingItem = adapter.removeItem(foodstuff);
             historyWorker.deleteEntryFromHistory(removingItem);
+
+            // update wrappers
+            Nutrition updatedNutrition = nutritionValuesWrapper.getCurrentNutrition()
+                    .minus(Nutrition.of(foodstuff));
+            Single<Optional<UserParameters>> currentUserParamsSingle = userParametersWorker.requestCurrentUserParameters();
+            subscriptions.subscribe(currentUserParamsSingle, new Consumer<Optional<UserParameters>>() {
+                @Override
+                public void accept(Optional<UserParameters> userParametersOptional) throws Exception {
+                    UserParameters currentUserParams = userParametersOptional.get();
+                    Rates rates = RateCalculator.calculate(currentUserParams);
+                    nutritionProgressWrapper.setProgresses(updatedNutrition, rates);
+                    nutritionValuesWrapper.setNutrition(updatedNutrition, rates);
+                }
+            });
         }
     };
 
@@ -90,15 +123,6 @@ public class HistoryController extends FragmentCallbacks.Observer {
         LinearLayoutManager layoutManager = new LinearLayoutManager(fragmentView.getContext());
         recyclerView.setLayoutManager(layoutManager);
         adapter = new NewHistoryAdapter(fragmentView.getContext());
-        adapter.setOnItemClickObserver(new NewHistoryAdapter.Observer() {
-            @Override
-            public void onItemClicked(HistoryEntry historyEntry, int displayedPosition) {
-                CardDialog card = CardDialog.showCard(context, historyEntry.getFoodstuff());
-                card.prohibitEditing(false);
-                card.setUpAddFoodstuffButton(onAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
-                card.setOnDeleteButtonClickListener(onDeleteButtonClickListener);
-            }
-        });
 
         recyclerView.setAdapter(adapter);
         DividerItemDecorationWithoutDividerAfterLastItem dividerItemDecoration =
@@ -123,9 +147,9 @@ public class HistoryController extends FragmentCallbacks.Observer {
 
         // обёртки заголовка с БЖУК (значений и прогрессов БЖУК)
         ViewGroup nutritionHeaderParentLayout = fragmentView.findViewById(R.id.nutrition_parent_layout);
-        HistoryNutritionValuesWrapper nutritionValuesWrapper = new HistoryNutritionValuesWrapper(
+        nutritionValuesWrapper = new HistoryNutritionValuesWrapper(
                 context, nutritionHeaderParentLayout);
-        NutritionProgressWrapper nutritionProgressWrapper = new NutritionProgressWrapper(nutritionHeaderParentLayout);
+        nutritionProgressWrapper = new NutritionProgressWrapper(nutritionHeaderParentLayout);
 
         Single<Optional<UserParameters>> currentUserParamsSingle = userParametersWorker.requestCurrentUserParameters();
         Single<Pair<Optional<UserParameters>, List<HistoryEntry>>> currentUserParamsWithTodaysHistorySingle =
@@ -148,6 +172,17 @@ public class HistoryController extends FragmentCallbacks.Observer {
 
                 // заполнение адаптера истории
                 adapter.addItems(todaysHistory);
+
+                // листенер на нажатия на элемент адаптера
+                adapter.setOnItemClickObserver(new NewHistoryAdapter.Observer() {
+                    @Override
+                    public void onItemClicked(HistoryEntry historyEntry, int displayedPosition) {
+                        CardDialog card = CardDialog.showCard(context, historyEntry.getFoodstuff());
+                        card.prohibitEditing(false);
+                        card.setUpAddFoodstuffButton(onAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
+                        card.setOnDeleteButtonClickListener(onDeleteButtonClickListener);
+                    }
+                });
             }
         });
     }

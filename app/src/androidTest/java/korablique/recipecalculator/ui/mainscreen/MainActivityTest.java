@@ -513,10 +513,30 @@ public class MainActivityTest {
         onView(withId(R.id.frame_layout_button_delete)).perform(click());
         // проверить, что элемент удалился
         onView(withText(containsString(deletedFoodstuff.getName()))).check(doesNotExist());
+        // проверить заголовок с БЖУ
+        Nutrition totalNutrition = Nutrition.of(foodstuffs[5].withWeight(100))
+                .plus(Nutrition.of(foodstuffs[6].withWeight(100)));
+        onView(allOf(withParent(withId(R.id.protein_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getProtein()))));
+        onView(allOf(withParent(withId(R.id.fats_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getFats()))));
+        onView(allOf(withParent(withId(R.id.carbs_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getCarbs()))));
+        onView(allOf(withParent(withId(R.id.calories_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getCalories()))));
         // перезапустить активити и убедиться, что элемент удалён
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
         instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
         onView(withText(containsString(deletedFoodstuff.getName()))).check(doesNotExist());
+        // ещё раз проверить заголовок
+        onView(allOf(withParent(withId(R.id.protein_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getProtein()))));
+        onView(allOf(withParent(withId(R.id.fats_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getFats()))));
+        onView(allOf(withParent(withId(R.id.carbs_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getCarbs()))));
+        onView(allOf(withParent(withId(R.id.calories_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getCalories()))));
     }
 
     @Test
@@ -535,11 +555,34 @@ public class MainActivityTest {
         // проверить, что элемент отредактировался
         onView(withText(containsString(editedFoodstuff.getName()))).perform(click());
         onView(withId(R.id.weight_edit_text)).check(matches(withText(toDecimalString(newWeight))));
+        onView(withId(R.id.button_close)).perform(click()); // закрываем карточку, чтоб не мешала
+        // проверить заголовок с БЖУ
+        Nutrition totalNutrition = Nutrition.of(editedFoodstuff.withWeight(newWeight))
+                .plus(Nutrition.of(foodstuffs[5].withWeight(100)))
+                .plus(Nutrition.of(foodstuffs[6].withWeight(100)));
+        onView(allOf(withParent(withId(R.id.protein_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getProtein()))));
+        onView(allOf(withParent(withId(R.id.fats_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getFats()))));
+        onView(allOf(withParent(withId(R.id.carbs_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getCarbs()))));
+        onView(allOf(withParent(withId(R.id.calories_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getCalories()))));
         // перезапустить активити и убедиться, что элемент изменён
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
         instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
         onView(withText(containsString(editedFoodstuff.getName()))).perform(click());
         onView(withId(R.id.weight_edit_text)).check(matches(withText(toDecimalString(newWeight))));
+        onView(withId(R.id.button_close)).perform(click());
+        // ещё раз проверить заголовок
+        onView(allOf(withParent(withId(R.id.protein_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getProtein()))));
+        onView(allOf(withParent(withId(R.id.fats_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getFats()))));
+        onView(allOf(withParent(withId(R.id.carbs_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getCarbs()))));
+        onView(allOf(withParent(withId(R.id.calories_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getCalories()))));
     }
 
     @Test

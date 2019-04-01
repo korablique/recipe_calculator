@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import androidx.annotation.NonNull;
@@ -76,6 +77,10 @@ public class NewHistoryAdapter extends RecyclerView.Adapter<MyViewHolder> {
 
     public HistoryEntry getItem(int position) {
         return historyEntries.get(position);
+    }
+
+    public List<HistoryEntry> getItems() {
+        return Collections.unmodifiableList(historyEntries);
     }
 
     public void addItem(HistoryEntry historyEntry) {
