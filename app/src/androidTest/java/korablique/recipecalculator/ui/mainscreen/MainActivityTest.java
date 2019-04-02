@@ -53,6 +53,7 @@ import korablique.recipecalculator.model.Formula;
 import korablique.recipecalculator.model.FullName;
 import korablique.recipecalculator.model.Gender;
 import korablique.recipecalculator.model.GoalCalculator;
+import korablique.recipecalculator.model.HistoryEntry;
 import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.Nutrition;
@@ -82,6 +83,7 @@ import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.replaceText;
 import static androidx.test.espresso.assertion.PositionAssertions.isCompletelyAbove;
 import static androidx.test.espresso.assertion.PositionAssertions.isCompletelyBelow;
+import static androidx.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.intent.Intents.intended;
 import static androidx.test.espresso.intent.matcher.BundleMatchers.hasValue;
@@ -168,7 +170,7 @@ public class MainActivityTest {
                         return Arrays.asList(subscriptions, profileController);
                     } else if (fragment instanceof HistoryFragment) {
                         HistoryController historyController = new HistoryController(
-                                activity, (HistoryFragment) fragment, fragmentCallbacks, historyWorker,
+                                activity, fragmentCallbacks, historyWorker,
                                 userParametersWorker, subscriptions);
                         return Arrays.asList(subscriptions, historyController);
                     } else {
@@ -477,16 +479,7 @@ public class MainActivityTest {
 
     @Test
     public void todaysFoodstuffsDisplayedInHistory() {
-        // добавим ещё продуктов на сегодня (в БД уже есть несколько продуктов на др дату)
-        NewHistoryEntry[] newEntries = new NewHistoryEntry[3];
-        DateTime today = DateTime.now();
-        newEntries[0] = new NewHistoryEntry(foodstuffsIds.get(0), 100,
-                new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 8, 0).toDate());
-        newEntries[1] = new NewHistoryEntry(foodstuffsIds.get(5), 100,
-                new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 9, 0).toDate());
-        newEntries[2] = new NewHistoryEntry(foodstuffsIds.get(6), 100,
-                new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 10, 0).toDate());
-        historyWorker.saveGroupOfFoodstuffsToHistory(newEntries);
+        addFoodstuffsToday();
         mActivityRule.launchActivity(null);
 
         onView(withId(R.id.menu_item_history)).perform(click());
@@ -508,17 +501,93 @@ public class MainActivityTest {
     }
 
     @Test
+    public void deletingItemsInHistoryWorks() {
+        addFoodstuffsToday();
+        mActivityRule.launchActivity(null);
+        onView(withId(R.id.menu_item_history)).perform(click());
+
+        // нажать на элемент
+        Foodstuff deletedFoodstuff = foodstuffs[0];
+        onView(withText(containsString(deletedFoodstuff.getName()))).perform(click());
+        // нажать на кнопку удаления в карточке
+        onView(withId(R.id.frame_layout_button_delete)).perform(click());
+        // проверить, что элемент удалился
+        onView(withText(containsString(deletedFoodstuff.getName()))).check(doesNotExist());
+        // проверить заголовок с БЖУ
+        Nutrition totalNutrition = Nutrition.of(foodstuffs[5].withWeight(100))
+                .plus(Nutrition.of(foodstuffs[6].withWeight(100)));
+        onView(allOf(withParent(withId(R.id.protein_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getProtein()))));
+        onView(allOf(withParent(withId(R.id.fats_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getFats()))));
+        onView(allOf(withParent(withId(R.id.carbs_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getCarbs()))));
+        onView(allOf(withParent(withId(R.id.calories_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getCalories()))));
+        // перезапустить активити и убедиться, что элемент удалён
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
+        onView(withText(containsString(deletedFoodstuff.getName()))).check(doesNotExist());
+        // ещё раз проверить заголовок
+        onView(allOf(withParent(withId(R.id.protein_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getProtein()))));
+        onView(allOf(withParent(withId(R.id.fats_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getFats()))));
+        onView(allOf(withParent(withId(R.id.carbs_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getCarbs()))));
+        onView(allOf(withParent(withId(R.id.calories_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getCalories()))));
+    }
+
+    @Test
+    public void editingItemsInHistoryWorks() {
+        addFoodstuffsToday();
+        mActivityRule.launchActivity(null);
+        onView(withId(R.id.menu_item_history)).perform(click());
+
+        // нажать на элемент
+        Foodstuff editedFoodstuff = foodstuffs[0];
+        onView(withText(containsString(editedFoodstuff.getName()))).perform(click());
+        // отредактировать вес
+        double newWeight = 200;
+        onView(withId(R.id.weight_edit_text)).perform(replaceText(String.valueOf(newWeight)));
+        onView(withId(R.id.add_foodstuff_button)).perform(click());
+        // проверить, что элемент отредактировался
+        onView(withText(containsString(editedFoodstuff.getName()))).perform(click());
+        onView(withId(R.id.weight_edit_text)).check(matches(withText(toDecimalString(newWeight))));
+        onView(withId(R.id.button_close)).perform(click()); // закрываем карточку, чтоб не мешала
+        // проверить заголовок с БЖУ
+        Nutrition totalNutrition = Nutrition.of(editedFoodstuff.withWeight(newWeight))
+                .plus(Nutrition.of(foodstuffs[5].withWeight(100)))
+                .plus(Nutrition.of(foodstuffs[6].withWeight(100)));
+        onView(allOf(withParent(withId(R.id.protein_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getProtein()))));
+        onView(allOf(withParent(withId(R.id.fats_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getFats()))));
+        onView(allOf(withParent(withId(R.id.carbs_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getCarbs()))));
+        onView(allOf(withParent(withId(R.id.calories_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getCalories()))));
+        // перезапустить активити и убедиться, что элемент изменён
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
+        onView(withText(containsString(editedFoodstuff.getName()))).perform(click());
+        onView(withId(R.id.weight_edit_text)).check(matches(withText(toDecimalString(newWeight))));
+        onView(withId(R.id.button_close)).perform(click());
+        // ещё раз проверить заголовок
+        onView(allOf(withParent(withId(R.id.protein_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getProtein()))));
+        onView(allOf(withParent(withId(R.id.fats_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getFats()))));
+        onView(allOf(withParent(withId(R.id.carbs_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getCarbs()))));
+        onView(allOf(withParent(withId(R.id.calories_layout)), withId(R.id.nutrition_text_view)))
+                .check(matches(withText(toDecimalString(totalNutrition.getCalories()))));
+    }
+
+    @Test
     public void todaysTotalNutritionDisplayedInHistory() {
-        // добавляем продукты на сегодня
-        NewHistoryEntry[] newEntries = new NewHistoryEntry[3];
-        DateTime today = DateTime.now();
-        newEntries[0] = new NewHistoryEntry(foodstuffsIds.get(0), 100,
-                new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 8, 0).toDate());
-        newEntries[1] = new NewHistoryEntry(foodstuffsIds.get(5), 100,
-                new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 9, 0).toDate());
-        newEntries[2] = new NewHistoryEntry(foodstuffsIds.get(6), 100,
-                new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 10, 0).toDate());
-        historyWorker.saveGroupOfFoodstuffsToHistory(newEntries);
+        addFoodstuffsToday();
         mActivityRule.launchActivity(null);
 
         Nutrition totalNutrition = Nutrition.of(foodstuffs[0].withWeight(100))
@@ -573,6 +642,18 @@ public class MainActivityTest {
             Assert.assertEquals(Math.round((float)totalNutrition.getCalories()), caloriesProgress.getProgress());
             Assert.assertEquals(Math.round(rates.getCalories()), caloriesProgress.getMax());
         });
+    }
+
+    private void addFoodstuffsToday() {
+        NewHistoryEntry[] newEntries = new NewHistoryEntry[3];
+        DateTime today = DateTime.now();
+        newEntries[0] = new NewHistoryEntry(foodstuffsIds.get(0), 100,
+                new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 8, 0).toDate());
+        newEntries[1] = new NewHistoryEntry(foodstuffsIds.get(5), 100,
+                new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 9, 0).toDate());
+        newEntries[2] = new NewHistoryEntry(foodstuffsIds.get(6), 100,
+                new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 10, 0).toDate());
+        historyWorker.saveGroupOfFoodstuffsToHistory(newEntries);
     }
 
     private List<Foodstuff> extractFoodstuffsTopFromDB() {

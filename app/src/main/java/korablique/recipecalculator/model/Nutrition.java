@@ -53,6 +53,14 @@ public class Nutrition {
                 this.calories + nutrition.calories);
     }
 
+    public Nutrition minus(Nutrition nutrition) {
+        return new Nutrition(
+                this.protein - nutrition.protein,
+                this.fats - nutrition.fats,
+                this.carbs - nutrition.carbs,
+                this.calories - nutrition.calories);
+    }
+
     public Nutrition multiply(double factor) {
         return new Nutrition(
                 this.protein * factor,
