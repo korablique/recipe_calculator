@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <TextView
+        android:id="@+id/chart_highlighted_label_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="5dp"
+        tools:text="45"
+        style="@style/RobotoMonoText"
+        android:textSize="10sp"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+</FrameLayout>

@@ -2,8 +2,10 @@ package korablique.recipecalculator.ui.chart;
 
 import android.content.res.Resources;
 import android.graphics.Typeface;
+import android.util.TypedValue;
 
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.IMarker;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
@@ -17,6 +19,8 @@ import java.util.List;
 import androidx.core.content.res.ResourcesCompat;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.UserParameters;
+
+import static android.util.TypedValue.COMPLEX_UNIT_DIP;
 
 public class ChartWrapper {
     private LineChart chart;
@@ -73,6 +77,8 @@ public class ChartWrapper {
         legend.setVerticalAlignment(Legend.LegendVerticalAlignment.TOP);
         legend.setTypeface(robotoMonoRegularTypeface);
         legend.setTextColor(secondaryTextColor);
+        float yOffsetInPixels = TypedValue.applyDimension(COMPLEX_UNIT_DIP, 5, resources.getDisplayMetrics());
+        legend.setYOffset(yOffsetInPixels);
         legend.setTextSize(smallTextSize);
 
         lineData = new LineData(dataSet);
@@ -80,6 +86,9 @@ public class ChartWrapper {
         chart.setBackgroundColor(chartBackgroundColor);
         chart.getDescription().setEnabled(false);
         chart.setScaleEnabled(false);
+        chart.setHighlightPerTapEnabled(true);
+        IMarker marker = new HighlightOnTapMarker(chart.getContext(), R.layout.chart_highlighted_label);
+        chart.setMarker(marker);
         chart.invalidate(); // refresh
     }
 
