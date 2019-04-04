@@ -12,11 +12,6 @@ public class DatabaseThreadExecutorImpl implements DatabaseThreadExecutor {
     private final Scheduler scheduler = Schedulers.from(Executors.newSingleThreadExecutor());
 
     @Override
-    public void execute(Runnable runnable) {
-        scheduler.scheduleDirect(runnable);
-    }
-
-    @Override
     public Scheduler asScheduler() {
         return scheduler;
     }
