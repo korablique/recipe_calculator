@@ -23,6 +23,7 @@ import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.FragmentCallbacks;
 import korablique.recipecalculator.base.Optional;
 import korablique.recipecalculator.base.RxFragmentSubscriptions;
+import korablique.recipecalculator.base.TimeProvider;
 import korablique.recipecalculator.dagger.FragmentScope;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
@@ -43,6 +44,7 @@ public class HistoryController extends FragmentCallbacks.Observer {
     private HistoryWorker historyWorker;
     private UserParametersWorker userParametersWorker;
     private RxFragmentSubscriptions subscriptions;
+    private TimeProvider timeProvider;
     private NewHistoryAdapter adapter;
     private HistoryNutritionValuesWrapper nutritionValuesWrapper;
     private NutritionProgressWrapper nutritionProgressWrapper;
@@ -101,12 +103,14 @@ public class HistoryController extends FragmentCallbacks.Observer {
             FragmentCallbacks fragmentCallbacks,
             HistoryWorker historyWorker,
             UserParametersWorker userParametersWorker,
-            RxFragmentSubscriptions subscriptions) {
+            RxFragmentSubscriptions subscriptions,
+            TimeProvider timeProvider) {
         fragmentCallbacks.addObserver(this);
         this.context = context;
         this.historyWorker = historyWorker;
         this.userParametersWorker = userParametersWorker;
         this.subscriptions = subscriptions;
+        this.timeProvider = timeProvider;
     }
 
     @Override
@@ -138,7 +142,7 @@ public class HistoryController extends FragmentCallbacks.Observer {
         }
 
         // request todays history
-        DateTime today = DateTime.now();
+        DateTime today = timeProvider.now();
         DateTime todayMidnight = new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 0, 0, 0);
         DateTime todayEnd = new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 23, 59, 59);
         Observable<HistoryEntry> todaysHistoryObservable = historyWorker.requestHistoryForPeriod(

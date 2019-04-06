@@ -40,6 +40,7 @@ import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.base.FragmentCallbacks;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.base.RxFragmentSubscriptions;
+import korablique.recipecalculator.base.TimeProvider;
 import korablique.recipecalculator.base.executors.ComputationThreadsExecutor;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.database.DatabaseThreadExecutor;
@@ -64,19 +65,18 @@ import korablique.recipecalculator.model.TopList;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.model.WeightedFoodstuff;
-import korablique.recipecalculator.ui.DecimalUtils;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
 import korablique.recipecalculator.ui.history.HistoryController;
 import korablique.recipecalculator.ui.history.HistoryFragment;
+import korablique.recipecalculator.ui.profile.NewMeasurementsDialog;
 import korablique.recipecalculator.ui.profile.ProfileController;
 import korablique.recipecalculator.ui.profile.ProfileFragment;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.InstantComputationsThreadsExecutor;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.SyncMainThreadExecutor;
-import korablique.recipecalculator.util.TimeUtils;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
@@ -122,6 +122,7 @@ public class MainActivityTest {
     private BucketList bucketList = BucketList.getInstance();
     private UserParameters userParameters;
     private UserNameProvider userNameProvider;
+    private TimeProvider timeProvider;
 
     @Rule
     public ActivityTestRule<MainActivity> mActivityRule =
@@ -139,8 +140,10 @@ public class MainActivityTest {
                             new FoodstuffsList(databaseWorker, mainThreadExecutor, computationThreadsExecutor);
                     topList = new TopList(context, databaseWorker, historyWorker);
                     userNameProvider = new UserNameProvider(context);
+                    timeProvider = new TimeProvider();
                     return Arrays.asList(databaseWorker, historyWorker, userParametersWorker,
-                            foodstuffsList, databaseHolder, userNameProvider);
+                            foodstuffsList, databaseHolder, userNameProvider,
+                            timeProvider);
                 })
                 .withActivityScoped((injectionTarget) -> {
                     if (!(injectionTarget instanceof MainActivity)) {
@@ -154,6 +157,10 @@ public class MainActivityTest {
                     return Collections.singletonList(controller);
                 })
                 .withFragmentScoped((injectionTarget -> {
+                    if (injectionTarget instanceof NewMeasurementsDialog) {
+                        return Collections.emptyList();
+                    }
+
                     BaseFragment fragment = (BaseFragment) injectionTarget;
                     FragmentCallbacks fragmentCallbacks = fragment.getFragmentCallbacks();
                     RxFragmentSubscriptions subscriptions = new RxFragmentSubscriptions(fragmentCallbacks);
@@ -171,7 +178,7 @@ public class MainActivityTest {
                     } else if (fragment instanceof HistoryFragment) {
                         HistoryController historyController = new HistoryController(
                                 activity, fragmentCallbacks, historyWorker,
-                                userParametersWorker, subscriptions);
+                                userParametersWorker, subscriptions, timeProvider);
                         return Arrays.asList(subscriptions, historyController);
                     } else {
                         throw new IllegalStateException("There is no such fragment class");
@@ -219,7 +226,7 @@ public class MainActivityTest {
 
         // сохраняем userParameters в БД
         userParameters = new UserParameters(45, Gender.FEMALE, new LocalDate(1993, 9, 27),
-                158, 48, Lifestyle.PASSIVE_LIFESTYLE, Formula.HARRIS_BENEDICT, TimeUtils.currentMillis());
+                158, 48, Lifestyle.PASSIVE_LIFESTYLE, Formula.HARRIS_BENEDICT, timeProvider.nowUtc().getMillis());
         userParametersWorker.saveUserParameters(userParameters);
 
         FullName fullName = new FullName("Yulia", "Zhilyaeva");
@@ -472,7 +479,7 @@ public class MainActivityTest {
         // открываем карточку
         onView(withId(R.id.set_current_weight)).perform(click());
         // проверяем сегодняшнюю дату
-        DateTime todaysDate = DateTime.now(DateTimeZone.UTC);
+        DateTime todaysDate = timeProvider.nowUtc();
         String dateMustBe = todaysDate.toString(mActivityRule.getActivity().getString(R.string.date_format));
         onView(withId(R.id.new_measurement_header)).check(matches(withText(containsString(dateMustBe))));
     }
@@ -646,7 +653,7 @@ public class MainActivityTest {
 
     private void addFoodstuffsToday() {
         NewHistoryEntry[] newEntries = new NewHistoryEntry[3];
-        DateTime today = DateTime.now();
+        DateTime today = timeProvider.now();
         newEntries[0] = new NewHistoryEntry(foodstuffsIds.get(0), 100,
                 new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 8, 0).toDate());
         newEntries[1] = new NewHistoryEntry(foodstuffsIds.get(5), 100,
