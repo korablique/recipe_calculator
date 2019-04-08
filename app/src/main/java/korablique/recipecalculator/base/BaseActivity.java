@@ -2,28 +2,15 @@ package korablique.recipecalculator.base;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MenuItem;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import android.view.MenuItem;
-import android.view.View;
-
-import com.mikepenz.materialdrawer.Drawer;
-import com.mikepenz.materialdrawer.DrawerBuilder;
-import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
-import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import korablique.recipecalculator.BuildConfig;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.dagger.InjectorHolder;
-import korablique.recipecalculator.ui.history.HistoryActivity;
-import korablique.recipecalculator.ui.mainscreen.MainActivity;
 
 public abstract class BaseActivity extends AppCompatActivity {
     private final ActivityCallbacks activityCallbacks = new ActivityCallbacks();
-    private Drawer drawer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,59 +25,6 @@ public abstract class BaseActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        final DrawerBuilder drawerBuilder = new DrawerBuilder()
-                .withActivity(this)
-                .withHeader(R.layout.drawer_header)
-                .withSavedInstance(savedInstanceState)
-                .withTranslucentStatusBar(true)
-                .withActionBarDrawerToggle(false)
-                .withToolbar(toolbar)
-                .withSelectedItem(-1)
-                .withOnDrawerNavigationListener(new Drawer.OnDrawerNavigationListener() {
-                    @Override
-                    public boolean onNavigationClickListener(View clickedView) {
-                        BaseActivity.this.finish();
-                        return true;
-                    }
-                });
-
-        IDrawerItem itemPrimary3 = new PrimaryDrawerItem()
-                .withName(R.string.history)
-                .withSelectable(false)
-                .withIcon(R.drawable.ic_history_24dp)
-                .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
-                    @Override
-                    public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
-                        Intent intent = new Intent(BaseActivity.this, HistoryActivity.class);
-                        BaseActivity.this.startActivity(intent);
-                        return true;
-                    }
-                });
-
-        IDrawerItem itemPrimary4 = null;
-        if (BuildConfig.DEBUG) {
-            itemPrimary4 = new PrimaryDrawerItem()
-                    .withName("MainActivity")
-                    .withSelectable(false)
-                    .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
-                        @Override
-                        public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
-                            Intent intent = new Intent(BaseActivity.this, MainActivity.class);
-                            BaseActivity.this.startActivity(intent);
-                            return true;
-                        }
-                    });
-        }
-        List<IDrawerItem> drawerItems = new ArrayList<>();
-        drawerItems.add(itemPrimary3);
-        if (itemPrimary4 != null) {
-            drawerItems.add(itemPrimary4);
-        }
-
-        drawerBuilder.withDrawerItems(drawerItems);
-
-        drawer = drawerBuilder.build();
     }
 
     @Override
@@ -114,7 +48,6 @@ public abstract class BaseActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         activityCallbacks.dispatchSaveInstanceState(outState);
-        outState = drawer.saveInstanceState(outState);
         super.onSaveInstanceState(outState);
     }
 
@@ -140,16 +73,6 @@ public abstract class BaseActivity extends AppCompatActivity {
 
             default:
                 return super.onOptionsItemSelected(item);
-        }
-    }
-
-    @Override
-    public void onBackPressed() {
-        //handle the back press :D close the drawer first and if the drawer is closed close the activity
-        if (drawer != null && drawer.isDrawerOpen()) {
-            drawer.closeDrawer();
-        } else {
-            super.onBackPressed();
         }
     }
 

@@ -105,6 +105,12 @@ public class MainScreenController extends FragmentCallbacks.Observer {
         LinearLayoutManager layoutManager = new LinearLayoutManager(context);
         recyclerView.setLayoutManager(layoutManager);
 
+        BucketList bucketList = BucketList.getInstance();
+        bucketList.addObserver(weightedFoodstuff -> {
+            snackbar.addFoodstuff(weightedFoodstuff);
+            snackbar.show();
+        });
+
         foodstuffsList.addObserver(new FoodstuffsList.Observer() {
             @Override
             public void onFoodstuffSaved(Foodstuff savedFoodstuff, int index) {
@@ -123,12 +129,11 @@ public class MainScreenController extends FragmentCallbacks.Observer {
             public void onFoodstuffDeleted(Foodstuff deleted) {
                 foodstuffAdapterChild.removeItem(deleted);
             }
-        });
 
-        BucketList bucketList = BucketList.getInstance();
-        bucketList.addObserver(weightedFoodstuff -> {
-            snackbar.addFoodstuff(weightedFoodstuff);
-            snackbar.show();
+            @Override
+            public void onFoodstuffsSavedToHistory() {
+                bucketList.clear();
+            }
         });
 
         snackbar.setOnBasketClickRunnable(() -> {

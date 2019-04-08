@@ -1,5 +1,6 @@
 package korablique.recipecalculator.ui.history;
 
+import android.os.Bundle;
 import android.util.Pair;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,6 +9,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.joda.time.DateTime;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -20,13 +22,17 @@ import io.reactivex.Single;
 import io.reactivex.functions.Consumer;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
+import korablique.recipecalculator.base.BaseFragment;
+import korablique.recipecalculator.base.Callback;
 import korablique.recipecalculator.base.FragmentCallbacks;
 import korablique.recipecalculator.base.Optional;
 import korablique.recipecalculator.base.RxFragmentSubscriptions;
 import korablique.recipecalculator.dagger.FragmentScope;
+import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.model.HistoryEntry;
+import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.model.RateCalculator;
 import korablique.recipecalculator.model.Rates;
@@ -36,13 +42,19 @@ import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.card.NewCard;
 import korablique.recipecalculator.ui.mainscreen.MainScreenFragment;
 
+import static korablique.recipecalculator.ui.bucketlist.BucketListActivity.EXTRA_FOODSTUFFS_LIST;
+
+
 @FragmentScope
 public class HistoryController extends FragmentCallbacks.Observer {
     private static final int CARD_BUTTON_TEXT_RES = R.string.save;
     private BaseActivity context;
+    private BaseFragment fragment;
     private HistoryWorker historyWorker;
     private UserParametersWorker userParametersWorker;
     private RxFragmentSubscriptions subscriptions;
+    private FoodstuffsList foodstuffsList;
+
     private NewHistoryAdapter adapter;
     private HistoryNutritionValuesWrapper nutritionValuesWrapper;
     private NutritionProgressWrapper nutritionProgressWrapper;
@@ -98,15 +110,19 @@ public class HistoryController extends FragmentCallbacks.Observer {
     @Inject
     public HistoryController(
             BaseActivity context,
+            BaseFragment fragment,
             FragmentCallbacks fragmentCallbacks,
             HistoryWorker historyWorker,
             UserParametersWorker userParametersWorker,
-            RxFragmentSubscriptions subscriptions) {
+            RxFragmentSubscriptions subscriptions,
+            FoodstuffsList foodstuffsList) {
         fragmentCallbacks.addObserver(this);
         this.context = context;
+        this.fragment = fragment;
         this.historyWorker = historyWorker;
         this.userParametersWorker = userParametersWorker;
         this.subscriptions = subscriptions;
+        this.foodstuffsList = foodstuffsList;
     }
 
     @Override
@@ -178,12 +194,56 @@ public class HistoryController extends FragmentCallbacks.Observer {
                     @Override
                     public void onItemClicked(HistoryEntry historyEntry, int displayedPosition) {
                         CardDialog card = CardDialog.showCard(context, historyEntry.getFoodstuff());
-                        card.prohibitEditing(false);
+                        card.prohibitEditing(true);
                         card.setUpAddFoodstuffButton(onAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
                         card.setOnDeleteButtonClickListener(onDeleteButtonClickListener);
                     }
                 });
             }
         });
+
+        Bundle args = fragment.getArguments();
+        if (args != null && args.containsKey(EXTRA_FOODSTUFFS_LIST)) {
+            // фудстаффы из бакет листа
+            List<WeightedFoodstuff> foodstuffsFromBucketList = args.getParcelableArrayList(EXTRA_FOODSTUFFS_LIST);
+            NewHistoryEntry[] newHistoryEntries = new NewHistoryEntry[foodstuffsFromBucketList.size()];
+            for (int index = 0; index < foodstuffsFromBucketList.size(); index++) {
+                WeightedFoodstuff foodstuff = foodstuffsFromBucketList.get(index);
+                NewHistoryEntry entry = new NewHistoryEntry(
+                        foodstuff.getId(), foodstuff.getWeight(), DateTime.now().toDate());
+                newHistoryEntries[index] = entry;
+            }
+            // сохраняем в историю
+            foodstuffsList.saveFoodstuffsToHistory(newHistoryEntries, new Callback<List<Long>>() {
+                @Override
+                public void onResult(List<Long> historyEntriesIds) {
+                    List<HistoryEntry> historyEntries = new ArrayList<>();
+                    for (int index = 0; index < historyEntriesIds.size(); index++) {
+                        HistoryEntry entry = new HistoryEntry(
+                                historyEntriesIds.get(index),
+                                foodstuffsFromBucketList.get(index),
+                                newHistoryEntries[index].getDate());
+                        historyEntries.add(entry);
+                    }
+                    // добавляем в адаптер
+                    adapter.addItems(historyEntries);
+                    Nutrition updatedNutrition = Nutrition.zero();
+                    for (HistoryEntry entry : adapter.getItems()) {
+                        updatedNutrition = updatedNutrition.plus(Nutrition.of(entry.getFoodstuff()));
+                    }
+                    Single<Optional<UserParameters>> currentUserParamsSingle = userParametersWorker.requestCurrentUserParameters();
+                    Nutrition finalUpdatedNutrition = updatedNutrition;
+                    subscriptions.subscribe(currentUserParamsSingle, new Consumer<Optional<UserParameters>>() {
+                        @Override
+                        public void accept(Optional<UserParameters> userParametersOptional) {
+                            UserParameters currentUserParams = userParametersOptional.get();
+                            Rates rates = RateCalculator.calculate(currentUserParams);
+                            nutritionProgressWrapper.setProgresses(finalUpdatedNutrition, rates);
+                            nutritionValuesWrapper.setNutrition(finalUpdatedNutrition, rates);
+                        }
+                    });
+                }
+            });
+        }
     }
 }

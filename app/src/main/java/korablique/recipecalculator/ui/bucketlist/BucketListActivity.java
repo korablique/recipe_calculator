@@ -3,11 +3,6 @@ package korablique.recipecalculator.ui.bucketlist;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import com.google.android.material.snackbar.Snackbar;
-
-import androidx.annotation.StringRes;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.recyclerview.widget.ItemTouchHelper;
 import android.text.Editable;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,15 +11,17 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.arlib.floatingsearchview.util.adapter.TextWatcherAdapter;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
 
+import androidx.annotation.StringRes;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.RecyclerView;
 import korablique.recipecalculator.DishNutritionCalculator;
-import korablique.recipecalculator.ui.card.NewCard;
-import korablique.recipecalculator.util.FloatUtils;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.database.FoodstuffsList;
@@ -32,8 +29,10 @@ import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.NutritionValuesWrapper;
 import korablique.recipecalculator.ui.card.CardDialog;
-import korablique.recipecalculator.ui.history.HistoryActivity;
+import korablique.recipecalculator.ui.card.NewCard;
+import korablique.recipecalculator.ui.mainscreen.MainActivity;
 import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
+import korablique.recipecalculator.util.FloatUtils;
 
 import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
 
@@ -182,7 +181,7 @@ public class BucketListActivity extends BaseActivity {
 
         saveToHistoryButton.setOnClickListener((view) -> {
             bucketList.clear();
-            HistoryActivity.startAndAdd(adapter.getItems(), BucketListActivity.this);
+            MainActivity.startWithHistory(this, adapter.getItems());
             finish();
         });
 

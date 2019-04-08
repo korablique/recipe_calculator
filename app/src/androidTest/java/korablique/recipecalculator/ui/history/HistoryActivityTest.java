@@ -87,7 +87,7 @@ public class HistoryActivityTest {
                         databaseHolder, new SyncMainThreadExecutor(), databaseThreadExecutor);
                 userParametersWorker = new UserParametersWorker(
                         databaseHolder, new SyncMainThreadExecutor(), databaseThreadExecutor);
-                foodstuffsList = new FoodstuffsList(databaseWorker, mainThreadExecutor,
+                foodstuffsList = new FoodstuffsList(databaseWorker, historyWorker, mainThreadExecutor,
                         new InstantComputationsThreadsExecutor());
                 return Arrays.asList(mainThreadExecutor, databaseHolder, databaseWorker,
                         historyWorker, userParametersWorker, foodstuffsList);
