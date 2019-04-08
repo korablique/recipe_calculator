@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 
 import java.util.List;
 
@@ -35,6 +36,7 @@ import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.card.NewCard;
 import korablique.recipecalculator.ui.mainscreen.MainScreenFragment;
+import korablique.recipecalculator.ui.DatePickerFragment;
 
 @FragmentScope
 public class HistoryController extends FragmentCallbacks.Observer {
@@ -94,6 +96,7 @@ public class HistoryController extends FragmentCallbacks.Observer {
             });
         }
     };
+    private LocalDate selectedDate;
 
     @Inject
     public HistoryController(
@@ -159,16 +162,7 @@ public class HistoryController extends FragmentCallbacks.Observer {
             public void accept(Pair<Optional<UserParameters>, List<HistoryEntry>> currentUserParamsWithTodaysHistory) {
                 UserParameters currentUserParams = currentUserParamsWithTodaysHistory.first.get();
                 List<HistoryEntry> todaysHistory = currentUserParamsWithTodaysHistory.second;
-                Nutrition totalNutrition = Nutrition.zero();
-                for (HistoryEntry entry : todaysHistory) {
-                    WeightedFoodstuff foodstuff = entry.getFoodstuff();
-                    totalNutrition = totalNutrition.plus(Nutrition.of(foodstuff));
-                }
-
-                // заполнение заголовка с БЖУК
-                Rates rates = RateCalculator.calculate(currentUserParams);
-                nutritionValuesWrapper.setNutrition(totalNutrition, rates);
-                nutritionProgressWrapper.setProgresses(totalNutrition, rates);
+                updateWrappers(todaysHistory, currentUserParams);
 
                 // заполнение адаптера истории
                 adapter.addItems(todaysHistory);
@@ -185,5 +179,48 @@ public class HistoryController extends FragmentCallbacks.Observer {
                 });
             }
         });
+
+        // кнопка календаря
+        View calendarButton = fragmentView.findViewById(R.id.calendar_button);
+        calendarButton.setOnClickListener(v -> {
+            DatePickerFragment datePickerFragment;
+            if (selectedDate != null) {
+                datePickerFragment = DatePickerFragment.showDialog(context.getSupportFragmentManager(), selectedDate);
+            } else {
+                datePickerFragment = DatePickerFragment.showDialog(context.getSupportFragmentManager());
+            }
+            datePickerFragment.setOnDateSetListener(date -> {
+                selectedDate = date;
+                // загрузить историю за выбранный день
+                DateTime from = new DateTime(date.getYear(), date.getMonthOfYear(), date.getDayOfMonth(), 0, 0, 0);
+                DateTime to = new DateTime(date.getYear(), date.getMonthOfYear(), date.getDayOfMonth(), 23, 59, 59);
+                Single<List<HistoryEntry>> historySingle =
+                        historyWorker.requestHistoryForPeriod(from.getMillis(), to.getMillis()).toList();
+                Single<Optional<UserParameters>> currentUserParamsSingle1 = userParametersWorker.requestCurrentUserParameters();
+                Single<Pair<List<HistoryEntry>, Optional<UserParameters>>> historyWithUserParamsSingle =
+                        historySingle.zipWith(currentUserParamsSingle1, Pair::create);
+                subscriptions.subscribe(historyWithUserParamsSingle, historyAndUserParamsPair -> {
+                    List<HistoryEntry> historyEntries = historyAndUserParamsPair.first;
+                    UserParameters currentUserParams = historyAndUserParamsPair.second.get();
+
+                    adapter.clear();
+                    adapter.addItems(historyEntries);
+                    updateWrappers(historyEntries, currentUserParams);
+                });
+            });
+        });
+    }
+
+    private void updateWrappers(List<HistoryEntry> historyEntries, UserParameters currentUserParams) {
+        Nutrition totalNutrition = Nutrition.zero();
+        for (HistoryEntry entry : historyEntries) {
+            WeightedFoodstuff foodstuff = entry.getFoodstuff();
+            totalNutrition = totalNutrition.plus(Nutrition.of(foodstuff));
+        }
+
+        // заполнение заголовка с БЖУК
+        Rates rates = RateCalculator.calculate(currentUserParams);
+        nutritionValuesWrapper.setNutrition(totalNutrition, rates);
+        nutritionProgressWrapper.setProgresses(totalNutrition, rates);
     }
 }

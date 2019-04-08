@@ -1,4 +1,4 @@
-package korablique.recipecalculator.ui.usergoal;
+package korablique.recipecalculator.ui;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;

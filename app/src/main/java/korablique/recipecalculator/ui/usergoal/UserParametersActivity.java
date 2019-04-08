@@ -14,8 +14,6 @@ import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 
 import java.util.ArrayList;
@@ -38,6 +36,7 @@ import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.ui.ArrayAdapterWithDisabledItem;
+import korablique.recipecalculator.ui.DatePickerFragment;
 import korablique.recipecalculator.ui.DecimalUtils;
 import korablique.recipecalculator.ui.mainscreen.MainActivity;
 import korablique.recipecalculator.util.TimeUtils;
