@@ -38,6 +38,7 @@ import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.InstantComputationsThreadsExecutor;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.SyncMainThreadExecutor;
+import korablique.recipecalculator.util.TestingTimeProvider;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
@@ -86,7 +87,7 @@ public class BucketListActivityTest {
                         foodstuffsList = new FoodstuffsList(
                                 databaseWorker, mainThreadExecutor, new InstantComputationsThreadsExecutor());
                         userNameProvider = new UserNameProvider(context);
-                        timeProvider = new TimeProvider();
+                        timeProvider = new TestingTimeProvider();
                         return Arrays.asList(mainThreadExecutor, databaseThreadExecutor, databaseWorker,
                                 historyWorker, userParametersWorker, foodstuffsList, userNameProvider,
                                 timeProvider);

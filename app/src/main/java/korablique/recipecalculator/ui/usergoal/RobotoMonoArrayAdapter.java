@@ -10,6 +10,7 @@ import android.widget.TextView;
 import java.util.List;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.res.ResourcesCompat;
 import korablique.recipecalculator.R;
 
 public class RobotoMonoArrayAdapter extends ArrayAdapter<String> {
@@ -20,7 +21,7 @@ public class RobotoMonoArrayAdapter extends ArrayAdapter<String> {
     public RobotoMonoArrayAdapter(@NonNull Context context, int resource, @NonNull List<String> objects) {
         super(context, resource, objects);
         this.context = context;
-        typeface = Typeface.createFromAsset(context.getAssets(), "roboto_mono_regular.ttf");
+        typeface = ResourcesCompat.getFont(context, R.font.roboto_mono_regular);
     }
 
     @Override

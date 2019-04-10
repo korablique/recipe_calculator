@@ -1,8 +1,10 @@
 package korablique.recipecalculator.ui.profile;
 
+import android.content.res.Resources;
 import android.util.Pair;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.LineChart;
@@ -21,6 +23,7 @@ import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.base.FragmentCallbacks;
 import korablique.recipecalculator.base.Optional;
 import korablique.recipecalculator.base.RxFragmentSubscriptions;
+import korablique.recipecalculator.base.TimeProvider;
 import korablique.recipecalculator.dagger.FragmentScope;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.model.FullName;
@@ -36,6 +39,7 @@ import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
 import korablique.recipecalculator.ui.usergoal.UserParametersActivity;
 
 import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
+import static korablique.recipecalculator.util.SpinnerTuner.startTuningSpinner;
 
 @FragmentScope
 public class ProfileController extends FragmentCallbacks.Observer {
@@ -43,8 +47,8 @@ public class ProfileController extends FragmentCallbacks.Observer {
     private UserParametersWorker userParametersWorker;
     private RxFragmentSubscriptions subscriptions;
     private UserNameProvider userNameProvider;
-    private NewMeasurementsDialog.OnSaveNewMeasurementsListener saveNewMeasurementsListener;
     private ChartWrapper chartWrapper;
+    private TimeProvider timeProvider;
 
     @Inject
     public ProfileController(
@@ -52,12 +56,14 @@ public class ProfileController extends FragmentCallbacks.Observer {
             FragmentCallbacks fragmentCallbacks,
             UserParametersWorker userParametersWorker,
             RxFragmentSubscriptions subscriptions,
-            UserNameProvider userNameProvider) {
+            UserNameProvider userNameProvider,
+            TimeProvider timeProvider) {
         this.fragment = fragment;
         fragmentCallbacks.addObserver(this);
         this.userParametersWorker = userParametersWorker;
         this.subscriptions = subscriptions;
         this.userNameProvider = userNameProvider;
+        this.timeProvider = timeProvider;
     }
 
     @Override
@@ -90,7 +96,7 @@ public class ProfileController extends FragmentCallbacks.Observer {
             UserParametersActivity.start(fragment.getContext());
         });
 
-        fillChart();
+        fillChart(fragmentView);
 
         NewMeasurementsDialog measurementsDialog = NewMeasurementsDialog.findDialog(fragment.getFragmentManager());
         if (measurementsDialog != null) {
@@ -103,22 +109,57 @@ public class ProfileController extends FragmentCallbacks.Observer {
                             userParametersWorker.saveUserParameters(newUserParams);
                             fillProfile(firstAndLastParamsOptional.first.get(), newUserParams, fragmentView);
 
-                            fillChart();
+                            fillChart(fragmentView);
                         }
                     });
                 }
             });
         }
+
+        Spinner measurementsSpinner = fragmentView.findViewById(R.id.measurements_period_spinner);
+        startTuningSpinner(measurementsSpinner)
+                .withItems(R.array.user_measurements_period_array)
+                .onItemSelected((position, id) -> {
+                    fillChart(fragmentView);
+                })
+                .tune();
     }
 
-    private void fillChart() {
-        Single<List<UserParameters>> allUserParamsSingle = userParametersWorker.requestAllUserParameters().toList();
-        subscriptions.subscribe(allUserParamsSingle, new Consumer<List<UserParameters>>() {
+    private void fillChart(View fragmentView) {
+        Spinner measurementsSpinner = fragmentView.findViewById(R.id.measurements_period_spinner);
+        DateTime periodStart = measurementsSpinnerItemToPeriodStart(
+                measurementsSpinner.getSelectedItemPosition(), fragmentView.getResources());
+
+        Single<List<UserParameters>> userParamsSingle =
+                userParametersWorker.requestUserParameters(periodStart, timeProvider.now()).toList();
+        subscriptions.subscribe(userParamsSingle, new Consumer<List<UserParameters>>() {
             @Override
             public void accept(List<UserParameters> userParametersList) {
                 chartWrapper.setData(userParametersList);
             }
         });
+    }
+
+    private DateTime measurementsSpinnerItemToPeriodStart(int itemPosition, Resources resources) {
+        String periodStr = resources.getStringArray(
+                R.array.user_measurements_period_array)[itemPosition];
+        if (periodStr.equals(resources.getString(R.string.user_measurements_period_array_all_time))) {
+            return new DateTime(0);
+        }
+
+        if (periodStr.equals(resources.getString(R.string.user_measurements_period_array_year))) {
+            return timeProvider.now().minusYears(1);
+        }
+
+        if (periodStr.equals(resources.getString(R.string.user_measurements_period_array_6_months))) {
+            return timeProvider.now().minusMonths(6);
+        }
+
+        if (periodStr.equals(resources.getString(R.string.user_measurements_period_array_month))) {
+            return timeProvider.now().minusMonths(1);
+        }
+
+        throw new IllegalArgumentException("Unexpected period str: " + periodStr);
     }
 
     @Override
@@ -132,7 +173,7 @@ public class ProfileController extends FragmentCallbacks.Observer {
                 UserParameters firstParams = firstAndLastParams.first.get();
                 UserParameters lastParams = firstAndLastParams.second.get();
                 fillProfile(firstParams, lastParams, fragment.getView());
-                fillChart();
+                fillChart(fragment.getView());
             }
         });
 
@@ -153,7 +194,7 @@ public class ProfileController extends FragmentCallbacks.Observer {
                             userParametersWorker.saveUserParameters(newUserParams);
                             fillProfile(firstAndLastParams.first.get(), newUserParams,  fragment.getView());
 
-                            fillChart();
+                            fillChart(fragment.getView());
                         }
                     });
                 });

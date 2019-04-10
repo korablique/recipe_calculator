@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
@@ -14,13 +13,7 @@ import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import javax.inject.Inject;
 
@@ -38,9 +31,10 @@ import korablique.recipecalculator.model.Gender;
 import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
-import korablique.recipecalculator.ui.ArrayAdapterWithDisabledItem;
 import korablique.recipecalculator.ui.DecimalUtils;
 import korablique.recipecalculator.ui.mainscreen.MainActivity;
+
+import static korablique.recipecalculator.util.SpinnerTuner.startTuningSpinner;
 
 public class UserParametersActivity extends BaseActivity {
     @Inject
@@ -58,41 +52,26 @@ public class UserParametersActivity extends BaseActivity {
         setContentView(R.layout.activity_user_parameters);
 
         // гендер
-        List<String> genderList = new ArrayList<>(Arrays.asList(getResources().getStringArray(R.array.gender_array)));
-        int disableItemIndex = 0;
-        ArrayAdapter<String> genderAdapter = new ArrayAdapterWithDisabledItem(
-                this, android.R.layout.simple_spinner_item, genderList, disableItemIndex);
-        genderAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        Spinner genderSpinner = findViewById(R.id.gender_spinner);
-        genderSpinner.setAdapter(genderAdapter);
+        startTuningSpinner(findViewById(R.id.gender_spinner))
+                .withItems(R.array.gender_array)
+                .addDisabledItemAt(0)
+                .tune();
 
         // образ жизни
-        List<String> lifestyleList = new ArrayList<>(Arrays.asList(getResources().getStringArray(R.array.physical_activity_array)));
-        ArrayAdapter<String> lifestyleAdapter = new RobotoMonoArrayAdapter(this, android.R.layout.simple_spinner_item, lifestyleList);
-        lifestyleAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         Spinner lifestyleSpinner = findViewById(R.id.lifestyle_spinner);
-        lifestyleSpinner.setAdapter(lifestyleAdapter);
-
-        lifestyleSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String description = getResources().getStringArray(
-                        R.array.physical_activity_description_array)[position];
-                ((TextView) findViewById(R.id.description)).setText(description);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                ((TextView) findViewById(R.id.description)).setText("");
-            }
-        });
+        startTuningSpinner(lifestyleSpinner)
+                .withItems(R.array.physical_activity_array)
+                .onItemSelected((position, id) -> {
+                    String description = getResources().getStringArray(
+                            R.array.physical_activity_description_array)[position];
+                    ((TextView) findViewById(R.id.description)).setText(description);
+                })
+                .tune();
 
         // формула
-        List<String> formulaList = new ArrayList<>(Arrays.asList(getResources().getStringArray(R.array.formula_array)));
-        ArrayAdapter<String> formulaAdapter = new RobotoMonoArrayAdapter(this, android.R.layout.simple_spinner_item, formulaList);
-        formulaAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        Spinner formulaSpinner = findViewById(R.id.formula_spinner);
-        formulaSpinner.setAdapter(formulaAdapter);
+        startTuningSpinner(findViewById(R.id.formula_spinner))
+                .withItems(R.array.physical_activity_array)
+                .tune();
 
         Button saveUserParamsButton = findViewById(R.id.button_save);
         saveUserParamsButton.setOnClickListener(new View.OnClickListener() {

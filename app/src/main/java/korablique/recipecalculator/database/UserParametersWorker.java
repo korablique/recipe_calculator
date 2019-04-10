@@ -1,5 +1,7 @@
 package korablique.recipecalculator.database;
 
+import org.joda.time.DateTime;
+
 import java.util.List;
 
 import io.reactivex.Completable;
@@ -91,10 +93,15 @@ public class UserParametersWorker {
     }
 
     public Observable<UserParameters> requestAllUserParameters() {
+        return requestUserParameters(new DateTime(0), new DateTime(Long.MAX_VALUE));
+    }
+
+    public Observable<UserParameters> requestUserParameters(DateTime from, DateTime to) {
         Observable<UserParameters> result = Observable.create((subscriber) -> {
             AppDatabase database = databaseHolder.getDatabase();
             UserParametersDao userDao = database.userParametersDao();
-            List<UserParametersEntity> entities = userDao.loadAllUserParameters();
+            List<UserParametersEntity> entities =
+                    userDao.loadUserParameters(from.getMillis(), to.getMillis());
             if (entities != null) {
                 for (UserParametersEntity entity : entities) {
                     UserParameters userParameters = EntityConverter.toUserParameters(entity);
