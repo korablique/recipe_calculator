@@ -30,6 +30,7 @@ import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.Optional;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
+import korablique.recipecalculator.base.TimeProvider;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.model.Formula;
 import korablique.recipecalculator.model.FullName;
@@ -40,7 +41,6 @@ import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.ui.ArrayAdapterWithDisabledItem;
 import korablique.recipecalculator.ui.DecimalUtils;
 import korablique.recipecalculator.ui.mainscreen.MainActivity;
-import korablique.recipecalculator.util.TimeUtils;
 
 public class UserParametersActivity extends BaseActivity {
     @Inject
@@ -49,6 +49,8 @@ public class UserParametersActivity extends BaseActivity {
     RxActivitySubscriptions subscriptions;
     @Inject
     UserNameProvider userNameProvider;
+    @Inject
+    TimeProvider timeProvider;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -199,7 +201,7 @@ public class UserParametersActivity extends BaseActivity {
         int formulaSelectedPosition = ((Spinner) findViewById(R.id.formula_spinner)).getSelectedItemPosition();
         Formula formula = Formula.POSITIONS.get(formulaSelectedPosition);
 
-        long nowTimestamp = TimeUtils.currentMillis();
+        long nowTimestamp = timeProvider.nowUtc().getMillis();
 
         return new UserParameters(targetWeight, gender, dateOfBirth, height, weight, lifestyle, formula, nowTimestamp);
     }
