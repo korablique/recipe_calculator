@@ -1,5 +1,6 @@
 package korablique.recipecalculator.ui.profile;
 
+import android.os.Bundle;
 import android.util.Pair;
 import android.view.View;
 import android.widget.Button;
@@ -61,7 +62,7 @@ public class ProfileController extends FragmentCallbacks.Observer {
     }
 
     @Override
-    public void onFragmentViewCreated(View fragmentView) {
+    public void onFragmentViewCreated(View fragmentView, Bundle savedInstanceState) {
         LineChart chart = fragmentView.findViewById(R.id.chart);
         chartWrapper = new ChartWrapper(chart);
 

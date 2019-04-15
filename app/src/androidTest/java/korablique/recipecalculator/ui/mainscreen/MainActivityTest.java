@@ -658,6 +658,11 @@ public class MainActivityTest {
 
         mActivityRule.launchActivity(null);
         onView(withId(R.id.menu_item_history)).perform(click());
+
+        onView(withText(containsString(foodstuffs[0].getName()))).check(doesNotExist());
+        onView(withText(containsString(foodstuffs[5].getName()))).check(doesNotExist());
+        onView(withText(containsString(foodstuffs[6].getName()))).check(doesNotExist());
+
         onView(withId(R.id.calendar_button)).perform(click());
         // Change the date of the DatePicker.
         // Don't use "withId" as at runtime Android shares the DatePicker id between several sub-elements
