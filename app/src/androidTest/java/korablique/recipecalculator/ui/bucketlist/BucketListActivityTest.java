@@ -96,7 +96,7 @@ public class BucketListActivityTest {
                                 historyWorker, userParametersWorker, foodstuffsList, userNameProvider);
                     })
                     .withActivityScoped((target) -> {
-                        BaseActivity activity = (BaseActivity) target;
+                        MainActivity activity = (MainActivity) target;
                         ActivityCallbacks activityCallbacks = new ActivityCallbacks();
                         RxActivitySubscriptions subscriptions = new RxActivitySubscriptions(activityCallbacks);
                         MainActivityController controller = new MainActivityController(activity,
@@ -165,7 +165,7 @@ public class BucketListActivityTest {
         onView(withId(R.id.save_to_history_button)).perform(click());
 
         Intent expectedIntent =
-                MainActivity.createStartIntent(activityRule.getActivity(), foodstuffs);
+                MainActivity.createAddToHistoryIntent(activityRule.getActivity(), foodstuffs);
         intended(allOf(
                 hasAction(expectedIntent.getAction()),
                 hasComponent(expectedIntent.getComponent()),

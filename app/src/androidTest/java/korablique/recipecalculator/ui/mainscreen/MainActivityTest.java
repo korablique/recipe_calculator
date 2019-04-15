@@ -660,7 +660,7 @@ public class MainActivityTest {
                 .withWeight(13));
 
         Intent startIntent =
-                MainActivity.createStartIntent(InstrumentationRegistry.getTargetContext(), foodstuffs);
+                MainActivity.createAddToHistoryIntent(InstrumentationRegistry.getTargetContext(), foodstuffs);
         mActivityRule.launchActivity(startIntent);
 
         onView(withText(containsString(f1.getName()))).check(matches(isDisplayed()));

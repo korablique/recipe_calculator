@@ -79,6 +79,10 @@ public class MainScreenController extends FragmentCallbacks.Observer {
     // поисками не было состояния гонки и именно последний поиск всегда был отображен.
     // По-умолчанию Disposables.empty() чтобы не нужно было делать проверки на null.
     private Disposable lastSearchDisposable = Disposables.empty();
+    private BucketList.Observer observer = weightedFoodstuff -> {
+        snackbar.addFoodstuff(weightedFoodstuff);
+        snackbar.show();
+    };
 
     @Inject
     MainScreenController(
@@ -106,10 +110,7 @@ public class MainScreenController extends FragmentCallbacks.Observer {
         recyclerView.setLayoutManager(layoutManager);
 
         BucketList bucketList = BucketList.getInstance();
-        bucketList.addObserver(weightedFoodstuff -> {
-            snackbar.addFoodstuff(weightedFoodstuff);
-            snackbar.show();
-        });
+        bucketList.addObserver(observer);
 
         foodstuffsList.addObserver(new FoodstuffsList.Observer() {
             @Override
@@ -171,6 +172,12 @@ public class MainScreenController extends FragmentCallbacks.Observer {
                 configureSearch();
             });
         });
+    }
+
+    @Override
+    public void onFragmentDestroy() {
+        BucketList bucketList = BucketList.getInstance();
+        bucketList.removeObserver(observer);
     }
 
     private void fillAllFoodstuffsList(List<Foodstuff> batch) {

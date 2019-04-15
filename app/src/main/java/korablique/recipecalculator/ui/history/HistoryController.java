@@ -23,7 +23,6 @@ import io.reactivex.functions.Consumer;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.BaseFragment;
-import korablique.recipecalculator.base.Callback;
 import korablique.recipecalculator.base.FragmentCallbacks;
 import korablique.recipecalculator.base.Optional;
 import korablique.recipecalculator.base.RxFragmentSubscriptions;
@@ -42,8 +41,7 @@ import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.card.NewCard;
 import korablique.recipecalculator.ui.mainscreen.MainScreenFragment;
 
-import static korablique.recipecalculator.ui.bucketlist.BucketListActivity.EXTRA_FOODSTUFFS_LIST;
-
+import static korablique.recipecalculator.ui.history.HistoryFragment.EXTRA_FOODSTUFFS_LIST;
 
 @FragmentScope
 public class HistoryController extends FragmentCallbacks.Observer {
@@ -206,44 +204,55 @@ public class HistoryController extends FragmentCallbacks.Observer {
         if (args != null && args.containsKey(EXTRA_FOODSTUFFS_LIST)) {
             // фудстаффы из бакет листа
             List<WeightedFoodstuff> foodstuffsFromBucketList = args.getParcelableArrayList(EXTRA_FOODSTUFFS_LIST);
-            NewHistoryEntry[] newHistoryEntries = new NewHistoryEntry[foodstuffsFromBucketList.size()];
-            for (int index = 0; index < foodstuffsFromBucketList.size(); index++) {
-                WeightedFoodstuff foodstuff = foodstuffsFromBucketList.get(index);
-                NewHistoryEntry entry = new NewHistoryEntry(
-                        foodstuff.getId(), foodstuff.getWeight(), DateTime.now().toDate());
-                newHistoryEntries[index] = entry;
-            }
+            NewHistoryEntry[] newHistoryEntries = newHistoryEntriesFrom(foodstuffsFromBucketList);
             // сохраняем в историю
-            foodstuffsList.saveFoodstuffsToHistory(newHistoryEntries, new Callback<List<Long>>() {
-                @Override
-                public void onResult(List<Long> historyEntriesIds) {
-                    List<HistoryEntry> historyEntries = new ArrayList<>();
-                    for (int index = 0; index < historyEntriesIds.size(); index++) {
-                        HistoryEntry entry = new HistoryEntry(
-                                historyEntriesIds.get(index),
-                                foodstuffsFromBucketList.get(index),
-                                newHistoryEntries[index].getDate());
-                        historyEntries.add(entry);
-                    }
-                    // добавляем в адаптер
-                    adapter.addItems(historyEntries);
-                    Nutrition updatedNutrition = Nutrition.zero();
-                    for (HistoryEntry entry : adapter.getItems()) {
-                        updatedNutrition = updatedNutrition.plus(Nutrition.of(entry.getFoodstuff()));
-                    }
-                    Single<Optional<UserParameters>> currentUserParamsSingle = userParametersWorker.requestCurrentUserParameters();
-                    Nutrition finalUpdatedNutrition = updatedNutrition;
-                    subscriptions.subscribe(currentUserParamsSingle, new Consumer<Optional<UserParameters>>() {
-                        @Override
-                        public void accept(Optional<UserParameters> userParametersOptional) {
-                            UserParameters currentUserParams = userParametersOptional.get();
-                            Rates rates = RateCalculator.calculate(currentUserParams);
-                            nutritionProgressWrapper.setProgresses(finalUpdatedNutrition, rates);
-                            nutritionValuesWrapper.setNutrition(finalUpdatedNutrition, rates);
-                        }
-                    });
+            historyWorker.saveGroupOfFoodstuffsToHistory(newHistoryEntries, historyEntriesIds -> {
+                List<HistoryEntry> historyEntries = historyEntriesFrom(
+                        historyEntriesIds, foodstuffsFromBucketList, newHistoryEntries);
+                // добавляем в адаптер
+                adapter.addItems(historyEntries);
+                Nutrition updatedNutrition = Nutrition.zero();
+                for (HistoryEntry entry : adapter.getItems()) {
+                    updatedNutrition = updatedNutrition.plus(Nutrition.of(entry.getFoodstuff()));
                 }
+                Single<Optional<UserParameters>> currentUserParamsSingle1 = userParametersWorker.requestCurrentUserParameters();
+                Nutrition finalUpdatedNutrition = updatedNutrition;
+                subscriptions.subscribe(currentUserParamsSingle1, new Consumer<Optional<UserParameters>>() {
+                    @Override
+                    public void accept(Optional<UserParameters> userParametersOptional) {
+                        UserParameters currentUserParams = userParametersOptional.get();
+                        Rates rates = RateCalculator.calculate(currentUserParams);
+                        nutritionProgressWrapper.setProgresses(finalUpdatedNutrition, rates);
+                        nutritionValuesWrapper.setNutrition(finalUpdatedNutrition, rates);
+                    }
+                });
             });
         }
+    }
+
+    private List<HistoryEntry> historyEntriesFrom(
+            List<Long> historyEntriesIds,
+            List<WeightedFoodstuff> foodstuffs,
+            NewHistoryEntry[] newHistoryEntries) {
+        List<HistoryEntry> historyEntries = new ArrayList<>();
+        for (int index = 0; index < historyEntriesIds.size(); index++) {
+            HistoryEntry entry = new HistoryEntry(
+                    historyEntriesIds.get(index),
+                    foodstuffs.get(index),
+                    newHistoryEntries[index].getDate());
+            historyEntries.add(entry);
+        }
+        return historyEntries;
+    }
+
+    private NewHistoryEntry[] newHistoryEntriesFrom(List<WeightedFoodstuff> weightedFoodstuffs) {
+        NewHistoryEntry[] newHistoryEntries = new NewHistoryEntry[weightedFoodstuffs.size()];
+        for (int index = 0; index < weightedFoodstuffs.size(); index++) {
+            WeightedFoodstuff foodstuff = weightedFoodstuffs.get(index);
+            NewHistoryEntry entry = new NewHistoryEntry(
+                    foodstuff.getId(), foodstuff.getWeight(), DateTime.now().toDate());
+            newHistoryEntries[index] = entry;
+        }
+        return newHistoryEntries;
     }
 }

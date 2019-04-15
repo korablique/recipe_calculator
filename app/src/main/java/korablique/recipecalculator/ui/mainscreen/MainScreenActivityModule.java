@@ -20,7 +20,7 @@ public abstract class MainScreenActivityModule {
     @ActivityScope
     @Provides
     static MainActivityController provideMainActivityController(
-            BaseActivity activity,
+            MainActivity activity,
             ActivityCallbacks activityCallbacks,
             UserParametersWorker userParametersWorker,
             RxActivitySubscriptions subscriptions) {

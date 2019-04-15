@@ -35,9 +35,9 @@ import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
 import korablique.recipecalculator.util.FloatUtils;
 
 import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
+import static korablique.recipecalculator.ui.history.HistoryFragment.EXTRA_FOODSTUFFS_LIST;
 
 public class BucketListActivity extends BaseActivity {
-    public static final String EXTRA_FOODSTUFFS_LIST = "EXTRA_FOODSTUFFS_LIST";
     private static final String DISPLAYED_IN_CARD_FOODSTUFF_POSITION = "DISPLAYED_IN_CARD_FOODSTUFF_POSITION";
     @StringRes
     private static final int CARD_BUTTON_TEXT_RES = R.string.save;
@@ -181,7 +181,7 @@ public class BucketListActivity extends BaseActivity {
 
         saveToHistoryButton.setOnClickListener((view) -> {
             bucketList.clear();
-            MainActivity.startWithHistory(this, adapter.getItems());
+            MainActivity.openHistoryAndAddFoodstuffs(this, adapter.getItems());
             finish();
         });
 

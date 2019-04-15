@@ -15,10 +15,10 @@ import dagger.android.support.HasSupportFragmentInjector;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 
-import static korablique.recipecalculator.ui.bucketlist.BucketListActivity.EXTRA_FOODSTUFFS_LIST;
+import static korablique.recipecalculator.ui.history.HistoryFragment.EXTRA_FOODSTUFFS_LIST;
 
 public class MainActivity extends BaseActivity implements HasSupportFragmentInjector {
-    public static final String ACTION_ADD_FOODSTUFFS = "ACTION_ADD_FOODSTUFFS";
+    public static final String ACTION_ADD_FOODSTUFFS_TO_HISTORY = "ACTION_ADD_FOODSTUFFS_TO_HISTORY";
     @Inject
     MainActivityController controller;
     @Inject
@@ -34,14 +34,14 @@ public class MainActivity extends BaseActivity implements HasSupportFragmentInje
         context.startActivity(intent);
     }
 
-    public static void startWithHistory(Context context, List<WeightedFoodstuff> historyList) {
-        context.startActivity(createStartIntent(context, historyList));
+    public static void openHistoryAndAddFoodstuffs(Context context, List<WeightedFoodstuff> historyList) {
+        context.startActivity(createAddToHistoryIntent(context, historyList));
     }
 
-    public static Intent createStartIntent(Context context, List<WeightedFoodstuff> historyList) {
+    public static Intent createAddToHistoryIntent(Context context, List<WeightedFoodstuff> historyList) {
         Intent intent = new Intent(context, MainActivity.class);
         intent.putParcelableArrayListExtra(EXTRA_FOODSTUFFS_LIST, new ArrayList<>(historyList));
-        intent.setAction(ACTION_ADD_FOODSTUFFS);
+        intent.setAction(ACTION_ADD_FOODSTUFFS_TO_HISTORY);
         return intent;
     }
 }

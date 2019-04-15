@@ -119,18 +119,6 @@ public class FoodstuffsList {
         });
     }
 
-    public void saveFoodstuffsToHistory(NewHistoryEntry[] newHistoryEntries, Callback<List<Long>> callback) {
-        historyWorker.saveGroupOfFoodstuffsToHistory(newHistoryEntries, new HistoryWorker.AddHistoryEntriesCallback() {
-            @Override
-            public void onResult(List<Long> historyEntriesIds) {
-                callback.onResult(historyEntriesIds);
-                for (Observer observer : observers) {
-                    observer.onFoodstuffsSavedToHistory();
-                }
-            }
-        });
-    }
-
     /**
      * @param id id редактированного фудстаффа (не меняется при редактировании)
      * @param editedFoodstuff отредактированный фудстафф

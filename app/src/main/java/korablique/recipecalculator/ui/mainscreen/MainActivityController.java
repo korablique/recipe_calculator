@@ -10,7 +10,6 @@ import java.util.List;
 import io.reactivex.Single;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.ActivityCallbacks;
-import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.Optional;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.database.UserParametersWorker;
@@ -20,18 +19,18 @@ import korablique.recipecalculator.ui.history.HistoryFragment;
 import korablique.recipecalculator.ui.profile.ProfileFragment;
 import korablique.recipecalculator.ui.usergoal.UserParametersActivity;
 
-import static korablique.recipecalculator.ui.bucketlist.BucketListActivity.EXTRA_FOODSTUFFS_LIST;
-import static korablique.recipecalculator.ui.mainscreen.MainActivity.ACTION_ADD_FOODSTUFFS;
+import static korablique.recipecalculator.ui.history.HistoryFragment.EXTRA_FOODSTUFFS_LIST;
+import static korablique.recipecalculator.ui.mainscreen.MainActivity.ACTION_ADD_FOODSTUFFS_TO_HISTORY;
 
 public class MainActivityController extends ActivityCallbacks.Observer {
     private static final String BOTTOM_NAVIGATION_VIEW_SELECTED_ITEM_ID = "BOTTOM_NAVIGATION_VIEW_SELECTED_ITEM_ID";
-    private BaseActivity context;
+    private MainActivity context;
     private UserParametersWorker userParametersWorker;
     private RxActivitySubscriptions subscriptions;
     private BottomNavigationView bottomNavigationView;
 
     public MainActivityController(
-            BaseActivity context,
+            MainActivity context,
             ActivityCallbacks activityCallbacks,
             UserParametersWorker userParametersWorker,
             RxActivitySubscriptions subscriptions) {
@@ -70,7 +69,7 @@ public class MainActivityController extends ActivityCallbacks.Observer {
         });
 
         Intent intent = context.getIntent();
-        if (intent != null && ACTION_ADD_FOODSTUFFS.equals(intent.getAction())) {
+        if (intent != null && ACTION_ADD_FOODSTUFFS_TO_HISTORY.equals(intent.getAction())) {
             List<WeightedFoodstuff> foodstuffs = intent.getParcelableArrayListExtra(EXTRA_FOODSTUFFS_LIST);
             if (foodstuffs == null) {
                 throw new IllegalArgumentException("Need " + EXTRA_FOODSTUFFS_LIST);
