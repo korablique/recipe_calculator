@@ -127,7 +127,7 @@
                 android:layout_marginStart="8dp"
                 style="@style/RobotoMonoHintText"
                 app:layout_constraintBottom_toTopOf="@+id/measurements_period_spinner"
-                app:layout_constraintLeft_toLeftOf="@+id/measurements_period_spinner"
+                app:layout_constraintStart_toStartOf="@+id/measurements_period_spinner"
                 android:text="@string/period"/>
 
             <ImageView
@@ -135,7 +135,6 @@
                 android:layout_width="0dp"
                 android:layout_height="1dp"
                 android:layout_marginStart="8dp"
-                android:layout_marginTop="5dp"
                 android:layout_marginEnd="16dp"
                 app:layout_constraintTop_toBottomOf="@+id/measurements_period_spinner"
                 app:layout_constraintStart_toStartOf="@+id/measurements_period_spinner"

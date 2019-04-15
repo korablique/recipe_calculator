@@ -27,8 +27,7 @@ public class SpinnerTuner {
         void onItemSelected(int position, long id);
     }
 
-    private SpinnerTuner() {
-    }
+    private SpinnerTuner() {}
 
     public static Step1 startTuningSpinner(Spinner spinner) {
         return new Step1(spinner);

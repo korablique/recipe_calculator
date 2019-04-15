@@ -116,8 +116,8 @@ public class ProfileController extends FragmentCallbacks.Observer {
             });
         }
 
-        Spinner measurementsSpinner = fragmentView.findViewById(R.id.measurements_period_spinner);
-        startTuningSpinner(measurementsSpinner)
+        Spinner measurementsPeriodSpinner = fragmentView.findViewById(R.id.measurements_period_spinner);
+        startTuningSpinner(measurementsPeriodSpinner)
                 .withItems(R.array.user_measurements_period_array)
                 .onItemSelected((position, id) -> {
                     fillChart(fragmentView);
@@ -126,9 +126,9 @@ public class ProfileController extends FragmentCallbacks.Observer {
     }
 
     private void fillChart(View fragmentView) {
-        Spinner measurementsSpinner = fragmentView.findViewById(R.id.measurements_period_spinner);
-        DateTime periodStart = measurementsSpinnerItemToPeriodStart(
-                measurementsSpinner.getSelectedItemPosition(), fragmentView.getResources());
+        Spinner measurementsPeriodSpinner = fragmentView.findViewById(R.id.measurements_period_spinner);
+        DateTime periodStart = convertMeasurementsPeriodSpinnerItemToPeriodStartDate(
+                measurementsPeriodSpinner.getSelectedItemPosition(), fragmentView.getResources());
 
         Single<List<UserParameters>> userParamsSingle =
                 userParametersWorker.requestUserParameters(periodStart, timeProvider.now()).toList();
@@ -140,7 +140,8 @@ public class ProfileController extends FragmentCallbacks.Observer {
         });
     }
 
-    private DateTime measurementsSpinnerItemToPeriodStart(int itemPosition, Resources resources) {
+    private DateTime convertMeasurementsPeriodSpinnerItemToPeriodStartDate(
+            int itemPosition, Resources resources) {
         String periodStr = resources.getStringArray(
                 R.array.user_measurements_period_array)[itemPosition];
         if (periodStr.equals(resources.getString(R.string.user_measurements_period_array_all_time))) {
