@@ -22,6 +22,7 @@ import io.reactivex.Single;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
+import korablique.recipecalculator.base.TimeProvider;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.database.room.DatabaseHolder;
 import korablique.recipecalculator.database.DatabaseThreadExecutor;
@@ -37,6 +38,7 @@ import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.InstantComputationsThreadsExecutor;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.SyncMainThreadExecutor;
+import korablique.recipecalculator.util.TestingTimeProvider;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
@@ -65,6 +67,7 @@ public class BucketListActivityTest {
     private UserParametersWorker userParametersWorker;
     private FoodstuffsList foodstuffsList;
     private UserNameProvider userNameProvider;
+    private TimeProvider timeProvider;
 
     @Rule
     public ActivityTestRule<BucketListActivity> activityRule =
@@ -84,8 +87,10 @@ public class BucketListActivityTest {
                         foodstuffsList = new FoodstuffsList(
                                 databaseWorker, mainThreadExecutor, new InstantComputationsThreadsExecutor());
                         userNameProvider = new UserNameProvider(context);
+                        timeProvider = new TestingTimeProvider();
                         return Arrays.asList(mainThreadExecutor, databaseThreadExecutor, databaseWorker,
-                                historyWorker, userParametersWorker, foodstuffsList, userNameProvider);
+                                historyWorker, userParametersWorker, foodstuffsList, userNameProvider,
+                                timeProvider);
                     })
                     .withActivityScoped((target) -> {
                         BaseActivity activity = (BaseActivity) target;

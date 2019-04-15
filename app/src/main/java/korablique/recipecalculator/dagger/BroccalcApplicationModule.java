@@ -10,6 +10,8 @@ import dagger.Provides;
 import dagger.android.ContributesAndroidInjector;
 import dagger.android.support.AndroidSupportInjectionModule;
 import korablique.recipecalculator.base.BaseActivityModule;
+import korablique.recipecalculator.base.TimeProvider;
+import korablique.recipecalculator.base.TimeProviderImpl;
 import korablique.recipecalculator.base.executors.ComputationThreadsExecutor;
 import korablique.recipecalculator.base.executors.ComputationThreadsExecutorImpl;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
@@ -70,8 +72,14 @@ public abstract class BroccalcApplicationModule {
 
     @Provides
     @Singleton
-    public static FoodReminder provideFoodReminder(Context context) {
-        return new FoodReminder(context);
+    public static FoodReminder provideFoodReminder(Context context, TimeProvider timeProvider) {
+        return new FoodReminder(context, timeProvider);
+    }
+
+    @Provides
+    @Singleton
+    public static TimeProvider provideTimeProvider() {
+        return new TimeProviderImpl();
     }
 
     @ActivityScope

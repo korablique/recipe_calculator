@@ -19,6 +19,7 @@ import androidx.test.runner.AndroidJUnit4;
 import io.reactivex.Completable;
 import io.reactivex.Single;
 import korablique.recipecalculator.base.Optional;
+import korablique.recipecalculator.base.TimeProvider;
 import korablique.recipecalculator.database.room.DatabaseHolder;
 import korablique.recipecalculator.model.Formula;
 import korablique.recipecalculator.model.Gender;
@@ -26,7 +27,7 @@ import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.InstantMainThreadExecutor;
-import korablique.recipecalculator.util.TimeUtils;
+import korablique.recipecalculator.util.TestingTimeProvider;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.never;
@@ -41,12 +42,14 @@ public class UserParametersWorkerTest {
     private DatabaseHolder databaseHolder;
     private UserParametersWorker userParametersWorker;
     private DatabaseThreadExecutor spiedDatabaseThreadExecutor;
+    private TimeProvider timeProvider;
 
     @Before
     public void setUp() throws IOException {
         context = InstrumentationRegistry.getTargetContext();
         spiedDatabaseThreadExecutor = spy(new InstantDatabaseThreadExecutor());
         databaseHolder = new DatabaseHolder(context, spiedDatabaseThreadExecutor);
+        timeProvider = new TestingTimeProvider();
 
         databaseHolder.getDatabase().clearAllTables();
 
@@ -65,7 +68,7 @@ public class UserParametersWorkerTest {
                 64,
                 Lifestyle.INSIGNIFICANT_ACTIVITY,
                 Formula.HARRIS_BENEDICT,
-                TimeUtils.currentMillis());
+                timeProvider.nowUtc().getMillis());
 
         MutableBoolean saved = new MutableBoolean(false);
         Completable callback = userParametersWorker.saveUserParameters(userParameters);
@@ -96,7 +99,7 @@ public class UserParametersWorkerTest {
                 64,
                 Lifestyle.INSIGNIFICANT_ACTIVITY,
                 Formula.HARRIS_BENEDICT,
-                TimeUtils.currentMillis());
+                timeProvider.nowUtc().getMillis());
         userParametersWorker.saveUserParameters(userParameters);
 
         reset(spiedDatabaseThreadExecutor);

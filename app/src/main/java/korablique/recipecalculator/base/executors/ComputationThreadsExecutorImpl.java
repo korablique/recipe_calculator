@@ -10,11 +10,6 @@ public class ComputationThreadsExecutorImpl implements ComputationThreadsExecuto
     private Scheduler scheduler = Schedulers.computation();
 
     @Override
-    public void execute(Runnable runnable) {
-        scheduler.scheduleDirect(runnable);
-    }
-
-    @Override
     public Scheduler asScheduler() {
         return scheduler;
     }

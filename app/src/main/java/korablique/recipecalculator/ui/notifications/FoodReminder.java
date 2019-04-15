@@ -16,6 +16,7 @@ import androidx.core.app.NotificationManagerCompat;
 import java.util.Calendar;
 
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.base.TimeProvider;
 import korablique.recipecalculator.ui.history.HistoryActivity;
 
 import static android.content.Context.NOTIFICATION_SERVICE;
@@ -24,6 +25,7 @@ public class FoodReminder {
     public static final String ANDROID_CHANNEL_ID = "korablique.recipecalculator.ANDROID";
     public static final int BREAKFAST_NOTIFICATION_ID = 1;
     private Context context;
+    private TimeProvider timeProvider;
 
     public static class Time {
         private int hour;
@@ -43,8 +45,9 @@ public class FoodReminder {
         }
     }
 
-    public FoodReminder(Context context) {
+    public FoodReminder(Context context, TimeProvider timeProvider) {
         this.context = context;
+        this.timeProvider = timeProvider;
     }
 
     public void scheduleNotification() {
@@ -53,7 +56,7 @@ public class FoodReminder {
         notificationTimes[1] = new Time(15, 0);
         notificationTimes[2] = new Time(20, 0);
         Calendar current = Calendar.getInstance();
-        current.setTimeInMillis(System.currentTimeMillis());
+        current.setTimeInMillis(timeProvider.nowUtc().getMillis());
         Calendar calendar = NotificationTimeGenerator.createNextNotificationTime(current, notificationTimes);
 
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
