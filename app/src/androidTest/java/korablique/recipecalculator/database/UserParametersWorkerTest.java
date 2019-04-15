@@ -27,6 +27,7 @@ import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.InstantMainThreadExecutor;
+import korablique.recipecalculator.util.TestingTimeProvider;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.never;
@@ -48,7 +49,7 @@ public class UserParametersWorkerTest {
         context = InstrumentationRegistry.getTargetContext();
         spiedDatabaseThreadExecutor = spy(new InstantDatabaseThreadExecutor());
         databaseHolder = new DatabaseHolder(context, spiedDatabaseThreadExecutor);
-        timeProvider = new TimeProvider();
+        timeProvider = new TestingTimeProvider();
 
         databaseHolder.getDatabase().clearAllTables();
 

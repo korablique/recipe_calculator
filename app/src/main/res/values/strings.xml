@@ -113,6 +113,12 @@
     <string name="total_for_day">Всего за день</string>
     <string name="of_n_grams">из %d г</string>
     <string name="of_n_calories">из %d ккал</string>
+    <string name="period">Период</string>
+
+    <string name="user_measurements_period_array_all_time">За всё время</string>
+    <string name="user_measurements_period_array_year">За год</string>
+    <string name="user_measurements_period_array_6_months">За пол года</string>
+    <string name="user_measurements_period_array_month">За месяц</string>
 
     <string-array name="gender_array">
         <item name="not_selected">—</item>
@@ -141,10 +147,17 @@
         <item name="mifflin_jeor">Миффлина-Джеора</item>
     </string-array>
 
-    <string-array name="period_array">
+    <string-array name="history_period_array">
         <item name="day">День</item>
         <item name="week">Неделя</item>
         <item name="month">Месяц</item>
         <item name="year">Год</item>
+    </string-array>
+
+    <string-array name="user_measurements_period_array">
+        <item name="all_time">@string/user_measurements_period_array_all_time</item>
+        <item name="year">@string/user_measurements_period_array_year</item>
+        <item name="6_months">@string/user_measurements_period_array_6_months</item>
+        <item name="month">@string/user_measurements_period_array_month</item>
     </string-array>
 </resources>
