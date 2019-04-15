@@ -48,19 +48,21 @@ public class MainActivityController extends ActivityCallbacks.Observer {
         bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
             switch (item.getItemId()) {
                 case R.id.menu_item_foodstuffs:
-                    MainScreenFragment.show(context);
+                    MainScreenFragment.show(context.getSupportFragmentManager());
                     break;
                 case R.id.menu_item_history:
                     HistoryFragment.show(context.getSupportFragmentManager());
                     break;
                 case R.id.menu_item_profile:
-                    ProfileFragment.show(context);
+                    ProfileFragment.show(context.getSupportFragmentManager());
                     break;
             }
             return true;
         });
 
-        MainScreenFragment.show(context);
+        if (context.getSupportFragmentManager().findFragmentById(R.id.main_container) == null) {
+            MainScreenFragment.show(context.getSupportFragmentManager());
+        }
     }
 
     @Override

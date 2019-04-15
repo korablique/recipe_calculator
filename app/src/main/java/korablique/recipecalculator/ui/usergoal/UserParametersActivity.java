@@ -31,6 +31,8 @@ import korablique.recipecalculator.model.Gender;
 import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
+import korablique.recipecalculator.ui.ArrayAdapterWithDisabledItem;
+import korablique.recipecalculator.ui.DatePickerFragment;
 import korablique.recipecalculator.ui.DecimalUtils;
 import korablique.recipecalculator.ui.mainscreen.MainActivity;
 

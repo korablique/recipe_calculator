@@ -5,6 +5,7 @@ import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
 import android.view.View;
+import android.widget.DatePicker;
 import android.widget.ProgressBar;
 
 import com.github.mikephil.charting.charts.LineChart;
@@ -30,6 +31,7 @@ import java.util.List;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
 import androidx.test.InstrumentationRegistry;
+import androidx.test.espresso.contrib.PickerActions;
 import androidx.test.espresso.matcher.ViewMatchers;
 import androidx.test.filters.LargeTest;
 import androidx.test.rule.ActivityTestRule;
@@ -56,7 +58,6 @@ import korablique.recipecalculator.model.Formula;
 import korablique.recipecalculator.model.FullName;
 import korablique.recipecalculator.model.Gender;
 import korablique.recipecalculator.model.GoalCalculator;
-import korablique.recipecalculator.model.HistoryEntry;
 import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.Nutrition;
@@ -94,6 +95,7 @@ import static androidx.test.espresso.intent.matcher.IntentMatchers.hasAction;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasExtras;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static androidx.test.espresso.matcher.ViewMatchers.withClassName;
 import static androidx.test.espresso.matcher.ViewMatchers.withEffectiveVisibility;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withParent;
@@ -105,6 +107,7 @@ import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
 import static korablique.recipecalculator.util.EspressoUtils.matches;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 
 @RunWith(AndroidJUnit4.class)
@@ -712,6 +715,35 @@ public class MainActivityTest {
             Assert.assertEquals(Math.round((float)totalNutrition.getCalories()), caloriesProgress.getProgress());
             Assert.assertEquals(Math.round(rates.getCalories()), caloriesProgress.getMax());
         });
+    }
+
+    @Test
+    public void canSwitchDateInHistoryFragment() {
+        // сохранить продукты в историю на другую дату (30 января)
+        NewHistoryEntry[] newEntries1 = new NewHistoryEntry[3];
+        DateTime jan30 = new DateTime(2019, 1, 30, 0, 0, 0);
+        newEntries1[0] = new NewHistoryEntry(foodstuffsIds.get(0), 100, jan30.toDate());
+        newEntries1[1] = new NewHistoryEntry(foodstuffsIds.get(5), 100, jan30.toDate());
+        newEntries1[2] = new NewHistoryEntry(foodstuffsIds.get(6), 100, jan30.toDate());
+        historyWorker.saveGroupOfFoodstuffsToHistory(newEntries1);
+
+        mActivityRule.launchActivity(null);
+        onView(withId(R.id.menu_item_history)).perform(click());
+
+        onView(withText(containsString(foodstuffs[0].getName()))).check(doesNotExist());
+        onView(withText(containsString(foodstuffs[5].getName()))).check(doesNotExist());
+        onView(withText(containsString(foodstuffs[6].getName()))).check(doesNotExist());
+
+        onView(withId(R.id.calendar_button)).perform(click());
+        // Change the date of the DatePicker.
+        // Don't use "withId" as at runtime Android shares the DatePicker id between several sub-elements
+        onView(withClassName(equalTo(DatePicker.class.getName())))
+                .perform(PickerActions.setDate(jan30.getYear(), jan30.getMonthOfYear(), jan30.getDayOfMonth()));
+        onView(withId(android.R.id.button1)).perform(click());
+
+        onView(withText(containsString(foodstuffs[0].getName()))).check(matches(isDisplayed()));
+        onView(withText(containsString(foodstuffs[5].getName()))).check(matches(isDisplayed()));
+        onView(withText(containsString(foodstuffs[6].getName()))).check(matches(isDisplayed()));
     }
 
     private void addFoodstuffsToday() {
