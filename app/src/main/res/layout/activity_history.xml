@@ -47,6 +47,8 @@
             android:layout_gravity="bottom|end"
             android:src="@drawable/plus48"
             app:layout_anchorGravity="bottom|right|end"
-            app:useCompatPadding="true"/>
+            android:layout_margin="16dp"
+            app:tint="@android:color/white"
+            app:backgroundTint="@color/accent" />
     </RelativeLayout>
 </FrameLayout>

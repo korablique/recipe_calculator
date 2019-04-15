@@ -12,6 +12,7 @@ import com.github.mikephil.charting.charts.LineChart;
 
 import junit.framework.Assert;
 
+import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -32,6 +33,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
 import androidx.test.InstrumentationRegistry;
 import androidx.test.espresso.contrib.PickerActions;
+import androidx.test.espresso.matcher.BoundedMatcher;
 import androidx.test.espresso.matcher.ViewMatchers;
 import androidx.test.filters.LargeTest;
 import androidx.test.rule.ActivityTestRule;
@@ -746,6 +748,34 @@ public class MainActivityTest {
         onView(withText(containsString(foodstuffs[6].getName()))).check(matches(isDisplayed()));
     }
 
+    @Test
+    public void returnForTodayButtonWorksAndDisappearsOnToday() {
+        mActivityRule.launchActivity(null);
+        onView(withId(R.id.menu_item_history)).perform(click());
+
+        // проверяем, что на сегодняшней дате кнопки "Сегодня" нет
+        onView(withId(R.id.return_for_today_button)).check(matches(not(isDisplayed())));
+
+        // открываем другую дату и проверяем, что кнопка появилась
+        DateTime anotherDate = new DateTime(2011, 1, 1, 1, 1, 1);
+        onView(withId(R.id.calendar_button)).perform(click());
+        onView(withClassName(equalTo(DatePicker.class.getName())))
+                .perform(PickerActions.setDate(
+                        anotherDate.getYear(), anotherDate.getMonthOfYear(), anotherDate.getDayOfMonth()));
+        onView(withId(android.R.id.button1)).perform(click());
+        onView(withId(R.id.return_for_today_button)).check(matches(isDisplayed()));
+
+        // нажимаем на кнопку "Сегодня" и проверяем, что она пропадает
+        onView(withId(R.id.return_for_today_button)).perform(click());
+        onView(withId(R.id.return_for_today_button)).check(matches(not(isDisplayed())));
+
+        // нажимаем на календарь и проверяем, что выбрана сегодняшняя дата
+        onView(withId(R.id.calendar_button)).perform(click());
+        DateTime now = timeProvider.now();
+        onView(withClassName(equalTo(DatePicker.class.getName()))).check(matches(matchesDate(
+                now.getYear(), now.getMonthOfYear(), now.getDayOfMonth())));
+    }
+
     private void addFoodstuffsToday() {
         NewHistoryEntry[] newEntries = new NewHistoryEntry[3];
         DateTime today = timeProvider.now();
@@ -775,5 +805,21 @@ public class MainActivityTest {
             topFoodstuffs.addAll(foodstuffs);
         });
         return topFoodstuffs;
+    }
+
+    // https://stackoverflow.com/a/44840330
+    public static Matcher<View> matchesDate(final int year, final int month, final int day) {
+        return new BoundedMatcher<View, DatePicker>(DatePicker.class) {
+
+            @Override
+            public void describeTo(Description description) {
+                description.appendText("matches date:");
+            }
+
+            @Override
+            protected boolean matchesSafely(DatePicker item) {
+                return (year == item.getYear() && month == item.getMonth() + 1 && day == item.getDayOfMonth());
+            }
+        };
     }
 }
