@@ -120,6 +120,8 @@
     <string name="user_measurements_period_array_6_months">За пол года</string>
     <string name="user_measurements_period_array_month">За месяц</string>
 
+    <string name="return_today">Сегодня</string>
+
     <string-array name="gender_array">
         <item name="not_selected">—</item>
         <item name="male">Мужской</item>

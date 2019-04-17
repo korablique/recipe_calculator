@@ -5,6 +5,7 @@ import android.util.Pair;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.joda.time.DateTime;
@@ -69,7 +70,7 @@ public class HistoryController extends FragmentCallbacks.Observer {
             Nutrition finalUpdatedNutrition = updatedNutrition;
             subscriptions.subscribe(currentUserParamsSingle, new Consumer<Optional<UserParameters>>() {
                 @Override
-                public void accept(Optional<UserParameters> userParametersOptional) throws Exception {
+                public void accept(Optional<UserParameters> userParametersOptional) {
                     UserParameters currentUserParams = userParametersOptional.get();
                     Rates rates = RateCalculator.calculate(currentUserParams);
                     nutritionProgressWrapper.setProgresses(finalUpdatedNutrition, rates);
@@ -131,6 +132,11 @@ public class HistoryController extends FragmentCallbacks.Observer {
                 context, nutritionHeaderParentLayout);
         nutritionProgressWrapper = new NutritionProgressWrapper(nutritionHeaderParentLayout);
 
+        RecyclerView recyclerView = fragmentView.findViewById(R.id.history_list);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(fragmentView.getContext());
+        recyclerView.setLayoutManager(layoutManager);
+        adapter = new NewHistoryAdapter(fragmentView.getContext());
+
         initHistoryList(fragmentView);
 
         initCard();
@@ -146,6 +152,8 @@ public class HistoryController extends FragmentCallbacks.Observer {
                     selectedDate.getYear(), selectedDate.getMonthOfYear(), selectedDate.getDayOfMonth(), 23, 59, 59));
         }
         initCalendarButton(fragmentView);
+
+        initReturnButton(fragmentView);
     }
 
     public void onFragmentSaveInstanceState(Bundle outState) {
@@ -186,9 +194,9 @@ public class HistoryController extends FragmentCallbacks.Observer {
                     adapter.clear();
                     adapter.addItems(historyEntries);
                     updateWrappers(historyEntries, currentUserParams);
+                    updateReturnButtonVisibility(fragmentView);
                 });
             });
-
         });
     }
 
@@ -196,7 +204,6 @@ public class HistoryController extends FragmentCallbacks.Observer {
         Observable<HistoryEntry> todaysHistoryObservable = historyWorker.requestHistoryForPeriod(
                 periodStart.getMillis(),
                 periodEnd.getMillis());
-
         Single<Optional<UserParameters>> currentUserParamsSingle = userParametersWorker.requestCurrentUserParameters();
         Single<Pair<Optional<UserParameters>, List<HistoryEntry>>> currentUserParamsWithTodaysHistorySingle =
                 currentUserParamsSingle.zipWith(todaysHistoryObservable.toList(), Pair::create);
@@ -208,6 +215,7 @@ public class HistoryController extends FragmentCallbacks.Observer {
                 updateWrappers(todaysHistory, currentUserParams);
 
                 // заполнение адаптера истории
+                adapter.clear();
                 adapter.addItems(todaysHistory);
 
                 // листенер на нажатия на элемент адаптера
@@ -256,5 +264,33 @@ public class HistoryController extends FragmentCallbacks.Observer {
         Rates rates = RateCalculator.calculate(currentUserParams);
         nutritionValuesWrapper.setNutrition(totalNutrition, rates);
         nutritionProgressWrapper.setProgresses(totalNutrition, rates);
+    }
+
+    private void initReturnButton(View fragmentView) {
+        ExtendedFloatingActionButton returnButton = fragmentView.findViewById(R.id.return_for_today_button);
+        returnButton.setOnClickListener(v -> {
+            DateTime now = timeProvider.now();
+            DateTime from = now.withTimeAtStartOfDay();
+            DateTime to = new DateTime(now.getYear(), now.getMonthOfYear(), now.getDayOfMonth(), 23, 59, 59);
+            fillHistory(from, to);
+            selectedDate = now.toLocalDate();
+            updateReturnButtonVisibility(fragmentView);
+        });
+        if (selectedDate == null || selectedDate.toDateTimeAtStartOfDay().equals(timeProvider.now().withTimeAtStartOfDay())) {
+            returnButton.setVisibility(View.GONE);
+        } else {
+            returnButton.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void updateReturnButtonVisibility(View fragmentView) {
+        ExtendedFloatingActionButton returnButton = fragmentView.findViewById(R.id.return_for_today_button);
+        DateTime now = timeProvider.now();
+        if (selectedDate == null ||
+                selectedDate.toDateTimeAtStartOfDay().equals(now.withTimeAtStartOfDay())) {
+            returnButton.setVisibility(View.GONE);
+        } else {
+            returnButton.setVisibility(View.VISIBLE);
+        }
     }
 }
