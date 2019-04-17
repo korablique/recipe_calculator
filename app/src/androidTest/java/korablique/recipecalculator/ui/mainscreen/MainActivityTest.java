@@ -757,7 +757,7 @@ public class MainActivityTest {
         onView(withId(R.id.return_for_today_button)).check(matches(not(isDisplayed())));
 
         // открываем другую дату и проверяем, что кнопка появилась
-        DateTime anotherDate = new DateTime(2011, 1, 1, 1, 1, 1);
+        DateTime anotherDate = timeProvider.now().minusDays(10);
         onView(withId(R.id.calendar_button)).perform(click());
         onView(withClassName(equalTo(DatePicker.class.getName())))
                 .perform(PickerActions.setDate(
