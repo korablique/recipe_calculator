@@ -25,7 +25,7 @@ public abstract class BaseFragment extends Fragment {
                              ViewGroup container,
                              Bundle savedInstanceState) {
         View fragmentView = createView(inflater, container, savedInstanceState);
-        fragmentCallbacks.dispatchFragmentViewCreated(fragmentView);
+        fragmentCallbacks.dispatchFragmentViewCreated(fragmentView, savedInstanceState);
         return fragmentView;
     }
 

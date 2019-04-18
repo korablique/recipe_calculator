@@ -27,6 +27,8 @@ public interface UserParametersDao {
     UserParametersEntity loadFirstUserParameters();
 
     @Query("SELECT * FROM " + USER_PARAMETERS_TABLE_NAME +
+            " WHERE " + COLUMN_NAME_MEASUREMENTS_TIMESTAMP + " >= :from" +
+            " AND " + COLUMN_NAME_MEASUREMENTS_TIMESTAMP + " <= :to" +
             " ORDER BY " + COLUMN_NAME_MEASUREMENTS_TIMESTAMP + " ASC")
-    List<UserParametersEntity> loadAllUserParameters();
+    List<UserParametersEntity> loadUserParameters(long from, long to);
 }

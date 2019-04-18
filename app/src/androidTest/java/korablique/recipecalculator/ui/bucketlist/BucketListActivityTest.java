@@ -26,6 +26,7 @@ import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.base.FragmentCallbacks;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.base.RxFragmentSubscriptions;
+import korablique.recipecalculator.base.TimeProvider;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
@@ -44,6 +45,7 @@ import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.InstantComputationsThreadsExecutor;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.SyncMainThreadExecutor;
+import korablique.recipecalculator.util.TestingTimeProvider;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
@@ -73,6 +75,7 @@ public class BucketListActivityTest {
     private FoodstuffsList foodstuffsList;
     private UserNameProvider userNameProvider;
     private HistoryController historyController;
+    private TimeProvider timeProvider;
 
     @Rule
     public ActivityTestRule<BucketListActivity> activityRule =
@@ -92,8 +95,10 @@ public class BucketListActivityTest {
                         foodstuffsList = new FoodstuffsList(databaseWorker, historyWorker,
                                 mainThreadExecutor, new InstantComputationsThreadsExecutor());
                         userNameProvider = new UserNameProvider(context);
+                        timeProvider = new TestingTimeProvider();
                         return Arrays.asList(mainThreadExecutor, databaseThreadExecutor, databaseWorker,
-                                historyWorker, userParametersWorker, foodstuffsList, userNameProvider);
+                                historyWorker, userParametersWorker, foodstuffsList, userNameProvider,
+                                timeProvider);
                     })
                     .withActivityScoped((target) -> {
                         MainActivity activity = (MainActivity) target;
@@ -111,7 +116,7 @@ public class BucketListActivityTest {
                         if (fragment instanceof HistoryFragment) {
                             historyController = new HistoryController((BaseActivity) fragment.getActivity(),
                                     fragment, fragmentCallbacks, historyWorker, userParametersWorker,
-                                    subscriptions, foodstuffsList);
+                                    subscriptions, timeProvider);
                             return Arrays.asList(subscriptions, historyController);
                         }
                         return Collections.emptyList();

@@ -56,13 +56,13 @@ public class MainActivityController extends ActivityCallbacks.Observer {
         bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
             switch (item.getItemId()) {
                 case R.id.menu_item_foodstuffs:
-                    MainScreenFragment.show(context);
+                    MainScreenFragment.show(context.getSupportFragmentManager());
                     break;
                 case R.id.menu_item_history:
                     HistoryFragment.show(context.getSupportFragmentManager());
                     break;
                 case R.id.menu_item_profile:
-                    ProfileFragment.show(context);
+                    ProfileFragment.show(context.getSupportFragmentManager());
                     break;
             }
             return true;
@@ -78,8 +78,9 @@ public class MainActivityController extends ActivityCallbacks.Observer {
             // в неё повторно не были добавлены переданные сюда фудстафы.
             intent.setAction(Intent.ACTION_DEFAULT);
             HistoryFragment.show(context.getSupportFragmentManager(), foodstuffs);
-        } else {
-            MainScreenFragment.show(context);
+        } else if (context.getSupportFragmentManager().findFragmentById(R.id.main_container) == null) {
+            // если ни один фрагмент не показан (приложение только что запущено)
+            MainScreenFragment.show(context.getSupportFragmentManager());
         }
     }
 

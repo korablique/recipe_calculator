@@ -5,10 +5,14 @@ import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
 import android.view.View;
+import android.widget.DatePicker;
 import android.widget.ProgressBar;
+
+import com.github.mikephil.charting.charts.LineChart;
 
 import junit.framework.Assert;
 
+import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -28,6 +32,8 @@ import java.util.List;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
 import androidx.test.InstrumentationRegistry;
+import androidx.test.espresso.contrib.PickerActions;
+import androidx.test.espresso.matcher.BoundedMatcher;
 import androidx.test.espresso.matcher.ViewMatchers;
 import androidx.test.filters.LargeTest;
 import androidx.test.rule.ActivityTestRule;
@@ -40,6 +46,7 @@ import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.base.FragmentCallbacks;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.base.RxFragmentSubscriptions;
+import korablique.recipecalculator.base.TimeProvider;
 import korablique.recipecalculator.base.executors.ComputationThreadsExecutor;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.database.DatabaseThreadExecutor;
@@ -68,13 +75,14 @@ import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
 import korablique.recipecalculator.ui.history.HistoryController;
 import korablique.recipecalculator.ui.history.HistoryFragment;
+import korablique.recipecalculator.ui.profile.NewMeasurementsDialog;
 import korablique.recipecalculator.ui.profile.ProfileController;
 import korablique.recipecalculator.ui.profile.ProfileFragment;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.InstantComputationsThreadsExecutor;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.SyncMainThreadExecutor;
-import korablique.recipecalculator.util.TimeUtils;
+import korablique.recipecalculator.util.TestingTimeProvider;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
@@ -89,9 +97,11 @@ import static androidx.test.espresso.intent.matcher.IntentMatchers.hasAction;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasExtras;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static androidx.test.espresso.matcher.ViewMatchers.withClassName;
 import static androidx.test.espresso.matcher.ViewMatchers.withEffectiveVisibility;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withParent;
+import static androidx.test.espresso.matcher.ViewMatchers.withSpinnerText;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertContains;
 import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertNotContains;
@@ -99,6 +109,7 @@ import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
 import static korablique.recipecalculator.util.EspressoUtils.matches;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 
 @RunWith(AndroidJUnit4.class)
@@ -120,6 +131,7 @@ public class MainActivityTest {
     private BucketList bucketList = BucketList.getInstance();
     private UserParameters userParameters;
     private UserNameProvider userNameProvider;
+    private TimeProvider timeProvider;
 
     @Rule
     public ActivityTestRule<MainActivity> mActivityRule =
@@ -137,8 +149,10 @@ public class MainActivityTest {
                             databaseWorker, historyWorker, mainThreadExecutor, computationThreadsExecutor);
                     topList = new TopList(context, databaseWorker, historyWorker);
                     userNameProvider = new UserNameProvider(context);
+                    timeProvider = new TestingTimeProvider();
                     return Arrays.asList(databaseWorker, historyWorker, userParametersWorker,
-                            foodstuffsList, databaseHolder, userNameProvider);
+                            foodstuffsList, databaseHolder, userNameProvider,
+                            timeProvider);
                 })
                 .withActivityScoped((injectionTarget) -> {
                     if (!(injectionTarget instanceof MainActivity)) {
@@ -152,6 +166,10 @@ public class MainActivityTest {
                     return Collections.singletonList(controller);
                 })
                 .withFragmentScoped((injectionTarget -> {
+                    if (injectionTarget instanceof NewMeasurementsDialog) {
+                        return Collections.emptyList();
+                    }
+
                     BaseFragment fragment = (BaseFragment) injectionTarget;
                     FragmentCallbacks fragmentCallbacks = fragment.getFragmentCallbacks();
                     RxFragmentSubscriptions subscriptions = new RxFragmentSubscriptions(fragmentCallbacks);
@@ -164,12 +182,14 @@ public class MainActivityTest {
 
                     } else if (fragment instanceof ProfileFragment) {
                         ProfileController profileController = new ProfileController(
-                                fragment, fragmentCallbacks, userParametersWorker, subscriptions, userNameProvider);
+                                fragment, fragmentCallbacks, userParametersWorker, subscriptions,
+                                userNameProvider,
+                                timeProvider);
                         return Arrays.asList(subscriptions, profileController);
                     } else if (fragment instanceof HistoryFragment) {
                         HistoryController historyController = new HistoryController(
                                 activity, fragment, fragmentCallbacks, historyWorker,
-                                userParametersWorker, subscriptions, foodstuffsList);
+                                userParametersWorker, subscriptions, timeProvider);
                         return Arrays.asList(subscriptions, historyController);
                     } else {
                         throw new IllegalStateException("There is no such fragment class");
@@ -217,7 +237,7 @@ public class MainActivityTest {
 
         // сохраняем userParameters в БД
         userParameters = new UserParameters(45, Gender.FEMALE, new LocalDate(1993, 9, 27),
-                158, 48, Lifestyle.PASSIVE_LIFESTYLE, Formula.HARRIS_BENEDICT, TimeUtils.currentMillis());
+                158, 48, Lifestyle.PASSIVE_LIFESTYLE, Formula.HARRIS_BENEDICT, timeProvider.nowUtc().getMillis());
         userParametersWorker.saveUserParameters(userParameters);
 
         FullName fullName = new FullName("Yulia", "Zhilyaeva");
@@ -470,9 +490,66 @@ public class MainActivityTest {
         // открываем карточку
         onView(withId(R.id.set_current_weight)).perform(click());
         // проверяем сегодняшнюю дату
-        DateTime todaysDate = DateTime.now(DateTimeZone.UTC);
+        DateTime todaysDate = timeProvider.nowUtc();
         String dateMustBe = todaysDate.toString(mActivityRule.getActivity().getString(R.string.date_format));
         onView(withId(R.id.new_measurement_header)).check(matches(withText(containsString(dateMustBe))));
+    }
+
+    @Test
+    public void canChangeMeasurementsPeriodsInProfileChart() {
+        // Clear DB again (remove existing user parameters added in setUp).
+        databaseHolder.getDatabase().clearAllTables();
+        mainThreadExecutor.execute(() -> {
+            bucketList.clear();
+        });
+        
+        // Add 5 measurements to each month for last 2 years
+        // Note that measurement time is NOW minus 1 minute - this is to avoid clashes
+        // with time periods starts/ends. 
+        DateTime measurementTime = timeProvider.now().minusMinutes(1);
+        for (int monthIndex = 24; monthIndex >= 1; --monthIndex) {
+            for (int measurementIndex = 0; measurementIndex < 5; ++measurementIndex) {
+                UserParameters userParameters = new UserParameters(
+                        65, Gender.MALE, new LocalDate(1993, 7, 20), 165, 65+monthIndex+measurementIndex,
+                        Lifestyle.PROFESSIONAL_SPORTS, Formula.MIFFLIN_JEOR, measurementTime.getMillis());
+                userParametersWorker.saveUserParameters(userParameters);
+            }
+            measurementTime = measurementTime.minusMonths(1);
+        }
+        mActivityRule.launchActivity(null);
+        onView(allOf(withText(R.string.profile), withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)))
+                .perform(click());
+
+        // Check that there're 120 dots when all the time is open
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        instrumentation.runOnMainSync(() -> {
+            LineChart chart = mActivityRule.getActivity().findViewById(R.id.chart);
+            Assert.assertEquals(120, chart.getLineData().getDataSetByIndex(0).getEntryCount());
+        });
+
+        // Check that there're 60 dots when year view is open
+        onView(withId(R.id.measurements_period_spinner)).perform(click());
+        onView(withText(R.string.user_measurements_period_array_year)).perform(click());
+        instrumentation.runOnMainSync(() -> {
+            LineChart chart = mActivityRule.getActivity().findViewById(R.id.chart);
+            Assert.assertEquals(60, chart.getLineData().getDataSetByIndex(0).getEntryCount());
+        });
+
+        // Check that there're 30 dots when 6 months view is open
+        onView(withId(R.id.measurements_period_spinner)).perform(click());
+        onView(withText(R.string.user_measurements_period_array_6_months)).perform(click());
+        instrumentation.runOnMainSync(() -> {
+            LineChart chart = mActivityRule.getActivity().findViewById(R.id.chart);
+            Assert.assertEquals(30, chart.getLineData().getDataSetByIndex(0).getEntryCount());
+        });
+
+        // Check that there're 5 dots when 1 month view is open
+        onView(withId(R.id.measurements_period_spinner)).perform(click());
+        onView(withText(R.string.user_measurements_period_array_month)).perform(click());
+        instrumentation.runOnMainSync(() -> {
+            LineChart chart = mActivityRule.getActivity().findViewById(R.id.chart);
+            Assert.assertEquals(5, chart.getLineData().getDataSetByIndex(0).getEntryCount());
+        });
     }
 
     @Test
@@ -667,9 +744,65 @@ public class MainActivityTest {
         onView(withText(containsString(f2.getName()))).check(matches(isDisplayed()));
     }
 
+    public void canSwitchDateInHistoryFragment() {
+        // сохранить продукты в историю на другую дату (30 января)
+        NewHistoryEntry[] newEntries1 = new NewHistoryEntry[3];
+        DateTime jan30 = new DateTime(2019, 1, 30, 0, 0, 0);
+        newEntries1[0] = new NewHistoryEntry(foodstuffsIds.get(0), 100, jan30.toDate());
+        newEntries1[1] = new NewHistoryEntry(foodstuffsIds.get(5), 100, jan30.toDate());
+        newEntries1[2] = new NewHistoryEntry(foodstuffsIds.get(6), 100, jan30.toDate());
+        historyWorker.saveGroupOfFoodstuffsToHistory(newEntries1);
+
+        mActivityRule.launchActivity(null);
+        onView(withId(R.id.menu_item_history)).perform(click());
+
+        onView(withText(containsString(foodstuffs[0].getName()))).check(doesNotExist());
+        onView(withText(containsString(foodstuffs[5].getName()))).check(doesNotExist());
+        onView(withText(containsString(foodstuffs[6].getName()))).check(doesNotExist());
+
+        onView(withId(R.id.calendar_button)).perform(click());
+        // Change the date of the DatePicker.
+        // Don't use "withId" as at runtime Android shares the DatePicker id between several sub-elements
+        onView(withClassName(equalTo(DatePicker.class.getName())))
+                .perform(PickerActions.setDate(jan30.getYear(), jan30.getMonthOfYear(), jan30.getDayOfMonth()));
+        onView(withId(android.R.id.button1)).perform(click());
+
+        onView(withText(containsString(foodstuffs[0].getName()))).check(matches(isDisplayed()));
+        onView(withText(containsString(foodstuffs[5].getName()))).check(matches(isDisplayed()));
+        onView(withText(containsString(foodstuffs[6].getName()))).check(matches(isDisplayed()));
+    }
+
+    @Test
+    public void returnForTodayButtonWorksAndDisappearsOnToday() {
+        mActivityRule.launchActivity(null);
+        onView(withId(R.id.menu_item_history)).perform(click());
+
+        // проверяем, что на сегодняшней дате кнопки "Сегодня" нет
+        onView(withId(R.id.return_for_today_button)).check(matches(not(isDisplayed())));
+
+        // открываем другую дату и проверяем, что кнопка появилась
+        DateTime anotherDate = timeProvider.now().minusDays(10);
+        onView(withId(R.id.calendar_button)).perform(click());
+        onView(withClassName(equalTo(DatePicker.class.getName())))
+                .perform(PickerActions.setDate(
+                        anotherDate.getYear(), anotherDate.getMonthOfYear(), anotherDate.getDayOfMonth()));
+        onView(withId(android.R.id.button1)).perform(click());
+        onView(withId(R.id.return_for_today_button)).check(matches(isDisplayed()));
+
+        // нажимаем на кнопку "Сегодня" и проверяем, что она пропадает
+        onView(withId(R.id.return_for_today_button)).perform(click());
+        onView(withId(R.id.return_for_today_button)).check(matches(not(isDisplayed())));
+
+        // нажимаем на календарь и проверяем, что выбрана сегодняшняя дата
+        onView(withId(R.id.calendar_button)).perform(click());
+        DateTime now = timeProvider.now();
+        onView(withClassName(equalTo(DatePicker.class.getName()))).check(matches(matchesDate(
+                now.getYear(), now.getMonthOfYear(), now.getDayOfMonth())));
+    }
+
     private void addFoodstuffsToday() {
         NewHistoryEntry[] newEntries = new NewHistoryEntry[3];
-        DateTime today = DateTime.now();
+        DateTime today = timeProvider.now();
         newEntries[0] = new NewHistoryEntry(foodstuffsIds.get(0), 100,
                 new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 8, 0).toDate());
         newEntries[1] = new NewHistoryEntry(foodstuffsIds.get(5), 100,
@@ -696,5 +829,21 @@ public class MainActivityTest {
             topFoodstuffs.addAll(foodstuffs);
         });
         return topFoodstuffs;
+    }
+
+    // https://stackoverflow.com/a/44840330
+    public static Matcher<View> matchesDate(final int year, final int month, final int day) {
+        return new BoundedMatcher<View, DatePicker>(DatePicker.class) {
+
+            @Override
+            public void describeTo(Description description) {
+                description.appendText("matches date:");
+            }
+
+            @Override
+            protected boolean matchesSafely(DatePicker item) {
+                return (year == item.getYear() && month == item.getMonth() + 1 && day == item.getDayOfMonth());
+            }
+        };
     }
 }

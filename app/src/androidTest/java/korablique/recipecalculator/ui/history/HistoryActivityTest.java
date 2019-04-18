@@ -4,8 +4,6 @@ import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.junit.After;
 import org.junit.Before;
@@ -25,6 +23,7 @@ import androidx.test.runner.AndroidJUnit4;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
+import korablique.recipecalculator.base.TimeProvider;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
@@ -40,12 +39,11 @@ import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.Card;
-import korablique.recipecalculator.ui.DecimalUtils;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.InstantComputationsThreadsExecutor;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.SyncMainThreadExecutor;
-import korablique.recipecalculator.util.TimeUtils;
+import korablique.recipecalculator.util.TestingTimeProvider;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
@@ -74,6 +72,7 @@ public class HistoryActivityTest {
     private HistoryWorker historyWorker;
     private UserParametersWorker userParametersWorker;
     private FoodstuffsList foodstuffsList;
+    private TimeProvider timeProvider;
 
     @Rule
     public ActivityTestRule<HistoryActivity> mActivityRule =
@@ -89,8 +88,9 @@ public class HistoryActivityTest {
                         databaseHolder, new SyncMainThreadExecutor(), databaseThreadExecutor);
                 foodstuffsList = new FoodstuffsList(databaseWorker, historyWorker, mainThreadExecutor,
                         new InstantComputationsThreadsExecutor());
+                timeProvider = new TestingTimeProvider();
                 return Arrays.asList(mainThreadExecutor, databaseHolder, databaseWorker,
-                        historyWorker, userParametersWorker, foodstuffsList);
+                        historyWorker, userParametersWorker, foodstuffsList, timeProvider);
             })
             .withActivityScoped(target -> {
                 BaseActivity activity = (BaseActivity) target;
@@ -113,7 +113,7 @@ public class HistoryActivityTest {
         Lifestyle lifestyle = Lifestyle.PASSIVE_LIFESTYLE;
         Formula formula = Formula.HARRIS_BENEDICT;
         UserParameters userParameters = new UserParameters(targetWeight, gender, dateOfBirth,
-                height, weight, lifestyle, formula, TimeUtils.currentMillis());
+                height, weight, lifestyle, formula, timeProvider.nowUtc().getMillis());
         userParametersWorker.saveUserParameters(userParameters);
     }
 

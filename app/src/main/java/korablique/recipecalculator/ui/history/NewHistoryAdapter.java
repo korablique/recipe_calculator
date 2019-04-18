@@ -140,6 +140,11 @@ public class NewHistoryAdapter extends RecyclerView.Adapter<MyViewHolder> {
         return -1;
     }
 
+    public void clear() {
+        historyEntries.clear();
+        notifyDataSetChanged();
+    }
+
     public void setOnItemClickObserver(@Nullable Observer observer) {
         onItemClickObserver = observer;
     }

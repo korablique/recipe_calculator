@@ -1,4 +1,4 @@
-package korablique.recipecalculator.ui.usergoal;
+package korablique.recipecalculator.ui;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
@@ -9,17 +9,17 @@ import org.joda.time.LocalDate;
 
 import java.util.Calendar;
 
+import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentManager;
 
 public class DatePickerFragment extends DialogFragment implements DatePickerDialog.OnDateSetListener {
-    public static final String DATE_PICKER_FRAGMENT_TAG = "DATE_PICKER";
-    public static final String DATE_OF_BIRTH = "DATE_OF_BIRTH";
+    private static final String DATE_PICKER_FRAGMENT_TAG = "DATE_PICKER";
+    public static final String DATE = "DATE";
     public interface DateSetListener {
         void onDateSet(LocalDate date);
-
     }
-
+    @Nullable
     private DateSetListener onDateSetListener;
 
     @Override
@@ -28,8 +28,8 @@ public class DatePickerFragment extends DialogFragment implements DatePickerDial
         int day, month, year;
 
         Bundle args = getArguments();
-        if (args != null && args.containsKey(DATE_OF_BIRTH)) {
-            long dateLong = args.getLong(DATE_OF_BIRTH);
+        if (args != null && args.containsKey(DATE)) {
+            long dateLong = args.getLong(DATE);
             LocalDate date = new LocalDate(dateLong);
             day = date.getDayOfMonth();
             month = date.getMonthOfYear() - 1;
@@ -48,7 +48,9 @@ public class DatePickerFragment extends DialogFragment implements DatePickerDial
     @Override
     public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
         LocalDate simpleDate = new LocalDate(year, month + 1, dayOfMonth);
-        onDateSetListener.onDateSet(simpleDate);
+        if (onDateSetListener != null) {
+            onDateSetListener.onDateSet(simpleDate);
+        }
     }
 
     public void setOnDateSetListener(DateSetListener listener) {
@@ -65,7 +67,7 @@ public class DatePickerFragment extends DialogFragment implements DatePickerDial
         DatePickerFragment datePickerFragment = new DatePickerFragment();
         Bundle bundle = new Bundle();
         long dateLong = date.toDate().getTime();
-        bundle.putLong(DATE_OF_BIRTH, dateLong);
+        bundle.putLong(DATE, dateLong);
         datePickerFragment.setArguments(bundle);
         datePickerFragment.show(fragmentManager, DATE_PICKER_FRAGMENT_TAG);
         return datePickerFragment;

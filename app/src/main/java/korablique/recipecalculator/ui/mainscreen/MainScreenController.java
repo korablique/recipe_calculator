@@ -101,7 +101,7 @@ public class MainScreenController extends FragmentCallbacks.Observer {
     }
 
     @Override
-    public void onFragmentViewCreated(View fragmentView) {
+    public void onFragmentViewCreated(View fragmentView, Bundle savedInstanceState) {
         snackbar = new SelectedFoodstuffsSnackbar(fragmentView);
         searchView = fragmentView.findViewById(R.id.floating_search_view);
 

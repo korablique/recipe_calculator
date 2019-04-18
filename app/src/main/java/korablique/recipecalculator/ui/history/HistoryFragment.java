@@ -29,6 +29,11 @@ public class HistoryFragment extends BaseFragment {
     }
 
     public static void show(FragmentManager fragmentManager) {
+        // чтобы не пересоздавать фрагмент, который уже показан прямо сейчас
+        // и чтобы сохранялся его стейт (потому что при пересоздании фрагмента стейт потеряется)
+        if (fragmentManager.findFragmentById(R.id.main_container) instanceof HistoryFragment) {
+            return;
+        }
         Fragment historyFragment = new HistoryFragment();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.main_container, historyFragment);
