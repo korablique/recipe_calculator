@@ -20,20 +20,27 @@ import androidx.test.rule.ActivityTestRule;
 import androidx.test.runner.AndroidJUnit4;
 import io.reactivex.Single;
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.base.BaseActivity;
+import korablique.recipecalculator.base.BaseFragment;
+import korablique.recipecalculator.base.FragmentCallbacks;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
+import korablique.recipecalculator.base.RxFragmentSubscriptions;
 import korablique.recipecalculator.base.TimeProvider;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
-import korablique.recipecalculator.database.room.DatabaseHolder;
 import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
+import korablique.recipecalculator.database.room.DatabaseHolder;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.WeightedFoodstuff;
-import korablique.recipecalculator.ui.history.HistoryActivity;
+import korablique.recipecalculator.ui.history.HistoryController;
+import korablique.recipecalculator.ui.history.HistoryFragment;
+import korablique.recipecalculator.ui.mainscreen.MainActivity;
+import korablique.recipecalculator.ui.mainscreen.MainActivityController;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.InstantComputationsThreadsExecutor;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
@@ -67,6 +74,7 @@ public class BucketListActivityTest {
     private UserParametersWorker userParametersWorker;
     private FoodstuffsList foodstuffsList;
     private UserNameProvider userNameProvider;
+    private HistoryController historyController;
     private TimeProvider timeProvider;
 
     @Rule
@@ -84,8 +92,8 @@ public class BucketListActivityTest {
                                 databaseHolder, mainThreadExecutor, databaseThreadExecutor);
                         userParametersWorker = new UserParametersWorker(
                                 databaseHolder, mainThreadExecutor, databaseThreadExecutor);
-                        foodstuffsList = new FoodstuffsList(
-                                databaseWorker, mainThreadExecutor, new InstantComputationsThreadsExecutor());
+                        foodstuffsList = new FoodstuffsList(databaseWorker, historyWorker,
+                                mainThreadExecutor, new InstantComputationsThreadsExecutor());
                         userNameProvider = new UserNameProvider(context);
                         timeProvider = new TestingTimeProvider();
                         return Arrays.asList(mainThreadExecutor, databaseThreadExecutor, databaseWorker,
@@ -93,9 +101,25 @@ public class BucketListActivityTest {
                                 timeProvider);
                     })
                     .withActivityScoped((target) -> {
-                        BaseActivity activity = (BaseActivity) target;
-                        return Collections.singletonList(
-                                new RxActivitySubscriptions(activity.getActivityCallbacks()));
+                        MainActivity activity = (MainActivity) target;
+                        ActivityCallbacks activityCallbacks = new ActivityCallbacks();
+                        RxActivitySubscriptions subscriptions = new RxActivitySubscriptions(activityCallbacks);
+                        MainActivityController controller = new MainActivityController(activity,
+                                activityCallbacks, userParametersWorker, subscriptions);
+                        return Arrays.asList(new RxActivitySubscriptions(activity.getActivityCallbacks()),
+                                controller);
+                    })
+                    .withFragmentScoped(target -> {
+                        BaseFragment fragment = (BaseFragment) target;
+                        FragmentCallbacks fragmentCallbacks = new FragmentCallbacks();
+                        RxFragmentSubscriptions subscriptions = new RxFragmentSubscriptions(fragmentCallbacks);
+                        if (fragment instanceof HistoryFragment) {
+                            historyController = new HistoryController((BaseActivity) fragment.getActivity(),
+                                    fragment, fragmentCallbacks, historyWorker, userParametersWorker,
+                                    subscriptions, timeProvider);
+                            return Arrays.asList(subscriptions, historyController);
+                        }
+                        return Collections.emptyList();
                     })
                     .build();
 
@@ -122,10 +146,22 @@ public class BucketListActivityTest {
 
     @Test
     public void addsFoodstuffsToHistory() {
-        ArrayList<WeightedFoodstuff> foodstuffs = new ArrayList<>();
-        foodstuffs.add(Foodstuff.withName("apple").withNutrition(1, 2, 3, 4).withWeight(123));
-        foodstuffs.add(Foodstuff.withName("water").withNutrition(1, 2, 3, 4).withWeight(123));
-        foodstuffs.add(Foodstuff.withName("beer").withNutrition(1, 2, 3, 4).withWeight(123));
+        // сохраняем в БД фудстаффы, которые будем потом добавлять в историю
+        Foodstuff f1 = Foodstuff.withName("carrot").withNutrition(1.3, 0.1, 6.9, 32);
+        Foodstuff f2 = Foodstuff.withName("oil").withNutrition(0, 99.9, 0, 899);
+        List<Long> addingFoodstuffsIds = new ArrayList<>();
+        databaseWorker.saveGroupOfFoodstuffs(
+                new Foodstuff[]{f1, f2},
+                addingFoodstuffsIds::addAll);
+        List<WeightedFoodstuff> foodstuffs = new ArrayList<>();
+        foodstuffs.add(Foodstuff.withId(addingFoodstuffsIds.get(0))
+                .withName(f1.getName())
+                .withNutrition(f1.getProtein(), f1.getFats(), f1.getCarbs(), f1.getCalories())
+                .withWeight(310));
+        foodstuffs.add(Foodstuff.withId(addingFoodstuffsIds.get(1))
+                .withName(f2.getName())
+                .withNutrition(f2.getProtein(), f2.getFats(), f2.getCarbs(), f2.getCalories())
+                .withWeight(13));
 
         Intent startIntent =
                 BucketListActivity.createStartIntentFor(foodstuffs, InstrumentationRegistry.getTargetContext());
@@ -134,7 +170,7 @@ public class BucketListActivityTest {
         onView(withId(R.id.save_to_history_button)).perform(click());
 
         Intent expectedIntent =
-                HistoryActivity.createStartAndAddIntent(foodstuffs, activityRule.getActivity());
+                MainActivity.createAddToHistoryIntent(activityRule.getActivity(), foodstuffs);
         intended(allOf(
                 hasAction(expectedIntent.getAction()),
                 hasComponent(expectedIntent.getComponent()),

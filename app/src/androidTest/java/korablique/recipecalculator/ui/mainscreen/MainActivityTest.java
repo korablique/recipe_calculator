@@ -145,8 +145,8 @@ public class MainActivityTest {
                             databaseHolder, mainThreadExecutor, databaseThreadExecutor);
                     userParametersWorker = new UserParametersWorker(
                             databaseHolder, mainThreadExecutor, databaseThreadExecutor);
-                    foodstuffsList =
-                            new FoodstuffsList(databaseWorker, mainThreadExecutor, computationThreadsExecutor);
+                    foodstuffsList = new FoodstuffsList(
+                            databaseWorker, historyWorker, mainThreadExecutor, computationThreadsExecutor);
                     topList = new TopList(context, databaseWorker, historyWorker);
                     userNameProvider = new UserNameProvider(context);
                     timeProvider = new TestingTimeProvider();
@@ -188,7 +188,7 @@ public class MainActivityTest {
                         return Arrays.asList(subscriptions, profileController);
                     } else if (fragment instanceof HistoryFragment) {
                         HistoryController historyController = new HistoryController(
-                                activity, fragmentCallbacks, historyWorker,
+                                activity, fragment, fragmentCallbacks, historyWorker,
                                 userParametersWorker, subscriptions, timeProvider);
                         return Arrays.asList(subscriptions, historyController);
                     } else {
@@ -628,9 +628,8 @@ public class MainActivityTest {
         onView(withId(R.id.weight_edit_text)).perform(replaceText(String.valueOf(newWeight)));
         onView(withId(R.id.add_foodstuff_button)).perform(click());
         // проверить, что элемент отредактировался
-        onView(withText(containsString(editedFoodstuff.getName()))).perform(click());
-        onView(withId(R.id.weight_edit_text)).check(matches(withText(toDecimalString(newWeight))));
-        onView(withId(R.id.button_close)).perform(click()); // закрываем карточку, чтоб не мешала
+        onView(withText(containsString(editedFoodstuff.getName())))
+                .check(matches(withText(containsString(toDecimalString(newWeight)))));
         // проверить заголовок с БЖУ
         Nutrition totalNutrition = Nutrition.of(editedFoodstuff.withWeight(newWeight))
                 .plus(Nutrition.of(foodstuffs[5].withWeight(100)))
@@ -646,9 +645,8 @@ public class MainActivityTest {
         // перезапустить активити и убедиться, что элемент изменён
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
         instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
-        onView(withText(containsString(editedFoodstuff.getName()))).perform(click());
-        onView(withId(R.id.weight_edit_text)).check(matches(withText(toDecimalString(newWeight))));
-        onView(withId(R.id.button_close)).perform(click());
+        onView(withText(containsString(editedFoodstuff.getName())))
+                .check(matches(withText(containsString(toDecimalString(newWeight)))));
         // ещё раз проверить заголовок
         onView(allOf(withParent(withId(R.id.protein_layout)), withId(R.id.nutrition_text_view)))
                 .check(matches(withText(toDecimalString(totalNutrition.getProtein()))));
@@ -720,6 +718,32 @@ public class MainActivityTest {
     }
 
     @Test
+    public void addingToHistoryFromBucketListWorks() {
+        // сохраняем в БД фудстаффы, которые будем потом добавлять в историю
+        Foodstuff f1 = Foodstuff.withName("carrot").withNutrition(1.3, 0.1, 6.9, 32);
+        Foodstuff f2 = Foodstuff.withName("oil").withNutrition(0, 99.9, 0, 899);
+        List<Long> addingFoodstuffsIds = new ArrayList<>();
+        databaseWorker.saveGroupOfFoodstuffs(
+                new Foodstuff[]{f1, f2},
+                addingFoodstuffsIds::addAll);
+        List<WeightedFoodstuff> foodstuffs = new ArrayList<>();
+        foodstuffs.add(Foodstuff.withId(addingFoodstuffsIds.get(0))
+                .withName(f1.getName())
+                .withNutrition(f1.getProtein(), f1.getFats(), f1.getCarbs(), f1.getCalories())
+                .withWeight(310));
+        foodstuffs.add(Foodstuff.withId(addingFoodstuffsIds.get(1))
+                .withName(f2.getName())
+                .withNutrition(f2.getProtein(), f2.getFats(), f2.getCarbs(), f2.getCalories())
+                .withWeight(13));
+
+        Intent startIntent =
+                MainActivity.createAddToHistoryIntent(InstrumentationRegistry.getTargetContext(), foodstuffs);
+        mActivityRule.launchActivity(startIntent);
+
+        onView(withText(containsString(f1.getName()))).check(matches(isDisplayed()));
+        onView(withText(containsString(f2.getName()))).check(matches(isDisplayed()));
+    }
+
     public void canSwitchDateInHistoryFragment() {
         // сохранить продукты в историю на другую дату (30 января)
         NewHistoryEntry[] newEntries1 = new NewHistoryEntry[3];

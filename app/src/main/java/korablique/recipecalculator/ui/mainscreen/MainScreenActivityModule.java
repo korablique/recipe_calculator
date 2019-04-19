@@ -21,11 +21,11 @@ public abstract class MainScreenActivityModule {
     @ActivityScope
     @Provides
     static MainActivityController provideMainActivityController(
-            MainActivity mainActivity,
+            MainActivity activity,
             ActivityCallbacks activityCallbacks,
             UserParametersWorker userParametersWorker,
             RxActivitySubscriptions subscriptions) {
-        return new MainActivityController(mainActivity, activityCallbacks, userParametersWorker, subscriptions);
+        return new MainActivityController(activity, activityCallbacks, userParametersWorker, subscriptions);
     }
 
     @FragmentScope

@@ -79,6 +79,10 @@ public class MainScreenController extends FragmentCallbacks.Observer {
     // поисками не было состояния гонки и именно последний поиск всегда был отображен.
     // По-умолчанию Disposables.empty() чтобы не нужно было делать проверки на null.
     private Disposable lastSearchDisposable = Disposables.empty();
+    private BucketList.Observer bucketListObserver = weightedFoodstuff -> {
+        snackbar.addFoodstuff(weightedFoodstuff);
+        snackbar.show();
+    };
 
     @Inject
     MainScreenController(
@@ -105,6 +109,9 @@ public class MainScreenController extends FragmentCallbacks.Observer {
         LinearLayoutManager layoutManager = new LinearLayoutManager(context);
         recyclerView.setLayoutManager(layoutManager);
 
+        BucketList bucketList = BucketList.getInstance();
+        bucketList.addObserver(bucketListObserver);
+
         foodstuffsList.addObserver(new FoodstuffsList.Observer() {
             @Override
             public void onFoodstuffSaved(Foodstuff savedFoodstuff, int index) {
@@ -123,12 +130,11 @@ public class MainScreenController extends FragmentCallbacks.Observer {
             public void onFoodstuffDeleted(Foodstuff deleted) {
                 foodstuffAdapterChild.removeItem(deleted);
             }
-        });
 
-        BucketList bucketList = BucketList.getInstance();
-        bucketList.addObserver(weightedFoodstuff -> {
-            snackbar.addFoodstuff(weightedFoodstuff);
-            snackbar.show();
+            @Override
+            public void onFoodstuffsSavedToHistory() {
+                bucketList.clear();
+            }
         });
 
         snackbar.setOnBasketClickRunnable(() -> {
@@ -166,6 +172,12 @@ public class MainScreenController extends FragmentCallbacks.Observer {
                 configureSearch();
             });
         });
+    }
+
+    @Override
+    public void onFragmentDestroy() {
+        BucketList bucketList = BucketList.getInstance();
+        bucketList.removeObserver(bucketListObserver);
     }
 
     private void fillAllFoodstuffsList(List<Foodstuff> batch) {

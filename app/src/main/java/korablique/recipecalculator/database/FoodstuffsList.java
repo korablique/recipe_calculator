@@ -12,6 +12,7 @@ import korablique.recipecalculator.base.Callback;
 import korablique.recipecalculator.base.executors.ComputationThreadsExecutor;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.util.FuzzySearcher;
 
@@ -21,6 +22,7 @@ public class FoodstuffsList {
         void onFoodstuffSaved(Foodstuff savedFoodstuff, int index);
         void onFoodstuffEdited(Foodstuff edited);
         void onFoodstuffDeleted(Foodstuff deleted);
+        void onFoodstuffsSavedToHistory();
     }
     public interface SaveFoodstuffCallback {
         void onResult(long id);
@@ -29,6 +31,7 @@ public class FoodstuffsList {
     public final static int BATCH_SIZE = 100;
     private List<Foodstuff> all = new ArrayList<>();
     private final DatabaseWorker databaseWorker;
+    private final HistoryWorker historyWorker;
     private final MainThreadExecutor mainThreadExecutor;
     private final ComputationThreadsExecutor computationThreadsExecutor;
     private boolean allLoaded;
@@ -40,9 +43,11 @@ public class FoodstuffsList {
     @Inject
     public FoodstuffsList(
             DatabaseWorker databaseWorker,
+            HistoryWorker historyWorker,
             MainThreadExecutor mainThreadExecutor,
             ComputationThreadsExecutor computationThreadsExecutor) {
         this.databaseWorker = databaseWorker;
+        this.historyWorker = historyWorker;
         this.mainThreadExecutor = mainThreadExecutor;
         this.computationThreadsExecutor = computationThreadsExecutor;
     }

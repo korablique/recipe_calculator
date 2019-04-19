@@ -53,6 +53,11 @@ public class BucketList {
         observers.add(o);
     }
 
+    public void removeObserver(Observer o) {
+        checkCurrentThread();
+        observers.remove(o);
+    }
+
     private void checkCurrentThread() {
         if (Thread.currentThread().getId() != Looper.getMainLooper().getThread().getId()) {
             throw new WrongThreadException("Can't invoke BucketList's methods from not UI thread");
