@@ -82,7 +82,7 @@
         <Button
             android:id="@+id/set_current_weight"
             android:layout_width="match_parent"
-            android:layout_height="36dp"
+            android:layout_height="wrap_content"
             style="@style/VioletButton"
             android:text="@string/set_current_weight"
             android:layout_marginStart="10dp"
@@ -150,7 +150,7 @@
             android:paddingTop="8dp"
             android:paddingBottom="8dp"
             android:paddingStart="16dp"
-            android:paddingEnd="8dp"
+            android:paddingEnd="16dp"
             android:background="#FFFFFF"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
