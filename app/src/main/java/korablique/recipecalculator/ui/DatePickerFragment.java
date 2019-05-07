@@ -16,6 +16,7 @@ import androidx.fragment.app.FragmentManager;
 public class DatePickerFragment extends DialogFragment implements DatePickerDialog.OnDateSetListener {
     private static final String DATE_PICKER_FRAGMENT_TAG = "DATE_PICKER";
     public static final String DATE = "DATE";
+
     public interface DateSetListener {
         void onDateSet(LocalDate date);
     }
@@ -71,5 +72,9 @@ public class DatePickerFragment extends DialogFragment implements DatePickerDial
         datePickerFragment.setArguments(bundle);
         datePickerFragment.show(fragmentManager, DATE_PICKER_FRAGMENT_TAG);
         return datePickerFragment;
+    }
+
+    public static DatePickerFragment findFragment(FragmentManager fragmentManager) {
+        return (DatePickerFragment) fragmentManager.findFragmentByTag(DATE_PICKER_FRAGMENT_TAG);
     }
 }

@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.util.Pair;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -98,12 +99,36 @@ public class HistoryController extends FragmentCallbacks.Observer {
             Single<Optional<UserParameters>> currentUserParamsSingle = userParametersWorker.requestCurrentUserParameters();
             subscriptions.subscribe(currentUserParamsSingle, new Consumer<Optional<UserParameters>>() {
                 @Override
-                public void accept(Optional<UserParameters> userParametersOptional) throws Exception {
+                public void accept(Optional<UserParameters> userParametersOptional) {
                     UserParameters currentUserParams = userParametersOptional.get();
                     Rates rates = RateCalculator.calculate(currentUserParams);
                     nutritionProgressWrapper.setProgresses(updatedNutrition, rates);
                     nutritionValuesWrapper.setNutrition(updatedNutrition, rates);
                 }
+            });
+        }
+    };
+    private DatePickerFragment.DateSetListener dateSetListener = new DatePickerFragment.DateSetListener() {
+        @Override
+        public void onDateSet(LocalDate date) {
+            selectedDate = date;
+            setDateInToolbar(selectedDate, fragment.getView());
+            // загрузить историю за выбранный день
+            DateTime from = new DateTime(date.getYear(), date.getMonthOfYear(), date.getDayOfMonth(), 0, 0, 0);
+            DateTime to = new DateTime(date.getYear(), date.getMonthOfYear(), date.getDayOfMonth(), 23, 59, 59);
+            Single<List<HistoryEntry>> historySingle =
+                    historyWorker.requestHistoryForPeriod(from.getMillis(), to.getMillis()).toList();
+            Single<Optional<UserParameters>> currentUserParamsSingle = userParametersWorker.requestCurrentUserParameters();
+            Single<Pair<List<HistoryEntry>, Optional<UserParameters>>> historyWithUserParamsSingle =
+                    historySingle.zipWith(currentUserParamsSingle, Pair::create);
+            subscriptions.subscribe(historyWithUserParamsSingle, historyAndUserParamsPair -> {
+                List<HistoryEntry> historyEntries = historyAndUserParamsPair.first;
+                UserParameters currentUserParams = historyAndUserParamsPair.second.get();
+
+                adapter.clear();
+                adapter.addItems(historyEntries);
+                updateWrappers(historyEntries, currentUserParams);
+                updateReturnButtonVisibility(fragment.getView());
             });
         }
     };
@@ -155,11 +180,20 @@ public class HistoryController extends FragmentCallbacks.Observer {
         DateTime todayEnd = new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 23, 59, 59);
         if (selectedDate == null) {
             fillHistory(todayMidnight, todayEnd);
+            setDateInToolbar(today.toLocalDate(), fragmentView);
         } else {
             fillHistory(selectedDate.toDateTimeAtStartOfDay(), new DateTime(
                     selectedDate.getYear(), selectedDate.getMonthOfYear(), selectedDate.getDayOfMonth(), 23, 59, 59));
+            setDateInToolbar(selectedDate, fragmentView);
         }
         initCalendarButton(fragmentView);
+
+        // если DatePicker уже существует (открыт) - подписываемся на него,
+        // т к вообще подписка происходит в onClickListener'е кнопки календаря
+        DatePickerFragment existedDatePicker = DatePickerFragment.findFragment(context.getSupportFragmentManager());
+        if (existedDatePicker != null) {
+            existedDatePicker.setOnDateSetListener(dateSetListener);
+        }
 
         initReturnButton(fragmentView);
     }
@@ -185,36 +219,59 @@ public class HistoryController extends FragmentCallbacks.Observer {
             } else {
                 datePickerFragment = DatePickerFragment.showDialog(context.getSupportFragmentManager());
             }
-            datePickerFragment.setOnDateSetListener(date -> {
-                selectedDate = date;
-                // загрузить историю за выбранный день
-                DateTime from = new DateTime(date.getYear(), date.getMonthOfYear(), date.getDayOfMonth(), 0, 0, 0);
-                DateTime to = new DateTime(date.getYear(), date.getMonthOfYear(), date.getDayOfMonth(), 23, 59, 59);
-                Single<List<HistoryEntry>> historySingle =
-                        historyWorker.requestHistoryForPeriod(from.getMillis(), to.getMillis()).toList();
-                Single<Optional<UserParameters>> currentUserParamsSingle = userParametersWorker.requestCurrentUserParameters();
-                Single<Pair<List<HistoryEntry>, Optional<UserParameters>>> historyWithUserParamsSingle =
-                        historySingle.zipWith(currentUserParamsSingle, Pair::create);
-                subscriptions.subscribe(historyWithUserParamsSingle, historyAndUserParamsPair -> {
-                    List<HistoryEntry> historyEntries = historyAndUserParamsPair.first;
-                    UserParameters currentUserParams = historyAndUserParamsPair.second.get();
-
-                    adapter.clear();
-                    adapter.addItems(historyEntries);
-                    updateWrappers(historyEntries, currentUserParams);
-                    updateReturnButtonVisibility(fragmentView);
-                });
-            });
+            datePickerFragment.setOnDateSetListener(dateSetListener);
         });
     }
 
+    private void setDateInToolbar(LocalDate date, View fragmentView) {
+        String dateString = date.toString("dd.MM.yy");
+
+        LocalDate today = timeProvider.now().toLocalDate();
+        if (date.getDayOfMonth() == today.getDayOfMonth()
+                && date.getMonthOfYear() == today.getMonthOfYear()
+                && date.getYear() == today.getYear()) {
+            dateString = context.getString(R.string.today);
+        }
+
+        LocalDate tomorrow = today.plusDays(1);
+        if (date.getDayOfMonth() == tomorrow.getDayOfMonth()
+                && date.getMonthOfYear() == tomorrow.getMonthOfYear()
+                && date.getYear() == tomorrow.getYear()) {
+            dateString = context.getString(R.string.tomorrow);
+        }
+
+        LocalDate dayAfterTomorrow = today.plusDays(2);
+        if (date.getDayOfMonth() == dayAfterTomorrow.getDayOfMonth()
+                && date.getMonthOfYear() == dayAfterTomorrow.getMonthOfYear()
+                && date.getYear() == dayAfterTomorrow.getYear()) {
+            dateString = context.getString(R.string.day_after_tomorrow);
+        }
+
+        LocalDate yesterday = today.minusDays(1);
+        if (date.getDayOfMonth() == yesterday.getDayOfMonth()
+                && date.getMonthOfYear() == yesterday.getMonthOfYear()
+                && date.getYear() == yesterday.getYear()) {
+            dateString = context.getString(R.string.yesterday);
+        }
+
+        LocalDate dayBeforeYesterday = today.minusDays(2);
+        if (date.getDayOfMonth() == dayBeforeYesterday.getDayOfMonth()
+                && date.getMonthOfYear() == dayBeforeYesterday.getMonthOfYear()
+                && date.getYear() == dayBeforeYesterday.getYear()) {
+            dateString = context.getString(R.string.day_before_yesterday);
+        }
+
+        TextView dateTextView = fragmentView.findViewById(R.id.title_text);
+        dateTextView.setText(dateString);
+    }
+
     private void fillHistory(DateTime periodStart, DateTime periodEnd) {
-        Observable<HistoryEntry> todaysHistoryObservable = historyWorker.requestHistoryForPeriod(
+        Observable<HistoryEntry> historyObservable = historyWorker.requestHistoryForPeriod(
                 periodStart.getMillis(),
                 periodEnd.getMillis());
         Single<Optional<UserParameters>> currentUserParamsSingle = userParametersWorker.requestCurrentUserParameters();
         Single<Pair<Optional<UserParameters>, List<HistoryEntry>>> currentUserParamsWithTodaysHistorySingle =
-                currentUserParamsSingle.zipWith(todaysHistoryObservable.toList(), Pair::create);
+                currentUserParamsSingle.zipWith(historyObservable.toList(), Pair::create);
         subscriptions.subscribe(currentUserParamsWithTodaysHistorySingle, new Consumer<Pair<Optional<UserParameters>, List<HistoryEntry>>>() {
             @Override
             public void accept(Pair<Optional<UserParameters>, List<HistoryEntry>> currentUserParamsWithTodaysHistory) {
@@ -337,6 +394,7 @@ public class HistoryController extends FragmentCallbacks.Observer {
             DateTime to = new DateTime(now.getYear(), now.getMonthOfYear(), now.getDayOfMonth(), 23, 59, 59);
             fillHistory(from, to);
             selectedDate = now.toLocalDate();
+            setDateInToolbar(now.toLocalDate(), fragmentView);
             updateReturnButtonVisibility(fragmentView);
         });
         if (selectedDate == null || selectedDate.toDateTimeAtStartOfDay().equals(timeProvider.now().withTimeAtStartOfDay())) {
