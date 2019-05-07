@@ -4,9 +4,20 @@ import android.app.Activity;
 import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.view.View;
 import android.widget.DatePicker;
 import android.widget.ProgressBar;
+
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Lifecycle;
+import androidx.test.InstrumentationRegistry;
+import androidx.test.espresso.contrib.PickerActions;
+import androidx.test.espresso.matcher.BoundedMatcher;
+import androidx.test.espresso.matcher.ViewMatchers;
+import androidx.test.filters.LargeTest;
+import androidx.test.rule.ActivityTestRule;
+import androidx.test.runner.AndroidJUnit4;
 
 import com.github.mikephil.charting.charts.LineChart;
 
@@ -29,15 +40,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Lifecycle;
-import androidx.test.InstrumentationRegistry;
-import androidx.test.espresso.contrib.PickerActions;
-import androidx.test.espresso.matcher.BoundedMatcher;
-import androidx.test.espresso.matcher.ViewMatchers;
-import androidx.test.filters.LargeTest;
-import androidx.test.rule.ActivityTestRule;
-import androidx.test.runner.AndroidJUnit4;
 import korablique.recipecalculator.IntentConstants;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.ActivityCallbacks;
@@ -101,7 +103,6 @@ import static androidx.test.espresso.matcher.ViewMatchers.withClassName;
 import static androidx.test.espresso.matcher.ViewMatchers.withEffectiveVisibility;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withParent;
-import static androidx.test.espresso.matcher.ViewMatchers.withSpinnerText;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertContains;
 import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertNotContains;
@@ -672,16 +673,16 @@ public class MainActivityTest {
 
         // проверяем значение съеденного нутриента
         Matcher<View> proteinMatcher = allOf(withParent(withId(R.id.protein_layout)), withId(R.id.nutrition_text_view));
-        onView(proteinMatcher).check(matches(withText(String.valueOf(toDecimalString(totalNutrition.getProtein())))));
+        onView(proteinMatcher).check(matches(withText(toDecimalString(totalNutrition.getProtein()))));
 
         Matcher<View> fatsMatcher = allOf(withParent(withId(R.id.fats_layout)), withId(R.id.nutrition_text_view));
-        onView(fatsMatcher).check(matches(withText(String.valueOf(toDecimalString(totalNutrition.getFats())))));
+        onView(fatsMatcher).check(matches(withText(toDecimalString(totalNutrition.getFats()))));
 
         Matcher<View> carbsMatcher = allOf(withParent(withId(R.id.carbs_layout)), withId(R.id.nutrition_text_view));
-        onView(carbsMatcher).check(matches(withText(String.valueOf(toDecimalString(totalNutrition.getCarbs())))));
+        onView(carbsMatcher).check(matches(withText(toDecimalString(totalNutrition.getCarbs()))));
 
         Matcher<View> caloriesMatcher = allOf(withParent(withId(R.id.calories_layout)), withId(R.id.nutrition_text_view));
-        onView(caloriesMatcher).check(matches(withText(String.valueOf(toDecimalString(totalNutrition.getCalories())))));
+        onView(caloriesMatcher).check(matches(withText(toDecimalString(totalNutrition.getCalories()))));
 
         // проверяем значения норм БЖУК
         Matcher<View> proteinRateMatcher = allOf(withParent(withId(R.id.protein_layout)), withId(R.id.of_n_grams));
@@ -798,6 +799,88 @@ public class MainActivityTest {
         DateTime now = timeProvider.now();
         onView(withClassName(equalTo(DatePicker.class.getName()))).check(matches(matchesDate(
                 now.getYear(), now.getMonthOfYear(), now.getDayOfMonth())));
+    }
+
+    @Test
+    public void showsDatesInHistoryToolbar() {
+        mActivityRule.launchActivity(null);
+        onView(withId(R.id.menu_item_history)).perform(click());
+
+        // проверяем, что надпись Сегодня
+        onView(withId(R.id.title_text)).check(matches(withText(R.string.today)));
+        // выбираем вчера, проверяем
+        onView(withId(R.id.calendar_button)).perform(click());
+        DateTime today = timeProvider.now();
+        DateTime yesterday = today.minusDays(1);
+        onView(withClassName(equalTo(DatePicker.class.getName())))
+                .perform(PickerActions.setDate(
+                        yesterday.getYear(), yesterday.getMonthOfYear(), yesterday.getDayOfMonth()));
+        onView(withId(android.R.id.button1)).perform(click());
+        onView(withId(R.id.title_text)).check(matches(withText(R.string.yesterday)));
+        // выбираем позавчера
+        onView(withId(R.id.calendar_button)).perform(click());
+        DateTime dayBeforeYesterday = today.minusDays(2);
+        onView(withClassName(equalTo(DatePicker.class.getName())))
+                .perform(PickerActions.setDate(
+                        dayBeforeYesterday.getYear(), dayBeforeYesterday.getMonthOfYear(), dayBeforeYesterday.getDayOfMonth()));
+        onView(withId(android.R.id.button1)).perform(click());
+        onView(withId(R.id.title_text)).check(matches(withText(R.string.day_before_yesterday)));
+        // выбираем завтра
+        onView(withId(R.id.calendar_button)).perform(click());
+        DateTime tomorrow = today.plusDays(1);
+        onView(withClassName(equalTo(DatePicker.class.getName())))
+                .perform(PickerActions.setDate(
+                        tomorrow.getYear(), tomorrow.getMonthOfYear(), tomorrow.getDayOfMonth()));
+        onView(withId(android.R.id.button1)).perform(click());
+        onView(withId(R.id.title_text)).check(matches(withText(R.string.tomorrow)));
+        // выбираем послезавтра
+        onView(withId(R.id.calendar_button)).perform(click());
+        DateTime dayAfterTomorrow = today.plusDays(2);
+        onView(withClassName(equalTo(DatePicker.class.getName())))
+                .perform(PickerActions.setDate(
+                        dayAfterTomorrow.getYear(), dayAfterTomorrow.getMonthOfYear(), dayAfterTomorrow.getDayOfMonth()));
+        onView(withId(android.R.id.button1)).perform(click());
+        onView(withId(R.id.title_text)).check(matches(withText(R.string.day_after_tomorrow)));
+        // выбираем случайную дату (-50 дней)
+        onView(withId(R.id.calendar_button)).perform(click());
+        DateTime anyDay = today.minusDays(50);
+        onView(withClassName(equalTo(DatePicker.class.getName())))
+                .perform(PickerActions.setDate(
+                        anyDay.getYear(), anyDay.getMonthOfYear(), anyDay.getDayOfMonth()));
+        onView(withId(android.R.id.button1)).perform(click());
+        onView(withId(R.id.title_text)).check(matches(withText(anyDay.toString("dd.MM.yy"))));
+        // нажимаем на кнопку Сегодня
+        onView(withId(R.id.return_for_today_button)).perform(click());
+        onView(withId(R.id.title_text)).check(matches(withText(R.string.today)));
+    }
+
+    @Test
+    public void toolbarDateIsCorrectOnScreenRotation() {
+        mActivityRule.launchActivity(null);
+        onView(withId(R.id.menu_item_history)).perform(click());
+        // выбрать дату
+        onView(withId(R.id.calendar_button)).perform(click());
+        DateTime anyDay = timeProvider.now().minusDays(50);
+        onView(withClassName(equalTo(DatePicker.class.getName())))
+                .perform(PickerActions.setDate(
+                        anyDay.getYear(), anyDay.getMonthOfYear(), anyDay.getDayOfMonth()));
+        onView(withId(android.R.id.button1)).perform(click());
+        // повернуть экран, проверить
+        Activity activity = mActivityRule.getActivity();
+        activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        onView(withId(R.id.title_text)).check(matches(withText(anyDay.toString("dd.MM.yy"))));
+
+        // выбрать дату
+        onView(withId(R.id.calendar_button)).perform(click());
+        DateTime anyDay2 = timeProvider.now().minusDays(30);
+        onView(withClassName(equalTo(DatePicker.class.getName())))
+                .perform(PickerActions.setDate(
+                        anyDay2.getYear(), anyDay2.getMonthOfYear(), anyDay2.getDayOfMonth()));
+        // повернуть экран и нажать в календаре ОК
+        activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        onView(withId(android.R.id.button1)).perform(click());
+        // проверить, что дата правильная
+        onView(withId(R.id.title_text)).check(matches(withText(anyDay2.toString("dd.MM.yy"))));
     }
 
     private void addFoodstuffsToday() {

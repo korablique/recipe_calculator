@@ -49,6 +49,6 @@
             app:layout_anchorGravity="bottom|right|end"
             android:layout_margin="16dp"
             app:tint="@android:color/white"
-            app:backgroundTint="@color/accent" />
+            app:backgroundTint="@color/colorAccent" />
     </RelativeLayout>
 </FrameLayout>
