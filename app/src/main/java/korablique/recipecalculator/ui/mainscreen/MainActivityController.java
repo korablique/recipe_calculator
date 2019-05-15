@@ -5,6 +5,8 @@ import android.os.Bundle;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import org.joda.time.LocalDate;
+
 import java.util.List;
 
 import io.reactivex.Single;
@@ -21,6 +23,7 @@ import korablique.recipecalculator.ui.usergoal.UserParametersActivity;
 
 import static korablique.recipecalculator.ui.history.HistoryFragment.EXTRA_FOODSTUFFS_LIST;
 import static korablique.recipecalculator.ui.mainscreen.MainActivity.ACTION_ADD_FOODSTUFFS_TO_HISTORY;
+import static korablique.recipecalculator.ui.mainscreen.MainScreenFragment.SELECTED_DATE;
 
 public class MainActivityController extends ActivityCallbacks.Observer {
     private static final String BOTTOM_NAVIGATION_VIEW_SELECTED_ITEM_ID = "BOTTOM_NAVIGATION_VIEW_SELECTED_ITEM_ID";
@@ -77,7 +80,9 @@ public class MainActivityController extends ActivityCallbacks.Observer {
             // Меняем action на action-по-умолчанию, чтобы при пересоздании Активити
             // в неё повторно не были добавлены переданные сюда фудстафы.
             intent.setAction(Intent.ACTION_DEFAULT);
-            HistoryFragment.show(context.getSupportFragmentManager(), foodstuffs);
+            // если selectedDate == null - дата сегодняшняя
+            LocalDate selectedDate = (LocalDate) intent.getSerializableExtra(SELECTED_DATE);
+            HistoryFragment.show(context.getSupportFragmentManager(), selectedDate, foodstuffs);
         } else if (context.getSupportFragmentManager().findFragmentById(R.id.main_container) == null) {
             // если ни один фрагмент не показан (приложение только что запущено)
             MainScreenFragment.show(context.getSupportFragmentManager());

@@ -21,9 +21,13 @@ import javax.inject.Inject;
 import androidx.annotation.StringRes;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
+
+import org.joda.time.LocalDate;
+
 import korablique.recipecalculator.DishNutritionCalculator;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
+import korablique.recipecalculator.base.TimeProvider;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.model.WeightedFoodstuff;
@@ -36,6 +40,7 @@ import korablique.recipecalculator.util.FloatUtils;
 
 import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
 import static korablique.recipecalculator.ui.history.HistoryFragment.EXTRA_FOODSTUFFS_LIST;
+import static korablique.recipecalculator.ui.mainscreen.MainScreenFragment.SELECTED_DATE;
 
 public class BucketListActivity extends BaseActivity {
     private static final String DISPLAYED_IN_CARD_FOODSTUFF_POSITION = "DISPLAYED_IN_CARD_FOODSTUFF_POSITION";
@@ -52,6 +57,8 @@ public class BucketListActivity extends BaseActivity {
     private BucketList bucketList;
     private int displayedInCardFoodstuffPosition;
     private NewCard.OnAddFoodstuffButtonClickListener onAddFoodstuffButtonClickListener;
+    @Inject
+    TimeProvider timeProvider;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -181,7 +188,12 @@ public class BucketListActivity extends BaseActivity {
 
         saveToHistoryButton.setOnClickListener((view) -> {
             bucketList.clear();
-            MainActivity.openHistoryAndAddFoodstuffs(this, adapter.getItems());
+            Intent receivedIntent = getIntent();
+            LocalDate selectedDate = (LocalDate) receivedIntent.getSerializableExtra(SELECTED_DATE);
+            if (selectedDate == null) {
+                selectedDate = timeProvider.now().toLocalDate();
+            }
+            MainActivity.openHistoryAndAddFoodstuffs(this, adapter.getItems(), selectedDate);
             finish();
         });
 
@@ -249,9 +261,23 @@ public class BucketListActivity extends BaseActivity {
         context.startActivity(createStartIntentFor(foodstuffs, context));
     }
 
+    /**
+     * @param selectedDate the date on which to save foodstuffs to history
+     */
+    public static void start(ArrayList<WeightedFoodstuff> foodstuffs, Context context, LocalDate selectedDate) {
+        context.startActivity(createStartIntentFor(foodstuffs, context, selectedDate));
+    }
+
     public static Intent createStartIntentFor(List<WeightedFoodstuff> foodstuffs, Context context) {
         Intent intent = new Intent(context, BucketListActivity.class);
         intent.putParcelableArrayListExtra(EXTRA_FOODSTUFFS_LIST, new ArrayList<>(foodstuffs));
+        return intent;
+    }
+
+    public static Intent createStartIntentFor(List<WeightedFoodstuff> foodstuffs, Context context, LocalDate selectedDate) {
+        Intent intent = new Intent(context, BucketListActivity.class);
+        intent.putParcelableArrayListExtra(EXTRA_FOODSTUFFS_LIST, new ArrayList<>(foodstuffs));
+        intent.putExtra(SELECTED_DATE, selectedDate);
         return intent;
     }
 }

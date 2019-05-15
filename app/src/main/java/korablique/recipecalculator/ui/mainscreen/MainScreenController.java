@@ -16,6 +16,9 @@ import androidx.annotation.StringRes;
 import androidx.lifecycle.Lifecycle;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import org.joda.time.LocalDate;
+
 import io.reactivex.Single;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.disposables.Disposables;
@@ -42,6 +45,7 @@ import static korablique.recipecalculator.IntentConstants.EDIT_FOODSTUFF_REQUEST
 import static korablique.recipecalculator.IntentConstants.EDIT_RESULT;
 import static korablique.recipecalculator.IntentConstants.FIND_FOODSTUFF_REQUEST;
 import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
+import static korablique.recipecalculator.ui.mainscreen.MainScreenFragment.SELECTED_DATE;
 
 @FragmentScope
 public class MainScreenController extends FragmentCallbacks.Observer {
@@ -138,7 +142,13 @@ public class MainScreenController extends FragmentCallbacks.Observer {
         });
 
         snackbar.setOnBasketClickRunnable(() -> {
-            BucketListActivity.start(new ArrayList<>(snackbar.getSelectedFoodstuffs()), context);
+            Bundle args = fragment.getArguments();
+            if (args != null && args.containsKey(SELECTED_DATE)) {
+                LocalDate selectedDate = (LocalDate) args.getSerializable(SELECTED_DATE);
+                BucketListActivity.start(new ArrayList<>(snackbar.getSelectedFoodstuffs()), context, selectedDate);
+            } else {
+                BucketListActivity.start(new ArrayList<>(snackbar.getSelectedFoodstuffs()), context);
+            }
         });
 
         adapterParent = new AdapterParent();
@@ -167,7 +177,7 @@ public class MainScreenController extends FragmentCallbacks.Observer {
             foodstuffsList.getAllFoodstuffs(batch -> {
                 fillAllFoodstuffsList(batch);
             }, unused -> {
-                configureSuggesionsDisplaying();
+                configureSuggestionsDisplaying();
 
                 configureSearch();
             });
@@ -231,7 +241,7 @@ public class MainScreenController extends FragmentCallbacks.Observer {
         });
     }
 
-    private void configureSuggesionsDisplaying() {
+    private void configureSuggestionsDisplaying() {
         searchView.setOnQueryChangeListener((oldQuery, newQuery) -> {
             lastSearchDisposable.dispose();
             //get suggestions based on newQuery
@@ -308,6 +318,4 @@ public class MainScreenController extends FragmentCallbacks.Observer {
             dialogAction.run();
         }
     }
-
-
 }

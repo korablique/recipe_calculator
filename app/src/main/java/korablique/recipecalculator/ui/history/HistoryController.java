@@ -157,7 +157,7 @@ public class HistoryController extends FragmentCallbacks.Observer {
         restoreInstanceState(savedInstanceState);
 
         FloatingActionButton fab = fragmentView.findViewById(R.id.history_fab);
-        fab.setOnClickListener(v -> MainScreenFragment.show(context.getSupportFragmentManager()));
+        fab.setOnClickListener(v -> MainScreenFragment.show(context.getSupportFragmentManager(), selectedDate));
 
         // обёртки заголовка с БЖУК (значений и прогрессов БЖУК)
         ViewGroup nutritionHeaderParentLayout = fragmentView.findViewById(R.id.nutrition_parent_layout);
@@ -174,18 +174,21 @@ public class HistoryController extends FragmentCallbacks.Observer {
 
         initCard();
 
-        // request todays history
-        DateTime today = timeProvider.now();
-        DateTime todayMidnight = new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 0, 0, 0);
-        DateTime todayEnd = new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 23, 59, 59);
-        if (selectedDate == null) {
-            fillHistory(todayMidnight, todayEnd);
-            setDateInToolbar(today.toLocalDate(), fragmentView);
+        // request history
+        LocalDate date;
+        Bundle args = fragment.getArguments();
+        if (args != null && args.containsKey(SELECTED_DATE)) {
+            date = (LocalDate) args.getSerializable(SELECTED_DATE);
+        } else if (selectedDate != null) {
+            date = selectedDate;
         } else {
-            fillHistory(selectedDate.toDateTimeAtStartOfDay(), new DateTime(
-                    selectedDate.getYear(), selectedDate.getMonthOfYear(), selectedDate.getDayOfMonth(), 23, 59, 59));
-            setDateInToolbar(selectedDate, fragmentView);
+            date = timeProvider.now().toLocalDate();
         }
+        DateTime dateMidnight = new DateTime(date.year().get(), date.monthOfYear().get(), date.getDayOfMonth(), 0, 0, 0);
+        DateTime dateEnd = new DateTime(date.year().get(), date.monthOfYear().get(), date.getDayOfMonth(), 23, 59, 59);
+        fillHistory(dateMidnight, dateEnd);
+        setDateInToolbar(date, fragmentView);
+
         initCalendarButton(fragmentView);
 
         // если DatePicker уже существует (открыт) - подписываемся на него,
@@ -270,43 +273,44 @@ public class HistoryController extends FragmentCallbacks.Observer {
                 periodStart.getMillis(),
                 periodEnd.getMillis());
         Single<Optional<UserParameters>> currentUserParamsSingle = userParametersWorker.requestCurrentUserParameters();
-        Single<Pair<Optional<UserParameters>, List<HistoryEntry>>> currentUserParamsWithTodaysHistorySingle =
+        Single<Pair<Optional<UserParameters>, List<HistoryEntry>>> currentUserParamsWithHistorySingle =
                 currentUserParamsSingle.zipWith(historyObservable.toList(), Pair::create);
-        subscriptions.subscribe(currentUserParamsWithTodaysHistorySingle, new Consumer<Pair<Optional<UserParameters>, List<HistoryEntry>>>() {
-            @Override
-            public void accept(Pair<Optional<UserParameters>, List<HistoryEntry>> currentUserParamsWithTodaysHistory) {
-                UserParameters currentUserParams = currentUserParamsWithTodaysHistory.first.get();
-                List<HistoryEntry> todaysHistory = currentUserParamsWithTodaysHistory.second;
-                updateWrappers(todaysHistory, currentUserParams);
+        subscriptions.subscribe(currentUserParamsWithHistorySingle, currentUserParamsWithHistory -> {
+            UserParameters currentUserParams = currentUserParamsWithHistory.first.get();
+            List<HistoryEntry> history = currentUserParamsWithHistory.second;
+            updateWrappers(history, currentUserParams);
 
-                // заполнение адаптера истории
-                adapter.clear();
-                adapter.addItems(todaysHistory);
+            // заполнение адаптера истории
+            adapter.clear();
+            adapter.addItems(history);
 
-                // листенер на нажатия на элемент адаптера
-                adapter.setOnItemClickObserver(new NewHistoryAdapter.Observer() {
-                    @Override
-                    public void onItemClicked(HistoryEntry historyEntry, int displayedPosition) {
-                        CardDialog card = CardDialog.showCard(context, historyEntry.getFoodstuff());
-                        card.prohibitEditing(true);
-                        card.setUpAddFoodstuffButton(onAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
-                        card.setOnDeleteButtonClickListener(onDeleteButtonClickListener);
-                    }
-                });
-            }
+            // листенер на нажатия на элемент адаптера
+            adapter.setOnItemClickObserver((historyEntry, displayedPosition) -> {
+                CardDialog card = CardDialog.showCard(context, historyEntry.getFoodstuff());
+                card.prohibitEditing(true);
+                card.setUpAddFoodstuffButton(onAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
+                card.setOnDeleteButtonClickListener(onDeleteButtonClickListener);
+            });
         });
 
         Bundle args = fragment.getArguments();
         if (args != null && args.containsKey(EXTRA_FOODSTUFFS_LIST)) {
             // фудстаффы из бакет листа
             List<WeightedFoodstuff> foodstuffsFromBucketList = args.getParcelableArrayList(EXTRA_FOODSTUFFS_LIST);
-            NewHistoryEntry[] newHistoryEntries = newHistoryEntriesFrom(foodstuffsFromBucketList);
+            // удаляем продукты из аргументов, чтобы они не сохранились повторно
+            args.remove(EXTRA_FOODSTUFFS_LIST);
+            fragment.setArguments(args);
+
+            LocalDate date = (LocalDate) args.getSerializable(SELECTED_DATE);
+            selectedDate = date;
+            NewHistoryEntry[] newHistoryEntries = newHistoryEntriesFrom(foodstuffsFromBucketList, date);
             // сохраняем в историю
             historyWorker.saveGroupOfFoodstuffsToHistory(newHistoryEntries, historyEntriesIds -> {
                 List<HistoryEntry> historyEntries = historyEntriesFrom(
                         historyEntriesIds, foodstuffsFromBucketList, newHistoryEntries);
-                // добавляем в адаптер
+                // добавляем продукты в адаптер
                 adapter.addItems(historyEntries);
+
                 Nutrition updatedNutrition = Nutrition.zero();
                 for (HistoryEntry entry : adapter.getItems()) {
                     updatedNutrition = updatedNutrition.plus(Nutrition.of(entry.getFoodstuff()));
@@ -341,12 +345,12 @@ public class HistoryController extends FragmentCallbacks.Observer {
         return historyEntries;
     }
 
-    private NewHistoryEntry[] newHistoryEntriesFrom(List<WeightedFoodstuff> weightedFoodstuffs) {
+    private NewHistoryEntry[] newHistoryEntriesFrom(List<WeightedFoodstuff> weightedFoodstuffs, LocalDate date) {
         NewHistoryEntry[] newHistoryEntries = new NewHistoryEntry[weightedFoodstuffs.size()];
         for (int index = 0; index < weightedFoodstuffs.size(); index++) {
             WeightedFoodstuff foodstuff = weightedFoodstuffs.get(index);
             NewHistoryEntry entry = new NewHistoryEntry(
-                    foodstuff.getId(), foodstuff.getWeight(), DateTime.now().toDate());
+                    foodstuff.getId(), foodstuff.getWeight(), date.toDate());
             newHistoryEntries[index] = entry;
         }
         return newHistoryEntries;
@@ -386,6 +390,9 @@ public class HistoryController extends FragmentCallbacks.Observer {
         nutritionProgressWrapper.setProgresses(totalNutrition, rates);
     }
 
+    /**
+     * Кнопка возвращения на сегодняшний день
+     */
     private void initReturnButton(View fragmentView) {
         ExtendedFloatingActionButton returnButton = fragmentView.findViewById(R.id.return_for_today_button);
         returnButton.setOnClickListener(v -> {
