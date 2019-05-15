@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout  xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
@@ -51,7 +50,8 @@
                     android:id="@+id/row_fake_top_1"
                     android:layout_width="0dp"
                     android:layout_height="9dp"
-                    android:layout_marginTop="12dp" />
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"/>
 
                 <!--user name-->
                 <TextView
@@ -59,6 +59,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="4.5dp"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
                     style="@style/RobotoMonoHintText"
                     android:text="@string/user_name" />
 
@@ -76,7 +78,8 @@
                     android:layout_width="0dp"
                     android:layout_height="0dp"
                     android:layout_marginTop="16dp"
-                    app:layout_constraintTop_toBottomOf="@+id/first_name" />
+                    app:layout_constraintTop_toBottomOf="@+id/first_name"
+                    app:layout_constraintStart_toStartOf="parent" />
 
                 <!--surname-->
                 <TextView
@@ -134,7 +137,8 @@
                     android:layout_width="0dp"
                     android:layout_height="0dp"
                     android:layout_marginTop="16dp"
-                    app:layout_constraintTop_toBottomOf="@+id/line1" />
+                    app:layout_constraintTop_toBottomOf="@+id/line1"
+                    app:layout_constraintStart_toStartOf="parent" />
 
                 <!--date of birth-->
                 <TextView
@@ -191,7 +195,8 @@
                     android:id="@+id/row_fake_top_5"
                     android:layout_width="0dp"
                     android:layout_height="9dp"
-                    android:layout_marginTop="12dp" />
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"/>
 
                 <!--target weight-->
                 <TextView
@@ -199,6 +204,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="4.5dp"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
                     style="@style/RobotoMonoHintText"
                     android:text="@string/target_weight" />
 
@@ -216,7 +223,8 @@
                     android:layout_width="0dp"
                     android:layout_height="0dp"
                     android:layout_marginTop="16dp"
-                    app:layout_constraintTop_toBottomOf="@+id/target_weight" />
+                    app:layout_constraintTop_toBottomOf="@+id/target_weight"
+                    app:layout_constraintStart_toStartOf="parent"/>
 
                 <!--lifestyle-->
                 <TextView
@@ -288,7 +296,8 @@
                     android:id="@+id/row_fake_top_4"
                     android:layout_width="0dp"
                     android:layout_height="9dp"
-                    android:layout_marginTop="12dp" />
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent" />
 
                 <!--height-->
                 <TextView
@@ -297,6 +306,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="4.5dp"
                     app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintWidth_percent="0.5"
                     style="@style/RobotoMonoHintText"
                     android:text="@string/height" />
@@ -375,7 +385,7 @@
                 <Button
                     android:id="@+id/button_save"
                     android:layout_width="match_parent"
-                    android:layout_height="36dp"
+                    android:layout_height="wrap_content"
                     style="@style/VioletButton"
                     android:text="@string/save" />
             </FrameLayout>
