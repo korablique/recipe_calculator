@@ -1,5 +1,6 @@
 package korablique.recipecalculator.ui.mainscreen;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -7,6 +8,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import org.joda.time.LocalDate;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import io.reactivex.Single;
@@ -21,12 +23,11 @@ import korablique.recipecalculator.ui.history.HistoryFragment;
 import korablique.recipecalculator.ui.profile.ProfileFragment;
 import korablique.recipecalculator.ui.usergoal.UserParametersActivity;
 
-import static korablique.recipecalculator.ui.history.HistoryFragment.EXTRA_FOODSTUFFS_LIST;
-import static korablique.recipecalculator.ui.mainscreen.MainActivity.ACTION_ADD_FOODSTUFFS_TO_HISTORY;
-import static korablique.recipecalculator.ui.mainscreen.MainScreenFragment.SELECTED_DATE;
-
 public class MainActivityController extends ActivityCallbacks.Observer {
     private static final String BOTTOM_NAVIGATION_VIEW_SELECTED_ITEM_ID = "BOTTOM_NAVIGATION_VIEW_SELECTED_ITEM_ID";
+    private static final String ACTION_ADD_FOODSTUFFS_TO_HISTORY = "ACTION_ADD_FOODSTUFFS_TO_HISTORY";
+    private static final String EXTRA_FOODSTUFFS_LIST = "EXTRA_FOODSTUFFS_LIST";
+    private static final String EXTRA_DATE = "EXTRA_DATE";
     private MainActivity context;
     private UserParametersWorker userParametersWorker;
     private RxActivitySubscriptions subscriptions;
@@ -81,7 +82,7 @@ public class MainActivityController extends ActivityCallbacks.Observer {
             // в неё повторно не были добавлены переданные сюда фудстафы.
             intent.setAction(Intent.ACTION_DEFAULT);
             // если selectedDate == null - дата сегодняшняя
-            LocalDate selectedDate = (LocalDate) intent.getSerializableExtra(SELECTED_DATE);
+            LocalDate selectedDate = (LocalDate) intent.getSerializableExtra(EXTRA_DATE);
             HistoryFragment.show(context.getSupportFragmentManager(), selectedDate, foodstuffs);
         } else if (context.getSupportFragmentManager().findFragmentById(R.id.main_container) == null) {
             // если ни один фрагмент не показан (приложение только что запущено)
@@ -99,5 +100,13 @@ public class MainActivityController extends ActivityCallbacks.Observer {
     public void onActivityRestoreInstanceState(Bundle savedInstanceState) {
         super.onActivityRestoreInstanceState(savedInstanceState);
         bottomNavigationView.setSelectedItemId(savedInstanceState.getInt(BOTTOM_NAVIGATION_VIEW_SELECTED_ITEM_ID));
+    }
+
+    public static Intent createAndAddToHistoryIntent(Context context, List<WeightedFoodstuff> historyList, LocalDate date) {
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.putParcelableArrayListExtra(EXTRA_FOODSTUFFS_LIST, new ArrayList<>(historyList));
+        intent.putExtra(EXTRA_DATE, date);
+        intent.setAction(ACTION_ADD_FOODSTUFFS_TO_HISTORY);
+        return intent;
     }
 }

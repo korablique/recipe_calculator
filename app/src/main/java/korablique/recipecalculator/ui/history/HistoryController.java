@@ -6,6 +6,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -17,9 +25,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.functions.Consumer;
@@ -45,12 +50,11 @@ import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.card.NewCard;
 import korablique.recipecalculator.ui.mainscreen.MainScreenFragment;
 
-import static korablique.recipecalculator.ui.history.HistoryFragment.EXTRA_FOODSTUFFS_LIST;
-
 @FragmentScope
 public class HistoryController extends FragmentCallbacks.Observer {
     private static final int CARD_BUTTON_TEXT_RES = R.string.save;
     private static final String SELECTED_DATE = "SELECTED_DATE";
+    private static final String EXTRA_FOODSTUFFS_LIST = "EXTRA_FOODSTUFFS_LIST";
     private BaseActivity context;
     private BaseFragment fragment;
     private HistoryWorker historyWorker;
@@ -198,7 +202,7 @@ public class HistoryController extends FragmentCallbacks.Observer {
             existedDatePicker.setOnDateSetListener(dateSetListener);
         }
 
-        initReturnButton(fragmentView);
+        initReturnToCurrentDateButton(fragmentView);
     }
 
     public void onFragmentSaveInstanceState(Bundle outState) {
@@ -211,6 +215,18 @@ public class HistoryController extends FragmentCallbacks.Observer {
         if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_DATE)) {
             selectedDate = (LocalDate) savedInstanceState.getSerializable(SELECTED_DATE);
         }
+    }
+
+    public static void show(FragmentManager fragmentManager, @Nullable LocalDate date, List<WeightedFoodstuff> foodstuffs) {
+        Fragment historyFragment = new HistoryFragment();
+        Bundle args = new Bundle();
+        args.putParcelableArrayList(EXTRA_FOODSTUFFS_LIST, new ArrayList<>(foodstuffs));
+        args.putSerializable(SELECTED_DATE, date);
+        historyFragment.setArguments(args);
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.replace(R.id.main_container, historyFragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
     }
 
     private void initCalendarButton(View fragmentView) {
@@ -295,39 +311,43 @@ public class HistoryController extends FragmentCallbacks.Observer {
 
         Bundle args = fragment.getArguments();
         if (args != null && args.containsKey(EXTRA_FOODSTUFFS_LIST)) {
-            // фудстаффы из бакет листа
-            List<WeightedFoodstuff> foodstuffsFromBucketList = args.getParcelableArrayList(EXTRA_FOODSTUFFS_LIST);
-            // удаляем продукты из аргументов, чтобы они не сохранились повторно
-            args.remove(EXTRA_FOODSTUFFS_LIST);
-            fragment.setArguments(args);
-
-            LocalDate date = (LocalDate) args.getSerializable(SELECTED_DATE);
-            selectedDate = date;
-            NewHistoryEntry[] newHistoryEntries = newHistoryEntriesFrom(foodstuffsFromBucketList, date);
-            // сохраняем в историю
-            historyWorker.saveGroupOfFoodstuffsToHistory(newHistoryEntries, historyEntriesIds -> {
-                List<HistoryEntry> historyEntries = historyEntriesFrom(
-                        historyEntriesIds, foodstuffsFromBucketList, newHistoryEntries);
-                // добавляем продукты в адаптер
-                adapter.addItems(historyEntries);
-
-                Nutrition updatedNutrition = Nutrition.zero();
-                for (HistoryEntry entry : adapter.getItems()) {
-                    updatedNutrition = updatedNutrition.plus(Nutrition.of(entry.getFoodstuff()));
-                }
-                Single<Optional<UserParameters>> currentUserParamsSingle1 = userParametersWorker.requestCurrentUserParameters();
-                Nutrition finalUpdatedNutrition = updatedNutrition;
-                subscriptions.subscribe(currentUserParamsSingle1, new Consumer<Optional<UserParameters>>() {
-                    @Override
-                    public void accept(Optional<UserParameters> userParametersOptional) {
-                        UserParameters currentUserParams = userParametersOptional.get();
-                        Rates rates = RateCalculator.calculate(currentUserParams);
-                        nutritionProgressWrapper.setProgresses(finalUpdatedNutrition, rates);
-                        nutritionValuesWrapper.setNutrition(finalUpdatedNutrition, rates);
-                    }
-                });
-            });
+            addExtraFoodstuffsFromIntentToHistory(args);
         }
+    }
+
+    private void addExtraFoodstuffsFromIntentToHistory(Bundle args) {
+        // фудстаффы из бакет листа
+        List<WeightedFoodstuff> foodstuffsFromBucketList = args.getParcelableArrayList(EXTRA_FOODSTUFFS_LIST);
+        // удаляем продукты из аргументов, чтобы они не сохранились повторно
+        args.remove(EXTRA_FOODSTUFFS_LIST);
+        fragment.setArguments(args);
+
+        LocalDate date = (LocalDate) args.getSerializable(SELECTED_DATE);
+        selectedDate = date;
+        NewHistoryEntry[] newHistoryEntries = newHistoryEntriesFrom(foodstuffsFromBucketList, date);
+        // сохраняем в историю
+        historyWorker.saveGroupOfFoodstuffsToHistory(newHistoryEntries, historyEntriesIds -> {
+            List<HistoryEntry> historyEntries = historyEntriesFrom(
+                    historyEntriesIds, foodstuffsFromBucketList, newHistoryEntries);
+            // добавляем продукты в адаптер
+            adapter.addItems(historyEntries);
+
+            Nutrition updatedNutrition = Nutrition.zero();
+            for (HistoryEntry entry : adapter.getItems()) {
+                updatedNutrition = updatedNutrition.plus(Nutrition.of(entry.getFoodstuff()));
+            }
+            Single<Optional<UserParameters>> currentUserParamsSingle1 = userParametersWorker.requestCurrentUserParameters();
+            Nutrition finalUpdatedNutrition = updatedNutrition;
+            subscriptions.subscribe(currentUserParamsSingle1, new Consumer<Optional<UserParameters>>() {
+                @Override
+                public void accept(Optional<UserParameters> userParametersOptional) {
+                    UserParameters currentUserParams = userParametersOptional.get();
+                    Rates rates = RateCalculator.calculate(currentUserParams);
+                    nutritionProgressWrapper.setProgresses(finalUpdatedNutrition, rates);
+                    nutritionValuesWrapper.setNutrition(finalUpdatedNutrition, rates);
+                }
+            });
+        });
     }
 
     private List<HistoryEntry> historyEntriesFrom(
@@ -393,7 +413,7 @@ public class HistoryController extends FragmentCallbacks.Observer {
     /**
      * Кнопка возвращения на сегодняшний день
      */
-    private void initReturnButton(View fragmentView) {
+    private void initReturnToCurrentDateButton(View fragmentView) {
         ExtendedFloatingActionButton returnButton = fragmentView.findViewById(R.id.return_for_today_button);
         returnButton.setOnClickListener(v -> {
             DateTime now = timeProvider.now();

@@ -10,19 +10,19 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.annotation.StringRes;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.arlib.floatingsearchview.util.adapter.TextWatcherAdapter;
 import com.google.android.material.snackbar.Snackbar;
+
+import org.joda.time.LocalDate;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
-
-import androidx.annotation.StringRes;
-import androidx.recyclerview.widget.ItemTouchHelper;
-import androidx.recyclerview.widget.RecyclerView;
-
-import org.joda.time.LocalDate;
 
 import korablique.recipecalculator.DishNutritionCalculator;
 import korablique.recipecalculator.R;
@@ -39,13 +39,13 @@ import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
 import korablique.recipecalculator.util.FloatUtils;
 
 import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
-import static korablique.recipecalculator.ui.history.HistoryFragment.EXTRA_FOODSTUFFS_LIST;
-import static korablique.recipecalculator.ui.mainscreen.MainScreenFragment.SELECTED_DATE;
 
 public class BucketListActivity extends BaseActivity {
     private static final String DISPLAYED_IN_CARD_FOODSTUFF_POSITION = "DISPLAYED_IN_CARD_FOODSTUFF_POSITION";
     @StringRes
     private static final int CARD_BUTTON_TEXT_RES = R.string.save;
+    private static final String EXTRA_DATE = "EXTRA_DATE";
+    private static final String EXTRA_FOODSTUFFS_LIST = "EXTRA_FOODSTUFFS_LIST";
     private PluralProgressBar pluralProgressBar;
     private NutritionValuesWrapper nutritionValuesWrapper;
     @Inject
@@ -189,7 +189,7 @@ public class BucketListActivity extends BaseActivity {
         saveToHistoryButton.setOnClickListener((view) -> {
             bucketList.clear();
             Intent receivedIntent = getIntent();
-            LocalDate selectedDate = (LocalDate) receivedIntent.getSerializableExtra(SELECTED_DATE);
+            LocalDate selectedDate = (LocalDate) receivedIntent.getSerializableExtra(EXTRA_DATE);
             if (selectedDate == null) {
                 selectedDate = timeProvider.now().toLocalDate();
             }
@@ -274,10 +274,10 @@ public class BucketListActivity extends BaseActivity {
         return intent;
     }
 
-    public static Intent createStartIntentFor(List<WeightedFoodstuff> foodstuffs, Context context, LocalDate selectedDate) {
+    public static Intent createStartIntentFor(List<WeightedFoodstuff> foodstuffs, Context context, LocalDate date) {
         Intent intent = new Intent(context, BucketListActivity.class);
         intent.putParcelableArrayListExtra(EXTRA_FOODSTUFFS_LIST, new ArrayList<>(foodstuffs));
-        intent.putExtra(SELECTED_DATE, selectedDate);
+        intent.putExtra(EXTRA_DATE, date);
         return intent;
     }
 }

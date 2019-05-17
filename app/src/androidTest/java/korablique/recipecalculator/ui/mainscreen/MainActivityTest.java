@@ -5,7 +5,6 @@ import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
-import android.os.Bundle;
 import android.view.View;
 import android.widget.DatePicker;
 import android.widget.ProgressBar;
@@ -107,8 +106,6 @@ import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertContains;
 import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertNotContains;
 import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
-import static korablique.recipecalculator.ui.history.HistoryFragment.EXTRA_FOODSTUFFS_LIST;
-import static korablique.recipecalculator.ui.mainscreen.MainScreenFragment.SELECTED_DATE;
 import static korablique.recipecalculator.util.EspressoUtils.matches;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.Matchers.containsString;
@@ -908,9 +905,6 @@ public class MainActivityTest {
         // Проверяем, что была попытка стартовать активити по интенту от BucketListActivity
         Intent expectedIntent =
                 BucketListActivity.createStartIntentFor(addedFoodstuffs, mActivityRule.getActivity(), anyDay.toLocalDate());
-        Bundle expectedExtras = new Bundle();
-        expectedExtras.putParcelableArrayList(EXTRA_FOODSTUFFS_LIST, addedFoodstuffs);
-        expectedExtras.putSerializable(SELECTED_DATE, anyDay.toLocalDate());
         intended(allOf(
                 hasAction(expectedIntent.getAction()),
                 hasComponent(expectedIntent.getComponent()),
