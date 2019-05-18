@@ -27,6 +27,7 @@ import korablique.recipecalculator.dagger.FragmentScope;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.TopList;
+import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.KeyboardHandler;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
@@ -79,9 +80,15 @@ public class MainScreenController extends FragmentCallbacks.Observer {
     // поисками не было состояния гонки и именно последний поиск всегда был отображен.
     // По-умолчанию Disposables.empty() чтобы не нужно было делать проверки на null.
     private Disposable lastSearchDisposable = Disposables.empty();
-    private BucketList.Observer bucketListObserver = weightedFoodstuff -> {
-        snackbar.addFoodstuff(weightedFoodstuff);
-        snackbar.show();
+    private BucketList.Observer bucketListObserver = new BucketList.Observer() {
+        @Override
+        public void onFoodstuffAdded(WeightedFoodstuff weightedFoodstuff) {
+            snackbar.addFoodstuff(weightedFoodstuff);
+            snackbar.show();
+        }
+        public void onFoodstuffRemoved(WeightedFoodstuff weightedFoodstuff) {
+            snackbar.update(BucketList.getInstance().getList());
+        }
     };
 
     @Inject
@@ -111,6 +118,7 @@ public class MainScreenController extends FragmentCallbacks.Observer {
 
         BucketList bucketList = BucketList.getInstance();
         bucketList.addObserver(bucketListObserver);
+        snackbar.update(bucketList.getList());
 
         foodstuffsList.addObserver(new FoodstuffsList.Observer() {
             @Override
