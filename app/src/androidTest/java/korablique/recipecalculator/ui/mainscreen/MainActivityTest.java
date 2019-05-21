@@ -398,6 +398,8 @@ public class MainActivityTest {
 
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
         instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
+        instrumentation.waitForIdleSync();
+        onView(withId(R.id.selected_foodstuffs_counter)).check(matches(isDisplayed()));
         onView(withId(R.id.selected_foodstuffs_counter)).check(matches(withText("2")));
         Assert.assertTrue(bucketList.getList().contains(wf1));
         Assert.assertTrue(bucketList.getList().contains(wf2));
@@ -407,6 +409,7 @@ public class MainActivityTest {
             bucketList.clear();
         });
         instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
+        instrumentation.waitForIdleSync();
         onView(withId(R.id.selected_foodstuffs_counter)).check(matches(not(isDisplayed())));
     }
 

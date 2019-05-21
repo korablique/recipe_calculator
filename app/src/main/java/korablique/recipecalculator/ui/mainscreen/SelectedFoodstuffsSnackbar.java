@@ -1,6 +1,7 @@
 package korablique.recipecalculator.ui.mainscreen;
 
 
+import android.animation.Animator;
 import android.animation.ValueAnimator;
 import android.os.Bundle;
 import android.view.View;
@@ -43,19 +44,29 @@ public class SelectedFoodstuffsSnackbar {
     public void hide() {
         float startValue = snackbarLayout.getTranslationY();
         float endValue = getParentHeight();
-        animateSnackbar(startValue, endValue);
+        animateSnackbar(startValue, endValue, () -> snackbarLayout.setVisibility(View.INVISIBLE));
         isShown = false;
     }
 
     private void animateSnackbar(float startValue, float endValue) {
+        animateSnackbar(startValue, endValue, () -> {});
+    }
+
+    private void animateSnackbar(float startValue, float endValue, Runnable finishCallback) {
         ValueAnimator animator = ValueAnimator.ofFloat(startValue, endValue);
         animator.setDuration(DURATION);
         animator.addUpdateListener(animation -> {
             float animatedValue = (float) animation.getAnimatedValue();
             snackbarLayout.setTranslationY(animatedValue);
-            if (areFloatsEquals(startValue, endValue)) {
-                snackbarLayout.setVisibility(View.INVISIBLE);
+        });
+        animator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                finishCallback.run();
             }
+            @Override public void onAnimationStart(Animator animation) {}
+            @Override public void onAnimationCancel(Animator animation) {}
+            @Override public void onAnimationRepeat(Animator animation) {}
         });
         animator.start();
     }
