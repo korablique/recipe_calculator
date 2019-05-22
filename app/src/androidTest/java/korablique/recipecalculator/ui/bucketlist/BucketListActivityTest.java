@@ -92,8 +92,8 @@ public class BucketListActivityTest {
                                 databaseHolder, mainThreadExecutor, databaseThreadExecutor);
                         userParametersWorker = new UserParametersWorker(
                                 databaseHolder, mainThreadExecutor, databaseThreadExecutor);
-                        foodstuffsList = new FoodstuffsList(databaseWorker, historyWorker,
-                                mainThreadExecutor, new InstantComputationsThreadsExecutor());
+                        foodstuffsList = new FoodstuffsList(databaseWorker, mainThreadExecutor,
+                                new InstantComputationsThreadsExecutor());
                         userNameProvider = new UserNameProvider(context);
                         timeProvider = new TestingTimeProvider();
                         return Arrays.asList(mainThreadExecutor, databaseThreadExecutor, databaseWorker,

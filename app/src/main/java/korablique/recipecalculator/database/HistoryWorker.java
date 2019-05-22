@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import io.reactivex.Observable;
+import korablique.recipecalculator.base.Callback;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.database.room.AppDatabase;
 import korablique.recipecalculator.database.room.DatabaseHolder;
@@ -260,6 +261,30 @@ public class HistoryWorker {
             HistoryDao historyDao = database.historyDao();
             List<Long> foodstuffIdsForPeriod = historyDao.loadFoodstuffsIdsForPeriod(from, to);
             mainThreadExecutor.execute(() -> callback.onResult(foodstuffIdsForPeriod));
+        });
+    }
+
+    public void requestListedFoodstuffsFromHistoryForPeroid(
+            final long from,
+            final long to,
+            @NonNull Callback<List<Foodstuff>> callback) {
+        databaseThreadExecutor.execute(() -> {
+            AppDatabase database = databaseHolder.getDatabase();
+            HistoryDao historyDao = database.historyDao();
+            List<Foodstuff> listedFoodstuffs = new ArrayList<>();
+            Cursor cursor = historyDao.loadListedFoodstuffsFromHistoryForPeriod(from, to);
+            while (cursor.moveToNext()) {
+                long id = cursor.getLong(
+                        cursor.getColumnIndex(FoodstuffsContract.ID));
+                String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_FOODSTUFF_NAME));
+                double protein = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_PROTEIN));
+                double fats = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_FATS));
+                double carbs = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CARBS));
+                double calories = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CALORIES));
+                Foodstuff foodstuff = Foodstuff.withId(id).withName(name).withNutrition(protein, fats, carbs, calories);
+                listedFoodstuffs.add(foodstuff);
+            }
+            callback.onResult(listedFoodstuffs);
         });
     }
 

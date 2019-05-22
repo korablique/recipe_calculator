@@ -12,16 +12,16 @@ public class PopularProductsUtils {
     private PopularProductsUtils() {}
 
     public static class FoodstuffFrequency implements Comparable<FoodstuffFrequency> {
-        private long foodstuffId;
+        private Foodstuff foodstuff;
         private int frequency;
 
-        public FoodstuffFrequency(long foodstuffId, int frequency) {
-            this.foodstuffId = foodstuffId;
+        public FoodstuffFrequency(Foodstuff foodstuff, int frequency) {
+            this.foodstuff = foodstuff;
             this.frequency = frequency;
         }
 
-        public long getFoodstuffId() {
-            return foodstuffId;
+        public Foodstuff getFoodstuff() {
+            return foodstuff;
         }
 
         public int getFrequency() {
@@ -34,17 +34,17 @@ public class PopularProductsUtils {
         }
     }
 
-    public static List<FoodstuffFrequency> getTop(List<Long> from) {
-        HashMap<Long, Integer> idsWithFrequency = new HashMap<>();
-        for (Long id : from) {
-            Integer currentCount = idsWithFrequency.get(id);
+    public static List<FoodstuffFrequency> getTop(List<Foodstuff> from) {
+        HashMap<Foodstuff, Integer> foodstuffsWithFrequency = new HashMap<>();
+        for (Foodstuff foodstuff : from) {
+            Integer currentCount = foodstuffsWithFrequency.get(foodstuff);
             if (currentCount == null) {
                 currentCount = 0;
             }
-            idsWithFrequency.put(id, currentCount + 1);
+            foodstuffsWithFrequency.put(foodstuff, currentCount + 1);
         }
         List<FoodstuffFrequency> result = new ArrayList<>();
-        for (Map.Entry<Long, Integer> entry : idsWithFrequency.entrySet()) {
+        for (Map.Entry<Foodstuff, Integer> entry : foodstuffsWithFrequency.entrySet()) {
             result.add(new FoodstuffFrequency(entry.getKey(), entry.getValue()));
         }
         Collections.sort(result);

@@ -147,8 +147,8 @@ public class MainActivityTest {
                     userParametersWorker = new UserParametersWorker(
                             databaseHolder, mainThreadExecutor, databaseThreadExecutor);
                     foodstuffsList = new FoodstuffsList(
-                            databaseWorker, historyWorker, mainThreadExecutor, computationThreadsExecutor);
-                    topList = new TopList(context, databaseWorker, historyWorker);
+                            databaseWorker, mainThreadExecutor, computationThreadsExecutor);
+                    topList = new TopList(databaseWorker, historyWorker);
                     userNameProvider = new UserNameProvider(context);
                     timeProvider = new TestingTimeProvider();
                     return Arrays.asList(databaseWorker, historyWorker, userParametersWorker,
@@ -381,6 +381,35 @@ public class MainActivityTest {
                 withText(edited.getName()),
                 matches(isCompletelyBelow(withText(R.string.all_foodstuffs_header))));
         onView(allFoodstuffsMatcher).check(matches(isDisplayed()));
+    }
+
+    @Test
+    public void deletingFoodstuffsWorks() {
+        mActivityRule.launchActivity(null);
+
+        Foodstuff deletingFoodstuff = Foodstuff
+                .withId(foodstuffsIds.get(0))
+                .withName(foodstuffs[0].getName())
+                .withNutrition(Nutrition.of100gramsOf(foodstuffs[0]));
+        onView(allOf(
+                withText(deletingFoodstuff.getName()),
+                matches(isCompletelyBelow(withText(R.string.all_foodstuffs_header)))))
+                .perform(click());
+        onView(withId(R.id.button_delete)).perform(click());
+        onView(withText(deletingFoodstuff.getName())).check(doesNotExist());
+
+        List<Foodstuff> foodstuffsListAfterDeleting = new ArrayList<>();
+        databaseWorker.requestListedFoodstuffsFromDb(100, new DatabaseWorker.FoodstuffsBatchReceiveCallback() {
+            @Override
+            public void onReceive(List<Foodstuff> foodstuffs) {
+                foodstuffsListAfterDeleting.addAll(foodstuffs);
+            }
+        });
+        Assert.assertFalse(foodstuffsListAfterDeleting.contains(deletingFoodstuff));
+
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
+        onView(withText(deletingFoodstuff.getName())).check(doesNotExist());
     }
 
     @Test
@@ -896,22 +925,15 @@ public class MainActivityTest {
     }
 
     private List<Foodstuff> extractFoodstuffsTopFromDB() {
-        List<Long> ids = new ArrayList<>();
-        historyWorker.requestFoodstuffsIdsFromHistoryForPeriod(0, Long.MAX_VALUE, (list) -> {
-            ids.addAll(list);
-        });
+        List<Foodstuff> listedFoodstuffs = new ArrayList<>();
+        historyWorker.requestListedFoodstuffsFromHistoryForPeroid(0, Long.MAX_VALUE, listedFoodstuffs::addAll);
 
-        List<PopularProductsUtils.FoodstuffFrequency> topIdsFrequencies = PopularProductsUtils.getTop(ids);
-        List<Long> topIds = new ArrayList<>();
-        for (PopularProductsUtils.FoodstuffFrequency frequency : topIdsFrequencies) {
-            topIds.add(frequency.getFoodstuffId());
+        List<PopularProductsUtils.FoodstuffFrequency> foodstuffFrequencies = PopularProductsUtils.getTop(listedFoodstuffs);
+        List<Foodstuff> top = new ArrayList<>();
+        for (PopularProductsUtils.FoodstuffFrequency frequency : foodstuffFrequencies) {
+            top.add(frequency.getFoodstuff());
         }
-
-        List<Foodstuff> topFoodstuffs = new ArrayList<>();
-        databaseWorker.requestFoodstuffsByIds(topIds, (foodstuffs) -> {
-            topFoodstuffs.addAll(foodstuffs);
-        });
-        return topFoodstuffs;
+        return top;
     }
 
     // https://stackoverflow.com/a/44840330

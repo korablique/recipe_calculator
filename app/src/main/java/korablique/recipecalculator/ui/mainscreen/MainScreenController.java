@@ -4,6 +4,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
+import androidx.annotation.StringRes;
+import androidx.lifecycle.Lifecycle;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 
@@ -12,10 +17,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import androidx.annotation.StringRes;
-import androidx.lifecycle.Lifecycle;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import io.reactivex.Single;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.disposables.Disposables;
@@ -60,6 +61,7 @@ public class MainScreenController extends FragmentCallbacks.Observer {
     private SelectedFoodstuffsSnackbar snackbar;
     private NewCard.OnAddFoodstuffButtonClickListener cardDialogOnAddFoodstuffButtonClickListener;
     private NewCard.OnEditButtonClickListener cardDialogOnEditButtonClickListener;
+    private NewCard.OnDeleteButtonClickListener cardDialogOnDeleteButtonClickListener;
     // Действие, которое нужно выполнить с диалогом после savedInstanceState (показ или скрытие диалога)
     // Поле нужно, чтобы приложение не крешило при показе диалога, когда тот показывается в момент,
     // когда активити в фоне (запаузена).
@@ -128,12 +130,10 @@ public class MainScreenController extends FragmentCallbacks.Observer {
 
             @Override
             public void onFoodstuffDeleted(Foodstuff deleted) {
+                if (topAdapterChild.containsFoodstuffWithId(deleted.getId())) {
+                    topAdapterChild.removeItem(deleted);
+                }
                 foodstuffAdapterChild.removeItem(deleted);
-            }
-
-            @Override
-            public void onFoodstuffsSavedToHistory() {
-                bucketList.clear();
             }
         });
 
@@ -154,11 +154,16 @@ public class MainScreenController extends FragmentCallbacks.Observer {
         cardDialogOnEditButtonClickListener = foodstuff -> {
             EditFoodstuffActivity.startForEditing(fragment, foodstuff);
         };
+        cardDialogOnDeleteButtonClickListener = foodstuff -> {
+            hideCard();
+            foodstuffsList.deleteFoodstuff(foodstuff.withoutWeight());
+        };
 
         CardDialog cardDialog = CardDialog.findCard(context);
         if (cardDialog != null) {
             cardDialog.setUpAddFoodstuffButton(cardDialogOnAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
             cardDialog.setOnEditButtonClickListener(cardDialogOnEditButtonClickListener);
+            cardDialog.setOnDeleteButtonClickListener(cardDialogOnDeleteButtonClickListener);
         }
 
         topList.getTopList(foodstuffs -> {
@@ -292,6 +297,7 @@ public class MainScreenController extends FragmentCallbacks.Observer {
             CardDialog cardDialog = CardDialog.showCard(context, foodstuff);
             cardDialog.setUpAddFoodstuffButton(cardDialogOnAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
             cardDialog.setOnEditButtonClickListener(cardDialogOnEditButtonClickListener);
+            cardDialog.setOnDeleteButtonClickListener(cardDialogOnDeleteButtonClickListener);
             dialogAction = null;
         };
         if (lifecycle.getCurrentState() == Lifecycle.State.RESUMED) {
