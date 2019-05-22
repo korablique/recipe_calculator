@@ -11,11 +11,11 @@ import android.widget.ProgressBar;
 
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
-import androidx.test.InstrumentationRegistry;
 import androidx.test.espresso.contrib.PickerActions;
 import androidx.test.espresso.matcher.BoundedMatcher;
 import androidx.test.espresso.matcher.ViewMatchers;
 import androidx.test.filters.LargeTest;
+import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.rule.ActivityTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
@@ -28,7 +28,6 @@ import org.hamcrest.Matcher;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -247,13 +246,6 @@ public class MainActivityTest {
         // каждый тест должен сам сделать launchActivity()
     }
 
-    @After
-    public void tearDown() {
-        databaseWorker = null;
-        historyWorker = null;
-        userParametersWorker = null;
-    }
-
     @Test
     public void topHeaderDoNotDisplayedIfHistoryIsEmpty() {
         databaseHolder.getDatabase().clearAllTables();
@@ -435,6 +427,8 @@ public class MainActivityTest {
 
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
         instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
+        instrumentation.waitForIdleSync();
+        onView(withId(R.id.selected_foodstuffs_counter)).check(matches(isDisplayed()));
         onView(withId(R.id.selected_foodstuffs_counter)).check(matches(withText("2")));
         Assert.assertTrue(bucketList.getList().contains(wf1));
         Assert.assertTrue(bucketList.getList().contains(wf2));
@@ -444,6 +438,7 @@ public class MainActivityTest {
             bucketList.clear();
         });
         instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
+        instrumentation.waitForIdleSync();
         onView(withId(R.id.selected_foodstuffs_counter)).check(matches(not(isDisplayed())));
     }
 
@@ -767,7 +762,8 @@ public class MainActivityTest {
                 .withWeight(13));
 
         Intent startIntent =
-                MainActivity.createAddToHistoryIntent(InstrumentationRegistry.getTargetContext(), foodstuffs);
+                MainActivity.createAddToHistoryIntent(
+                        context, foodstuffs, timeProvider.now().toLocalDate());
         mActivityRule.launchActivity(startIntent);
 
         onView(withText(containsString(f1.getName()))).check(matches(isDisplayed()));
@@ -910,6 +906,58 @@ public class MainActivityTest {
         onView(withId(android.R.id.button1)).perform(click());
         // проверить, что дата правильная
         onView(withId(R.id.title_text)).check(matches(withText(anyDay2.toString("dd.MM.yy"))));
+    }
+
+    @Test
+    public void addingFoodstuffsToCertainDateWorks() {
+        mActivityRule.launchActivity(null);
+        onView(withId(R.id.menu_item_history)).perform(click());
+        // выбрать дату
+        onView(withId(R.id.calendar_button)).perform(click());
+        DateTime anyDay = timeProvider.now().minusDays(50);
+        onView(withClassName(equalTo(DatePicker.class.getName())))
+                .perform(PickerActions.setDate(
+                        anyDay.getYear(), anyDay.getMonthOfYear(), anyDay.getDayOfMonth()));
+        onView(withId(android.R.id.button1)).perform(click());
+        // добавить продукт
+        ArrayList<WeightedFoodstuff> addedFoodstuffs = new ArrayList<>(1);
+        addedFoodstuffs.add(
+                Foodstuff.withId(foodstuffsIds.get(0))
+                        .withName(foodstuffs[0].getName())
+                        .withNutrition(Nutrition.of100gramsOf(foodstuffs[0]))
+                        .withWeight(123));
+        onView(withId(R.id.history_fab)).perform(click());
+        onView(allOf(
+                withText(addedFoodstuffs.get(0).getName()),
+                matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header))))).perform(click());
+        onView(withId(R.id.weight_edit_text)).perform(replaceText("123"));
+        onView(withId(R.id.add_foodstuff_button)).perform(click());
+        onView(withId(R.id.basket)).perform(click());
+
+        // Проверяем, что была попытка стартовать активити по интенту от BucketListActivity
+        Intent expectedIntent =
+                BucketListActivity.createStartIntentFor(addedFoodstuffs, mActivityRule.getActivity(), anyDay.toLocalDate());
+        intended(allOf(
+                hasAction(expectedIntent.getAction()),
+                hasComponent(expectedIntent.getComponent()),
+                hasExtras(hasValue(anyDay.toLocalDate())),
+                hasExtras(hasValue(addedFoodstuffs))));
+    }
+
+    @Test
+    public void foodstuffsAddedOnCertainDate_ShownInHistory() {
+        ArrayList<WeightedFoodstuff> addedFoodstuffs = new ArrayList<>(1);
+        addedFoodstuffs.add(
+                Foodstuff.withId(foodstuffsIds.get(0))
+                        .withName(foodstuffs[0].getName())
+                        .withNutrition(Nutrition.of100gramsOf(foodstuffs[0]))
+                        .withWeight(200));
+        LocalDate date = timeProvider.now().minusDays(25).toLocalDate();
+        Intent intent = MainActivity.createAddToHistoryIntent(context, addedFoodstuffs, date);
+        mActivityRule.launchActivity(intent);
+
+        onView(withText(containsString(addedFoodstuffs.get(0).getName()))).check(matches(isDisplayed()));
+        onView(withId(R.id.title_text)).check(matches(withText(date.toString("dd.MM.yy"))));
     }
 
     private void addFoodstuffsToday() {

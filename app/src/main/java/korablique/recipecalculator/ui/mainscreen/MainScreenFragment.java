@@ -11,6 +11,9 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+
+import org.joda.time.LocalDate;
+
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseFragment;
 
@@ -37,5 +40,9 @@ public class MainScreenFragment extends BaseFragment {
         transaction.replace(R.id.main_container, mainScreenFragment);
         transaction.addToBackStack(null);
         transaction.commit();
+    }
+
+    public static void show(FragmentManager fragmentManager, LocalDate date) {
+        MainScreenController.show(fragmentManager, date);
     }
 }

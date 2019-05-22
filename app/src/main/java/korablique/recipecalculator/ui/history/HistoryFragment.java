@@ -5,15 +5,18 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.util.ArrayList;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+
+import org.joda.time.LocalDate;
+
 import java.util.List;
 
 import javax.inject.Inject;
 
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.model.WeightedFoodstuff;
@@ -41,14 +44,10 @@ public class HistoryFragment extends BaseFragment {
         transaction.commit();
     }
 
-    public static void show(FragmentManager fragmentManager, List<WeightedFoodstuff> foodstuffs) {
-        Fragment historyFragment = new HistoryFragment();
-        Bundle args = new Bundle();
-        args.putParcelableArrayList(EXTRA_FOODSTUFFS_LIST, new ArrayList<>(foodstuffs));
-        historyFragment.setArguments(args);
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
-        transaction.replace(R.id.main_container, historyFragment);
-        transaction.addToBackStack(null);
-        transaction.commit();
+    /**
+     * @param date date on which to save foodstuffs to history
+     */
+    public static void show(FragmentManager fragmentManager, @Nullable LocalDate date, List<WeightedFoodstuff> foodstuffs) {
+        HistoryController.show(fragmentManager, date, foodstuffs);
     }
 }

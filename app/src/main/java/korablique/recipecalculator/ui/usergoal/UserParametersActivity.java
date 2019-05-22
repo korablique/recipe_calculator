@@ -72,7 +72,7 @@ public class UserParametersActivity extends BaseActivity {
 
         // формула
         startTuningSpinner(findViewById(R.id.formula_spinner))
-                .withItems(R.array.physical_activity_array)
+                .withItems(R.array.formula_array)
                 .tune();
 
         Button saveUserParamsButton = findViewById(R.id.button_save);

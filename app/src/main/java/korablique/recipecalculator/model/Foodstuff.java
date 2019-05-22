@@ -136,4 +136,16 @@ public class Foodstuff implements Parcelable, Comparable<Foodstuff> {
     public WeightedFoodstuff withWeight(double weight) {
         return new WeightedFoodstuff(this, weight);
     }
+
+    @Override
+    public String toString() {
+        return "Foodstuff{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", protein=" + protein +
+                ", fats=" + fats +
+                ", carbs=" + carbs +
+                ", calories=" + calories +
+                '}';
+    }
 }

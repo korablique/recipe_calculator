@@ -101,6 +101,9 @@ public class BucketListActivityTest {
                                 timeProvider);
                     })
                     .withActivityScoped((target) -> {
+                        if (target instanceof BucketListActivity) {
+                            return Collections.emptyList();
+                        }
                         MainActivity activity = (MainActivity) target;
                         ActivityCallbacks activityCallbacks = new ActivityCallbacks();
                         RxActivitySubscriptions subscriptions = new RxActivitySubscriptions(activityCallbacks);
@@ -170,7 +173,7 @@ public class BucketListActivityTest {
         onView(withId(R.id.save_to_history_button)).perform(click());
 
         Intent expectedIntent =
-                MainActivity.createAddToHistoryIntent(activityRule.getActivity(), foodstuffs);
+                MainActivity.createAddToHistoryIntent(activityRule.getActivity(), foodstuffs, timeProvider.now().toLocalDate());
         intended(allOf(
                 hasAction(expectedIntent.getAction()),
                 hasComponent(expectedIntent.getComponent()),

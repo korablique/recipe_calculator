@@ -89,4 +89,12 @@ public class WeightedFoodstuff implements Parcelable {
         dest.writeParcelable(foodstuff, flags);
         dest.writeDouble(weight);
     }
+
+    @Override
+    public String toString() {
+        return "WeightedFoodstuff{" +
+                "foodstuff=" + foodstuff +
+                ", weight=" + weight +
+                '}';
+    }
 }

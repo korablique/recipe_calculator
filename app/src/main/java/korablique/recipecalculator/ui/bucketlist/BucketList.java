@@ -11,7 +11,8 @@ import korablique.recipecalculator.model.WeightedFoodstuff;
 
 public class BucketList {
     public interface Observer {
-        void onFoodstuffAdded(WeightedFoodstuff wf);
+        default void onFoodstuffAdded(WeightedFoodstuff wf) {}
+        default void onFoodstuffRemoved(WeightedFoodstuff wf) {}
     }
     private static BucketList instance;
     private List<WeightedFoodstuff> bucketList = new ArrayList<>();
@@ -41,11 +42,20 @@ public class BucketList {
     public void remove(WeightedFoodstuff wf) {
         checkCurrentThread();
         bucketList.remove(wf);
+        for (Observer observer : observers) {
+            observer.onFoodstuffRemoved(wf);
+        }
     }
 
     public void clear() {
         checkCurrentThread();
+        List<WeightedFoodstuff> removedList = new ArrayList<>(bucketList);
         bucketList.clear();
+        for (WeightedFoodstuff wf : removedList) {
+            for (Observer observer : observers) {
+                observer.onFoodstuffRemoved(wf);
+            }
+        }
     }
 
     public void addObserver(Observer o) {

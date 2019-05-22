@@ -5,12 +5,17 @@ import android.os.Bundle;
 import android.view.View;
 
 import androidx.annotation.StringRes;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Lifecycle;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
+
+import org.joda.time.LocalDate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +33,7 @@ import korablique.recipecalculator.dagger.FragmentScope;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.TopList;
+import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.KeyboardHandler;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
@@ -49,6 +55,7 @@ public class MainScreenController extends FragmentCallbacks.Observer {
     private static final int SEARCH_SUGGESTIONS_NUMBER = 3;
     @StringRes
     private static final int CARD_BUTTON_TEXT_RES = R.string.add_foodstuff;
+    private static final String EXTRA_DATE = "EXTRA_DATE";
     private BaseActivity context;
     private BaseFragment fragment;
     private Lifecycle lifecycle;
@@ -81,9 +88,15 @@ public class MainScreenController extends FragmentCallbacks.Observer {
     // поисками не было состояния гонки и именно последний поиск всегда был отображен.
     // По-умолчанию Disposables.empty() чтобы не нужно было делать проверки на null.
     private Disposable lastSearchDisposable = Disposables.empty();
-    private BucketList.Observer bucketListObserver = weightedFoodstuff -> {
-        snackbar.addFoodstuff(weightedFoodstuff);
-        snackbar.show();
+    private BucketList.Observer bucketListObserver = new BucketList.Observer() {
+        @Override
+        public void onFoodstuffAdded(WeightedFoodstuff weightedFoodstuff) {
+            snackbar.addFoodstuff(weightedFoodstuff);
+            snackbar.show();
+        }
+        public void onFoodstuffRemoved(WeightedFoodstuff weightedFoodstuff) {
+            snackbar.update(BucketList.getInstance().getList());
+        }
     };
 
     @Inject
@@ -113,6 +126,7 @@ public class MainScreenController extends FragmentCallbacks.Observer {
 
         BucketList bucketList = BucketList.getInstance();
         bucketList.addObserver(bucketListObserver);
+        snackbar.update(bucketList.getList());
 
         foodstuffsList.addObserver(new FoodstuffsList.Observer() {
             @Override
@@ -138,7 +152,13 @@ public class MainScreenController extends FragmentCallbacks.Observer {
         });
 
         snackbar.setOnBasketClickRunnable(() -> {
-            BucketListActivity.start(new ArrayList<>(snackbar.getSelectedFoodstuffs()), context);
+            Bundle args = fragment.getArguments();
+            if (args != null && args.containsKey(EXTRA_DATE)) {
+                LocalDate selectedDate = (LocalDate) args.getSerializable(EXTRA_DATE);
+                BucketListActivity.start(new ArrayList<>(snackbar.getSelectedFoodstuffs()), context, selectedDate);
+            } else {
+                BucketListActivity.start(new ArrayList<>(snackbar.getSelectedFoodstuffs()), context);
+            }
         });
 
         adapterParent = new AdapterParent();
@@ -172,7 +192,7 @@ public class MainScreenController extends FragmentCallbacks.Observer {
             foodstuffsList.getAllFoodstuffs(batch -> {
                 fillAllFoodstuffsList(batch);
             }, unused -> {
-                configureSuggesionsDisplaying();
+                configureSuggestionsDisplaying();
 
                 configureSearch();
             });
@@ -236,7 +256,7 @@ public class MainScreenController extends FragmentCallbacks.Observer {
         });
     }
 
-    private void configureSuggesionsDisplaying() {
+    private void configureSuggestionsDisplaying() {
         searchView.setOnQueryChangeListener((oldQuery, newQuery) -> {
             lastSearchDisposable.dispose();
             //get suggestions based on newQuery
@@ -292,6 +312,22 @@ public class MainScreenController extends FragmentCallbacks.Observer {
         }
     }
 
+    public static void show(FragmentManager fragmentManager, LocalDate date) {
+        // чтобы не пересоздавать фрагмент, который уже показан прямо сейчас
+        // и чтобы сохранялся его стейт (потому что при пересоздании фрагмента стейт потеряется)
+        if (fragmentManager.findFragmentById(R.id.main_container) instanceof MainScreenFragment) {
+            return;
+        }
+        Fragment mainScreenFragment = new MainScreenFragment();
+        Bundle args = new Bundle();
+        args.putSerializable(EXTRA_DATE, date);
+        mainScreenFragment.setArguments(args);
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.replace(R.id.main_container, mainScreenFragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
+
     private void showCard(Foodstuff foodstuff) {
         dialogAction = () -> {
             CardDialog cardDialog = CardDialog.showCard(context, foodstuff);
@@ -314,6 +350,4 @@ public class MainScreenController extends FragmentCallbacks.Observer {
             dialogAction.run();
         }
     }
-
-
 }
