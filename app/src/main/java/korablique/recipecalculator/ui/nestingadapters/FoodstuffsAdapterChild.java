@@ -92,7 +92,8 @@ public class FoodstuffsAdapterChild extends AdapterChild {
     }
 
     private void setCalories(View foodstuffView, double calories) {
-        setTextViewText(foodstuffView, R.id.extra_info_block, toDecimalString(calories));
+        setTextViewText(foodstuffView, R.id.extra_info_block,
+                context.getString(R.string.n_calories, toDecimalString(calories)));
     }
 
     public List<Foodstuff> getItems() {

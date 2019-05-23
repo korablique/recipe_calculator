@@ -121,7 +121,7 @@ public class BucketListActivity extends BaseActivity {
             cardDialog.setUpAddFoodstuffButton(onAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
         };
 
-        adapter = new BucketListAdapter(R.layout.new_foodstuff_layout, onItemsCountChangeListener, onItemClickedObserver);
+        adapter = new BucketListAdapter(this, R.layout.new_foodstuff_layout, onItemsCountChangeListener, onItemClickedObserver);
         adapter.addItems(foodstuffs);
 
         RecyclerView foodstuffsListRecyclerView = findViewById(R.id.foodstuffs_list);
