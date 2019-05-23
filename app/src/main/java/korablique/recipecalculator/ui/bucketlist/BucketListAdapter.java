@@ -1,13 +1,15 @@
 package korablique.recipecalculator.ui.bucketlist;
 
-import androidx.annotation.LayoutRes;
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import androidx.annotation.LayoutRes;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,15 +28,18 @@ public class BucketListAdapter extends RecyclerView.Adapter<MyViewHolder> {
         void onItemClicked(WeightedFoodstuff foodstuff, int position);
     }
     private List<WeightedFoodstuff> allFoodstuffs = new ArrayList<>();
+    private Context context;
     @LayoutRes
     private int itemLayoutRes;
     private OnItemsCountChangeListener listener;
     private OnItemClickedObserver onItemClickedObserver;
 
     public BucketListAdapter(
+            Context context,
             @LayoutRes int itemLayoutId,
             OnItemsCountChangeListener listener,
             OnItemClickedObserver onItemClickedObserver) {
+        this.context = context;
         this.itemLayoutRes = itemLayoutId;
         this.listener = listener;
         this.onItemClickedObserver = onItemClickedObserver;
@@ -54,7 +59,7 @@ public class BucketListAdapter extends RecyclerView.Adapter<MyViewHolder> {
         final WeightedFoodstuff foodstuff = getItem(displayedPosition);
 
         setTextViewText(item, R.id.name, foodstuff.getName());
-        setTextViewText(item, R.id.extra_info_block, foodstuff.getWeight());
+        setTextViewText(item, R.id.extra_info_block, context.getString(R.string.n_gramms, Math.round(foodstuff.getWeight())));
 
         item.setOnClickListener(v -> {
             onItemClickedObserver.onItemClicked(foodstuff, holder.getAdapterPosition());

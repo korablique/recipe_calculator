@@ -126,6 +126,8 @@
     <string name="day_after_tomorrow">Послезавтра</string>
     <string name="yesterday">Вчера</string>
     <string name="day_before_yesterday">Позавчера</string>
+    <string name="n_calories">%sккал</string>
+    <string name="n_gramms">%dг</string>
 
     <string-array name="gender_array">
         <item name="not_selected">—</item>

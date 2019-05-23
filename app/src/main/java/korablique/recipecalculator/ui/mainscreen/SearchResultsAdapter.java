@@ -1,12 +1,14 @@
 package korablique.recipecalculator.ui.mainscreen;
 
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,10 +24,12 @@ public class SearchResultsAdapter extends RecyclerView.Adapter<MyViewHolder> {
     public interface OnItemClickedObserver {
         void onItemClicked(Foodstuff foodstuff, int position);
     }
+    private Context context;
     private List<Foodstuff> searchResults = new ArrayList<>();
     private OnItemClickedObserver onItemClickedObserver;
 
-    public SearchResultsAdapter(OnItemClickedObserver observer) {
+    public SearchResultsAdapter(Context context, OnItemClickedObserver observer) {
+        this.context = context;
         this.onItemClickedObserver = observer;
     }
 
@@ -41,7 +45,8 @@ public class SearchResultsAdapter extends RecyclerView.Adapter<MyViewHolder> {
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
         ViewGroup item = holder.getItem();
         setTextViewText(item, R.id.name, searchResults.get(position).getName());
-        setTextViewText(item, R.id.extra_info_block, toDecimalString(searchResults.get(position).getCalories()));
+        setTextViewText(item, R.id.extra_info_block,
+                context.getString(R.string.n_calories, toDecimalString(searchResults.get(position).getCalories())));
         item.setOnClickListener(v -> {
             onItemClickedObserver.onItemClicked(searchResults.get(position), holder.getAdapterPosition());
         });

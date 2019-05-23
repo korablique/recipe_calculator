@@ -56,7 +56,7 @@ public class SearchResultsFragment extends BaseFragment {
         searchRequestTextView.setText(getResources().getString(R.string.search_results, query));
 
         RecyclerView searchResultsRecyclerView = fragmentView.findViewById(R.id.search_results_recycler_view);
-        SearchResultsAdapter adapter = new SearchResultsAdapter((foodstuff, position) -> {
+        SearchResultsAdapter adapter = new SearchResultsAdapter(getActivity(), (foodstuff, position) -> {
             CardDialog cardDialog = CardDialog.showCard(getActivity(), foodstuff);
             cardDialog.prohibitEditing(true);
             cardDialog.setUpAddFoodstuffButton(foodstuff1 -> {
