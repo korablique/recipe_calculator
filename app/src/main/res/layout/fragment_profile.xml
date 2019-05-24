@@ -186,14 +186,13 @@
 
         <FrameLayout
             android:id="@+id/measurements_parent_layout"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:background="#FFFFFF"
             android:padding="16dp"
             app:layout_constraintTop_toBottomOf="@id/nutrition_parent_layout"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintWidth_percent="0.65">
+            app:layout_constraintStart_toStartOf="parent">
 
             <include layout="@layout/measurements_layout" />
         </FrameLayout>
@@ -208,7 +207,8 @@
             app:layout_constraintTop_toBottomOf="@id/nutrition_parent_layout"
             app:layout_constraintBottom_toTopOf="@id/done"
             android:layout_marginStart="5dp"
-            android:background="#FFFFFF">
+            android:background="#FFFFFF"
+            android:visibility="gone">
 
             <com.mikhaellopez.circularprogressbar.CircularProgressBar
                 android:id="@+id/circular_progress"
@@ -277,7 +277,8 @@
             android:gravity="center"
             android:background="#FFFFFF"
             style="@style/RobotoMonoHintText"
-            android:text="@string/reached"/>
+            android:text="@string/reached"
+            android:visibility="gone" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </ScrollView>
