@@ -3,16 +3,13 @@ package korablique.recipecalculator.ui.usergoal;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import com.arlib.floatingsearchview.util.adapter.TextWatcherAdapter;
 import com.crashlytics.android.Crashlytics;
 
 import org.joda.time.LocalDate;
@@ -35,6 +32,7 @@ import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.ui.DatePickerFragment;
 import korablique.recipecalculator.ui.DecimalUtils;
+import korablique.recipecalculator.ui.TextWatcherAfterTextChangedAdapter;
 import korablique.recipecalculator.ui.mainscreen.MainActivity;
 
 import static korablique.recipecalculator.util.SpinnerTuner.startTuningSpinner;
@@ -48,12 +46,7 @@ public class UserParametersActivity extends BaseActivity {
     UserNameProvider userNameProvider;
     @Inject
     TimeProvider timeProvider;
-    private TextWatcher textWatcher = new TextWatcherAdapter() {
-        @Override
-        public void afterTextChanged(Editable editable) {
-            updateSaveButtonEnability();
-        }
-    };
+    private TextWatcher textWatcher = new TextWatcherAfterTextChangedAdapter(editable -> updateSaveButtonEnability());
     private Button saveUserParamsButton;
 
     @Override
@@ -66,6 +59,7 @@ public class UserParametersActivity extends BaseActivity {
         startTuningSpinner(genderSpinner)
                 .withItems(R.array.gender_array)
                 .addDisabledItemAt(0)
+                .onItemSelected((position, id) -> updateSaveButtonEnability())
                 .tune();
 
         // образ жизни
@@ -140,15 +134,6 @@ public class UserParametersActivity extends BaseActivity {
         heightEditText.addTextChangedListener(textWatcher);
         EditText weightEditText = findViewById(R.id.weight);
         weightEditText.addTextChangedListener(textWatcher);
-        genderSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                updateSaveButtonEnability();
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
-        });
         // run once to disable if empty
         updateSaveButtonEnability();
 
@@ -192,11 +177,7 @@ public class UserParametersActivity extends BaseActivity {
                 && !weightView.getText().toString().isEmpty()
                 && !targetWeight.getText().toString().isEmpty()
                 && genderSpinner.getSelectedItemPosition() != 0;
-        if (allFieldsFilled) {
-            saveUserParamsButton.setEnabled(true);
-        } else {
-            saveUserParamsButton.setEnabled(false);
-        }
+        saveUserParamsButton.setEnabled(allFieldsFilled);
     }
 
     private UserParameters extractUserParameters() {
