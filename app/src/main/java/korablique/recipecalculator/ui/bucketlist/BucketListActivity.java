@@ -164,6 +164,7 @@ public class BucketListActivity extends BaseActivity {
                         dialog.dismiss();
                     }
                     Toast.makeText(BucketListActivity.this, R.string.saved, Toast.LENGTH_SHORT).show();
+                    BucketListActivity.this.finish();
                 }
 
                 @Override
