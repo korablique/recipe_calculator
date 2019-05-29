@@ -3,13 +3,12 @@ package korablique.recipecalculator.ui.usergoal;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextWatcher;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 
@@ -31,9 +30,9 @@ import korablique.recipecalculator.model.Gender;
 import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
-import korablique.recipecalculator.ui.ArrayAdapterWithDisabledItem;
 import korablique.recipecalculator.ui.DatePickerFragment;
 import korablique.recipecalculator.ui.DecimalUtils;
+import korablique.recipecalculator.ui.TextWatcherAfterTextChangedAdapter;
 import korablique.recipecalculator.ui.mainscreen.MainActivity;
 
 import static korablique.recipecalculator.util.SpinnerTuner.startTuningSpinner;
@@ -47,6 +46,8 @@ public class UserParametersActivity extends BaseActivity {
     UserNameProvider userNameProvider;
     @Inject
     TimeProvider timeProvider;
+    private TextWatcher textWatcher = new TextWatcherAfterTextChangedAdapter(editable -> updateSaveButtonEnability());
+    private Button saveUserParamsButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,9 +55,11 @@ public class UserParametersActivity extends BaseActivity {
         setContentView(R.layout.activity_user_parameters);
 
         // гендер
-        startTuningSpinner(findViewById(R.id.gender_spinner))
+        Spinner genderSpinner = findViewById(R.id.gender_spinner);
+        startTuningSpinner(genderSpinner)
                 .withItems(R.array.gender_array)
                 .addDisabledItemAt(0)
+                .onItemSelected((position, id) -> updateSaveButtonEnability())
                 .tune();
 
         // образ жизни
@@ -75,14 +78,10 @@ public class UserParametersActivity extends BaseActivity {
                 .withItems(R.array.formula_array)
                 .tune();
 
-        Button saveUserParamsButton = findViewById(R.id.button_save);
+        saveUserParamsButton = findViewById(R.id.button_save);
         saveUserParamsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (!allFieldsFilled()) {
-                    Toast.makeText(UserParametersActivity.this, R.string.fill_all_fields, Toast.LENGTH_SHORT).show();
-                    return;
-                }
                 String firstName = ((EditText) findViewById(R.id.first_name)).getText().toString();
                 String lastName = ((EditText) findViewById(R.id.last_name)).getText().toString();
                 FullName fullName = new FullName(firstName, lastName);
@@ -124,6 +123,20 @@ public class UserParametersActivity extends BaseActivity {
             }
         });
 
+        EditText firstNameEditText = findViewById(R.id.first_name);
+        firstNameEditText.addTextChangedListener(textWatcher);
+        EditText lastNameEditText = findViewById(R.id.last_name);
+        lastNameEditText.addTextChangedListener(textWatcher);
+        dateOfBirthView.addTextChangedListener(textWatcher);
+        EditText targetWeightEditText = findViewById(R.id.target_weight);
+        targetWeightEditText.addTextChangedListener(textWatcher);
+        EditText heightEditText = findViewById(R.id.height);
+        heightEditText.addTextChangedListener(textWatcher);
+        EditText weightEditText = findViewById(R.id.weight);
+        weightEditText.addTextChangedListener(textWatcher);
+        // run once to disable if empty
+        updateSaveButtonEnability();
+
         Single<Optional<UserParameters>> oldUserParamsSingle = userParametersWorker.requestCurrentUserParameters();
         subscriptions.subscribe(oldUserParamsSingle, userParametersOptional -> {
             if (userParametersOptional.isPresent()) {
@@ -149,19 +162,22 @@ public class UserParametersActivity extends BaseActivity {
         context.startActivity(intent);
     }
 
-    private boolean allFieldsFilled() {
+    private void updateSaveButtonEnability() {
         EditText nameView = findViewById(R.id.first_name);
         EditText surnameView = findViewById(R.id.last_name);
         EditText ageView = findViewById(R.id.date_of_birth);
         EditText heightView = findViewById(R.id.height);
         EditText weightView = findViewById(R.id.weight);
+        EditText targetWeight = findViewById(R.id.target_weight);
         Spinner genderSpinner = findViewById(R.id.gender_spinner);
-        return !nameView.getText().toString().isEmpty()
+        boolean allFieldsFilled = !nameView.getText().toString().isEmpty()
                 && !surnameView.getText().toString().isEmpty()
                 && !ageView.getText().toString().isEmpty()
                 && !heightView.getText().toString().isEmpty()
                 && !weightView.getText().toString().isEmpty()
+                && !targetWeight.getText().toString().isEmpty()
                 && genderSpinner.getSelectedItemPosition() != 0;
+        saveUserParamsButton.setEnabled(allFieldsFilled);
     }
 
     private UserParameters extractUserParameters() {
