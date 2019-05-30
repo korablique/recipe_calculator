@@ -2,17 +2,19 @@ package korablique.recipecalculator.ui.bucketlist;
 
 import android.app.Dialog;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.FragmentActivity;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.EditText;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.FragmentActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,12 +24,14 @@ import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.model.WeightedFoodstuff;
+import korablique.recipecalculator.ui.TextWatcherAfterTextChangedAdapter;
 
 public class SaveDishDialog extends DialogFragment {
     public static String SELECTED_FOODSTUFFS = "SELECTED_FOODSTUFFS";
     public static String RESULT_WEIGHT = "RESULT_WEIGHT";
     public static String SAVE_DISH = "SAVE_DISH";
     private OnSaveDishButtonClickListener listener;
+    private Button saveDishButton;
 
     public interface OnSaveDishButtonClickListener {
         void onClick(Foodstuff foodstuff);
@@ -38,12 +42,26 @@ public class SaveDishDialog extends DialogFragment {
                              ViewGroup container,
                              Bundle savedInstanceState) {
         View dialogView = inflater.inflate(R.layout.save_as_dish_dialog, null);
+        saveDishButton = dialogView.findViewById(R.id.save_button);
         if (listener != null) {
-            dialogView.findViewById(R.id.save_button).setOnClickListener(v -> {
+            saveDishButton.setOnClickListener(v -> {
                 listener.onClick(extractFoodstuff());
             });
         }
+
+        EditText dishNameView = dialogView.findViewById(R.id.dish_name_edit_text);
+        dishNameView.addTextChangedListener(new TextWatcherAfterTextChangedAdapter(editable -> {
+            updateSaveDishButtonEnability(dialogView);
+        }));
+        updateSaveDishButtonEnability(dialogView);
         return dialogView;
+    }
+
+
+    private void updateSaveDishButtonEnability(View dialogView) {
+        EditText dishNameView = dialogView.findViewById(R.id.dish_name_edit_text);
+        boolean isDishNameFilled = !dishNameView.getText().toString().isEmpty();
+        saveDishButton.setEnabled(isDishNameFilled);
     }
 
     @Override

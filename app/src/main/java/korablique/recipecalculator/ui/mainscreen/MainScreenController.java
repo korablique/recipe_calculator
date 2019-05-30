@@ -136,7 +136,7 @@ public class MainScreenController extends FragmentCallbacks.Observer {
 
             @Override
             public void onFoodstuffEdited(Foodstuff edited) {
-                if (topAdapterChild.containsFoodstuffWithId(edited.getId())) {
+                if (topAdapterChild != null && topAdapterChild.containsFoodstuffWithId(edited.getId())) {
                     topAdapterChild.replaceItem(edited);
                 }
                 foodstuffAdapterChild.replaceItem(edited);
@@ -144,7 +144,7 @@ public class MainScreenController extends FragmentCallbacks.Observer {
 
             @Override
             public void onFoodstuffDeleted(Foodstuff deleted) {
-                if (topAdapterChild.containsFoodstuffWithId(deleted.getId())) {
+                if (topAdapterChild != null && topAdapterChild.containsFoodstuffWithId(deleted.getId())) {
                     topAdapterChild.removeItem(deleted);
                 }
                 foodstuffAdapterChild.removeItem(deleted);
