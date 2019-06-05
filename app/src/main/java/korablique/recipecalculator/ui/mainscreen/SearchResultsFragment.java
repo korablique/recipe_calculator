@@ -1,18 +1,21 @@
 package korablique.recipecalculator.ui.mainscreen;
 
 
-import androidx.lifecycle.Lifecycle;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.Lifecycle;
 import androidx.recyclerview.widget.RecyclerView;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -21,12 +24,12 @@ import io.reactivex.Single;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.base.RxFragmentSubscriptions;
-import korablique.recipecalculator.dagger.InjectorHolder;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.card.CardDialog;
+import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
 
 public class SearchResultsFragment extends BaseFragment {
     public static final String REQUEST = "REQUEST";
@@ -40,12 +43,6 @@ public class SearchResultsFragment extends BaseFragment {
     FoodstuffsList foodstuffsList;
     @Inject
     RxFragmentSubscriptions fragmentSubscriptions;
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        InjectorHolder.getInjector().inject(this);
-    }
 
     @Override
     protected View createView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -63,8 +60,12 @@ public class SearchResultsFragment extends BaseFragment {
                 CardDialog.hideCard(getActivity());
                 BucketList bucketList = BucketList.getInstance();
                 bucketList.add(foodstuff1);
-                getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
+                closeThisFragment();
             }, R.string.add_foodstuff);
+            cardDialog.setOnDeleteButtonClickListener(foodstuff2 -> {
+                CardDialog.hideCard(getActivity());
+                foodstuffsList.deleteFoodstuff(foodstuff2.withoutWeight());
+            });
         });
         searchResultsRecyclerView.setAdapter(adapter);
 
@@ -79,7 +80,32 @@ public class SearchResultsFragment extends BaseFragment {
             }
         });
 
+        Button addNewFoodstuffButton = fragmentView.findViewById(R.id.add_new_foodstuff_button);
+        addNewFoodstuffButton.setOnClickListener(v -> {
+            EditFoodstuffActivity.startForCreation(fragmentView.getContext());
+        });
+        // подписываемся на FoodstuffsList, чтобы после добавления нового продукта
+        // он отображался в результатах поиска
+        FoodstuffsList.Observer foodstuffsListObserver = new FoodstuffsList.Observer() {
+            @Override
+            public void onFoodstuffSaved(Foodstuff savedFoodstuff, int index) {
+                adapter.addItems(Collections.singletonList(savedFoodstuff));
+            }
+
+            @Override
+            public void onFoodstuffEdited(Foodstuff edited) {}
+
+            @Override
+            public void onFoodstuffDeleted(Foodstuff deleted) {
+                adapter.removeItem(deleted);
+            }
+        };
+        foodstuffsList.addObserver(foodstuffsListObserver);
         return fragmentView;
+    }
+
+    private void closeThisFragment() {
+        getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
     }
 
     public static void show(String request, FragmentActivity context) {

@@ -70,6 +70,16 @@ public class SearchResultsAdapter extends RecyclerView.Adapter<MyViewHolder> {
         notifyItemChanged(displayedPosition);
     }
 
+    public void removeItem(Foodstuff foodstuff) {
+        int position = getItemPosition(foodstuff);
+        searchResults.remove(foodstuff);
+        notifyItemRemoved(position);
+    }
+
+    public int getItemPosition(Foodstuff foodstuff) {
+        return searchResults.indexOf(foodstuff);
+    }
+
     public Foodstuff getItem(int displayedPosition) {
         return searchResults.get(displayedPosition);
     }
