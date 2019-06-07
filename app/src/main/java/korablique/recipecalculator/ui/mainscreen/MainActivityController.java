@@ -23,7 +23,7 @@ import korablique.recipecalculator.ui.history.HistoryFragment;
 import korablique.recipecalculator.ui.profile.ProfileFragment;
 import korablique.recipecalculator.ui.usergoal.UserParametersActivity;
 
-public class MainActivityController extends ActivityCallbacks.Observer {
+public class MainActivityController implements ActivityCallbacks.Observer {
     private static final String BOTTOM_NAVIGATION_VIEW_SELECTED_ITEM_ID = "BOTTOM_NAVIGATION_VIEW_SELECTED_ITEM_ID";
     private static final String ACTION_ADD_FOODSTUFFS_TO_HISTORY = "ACTION_ADD_FOODSTUFFS_TO_HISTORY";
     private static final String EXTRA_FOODSTUFFS_LIST = "EXTRA_FOODSTUFFS_LIST";
@@ -92,13 +92,11 @@ public class MainActivityController extends ActivityCallbacks.Observer {
 
     @Override
     public void onActivitySaveInstanceState(Bundle outState) {
-        super.onActivitySaveInstanceState(outState);
         outState.putInt(BOTTOM_NAVIGATION_VIEW_SELECTED_ITEM_ID, bottomNavigationView.getSelectedItemId());
     }
 
     @Override
     public void onActivityRestoreInstanceState(Bundle savedInstanceState) {
-        super.onActivityRestoreInstanceState(savedInstanceState);
         bottomNavigationView.setSelectedItemId(savedInstanceState.getInt(BOTTOM_NAVIGATION_VIEW_SELECTED_ITEM_ID));
     }
 

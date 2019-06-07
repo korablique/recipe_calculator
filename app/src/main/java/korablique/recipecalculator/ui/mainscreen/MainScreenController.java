@@ -19,6 +19,7 @@ import org.joda.time.LocalDate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 import javax.inject.Inject;
 
@@ -26,6 +27,7 @@ import io.reactivex.Single;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.disposables.Disposables;
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.base.FragmentCallbacks;
@@ -49,9 +51,10 @@ import static korablique.recipecalculator.IntentConstants.EDIT_FOODSTUFF_REQUEST
 import static korablique.recipecalculator.IntentConstants.EDIT_RESULT;
 import static korablique.recipecalculator.IntentConstants.FIND_FOODSTUFF_REQUEST;
 import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
+import static korablique.recipecalculator.ui.mainscreen.SearchResultsFragment.SEARCH_RESULTS_FRAGMENT_TAG;
 
 @FragmentScope
-public class MainScreenController extends FragmentCallbacks.Observer {
+public class MainScreenController extends FragmentCallbacks.Observer implements ActivityCallbacks.Observer {
     private static final int SEARCH_SUGGESTIONS_NUMBER = 3;
     @StringRes
     private static final int CARD_BUTTON_TEXT_RES = R.string.add_foodstuff;
@@ -65,6 +68,8 @@ public class MainScreenController extends FragmentCallbacks.Observer {
     private FoodstuffsAdapterChild topAdapterChild;
     private FoodstuffsAdapterChild foodstuffAdapterChild;
     private FloatingSearchView searchView;
+    private Stack<String> searchQueries = new Stack<>();
+    private boolean startBackPress = true;
     private SelectedFoodstuffsSnackbar snackbar;
     private NewCard.OnAddFoodstuffButtonClickListener cardDialogOnAddFoodstuffButtonClickListener;
     private NewCard.OnEditButtonClickListener cardDialogOnEditButtonClickListener;
@@ -104,6 +109,7 @@ public class MainScreenController extends FragmentCallbacks.Observer {
             BaseActivity context,
             BaseFragment fragment,
             FragmentCallbacks fragmentCallbacks,
+            ActivityCallbacks activityCallbacks,
             Lifecycle lifecycle,
             TopList topList,
             FoodstuffsList foodstuffsList) {
@@ -113,6 +119,7 @@ public class MainScreenController extends FragmentCallbacks.Observer {
         this.topList = topList;
         this.foodstuffsList = foodstuffsList;
         fragmentCallbacks.addObserver(this);
+        activityCallbacks.addObserver(this);
     }
 
     @Override
@@ -246,13 +253,20 @@ public class MainScreenController extends FragmentCallbacks.Observer {
             // когда пользователь нажал на клавиатуре enter
             @Override
             public void onSearchAction(String currentQuery) {
+                if (!currentQuery.isEmpty()) {
+                    searchQueries.push(currentQuery);
+                }
                 SearchResultsFragment.show(currentQuery, context);
             }
         });
 
         // когда пользователь нажал кнопку лупы в searchView
         searchView.setOnMenuItemClickListener(item -> {
-            SearchResultsFragment.show(searchView.getQuery(), context);
+            String currentQuery = searchView.getQuery();
+            if (!currentQuery.isEmpty()) {
+                searchQueries.push(currentQuery);
+            }
+            SearchResultsFragment.show(currentQuery, context);
         });
     }
 
@@ -309,6 +323,25 @@ public class MainScreenController extends FragmentCallbacks.Observer {
                 foodstuffAdapterChild.replaceItem(editedFoodstuff);
                 showCard(editedFoodstuff);
             }
+        }
+    }
+
+    @Override
+    public void onActivityBackPressed() {
+        // когда показан SearchResultFragment - возвращать в строку прошлый запрос
+        // иначе - очистить историю запросов
+        Fragment searchResultsFragment = context.getSupportFragmentManager().findFragmentByTag(SEARCH_RESULTS_FRAGMENT_TAG);
+        if (searchResultsFragment != null && searchResultsFragment.isVisible()) {
+            // удаляем первый элемент, чтобы в начале стека был предыдущий
+            if (startBackPress) {
+                searchQueries.pop();
+                startBackPress = false;
+            }
+            if (!searchQueries.empty()) {
+                searchView.setSearchText(searchQueries.pop());
+            }
+        } else {
+            searchQueries.clear();
         }
     }
 

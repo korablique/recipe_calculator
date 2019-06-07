@@ -9,14 +9,15 @@ import java.util.List;
 public class ActivityCallbacks {
     private final List<Observer> observers = new ArrayList<>();
 
-    public static abstract class Observer {
-        public void onActivityCreate(Bundle savedInstanceState) {}
-        public void onActivityResume() {}
-        public void onActivityPause() {}
-        public void onActivityDestroy() {}
-        public void onActivityResult(int requestCode, int resultCode, Intent data) {}
-        public void onActivitySaveInstanceState(Bundle outState) {}
-        public void onActivityRestoreInstanceState(Bundle savedInstanceState) {}
+    public interface Observer {
+        default void onActivityCreate(Bundle savedInstanceState) {}
+        default void onActivityResume() {}
+        default void onActivityPause() {}
+        default void onActivityDestroy() {}
+        default void onActivityResult(int requestCode, int resultCode, Intent data) {}
+        default void onActivitySaveInstanceState(Bundle outState) {}
+        default void onActivityRestoreInstanceState(Bundle savedInstanceState) {}
+        default void onActivityBackPressed() {}
     }
 
     public void addObserver(Observer observer) {
@@ -66,6 +67,12 @@ public class ActivityCallbacks {
     void dispatchRestoreInstanceState(Bundle savedInstanceState) {
         for (Observer observer : observers) {
             observer.onActivityRestoreInstanceState(savedInstanceState);
+        }
+    }
+
+    void dispatchActivityBackPressed() {
+        for (Observer observer : observers) {
+            observer.onActivityBackPressed();
         }
     }
 }
