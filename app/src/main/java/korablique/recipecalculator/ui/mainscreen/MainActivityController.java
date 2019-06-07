@@ -4,6 +4,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import org.joda.time.LocalDate;
@@ -88,6 +91,19 @@ public class MainActivityController extends ActivityCallbacks.Observer {
             // если ни один фрагмент не показан (приложение только что запущено)
             MainScreenFragment.show(context.getSupportFragmentManager());
         }
+
+        // обработка нажатий назад
+        FragmentManager fragmentManager = context.getSupportFragmentManager();
+        fragmentManager.addOnBackStackChangedListener(() -> {
+            Fragment visibleFragment = context.getSupportFragmentManager().findFragmentById(R.id.main_container);
+            if (visibleFragment instanceof MainScreenFragment) {
+                bottomNavigationView.setSelectedItemId(R.id.menu_item_foodstuffs);
+            } else if (visibleFragment instanceof HistoryFragment) {
+                bottomNavigationView.setSelectedItemId(R.id.menu_item_history);
+            } else if (visibleFragment instanceof ProfileFragment) {
+                bottomNavigationView.setSelectedItemId(R.id.menu_item_profile);
+            }
+        });
     }
 
     @Override
