@@ -56,9 +56,9 @@ public class MainScreenController extends FragmentCallbacks.Observer {
     @StringRes
     private static final int CARD_BUTTON_TEXT_RES = R.string.add_foodstuff;
     private static final String EXTRA_DATE = "EXTRA_DATE";
-    private BaseActivity context;
-    private BaseFragment fragment;
-    private Lifecycle lifecycle;
+    private final BaseActivity context;
+    private final BaseFragment fragment;
+    private final Lifecycle lifecycle;
     private final FoodstuffsList foodstuffsList;
     private final TopList topList;
     private AdapterParent adapterParent;
@@ -117,6 +117,13 @@ public class MainScreenController extends FragmentCallbacks.Observer {
 
     @Override
     public void onFragmentViewCreated(View fragmentView, Bundle savedInstanceState) {
+        // при нажатии назад вызывается onFragmentViewCreated, т к старый fragmentView удалился,
+        // а поля остались проинициализированными, и адаптеры добавлены в recyclerView
+        // старного fragmentView. мы их зануляем, чтоб они заново инициализировались
+        adapterParent = null;
+        topAdapterChild = null;
+        foodstuffAdapterChild = null;
+
         snackbar = new SelectedFoodstuffsSnackbar(fragmentView);
         searchView = fragmentView.findViewById(R.id.floating_search_view);
 

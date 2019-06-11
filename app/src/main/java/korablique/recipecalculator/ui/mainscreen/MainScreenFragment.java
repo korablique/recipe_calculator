@@ -29,7 +29,7 @@ public class MainScreenFragment extends BaseFragment {
         return inflater.inflate(R.layout.fragment_main_screen, container, false);
     }
 
-    public static void show(FragmentManager fragmentManager) {
+    public static void show(FragmentManager fragmentManager, boolean addToBackStack) {
         // чтобы не пересоздавать фрагмент, который уже показан прямо сейчас
         // и чтобы сохранялся его стейт (потому что при пересоздании фрагмента стейт потеряется)
         if (fragmentManager.findFragmentById(R.id.main_container) instanceof MainScreenFragment) {
@@ -38,7 +38,9 @@ public class MainScreenFragment extends BaseFragment {
         Fragment mainScreenFragment = new MainScreenFragment();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.main_container, mainScreenFragment);
-        transaction.addToBackStack(null);
+        if (addToBackStack) {
+            transaction.addToBackStack(null);
+        }
         transaction.commit();
     }
 
