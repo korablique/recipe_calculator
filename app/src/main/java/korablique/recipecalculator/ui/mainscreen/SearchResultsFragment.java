@@ -1,18 +1,21 @@
 package korablique.recipecalculator.ui.mainscreen;
 
 
-import androidx.lifecycle.Lifecycle;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.Lifecycle;
 import androidx.recyclerview.widget.RecyclerView;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -21,12 +24,12 @@ import io.reactivex.Single;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.base.RxFragmentSubscriptions;
-import korablique.recipecalculator.dagger.InjectorHolder;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.card.CardDialog;
+import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
 
 public class SearchResultsFragment extends BaseFragment {
     public static final String SEARCH_RESULTS_FRAGMENT_TAG = "SEARCH_RESULTS_FRAGMENT_TAG";
@@ -58,11 +61,41 @@ public class SearchResultsFragment extends BaseFragment {
                 CardDialog.hideCard(getActivity());
                 BucketList bucketList = BucketList.getInstance();
                 bucketList.add(foodstuff1);
-                getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
+                closeThisFragment();
             }, R.string.add_foodstuff);
+            cardDialog.setOnDeleteButtonClickListener(foodstuff2 -> {
+                CardDialog.hideCard(getActivity());
+                foodstuffsList.deleteFoodstuff(foodstuff2.withoutWeight());
+            });
         });
         searchResultsRecyclerView.setAdapter(adapter);
 
+        performSearch(query, adapter, fragmentView);
+
+        Button addNewFoodstuffButton = fragmentView.findViewById(R.id.add_new_foodstuff_button);
+        addNewFoodstuffButton.setOnClickListener(v -> {
+            EditFoodstuffActivity.startForCreation(fragmentView.getContext());
+        });
+        // подписываемся на FoodstuffsList, чтобы после добавления нового продукта
+        // он отображался в результатах поиска
+        FoodstuffsList.Observer foodstuffsListObserver = new FoodstuffsList.Observer() {
+            @Override
+            public void onFoodstuffSaved(Foodstuff savedFoodstuff, int index) {
+                // старые результаты поиска удалить, заново осуществить поиск
+                adapter.clear();
+                performSearch(query, adapter, fragmentView);
+            }
+
+            @Override
+            public void onFoodstuffDeleted(Foodstuff deleted) {
+                adapter.removeItem(deleted);
+            }
+        };
+        foodstuffsList.addObserver(foodstuffsListObserver);
+        return fragmentView;
+    }
+
+    private void performSearch(String query, SearchResultsAdapter adapter, View fragmentView) {
         Single<List<Foodstuff>> searchResultSingle = foodstuffsList.requestFoodstuffsLike(query);
         fragmentSubscriptions.subscribe(searchResultSingle, (searchResult) -> {
             adapter.addItems(searchResult);
@@ -73,8 +106,10 @@ public class SearchResultsFragment extends BaseFragment {
                 fragmentView.findViewById(R.id.nothing_found_view).setVisibility(View.GONE);
             }
         });
+    }
 
-        return fragmentView;
+    private void closeThisFragment() {
+        getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
     }
 
     public static void show(String request, FragmentActivity context) {

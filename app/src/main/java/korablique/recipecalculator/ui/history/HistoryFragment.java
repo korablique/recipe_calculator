@@ -22,7 +22,6 @@ import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 
 public class HistoryFragment extends BaseFragment {
-    public static final String EXTRA_FOODSTUFFS_LIST = "EXTRA_FOODSTUFFS_LIST";
     @Inject
     HistoryController historyController;
 

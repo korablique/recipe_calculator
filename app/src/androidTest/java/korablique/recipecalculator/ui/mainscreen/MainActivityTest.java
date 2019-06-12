@@ -99,10 +99,12 @@ import static androidx.test.espresso.intent.matcher.BundleMatchers.hasValue;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasAction;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasExtras;
+import static androidx.test.espresso.matcher.ViewMatchers.isDescendantOfA;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.isRoot;
 import static androidx.test.espresso.matcher.ViewMatchers.withClassName;
 import static androidx.test.espresso.matcher.ViewMatchers.withEffectiveVisibility;
+import static androidx.test.espresso.matcher.ViewMatchers.withHint;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withParent;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
@@ -964,6 +966,56 @@ public class MainActivityTest {
 
         onView(withText(containsString(addedFoodstuffs.get(0).getName()))).check(matches(isDisplayed()));
         onView(withId(R.id.title_text)).check(matches(withText(date.toString("dd.MM.yy"))));
+    }
+
+    // поиск
+
+    @Test
+    public void deletingFromSearchResultsWorks() {
+        mActivityRule.launchActivity(null);
+
+        Foodstuff searchingFoodstuff = foodstuffs[0];
+        onView(withHint(R.string.search)).perform(click());
+        onView(withHint(R.string.search)).perform(replaceText(searchingFoodstuff.getName()));
+        onView(withHint(R.string.search)).perform(pressImeActionButton()); // enter
+        // нажимаем на результат поиска
+        onView(allOf(
+                withText(searchingFoodstuff.getName()),
+                isDescendantOfA(withId(R.id.search_results_recycler_view)),
+                matches(isCompletelyBelow(withId(R.id.add_new_foodstuff_button))))).perform(click());
+        // удаляем его
+        onView(withId(R.id.button_delete)).perform(click());
+        // нужно проверять не только текст, но и родителя,
+        // т к иначе в проверку попадут вьюшки из MainScreen
+        onView(allOf(
+                withText(searchingFoodstuff.getName()),
+                isDescendantOfA(withId(R.id.search_results_recycler_view)),
+                matches(isCompletelyBelow(withId(R.id.add_new_foodstuff_button)))))
+                .check(doesNotExist());
+    }
+
+    @Test
+    public void whenSavingNewFoodstuffFromSearchResultsItAppearsInSearchResults() {
+        mActivityRule.launchActivity(null);
+
+        Foodstuff newFoodstuff = Foodstuff.withName("granola").withNutrition(10, 10, 60, 450);
+        onView(withHint(R.string.search)).perform(click());
+        onView(withHint(R.string.search)).perform(replaceText(newFoodstuff.getName()));
+        onView(withHint(R.string.search)).perform(pressImeActionButton()); // enter
+        mainThreadExecutor.execute(() -> {
+            foodstuffsList.saveFoodstuff(newFoodstuff, new FoodstuffsList.SaveFoodstuffCallback() {
+                @Override
+                public void onResult(long id) {}
+
+                @Override
+                public void onDuplication() {}
+            });
+        });
+        onView(allOf(
+                withText(newFoodstuff.getName()),
+                matches(isCompletelyBelow(withId(R.id.add_new_foodstuff_button))),
+                isDescendantOfA(withId(R.id.search_results_recycler_view))))
+                .check(matches(isDisplayed()));
     }
 
     @Test

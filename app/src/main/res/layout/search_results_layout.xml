@@ -18,7 +18,7 @@
         android:text="@string/search_results"/>
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/add_new_foodstuff_button"
         style="@style/VioletButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

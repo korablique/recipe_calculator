@@ -19,9 +19,9 @@ import korablique.recipecalculator.util.FuzzySearcher;
 @Singleton
 public class FoodstuffsList {
     public interface Observer {
-        void onFoodstuffSaved(Foodstuff savedFoodstuff, int index);
-        void onFoodstuffEdited(Foodstuff edited);
-        void onFoodstuffDeleted(Foodstuff deleted);
+        default void onFoodstuffSaved(Foodstuff savedFoodstuff, int index) {}
+        default void onFoodstuffEdited(Foodstuff edited) {}
+        default void onFoodstuffDeleted(Foodstuff deleted) {}
     }
     public interface SaveFoodstuffCallback {
         void onResult(long id);
