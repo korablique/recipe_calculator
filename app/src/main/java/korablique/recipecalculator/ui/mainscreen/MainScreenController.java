@@ -62,6 +62,7 @@ public class MainScreenController extends FragmentCallbacks.Observer implements 
     private BaseActivity context;
     private BaseFragment fragment;
     private Lifecycle lifecycle;
+    private final ActivityCallbacks activityCallbacks;
     private final FoodstuffsList foodstuffsList;
     private final TopList topList;
     private AdapterParent adapterParent;
@@ -69,7 +70,6 @@ public class MainScreenController extends FragmentCallbacks.Observer implements 
     private FoodstuffsAdapterChild foodstuffAdapterChild;
     private FloatingSearchView searchView;
     private Stack<String> searchQueries = new Stack<>();
-    private boolean startBackPress = true;
     private SelectedFoodstuffsSnackbar snackbar;
     private NewCard.OnAddFoodstuffButtonClickListener cardDialogOnAddFoodstuffButtonClickListener;
     private NewCard.OnEditButtonClickListener cardDialogOnEditButtonClickListener;
@@ -115,6 +115,7 @@ public class MainScreenController extends FragmentCallbacks.Observer implements 
             FoodstuffsList foodstuffsList) {
         this.context = context;
         this.fragment = fragment;
+        this.activityCallbacks = activityCallbacks;
         this.lifecycle = lifecycle;
         this.topList = topList;
         this.foodstuffsList = foodstuffsList;
@@ -210,6 +211,8 @@ public class MainScreenController extends FragmentCallbacks.Observer implements 
     public void onFragmentDestroy() {
         BucketList bucketList = BucketList.getInstance();
         bucketList.removeObserver(bucketListObserver);
+
+        activityCallbacks.removeObserver(this);
     }
 
     private void fillAllFoodstuffsList(List<Foodstuff> batch) {
@@ -332,13 +335,11 @@ public class MainScreenController extends FragmentCallbacks.Observer implements 
         // иначе - очистить историю запросов
         Fragment searchResultsFragment = context.getSupportFragmentManager().findFragmentByTag(SEARCH_RESULTS_FRAGMENT_TAG);
         if (searchResultsFragment != null && searchResultsFragment.isVisible()) {
-            // удаляем первый элемент, чтобы в начале стека был предыдущий
-            if (startBackPress) {
+            if (!searchQueries.empty()) {
                 searchQueries.pop();
-                startBackPress = false;
             }
             if (!searchQueries.empty()) {
-                searchView.setSearchText(searchQueries.pop());
+                searchView.setSearchText(searchQueries.peek());
             }
         } else {
             searchQueries.clear();
