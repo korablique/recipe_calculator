@@ -44,7 +44,7 @@ import korablique.recipecalculator.model.HistoryEntry;
  */
 // короче управляет подписками на Observable'ы
 @ActivityScope
-public class RxActivitySubscriptions extends ActivityCallbacks.Observer {
+public class RxActivitySubscriptions implements ActivityCallbacks.Observer {
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     @Inject

@@ -19,6 +19,7 @@ import org.joda.time.LocalDate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 import javax.inject.Inject;
 
@@ -26,6 +27,7 @@ import io.reactivex.Single;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.disposables.Disposables;
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.base.FragmentCallbacks;
@@ -49,22 +51,25 @@ import static korablique.recipecalculator.IntentConstants.EDIT_FOODSTUFF_REQUEST
 import static korablique.recipecalculator.IntentConstants.EDIT_RESULT;
 import static korablique.recipecalculator.IntentConstants.FIND_FOODSTUFF_REQUEST;
 import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
+import static korablique.recipecalculator.ui.mainscreen.SearchResultsFragment.SEARCH_RESULTS_FRAGMENT_TAG;
 
 @FragmentScope
-public class MainScreenController extends FragmentCallbacks.Observer {
+public class MainScreenController extends FragmentCallbacks.Observer implements ActivityCallbacks.Observer {
     private static final int SEARCH_SUGGESTIONS_NUMBER = 3;
     @StringRes
     private static final int CARD_BUTTON_TEXT_RES = R.string.add_foodstuff;
     private static final String EXTRA_DATE = "EXTRA_DATE";
-    private BaseActivity context;
-    private BaseFragment fragment;
-    private Lifecycle lifecycle;
+    private final BaseActivity context;
+    private final BaseFragment fragment;
+    private final Lifecycle lifecycle;
+    private final ActivityCallbacks activityCallbacks;
     private final FoodstuffsList foodstuffsList;
     private final TopList topList;
     private AdapterParent adapterParent;
     private FoodstuffsAdapterChild topAdapterChild;
     private FoodstuffsAdapterChild foodstuffAdapterChild;
     private FloatingSearchView searchView;
+    private Stack<String> searchQueries = new Stack<>();
     private SelectedFoodstuffsSnackbar snackbar;
     private NewCard.OnAddFoodstuffButtonClickListener cardDialogOnAddFoodstuffButtonClickListener;
     private NewCard.OnEditButtonClickListener cardDialogOnEditButtonClickListener;
@@ -104,19 +109,29 @@ public class MainScreenController extends FragmentCallbacks.Observer {
             BaseActivity context,
             BaseFragment fragment,
             FragmentCallbacks fragmentCallbacks,
+            ActivityCallbacks activityCallbacks,
             Lifecycle lifecycle,
             TopList topList,
             FoodstuffsList foodstuffsList) {
         this.context = context;
         this.fragment = fragment;
+        this.activityCallbacks = activityCallbacks;
         this.lifecycle = lifecycle;
         this.topList = topList;
         this.foodstuffsList = foodstuffsList;
         fragmentCallbacks.addObserver(this);
+        activityCallbacks.addObserver(this);
     }
 
     @Override
     public void onFragmentViewCreated(View fragmentView, Bundle savedInstanceState) {
+        // при нажатии назад вызывается onFragmentViewCreated, т к старый fragmentView удалился,
+        // а поля остались проинициализированными, и адаптеры добавлены в recyclerView
+        // старного fragmentView. мы их зануляем, чтоб они заново инициализировались
+        adapterParent = null;
+        topAdapterChild = null;
+        foodstuffAdapterChild = null;
+
         snackbar = new SelectedFoodstuffsSnackbar(fragmentView);
         searchView = fragmentView.findViewById(R.id.floating_search_view);
 
@@ -203,6 +218,8 @@ public class MainScreenController extends FragmentCallbacks.Observer {
     public void onFragmentDestroy() {
         BucketList bucketList = BucketList.getInstance();
         bucketList.removeObserver(bucketListObserver);
+
+        activityCallbacks.removeObserver(this);
     }
 
     private void fillAllFoodstuffsList(List<Foodstuff> batch) {
@@ -246,13 +263,20 @@ public class MainScreenController extends FragmentCallbacks.Observer {
             // когда пользователь нажал на клавиатуре enter
             @Override
             public void onSearchAction(String currentQuery) {
+                if (!currentQuery.isEmpty()) {
+                    searchQueries.push(currentQuery);
+                }
                 SearchResultsFragment.show(currentQuery, context);
             }
         });
 
         // когда пользователь нажал кнопку лупы в searchView
         searchView.setOnMenuItemClickListener(item -> {
-            SearchResultsFragment.show(searchView.getQuery(), context);
+            String currentQuery = searchView.getQuery();
+            if (!currentQuery.isEmpty()) {
+                searchQueries.push(currentQuery);
+            }
+            SearchResultsFragment.show(currentQuery, context);
         });
     }
 
@@ -309,6 +333,23 @@ public class MainScreenController extends FragmentCallbacks.Observer {
                 foodstuffAdapterChild.replaceItem(editedFoodstuff);
                 showCard(editedFoodstuff);
             }
+        }
+    }
+
+    @Override
+    public void onActivityBackPressed() {
+        // когда показан SearchResultFragment - возвращать в строку прошлый запрос
+        // иначе - очистить историю запросов
+        Fragment searchResultsFragment = context.getSupportFragmentManager().findFragmentByTag(SEARCH_RESULTS_FRAGMENT_TAG);
+        if (searchResultsFragment != null && searchResultsFragment.isVisible()) {
+            if (!searchQueries.empty()) {
+                searchQueries.pop();
+            }
+            if (!searchQueries.empty()) {
+                searchView.setSearchText(searchQueries.peek());
+            }
+        } else {
+            searchQueries.clear();
         }
     }
 

@@ -23,7 +23,7 @@ import korablique.recipecalculator.ui.history.HistoryFragment;
 import korablique.recipecalculator.ui.profile.ProfileFragment;
 import korablique.recipecalculator.ui.usergoal.UserParametersActivity;
 
-public class MainActivityController extends ActivityCallbacks.Observer {
+public class MainActivityController implements ActivityCallbacks.Observer {
     private static final String BOTTOM_NAVIGATION_VIEW_SELECTED_ITEM_ID = "BOTTOM_NAVIGATION_VIEW_SELECTED_ITEM_ID";
     private static final String ACTION_ADD_FOODSTUFFS_TO_HISTORY = "ACTION_ADD_FOODSTUFFS_TO_HISTORY";
     private static final String EXTRA_FOODSTUFFS_LIST = "EXTRA_FOODSTUFFS_LIST";
@@ -60,7 +60,7 @@ public class MainActivityController extends ActivityCallbacks.Observer {
         bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
             switch (item.getItemId()) {
                 case R.id.menu_item_foodstuffs:
-                    MainScreenFragment.show(context.getSupportFragmentManager());
+                    MainScreenFragment.show(context.getSupportFragmentManager(), true);
                     break;
                 case R.id.menu_item_history:
                     HistoryFragment.show(context.getSupportFragmentManager());
@@ -86,19 +86,17 @@ public class MainActivityController extends ActivityCallbacks.Observer {
             HistoryFragment.show(context.getSupportFragmentManager(), selectedDate, foodstuffs);
         } else if (context.getSupportFragmentManager().findFragmentById(R.id.main_container) == null) {
             // если ни один фрагмент не показан (приложение только что запущено)
-            MainScreenFragment.show(context.getSupportFragmentManager());
+            MainScreenFragment.show(context.getSupportFragmentManager(), false);
         }
     }
 
     @Override
     public void onActivitySaveInstanceState(Bundle outState) {
-        super.onActivitySaveInstanceState(outState);
         outState.putInt(BOTTOM_NAVIGATION_VIEW_SELECTED_ITEM_ID, bottomNavigationView.getSelectedItemId());
     }
 
     @Override
     public void onActivityRestoreInstanceState(Bundle savedInstanceState) {
-        super.onActivityRestoreInstanceState(savedInstanceState);
         bottomNavigationView.setSelectedItemId(savedInstanceState.getInt(BOTTOM_NAVIGATION_VIEW_SELECTED_ITEM_ID));
     }
 

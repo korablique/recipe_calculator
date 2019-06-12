@@ -32,6 +32,7 @@ import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
 
 public class SearchResultsFragment extends BaseFragment {
+    public static final String SEARCH_RESULTS_FRAGMENT_TAG = "SEARCH_RESULTS_FRAGMENT_TAG";
     public static final String REQUEST = "REQUEST";
     @Inject
     DatabaseWorker databaseWorker;
@@ -117,7 +118,7 @@ public class SearchResultsFragment extends BaseFragment {
         args.putString(REQUEST, request);
         searchResultsFragment.setArguments(args);
         FragmentTransaction transaction = context.getSupportFragmentManager().beginTransaction();
-        transaction.add(R.id.fragment_container, searchResultsFragment);
+        transaction.add(R.id.fragment_container, searchResultsFragment, SEARCH_RESULTS_FRAGMENT_TAG);
         transaction.addToBackStack(null);
         transaction.commit();
     }

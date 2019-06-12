@@ -64,6 +64,12 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        activityCallbacks.dispatchActivityBackPressed();
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         //понятия не имею, что это
         switch (item.getItemId()) {
