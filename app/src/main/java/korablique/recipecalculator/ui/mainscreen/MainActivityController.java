@@ -60,7 +60,7 @@ public class MainActivityController implements ActivityCallbacks.Observer {
         bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
             switch (item.getItemId()) {
                 case R.id.menu_item_foodstuffs:
-                    MainScreenFragment.show(context.getSupportFragmentManager());
+                    MainScreenFragment.show(context.getSupportFragmentManager(), true);
                     break;
                 case R.id.menu_item_history:
                     HistoryFragment.show(context.getSupportFragmentManager());
@@ -86,7 +86,7 @@ public class MainActivityController implements ActivityCallbacks.Observer {
             HistoryFragment.show(context.getSupportFragmentManager(), selectedDate, foodstuffs);
         } else if (context.getSupportFragmentManager().findFragmentById(R.id.main_container) == null) {
             // если ни один фрагмент не показан (приложение только что запущено)
-            MainScreenFragment.show(context.getSupportFragmentManager());
+            MainScreenFragment.show(context.getSupportFragmentManager(), false);
         }
     }
 
