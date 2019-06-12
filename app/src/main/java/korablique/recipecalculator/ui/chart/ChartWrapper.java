@@ -105,7 +105,6 @@ public class ChartWrapper {
         for (Entry entry : chartEntries) {
             lineData.addEntry(entry, lineData.getDataSetCount() - 1);
         }
-        chart.setVisibleXRange(0, userParametersList.size() - 1);
         chart.notifyDataSetChanged();
         chart.invalidate();
     }
