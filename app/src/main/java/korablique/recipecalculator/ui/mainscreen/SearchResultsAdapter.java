@@ -84,6 +84,11 @@ public class SearchResultsAdapter extends RecyclerView.Adapter<MyViewHolder> {
         return searchResults.get(displayedPosition);
     }
 
+    public void clear() {
+        searchResults.clear();
+        notifyDataSetChanged();
+    }
+
     private <T> void setTextViewText(View parent, int viewId, T text) {
         ((TextView) parent.findViewById(viewId)).setText(text.toString());
     }

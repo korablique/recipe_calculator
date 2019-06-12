@@ -69,16 +69,7 @@ public class SearchResultsFragment extends BaseFragment {
         });
         searchResultsRecyclerView.setAdapter(adapter);
 
-        Single<List<Foodstuff>> searchResultSingle = foodstuffsList.requestFoodstuffsLike(query);
-        fragmentSubscriptions.subscribe(searchResultSingle, (searchResult) -> {
-            adapter.addItems(searchResult);
-
-            if (adapter.getItemCount() == 0) {
-                fragmentView.findViewById(R.id.nothing_found_view).setVisibility(View.VISIBLE);
-            } else {
-                fragmentView.findViewById(R.id.nothing_found_view).setVisibility(View.GONE);
-            }
-        });
+        performSearch(query, adapter, fragmentView);
 
         Button addNewFoodstuffButton = fragmentView.findViewById(R.id.add_new_foodstuff_button);
         addNewFoodstuffButton.setOnClickListener(v -> {
@@ -89,11 +80,10 @@ public class SearchResultsFragment extends BaseFragment {
         FoodstuffsList.Observer foodstuffsListObserver = new FoodstuffsList.Observer() {
             @Override
             public void onFoodstuffSaved(Foodstuff savedFoodstuff, int index) {
-                adapter.addItems(Collections.singletonList(savedFoodstuff));
+                // старые результаты поиска удалить, заново осуществить поиск
+                adapter.clear();
+                performSearch(query, adapter, fragmentView);
             }
-
-            @Override
-            public void onFoodstuffEdited(Foodstuff edited) {}
 
             @Override
             public void onFoodstuffDeleted(Foodstuff deleted) {
@@ -102,6 +92,19 @@ public class SearchResultsFragment extends BaseFragment {
         };
         foodstuffsList.addObserver(foodstuffsListObserver);
         return fragmentView;
+    }
+
+    private void performSearch(String query, SearchResultsAdapter adapter, View fragmentView) {
+        Single<List<Foodstuff>> searchResultSingle = foodstuffsList.requestFoodstuffsLike(query);
+        fragmentSubscriptions.subscribe(searchResultSingle, (searchResult) -> {
+            adapter.addItems(searchResult);
+
+            if (adapter.getItemCount() == 0) {
+                fragmentView.findViewById(R.id.nothing_found_view).setVisibility(View.VISIBLE);
+            } else {
+                fragmentView.findViewById(R.id.nothing_found_view).setVisibility(View.GONE);
+            }
+        });
     }
 
     private void closeThisFragment() {
