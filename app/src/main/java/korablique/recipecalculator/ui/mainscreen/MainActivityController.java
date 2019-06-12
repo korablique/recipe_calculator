@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
@@ -74,6 +75,22 @@ public class MainActivityController extends ActivityCallbacks.Observer {
             }
             return true;
         });
+        // обработка нажатий назад
+        FragmentManager fragmentManager = context.getSupportFragmentManager();
+        fragmentManager.registerFragmentLifecycleCallbacks(new FragmentManager.FragmentLifecycleCallbacks() {
+            @Override
+            public void onFragmentResumed(@NonNull FragmentManager fm, @NonNull Fragment f) {
+                super.onFragmentResumed(fm, f);
+
+                if (f instanceof MainScreenFragment) {
+                    bottomNavigationView.setSelectedItemId(R.id.menu_item_foodstuffs);
+                } else if (f instanceof HistoryFragment) {
+                    bottomNavigationView.setSelectedItemId(R.id.menu_item_history);
+                } else if (f instanceof ProfileFragment) {
+                    bottomNavigationView.setSelectedItemId(R.id.menu_item_profile);
+                }
+            }
+        }, false);
 
         Intent intent = context.getIntent();
         if (intent != null && ACTION_ADD_FOODSTUFFS_TO_HISTORY.equals(intent.getAction())) {
@@ -91,19 +108,6 @@ public class MainActivityController extends ActivityCallbacks.Observer {
             // если ни один фрагмент не показан (приложение только что запущено)
             MainScreenFragment.show(context.getSupportFragmentManager());
         }
-
-        // обработка нажатий назад
-        FragmentManager fragmentManager = context.getSupportFragmentManager();
-        fragmentManager.addOnBackStackChangedListener(() -> {
-            Fragment visibleFragment = context.getSupportFragmentManager().findFragmentById(R.id.main_container);
-            if (visibleFragment instanceof MainScreenFragment) {
-                bottomNavigationView.setSelectedItemId(R.id.menu_item_foodstuffs);
-            } else if (visibleFragment instanceof HistoryFragment) {
-                bottomNavigationView.setSelectedItemId(R.id.menu_item_history);
-            } else if (visibleFragment instanceof ProfileFragment) {
-                bottomNavigationView.setSelectedItemId(R.id.menu_item_profile);
-            }
-        });
     }
 
     @Override
