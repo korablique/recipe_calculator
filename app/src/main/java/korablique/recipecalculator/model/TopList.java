@@ -33,7 +33,7 @@ public class TopList {
         // а затем уже добавляем в адаптеры элементы.
         // Это нужно для того, чтобы элементы на экране загружались все сразу
         List<Foodstuff> foodstuffs = new ArrayList<>(); // это продукты за период
-        historyWorker.requestListedFoodstuffsFromHistoryForPeroid(
+        historyWorker.requestListedFoodstuffsFromHistoryForPeriod(
                 0,
                 Long.MAX_VALUE,
                 (listedFoodstuffs) -> {

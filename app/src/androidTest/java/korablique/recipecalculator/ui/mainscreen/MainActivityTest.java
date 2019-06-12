@@ -1058,7 +1058,7 @@ public class MainActivityTest {
 
     private List<Foodstuff> extractFoodstuffsTopFromDB() {
         List<Foodstuff> listedFoodstuffs = new ArrayList<>();
-        historyWorker.requestListedFoodstuffsFromHistoryForPeroid(0, Long.MAX_VALUE, listedFoodstuffs::addAll);
+        historyWorker.requestListedFoodstuffsFromHistoryForPeriod(0, Long.MAX_VALUE, listedFoodstuffs::addAll);
 
         List<PopularProductsUtils.FoodstuffFrequency> foodstuffFrequencies = PopularProductsUtils.getTop(listedFoodstuffs);
         List<Foodstuff> top = new ArrayList<>();

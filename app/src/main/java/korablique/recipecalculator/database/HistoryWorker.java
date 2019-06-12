@@ -264,7 +264,7 @@ public class HistoryWorker {
         });
     }
 
-    public void requestListedFoodstuffsFromHistoryForPeroid(
+    public void requestListedFoodstuffsFromHistoryForPeriod(
             final long from,
             final long to,
             @NonNull Callback<List<Foodstuff>> callback) {
@@ -284,7 +284,7 @@ public class HistoryWorker {
                 Foodstuff foodstuff = Foodstuff.withId(id).withName(name).withNutrition(protein, fats, carbs, calories);
                 listedFoodstuffs.add(foodstuff);
             }
-            callback.onResult(listedFoodstuffs);
+            mainThreadExecutor.execute(() -> callback.onResult(listedFoodstuffs));
         });
     }
 
