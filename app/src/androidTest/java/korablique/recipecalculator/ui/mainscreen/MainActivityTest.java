@@ -11,6 +11,7 @@ import android.widget.ProgressBar;
 
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
+import androidx.test.espresso.action.ViewActions;
 import androidx.test.espresso.contrib.PickerActions;
 import androidx.test.espresso.matcher.BoundedMatcher;
 import androidx.test.espresso.matcher.ViewMatchers;
@@ -87,6 +88,7 @@ import korablique.recipecalculator.util.TestingTimeProvider;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
+import static androidx.test.espresso.action.ViewActions.pressImeActionButton;
 import static androidx.test.espresso.action.ViewActions.replaceText;
 import static androidx.test.espresso.assertion.PositionAssertions.isCompletelyAbove;
 import static androidx.test.espresso.assertion.PositionAssertions.isCompletelyBelow;
@@ -98,6 +100,7 @@ import static androidx.test.espresso.intent.matcher.IntentMatchers.hasAction;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasExtras;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static androidx.test.espresso.matcher.ViewMatchers.isRoot;
 import static androidx.test.espresso.matcher.ViewMatchers.withClassName;
 import static androidx.test.espresso.matcher.ViewMatchers.withEffectiveVisibility;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
@@ -177,7 +180,8 @@ public class MainActivityTest {
                     Lifecycle lifecycle = activity.getLifecycle();
                     if (fragment instanceof MainScreenFragment) {
                         MainScreenController mainScreenController = new MainScreenController(
-                                activity, fragment, fragment.getFragmentCallbacks(), lifecycle, topList, foodstuffsList);
+                                activity, fragment, fragment.getFragmentCallbacks(),
+                                activity.getActivityCallbacks(), lifecycle, topList, foodstuffsList);
                         return Arrays.asList(subscriptions, mainScreenController);
 
                     } else if (fragment instanceof ProfileFragment) {
@@ -191,6 +195,8 @@ public class MainActivityTest {
                                 activity, fragment, fragmentCallbacks, historyWorker,
                                 userParametersWorker, subscriptions, timeProvider);
                         return Arrays.asList(subscriptions, historyController);
+                    } else if (fragment instanceof SearchResultsFragment) {
+                        return Arrays.asList(databaseWorker, lifecycle, activity, foodstuffsList, subscriptions);
                     } else {
                         throw new IllegalStateException("There is no such fragment class");
                     }
@@ -958,6 +964,32 @@ public class MainActivityTest {
 
         onView(withText(containsString(addedFoodstuffs.get(0).getName()))).check(matches(isDisplayed()));
         onView(withId(R.id.title_text)).check(matches(withText(date.toString("dd.MM.yy"))));
+    }
+
+    @Test
+    public void onBackPressedLastSearchQueryReturns() {
+        mActivityRule.launchActivity(null);
+
+        // ввести название одного продукта
+        onView(withId(R.id.search_bar_text)).perform(click());
+        onView(withId(R.id.search_bar_text)).perform(replaceText(foodstuffs[0].getName()));
+        onView(withId(R.id.search_bar_text)).perform(pressImeActionButton()); // enter
+
+        // другого
+        onView(withId(R.id.search_bar_text)).perform(click());
+        onView(withId(R.id.search_bar_text)).perform(replaceText(foodstuffs[1].getName()));
+        onView(withId(R.id.search_bar_text)).perform(pressImeActionButton());
+
+        // нажать Назад
+        onView(isRoot()).perform(ViewActions.pressBack()); // первое нажатие закрывает клавиатуру
+        onView(isRoot()).perform(ViewActions.pressBack());
+
+        // убедиться, что в searchView находится название первого продукта
+        onView(withId(R.id.search_bar_text)).check(matches(withText(foodstuffs[0].getName())));
+
+        // нажать ещё раз назад и убедиться, что SearchResultsFragment закрылся
+        onView(isRoot()).perform(ViewActions.pressBack());
+        onView(withId(R.id.search_results_layout)).check(doesNotExist());
     }
 
     private void addFoodstuffsToday() {

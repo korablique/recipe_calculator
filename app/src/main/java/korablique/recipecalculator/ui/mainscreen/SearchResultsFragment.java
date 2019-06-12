@@ -29,6 +29,7 @@ import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.card.CardDialog;
 
 public class SearchResultsFragment extends BaseFragment {
+    public static final String SEARCH_RESULTS_FRAGMENT_TAG = "SEARCH_RESULTS_FRAGMENT_TAG";
     public static final String REQUEST = "REQUEST";
     @Inject
     DatabaseWorker databaseWorker;
@@ -40,12 +41,6 @@ public class SearchResultsFragment extends BaseFragment {
     FoodstuffsList foodstuffsList;
     @Inject
     RxFragmentSubscriptions fragmentSubscriptions;
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        InjectorHolder.getInjector().inject(this);
-    }
 
     @Override
     protected View createView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -88,7 +83,7 @@ public class SearchResultsFragment extends BaseFragment {
         args.putString(REQUEST, request);
         searchResultsFragment.setArguments(args);
         FragmentTransaction transaction = context.getSupportFragmentManager().beginTransaction();
-        transaction.add(R.id.fragment_container, searchResultsFragment);
+        transaction.add(R.id.fragment_container, searchResultsFragment, SEARCH_RESULTS_FRAGMENT_TAG);
         transaction.addToBackStack(null);
         transaction.commit();
     }
