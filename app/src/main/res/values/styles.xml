@@ -51,21 +51,25 @@
         <item name="android:textSize">12sp</item>
     </style>
 
-    <style name="BroccalcButton" parent="Base.TextAppearance.AppCompat.Button">
+    <style name="VioletButton" parent="Widget.MaterialComponents.Button">
+        <item name="android:textColor">#FFFFFFFF</item>
         <item name="android:fontFamily">@font/roboto_mono</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:textSize">14sp</item>
+        <item name="android:stateListAnimator">@animator/copy_of_mtrl_btn_state_list_anim</item>
+        <item name="elevation">@dimen/copy_of_mtrl_btn_elevation</item>
+        <item name="android:letterSpacing">0</item>
     </style>
 
-    <style name="VioletButton" parent="BroccalcButton">
-        <item name="android:background">@drawable/violet_button_selector</item>
-        <item name="android:textColor">#FFFFFFFF</item>
+    <style name="VioletLiningButton" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:textAllCaps">false</item>
         <item name="android:fontFamily">@font/roboto_mono</item>
-    </style>
-
-    <style name="VioletLiningButton" parent="BroccalcButton">
-        <item name="android:background">@drawable/violet_lining_button_selector</item>
-        <item name="android:textColor">@drawable/violet_lining_button_text_colors_selector</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:stateListAnimator">@animator/copy_of_mtrl_btn_state_list_anim</item>
+        <item name="elevation">@dimen/copy_of_mtrl_btn_elevation</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="strokeColor">#FF5768E9</item>
+        <item name="backgroundTint">#EFF1F6</item>
     </style>
 
     <style name="MainScreenSnackbarTextStyle" parent="@style/TextAppearance.AppCompat">

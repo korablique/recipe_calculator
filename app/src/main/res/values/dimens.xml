@@ -1,2 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <dimen name="copy_of_mtrl_btn_elevation">2dp</dimen>
+</resources>
