@@ -39,7 +39,8 @@ public class BroccalcApplication extends Application implements HasActivityInjec
             InjectorHolder.getInjector().inject(this);
             historyWorker.initCache();
             userParametersWorker.initCache();
-            foodReminder.scheduleNotification();
+            // TODO: Вернуть шедулинг нотификаций после доработки логики их показа
+//            foodReminder.scheduleNotification();
         }
     }
 
