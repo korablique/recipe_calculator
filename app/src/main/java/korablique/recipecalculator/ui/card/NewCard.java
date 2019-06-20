@@ -40,7 +40,6 @@ public class NewCard {
         void onClick(WeightedFoodstuff foodstuff);
     }
 
-    public static final int DEFAULT_WEIGHT = 100;
     public static final String EDITED_FOODSTUFF = "EDITED_FOODSTUFF";
     private ViewGroup cardLayout;
     private Foodstuff displayedFoodstuff;
@@ -61,7 +60,6 @@ public class NewCard {
         closeButton = cardLayout.findViewById(R.id.button_close);
         deleteButton = cardLayout.findViewById(R.id.frame_layout_button_delete);
         weightEditText = cardLayout.findViewById(R.id.weight_edit_text);
-        weightEditText.setText(toDecimalString(DEFAULT_WEIGHT));
         updateAddButtonEnability(weightEditText.getText());
 
         nameTextView = cardLayout.findViewById(R.id.foodstuff_name_text_view);
