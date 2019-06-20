@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/new_foodstuff_layout"
     android:orientation="horizontal"
     android:layout_width="match_parent"
@@ -10,7 +11,7 @@
     android:paddingTop="2.5dp"
     android:paddingBottom="2.5dp">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -20,23 +21,32 @@
 
         <TextView
             android:id="@+id/name"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
             style="@style/RobotoMonoText"
             android:paddingLeft="10dp"
             android:gravity="center_vertical"
+            android:ellipsize="end"
+            android:maxLines="1"
+            app:layout_constraintRight_toLeftOf="@id/extra_info_wrapper_layout"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
             tools:text="lentil" />
 
         <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:id="@+id/extra_info_wrapper_layout"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
 
             <include
                 layout="@layout/extra_info_block"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="right|center_vertical"
                 android:layout_marginRight="5dp" />
         </FrameLayout>
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </LinearLayout>
