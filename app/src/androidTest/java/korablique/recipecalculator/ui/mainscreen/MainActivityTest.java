@@ -593,17 +593,17 @@ public class MainActivityTest {
         onView(withId(R.id.menu_item_history)).perform(click());
 
         Matcher<View> foodstuffBelowMatcher1 = allOf(
-                withText(containsString(foodstuffs[0].getName())),
+                withText(containsString(foodstuffs[6].getName())),
                 matches(isCompletelyBelow(withId(R.id.title_layout))));
         onView(foodstuffBelowMatcher1).check(matches(isDisplayed()));
 
         Matcher<View> foodstuffBelowMatcher2 = allOf(
                 withText(containsString(foodstuffs[5].getName())),
-                matches(isCompletelyBelow(withText(containsString(foodstuffs[0].getName())))));
+                matches(isCompletelyBelow(withText(containsString(foodstuffs[6].getName())))));
         onView(foodstuffBelowMatcher2).check(matches(isDisplayed()));
 
         Matcher<View> foodstuffBelowMatcher3 = allOf(
-                withText(containsString(foodstuffs[6].getName())),
+                withText(containsString(foodstuffs[0].getName())),
                 matches(isCompletelyBelow(withText(containsString(foodstuffs[5].getName())))));
         onView(foodstuffBelowMatcher3).check(matches(isDisplayed()));
     }
