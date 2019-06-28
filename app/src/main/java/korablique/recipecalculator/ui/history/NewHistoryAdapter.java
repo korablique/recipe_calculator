@@ -50,7 +50,7 @@ public class NewHistoryAdapter extends RecyclerView.Adapter<MyViewHolder> {
         TextView carbsView = item.findViewById(R.id.carbs);
         TextView caloriesView = item.findViewById(R.id.calories);
 
-        HistoryEntry entry = historyEntries.get(position);
+        HistoryEntry entry = historyEntries.get(historyEntries.size() - 1 - position);
         WeightedFoodstuff foodstuff = entry.getFoodstuff();
         foodstuffNameWithWeightView.setText(context.getString(R.string.foodstuff_name_and_weight,
                 foodstuff.getName(), foodstuff.getWeight()));
@@ -73,10 +73,6 @@ public class NewHistoryAdapter extends RecyclerView.Adapter<MyViewHolder> {
     @Override
     public int getItemCount() {
         return historyEntries.size();
-    }
-
-    public HistoryEntry getItem(int position) {
-        return historyEntries.get(position);
     }
 
     public List<HistoryEntry> getItems() {
