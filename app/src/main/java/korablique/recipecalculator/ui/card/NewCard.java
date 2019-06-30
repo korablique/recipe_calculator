@@ -128,6 +128,10 @@ public class NewCard {
     }
 
     private WeightedFoodstuff extractWeightedFoodstuff() {
+        String weightText = weightEditText.getText().toString();
+        if (TextUtils.isEmpty(weightText)) {
+            weightText = "0";
+        }
         return Foodstuff
                 .withId(displayedFoodstuff.getId())
                 .withName(nameTextView.getText().toString())
@@ -135,7 +139,7 @@ public class NewCard {
                         nutritionValuesWrapper.getFoodstuff().getFats(),
                         nutritionValuesWrapper.getFoodstuff().getCarbs(),
                         nutritionValuesWrapper.getFoodstuff().getCalories())
-                .withWeight(Double.valueOf(weightEditText.getText().toString()));
+                .withWeight(Double.valueOf(weightText));
     }
 
     void setOnEditButtonClickListener(OnEditButtonClickListener listener) {
