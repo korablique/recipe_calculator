@@ -51,4 +51,22 @@ public class FuzzySearcherTest {
 
         Assert.assertEquals(input, result);
     }
+
+    @Test
+    public void bestMatchIsUsedEvenWhenItIsAfterLimit() {
+        List<String> input = new ArrayList<>();
+        input.add("some_striAA");
+        input.add("some_strinA");
+        input.add("some_string");
+
+        List<String> result =
+                FuzzySearcher.search("some_string", input, (str) -> str, 1);
+
+        // First 2 strings will be found before "some_string" and
+        // would be returned by a flawed algorithm because the limit would be reached.
+        // Correctly working algorithm should go through all the items to find the best
+        // matching ones.
+        Assert.assertEquals(1, result.size());
+        Assert.assertEquals(result.get(0), "some_string");
+    }
 }

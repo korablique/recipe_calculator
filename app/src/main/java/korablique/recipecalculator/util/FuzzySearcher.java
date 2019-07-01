@@ -49,9 +49,6 @@ public class FuzzySearcher {
             int ratio = FuzzySearch.weightedRatio(query, itemString);
             if (ratio >= SEARCH_RATIO_THRESHOLD) {
                 resultWithRatio.add(Pair.create(ratio, item));
-                if (resultWithRatio.size() >= limit) {
-                    break;
-                }
             }
         }
 
@@ -63,6 +60,9 @@ public class FuzzySearcher {
         List<T> result = new ArrayList<>(resultWithRatio.size());
         for (Pair<Integer, T> itemWithRatio : resultWithRatio) {
             result.add(itemWithRatio.second);
+            if (result.size() >= limit) {
+                break;
+            }
         }
         return result;
     }
