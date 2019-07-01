@@ -129,6 +129,9 @@
     <string name="n_calories">%sккал</string>
     <string name="n_gramms">%dг</string>
 
+    <string name="privacy_policy">Политика\nконфиденциальности</string>
+    <string name="privacy_policy_address">https://docs.google.com/document/d/1H2mWhrd1rBVvFluqyf6SI2zsWqFnXbMrnnHas_zf9z0</string>
+
     <string-array name="gender_array">
         <item name="not_selected">—</item>
         <item name="male">Мужской</item>

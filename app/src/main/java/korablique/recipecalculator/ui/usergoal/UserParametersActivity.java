@@ -2,6 +2,7 @@ package korablique.recipecalculator.ui.usergoal;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextWatcher;
 import android.view.View;
@@ -53,6 +54,12 @@ public class UserParametersActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_parameters);
+
+        findViewById(R.id.privacy_policy).setOnClickListener((v) -> {
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW);
+            browserIntent.setData(Uri.parse(getString(R.string.privacy_policy_address)));
+            startActivity(browserIntent);
+        });
 
         // гендер
         Spinner genderSpinner = findViewById(R.id.gender_spinner);
