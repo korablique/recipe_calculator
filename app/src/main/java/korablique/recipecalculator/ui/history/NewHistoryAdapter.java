@@ -75,29 +75,19 @@ public class NewHistoryAdapter extends RecyclerView.Adapter<MyViewHolder> {
         return historyEntries.size();
     }
 
-    public HistoryEntry getItem(int position) {
-        return historyEntries.get(position);
-    }
-
     public List<HistoryEntry> getItems() {
         return Collections.unmodifiableList(historyEntries);
     }
 
     public void addItem(HistoryEntry historyEntry) {
-        historyEntries.add(historyEntry);
-        notifyItemInserted(historyEntries.size() - 1);
+        historyEntries.add(0, historyEntry);
+        notifyItemInserted(0);
     }
 
     public void addItems(List<HistoryEntry> historyEntries) {
         for (HistoryEntry entry : historyEntries) {
             addItem(entry);
         }
-    }
-
-    public void replaceItem(WeightedFoodstuff foodstuff, int position) {
-        HistoryEntry oldEntry = historyEntries.get(position);
-        historyEntries.set(position, new HistoryEntry(oldEntry.getHistoryId(), foodstuff, oldEntry.getTime()));
-        notifyItemChanged(position);
     }
 
     /**
