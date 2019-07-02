@@ -204,6 +204,7 @@
             app:layout_constraintStart_toEndOf="@id/carbs_value"
             app:layout_constraintTop_toBottomOf="@id/row_fake_top_3"
             app:layout_constraintWidth_percent="0.5"
+            android:maxLength="5"
             tools:text="17" />
 
         <TextView
