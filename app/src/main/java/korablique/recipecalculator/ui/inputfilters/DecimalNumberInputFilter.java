@@ -12,10 +12,12 @@ import java.util.regex.Pattern;
  */
 public class DecimalNumberInputFilter implements InputFilter {
     private final Pattern pattern;
+    private final Pattern zeroPattern;
     private final int maxDigitsAfterPoint;
 
     private DecimalNumberInputFilter(int digitsAfterPointCount) {
         this.pattern = Pattern.compile("[0-9]+((\\.|\\.[0-9]+))?");
+        this.zeroPattern = Pattern.compile("00+");
         this.maxDigitsAfterPoint = digitsAfterPointCount;
     }
 
@@ -39,6 +41,12 @@ public class DecimalNumberInputFilter implements InputFilter {
         Matcher matcher = pattern.matcher(result);
         if (!matcher.matches()) {
             // Result not matching regex is not ok
+            return "";
+        }
+
+        Matcher zeroMatcher = zeroPattern.matcher(result);
+        // Result consists of two or more zeros is not ok
+        if (zeroMatcher.matches()) {
             return "";
         }
 
