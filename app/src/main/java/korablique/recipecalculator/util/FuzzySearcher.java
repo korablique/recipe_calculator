@@ -46,9 +46,18 @@ public class FuzzySearcher {
             String itemString = toStringFunction.call(item);
             // The 'weightedRatio' function uses several fuzzy search
             // algorithms - it combines their output for better results.
-            int ratio = FuzzySearch.weightedRatio(query, itemString);
-            if (ratio >= SEARCH_RATIO_THRESHOLD) {
-                resultWithRatio.add(Pair.create(ratio, item));
+            int weightedRatio = FuzzySearch.weightedRatio(query, itemString);
+            // The 'partialRatio' function gives best results for comparing strings of very
+            // different size. For example, if you'd compare strings 'product' and
+            // 'very long string with product in the middle and other words on the sides', then
+            // the 'partialRatio' function will return 100, because first string is a substring of
+            // the second one.
+            int partialRatio = FuzzySearch.partialRatio(query, itemString);
+            // Partial and weighted ratio are both trusted algorithms, but they work best in
+            // different situations - that's why we use both.
+            if (partialRatio >= SEARCH_RATIO_THRESHOLD
+                    || weightedRatio >= SEARCH_RATIO_THRESHOLD) {
+                resultWithRatio.add(Pair.create((partialRatio+weightedRatio)/2, item));
             }
         }
 
