@@ -329,8 +329,12 @@ public class MainScreenController extends FragmentCallbacks.Observer implements 
         } else if (requestCode == EDIT_FOODSTUFF_REQUEST) {
             if (resultCode == RESULT_OK) {
                 Foodstuff editedFoodstuff = data.getParcelableExtra(EDIT_RESULT);
-                topAdapterChild.replaceItem(editedFoodstuff);
-                foodstuffAdapterChild.replaceItem(editedFoodstuff);
+                if (topAdapterChild != null) {
+                    topAdapterChild.replaceItem(editedFoodstuff);
+                }
+                if (foodstuffAdapterChild != null) {
+                    foodstuffAdapterChild.replaceItem(editedFoodstuff);
+                }
                 showCard(editedFoodstuff);
             }
         }

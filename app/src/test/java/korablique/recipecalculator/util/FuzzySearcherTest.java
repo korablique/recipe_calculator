@@ -69,4 +69,18 @@ public class FuzzySearcherTest {
         Assert.assertEquals(1, result.size());
         Assert.assertEquals(result.get(0), "some_string");
     }
+
+    @Test
+    public void substringOfBigStringIsConsideredToBeMatch() {
+        List<String> input = new ArrayList<>();
+        input.add("very long string with product in the middle and other words on the sides");
+
+        List<String> result =
+                FuzzySearcher.search("product", input, (str) -> str, 1);
+
+        Assert.assertEquals(1, result.size());
+        Assert.assertEquals(
+                result.get(0),
+                "very long string with product in the middle and other words on the sides");
+    }
 }
