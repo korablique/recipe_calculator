@@ -32,12 +32,15 @@
             <TextView
                 android:id="@+id/user_name"
                 style="@style/MontserratBigWhiteText"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:layout_marginStart="16dp"
+                android:ellipsize="end"
+                android:maxLines="2"
                 app:layout_constraintStart_toEndOf="@+id/imageView"
                 app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/layout_button_edit"
                 tools:text="Лилия Панова" />
 
             <include
