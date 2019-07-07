@@ -65,8 +65,8 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
         activityCallbacks.dispatchActivityBackPressed();
+        super.onBackPressed();
     }
 
     @Override

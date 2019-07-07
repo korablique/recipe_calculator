@@ -351,6 +351,8 @@ public class MainScreenController extends FragmentCallbacks.Observer implements 
             }
             if (!searchQueries.empty()) {
                 searchView.setSearchText(searchQueries.peek());
+            } else {
+                searchView.clearQuery();
             }
         } else {
             searchQueries.clear();
