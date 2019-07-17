@@ -1,14 +1,18 @@
 package korablique.recipecalculator.ui.nestingadapters;
 
+import android.view.ViewGroup;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 import androidx.recyclerview.widget.RecyclerView;
-import android.view.ViewGroup;
+
+import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
 
 
-public class AdapterParent extends RecyclerView.Adapter {
+public class AdapterParent extends RecyclerView.Adapter implements FastScrollRecyclerView.SectionedAdapter {
     private List<AdapterChild> children = new ArrayList<>();
 
     @VisibleForTesting
@@ -94,6 +98,13 @@ public class AdapterParent extends RecyclerView.Adapter {
             child.addObserver(new ChildrenObserver());
         }
         notifyDataSetChanged();
+    }
+
+    @NonNull
+    @Override
+    public String getSectionName(int position) {
+        ChildWithPosition childWithPosition = transformParentPositionIntoChildPosition(position);
+        return childWithPosition.child.getSectionName(childWithPosition.position);
     }
 
     @VisibleForTesting

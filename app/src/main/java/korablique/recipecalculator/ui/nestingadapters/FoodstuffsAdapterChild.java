@@ -130,4 +130,13 @@ public class FoodstuffsAdapterChild extends AdapterChild {
         }
         return false;
     }
+
+    @Override
+    public String getSectionName(int position) {
+        if (foodstuffs.size() <= 5) {
+            // если это топ - ничего не показываем в fast scroll bar'е
+            return "";
+        }
+        return foodstuffs.get(position).getName().substring(0, 1);
+    }
 }
