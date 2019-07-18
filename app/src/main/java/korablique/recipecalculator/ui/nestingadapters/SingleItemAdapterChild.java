@@ -52,9 +52,4 @@ public class SingleItemAdapterChild extends AdapterChild {
     public int getItemViewType(int childPosition) {
         return 0;
     }
-
-    @Override
-    public String getSectionName(int position) {
-        return "";
-    }
 }

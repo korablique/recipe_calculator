@@ -29,7 +29,6 @@ public abstract class AdapterChild {
     public abstract void onBindViewHolder(RecyclerView.ViewHolder holder, int childPosition);
     public abstract int getItemCount();
     public abstract int getItemViewType(int childPosition);
-    public abstract String getSectionName(int position);
 
     public int getItemViewTypesCount() {
         return itemViewTypesCount;

@@ -44,6 +44,8 @@ import korablique.recipecalculator.ui.card.NewCard;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
 import korablique.recipecalculator.ui.nestingadapters.AdapterParent;
 import korablique.recipecalculator.ui.nestingadapters.FoodstuffsAdapterChild;
+import korablique.recipecalculator.ui.nestingadapters.SectionedAdapterParent;
+import korablique.recipecalculator.ui.nestingadapters.SectionedFoodstuffsAdapterChild;
 import korablique.recipecalculator.ui.nestingadapters.SingleItemAdapterChild;
 
 import static android.app.Activity.RESULT_OK;
@@ -65,9 +67,9 @@ public class MainScreenController extends FragmentCallbacks.Observer implements 
     private final ActivityCallbacks activityCallbacks;
     private final FoodstuffsList foodstuffsList;
     private final TopList topList;
-    private AdapterParent adapterParent;
+    private SectionedAdapterParent adapterParent;
     private FoodstuffsAdapterChild topAdapterChild;
-    private FoodstuffsAdapterChild foodstuffAdapterChild;
+    private SectionedFoodstuffsAdapterChild foodstuffAdapterChild;
     private FloatingSearchView searchView;
     private Stack<String> searchQueries = new Stack<>();
     private SelectedFoodstuffsSnackbar snackbar;
@@ -176,7 +178,7 @@ public class MainScreenController extends FragmentCallbacks.Observer implements 
             }
         });
 
-        adapterParent = new AdapterParent();
+        adapterParent = new SectionedAdapterParent();
         recyclerView.setAdapter(adapterParent);
 
         cardDialogOnAddFoodstuffButtonClickListener = foodstuff -> {
@@ -232,7 +234,7 @@ public class MainScreenController extends FragmentCallbacks.Observer implements 
             };
             SingleItemAdapterChild foodstuffsTitle = new SingleItemAdapterChild(
                     R.layout.all_foodstuffs_header, observer);
-            foodstuffAdapterChild = new FoodstuffsAdapterChild(context, (foodstuff, pos) -> showCard(foodstuff));
+            foodstuffAdapterChild = new SectionedFoodstuffsAdapterChild(context, (foodstuff, pos) -> showCard(foodstuff));
             adapterParent.addChild(foodstuffsTitle);
             adapterParent.addChild(foodstuffAdapterChild);
         }
