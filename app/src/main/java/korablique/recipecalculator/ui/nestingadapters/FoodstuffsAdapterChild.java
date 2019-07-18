@@ -22,7 +22,7 @@ public class FoodstuffsAdapterChild extends AdapterChild {
     public interface ClickObserver {
         void onItemClicked(Foodstuff foodstuff, int displayedPosition);
     }
-    private List<Foodstuff> foodstuffs = new ArrayList<>();
+    protected List<Foodstuff> foodstuffs = new ArrayList<>();
     private Context context;
     private ClickObserver clickObserver;
 

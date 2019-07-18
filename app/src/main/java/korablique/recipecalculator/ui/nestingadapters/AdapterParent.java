@@ -1,8 +1,9 @@
 package korablique.recipecalculator.ui.nestingadapters;
 
+import android.view.ViewGroup;
+
 import androidx.annotation.VisibleForTesting;
 import androidx.recyclerview.widget.RecyclerView;
-import android.view.ViewGroup;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -96,7 +97,6 @@ public class AdapterParent extends RecyclerView.Adapter {
         notifyDataSetChanged();
     }
 
-    @VisibleForTesting
     ChildWithPosition transformParentPositionIntoChildPosition(int parentPosition) {
         ChildWithPosition childWithPosition = new ChildWithPosition();
         int accumulator = 0; // суммирует размеры child'ов
