@@ -35,8 +35,8 @@ public abstract class BaseFragment extends Fragment {
 
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
         fragmentCallbacks.dispatchFragmentSaveInstanceState(outState);
+        super.onSaveInstanceState(outState);
     }
 
     @Override

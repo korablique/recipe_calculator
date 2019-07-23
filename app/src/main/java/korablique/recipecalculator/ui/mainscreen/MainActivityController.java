@@ -93,14 +93,15 @@ public class MainActivityController implements ActivityCallbacks.Observer {
         }, false);
 
         Intent intent = context.getIntent();
-        if (intent != null && ACTION_ADD_FOODSTUFFS_TO_HISTORY.equals(intent.getAction())) {
+        // If we have the ACTION_ADD_FOODSTUFFS_TO_HISTORY intent AND we haven't handled it yet
+        // (savedInstanceState != null would mean that we're recreated).
+        if (intent != null
+                && ACTION_ADD_FOODSTUFFS_TO_HISTORY.equals(intent.getAction())
+                && savedInstanceState == null) {
             List<WeightedFoodstuff> foodstuffs = intent.getParcelableArrayListExtra(EXTRA_FOODSTUFFS_LIST);
             if (foodstuffs == null) {
                 throw new IllegalArgumentException("Need " + EXTRA_FOODSTUFFS_LIST);
             }
-            // Меняем action на action-по-умолчанию, чтобы при пересоздании Активити
-            // в неё повторно не были добавлены переданные сюда фудстафы.
-            intent.setAction(Intent.ACTION_DEFAULT);
             // если selectedDate == null - дата сегодняшняя
             LocalDate selectedDate = (LocalDate) intent.getSerializableExtra(EXTRA_DATE);
             HistoryFragment.show(context.getSupportFragmentManager(), selectedDate, foodstuffs);
