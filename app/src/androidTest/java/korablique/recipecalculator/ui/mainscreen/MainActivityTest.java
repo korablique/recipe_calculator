@@ -58,6 +58,7 @@ import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.database.room.DatabaseHolder;
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.FoodstuffsTopList;
 import korablique.recipecalculator.model.Formula;
 import korablique.recipecalculator.model.FullName;
 import korablique.recipecalculator.model.Gender;
@@ -68,7 +69,6 @@ import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.model.PopularProductsUtils;
 import korablique.recipecalculator.model.RateCalculator;
 import korablique.recipecalculator.model.Rates;
-import korablique.recipecalculator.model.TopList;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.model.WeightedFoodstuff;
@@ -129,7 +129,7 @@ public class MainActivityTest {
     private HistoryWorker historyWorker;
     private UserParametersWorker userParametersWorker;
     private FoodstuffsList foodstuffsList;
-    private TopList topList;
+    private FoodstuffsTopList topList;
     private Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
     private Foodstuff[] foodstuffs;
     private List<Long> foodstuffsIds = new ArrayList<>();
@@ -152,7 +152,7 @@ public class MainActivityTest {
                             databaseHolder, mainThreadExecutor, databaseThreadExecutor);
                     foodstuffsList = new FoodstuffsList(
                             databaseWorker, mainThreadExecutor, computationThreadsExecutor);
-                    topList = new TopList(databaseWorker, historyWorker);
+                    topList = new FoodstuffsTopList(databaseWorker, historyWorker);
                     userNameProvider = new UserNameProvider(context);
                     timeProvider = new TestingTimeProvider();
                     return Arrays.asList(databaseWorker, historyWorker, userParametersWorker,
@@ -770,7 +770,7 @@ public class MainActivityTest {
                 .withWeight(13));
 
         Intent startIntent =
-                MainActivity.createAddToHistoryIntent(
+                MainActivityController.createAddToHistoryIntent(
                         context, foodstuffs, timeProvider.now().toLocalDate());
         mActivityRule.launchActivity(startIntent);
 
@@ -961,7 +961,7 @@ public class MainActivityTest {
                         .withNutrition(Nutrition.of100gramsOf(foodstuffs[0]))
                         .withWeight(200));
         LocalDate date = timeProvider.now().minusDays(25).toLocalDate();
-        Intent intent = MainActivity.createAddToHistoryIntent(context, addedFoodstuffs, date);
+        Intent intent = MainActivityController.createAddToHistoryIntent(context, addedFoodstuffs, date);
         mActivityRule.launchActivity(intent);
 
         onView(withText(containsString(addedFoodstuffs.get(0).getName()))).check(matches(isDisplayed()));

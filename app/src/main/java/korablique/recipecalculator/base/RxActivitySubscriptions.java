@@ -62,6 +62,10 @@ public class RxActivitySubscriptions implements ActivityCallbacks.Observer {
         compositeDisposable.add(disposable);
     }
 
+    public void storeDisposable(Disposable disposable) {
+        compositeDisposable.add(disposable);
+    }
+
     @Override
     public void onActivityDestroy() {
         compositeDisposable.dispose();

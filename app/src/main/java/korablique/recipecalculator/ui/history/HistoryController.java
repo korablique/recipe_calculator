@@ -48,6 +48,7 @@ import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.DatePickerFragment;
 import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.card.NewCard;
+import korablique.recipecalculator.ui.mainscreen.MainScreenController;
 import korablique.recipecalculator.ui.mainscreen.MainScreenFragment;
 
 @FragmentScope
@@ -161,7 +162,8 @@ public class HistoryController extends FragmentCallbacks.Observer {
         restoreInstanceState(savedInstanceState);
 
         FloatingActionButton fab = fragmentView.findViewById(R.id.history_fab);
-        fab.setOnClickListener(v -> MainScreenFragment.show(context.getSupportFragmentManager(), selectedDate));
+        fab.setOnClickListener(v -> MainScreenFragment.show(
+                context.getSupportFragmentManager(), MainScreenController.createInitialDataBundle(selectedDate)));
 
         // обёртки заголовка с БЖУК (значений и прогрессов БЖУК)
         ViewGroup nutritionHeaderParentLayout = fragmentView.findViewById(R.id.nutrition_parent_layout);

@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment;
 import org.jetbrains.annotations.NotNull;
 import org.joda.time.LocalDate;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -17,7 +18,11 @@ import dagger.android.DispatchingAndroidInjector;
 import dagger.android.support.HasSupportFragmentInjector;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.TimeProvider;
+import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.WeightedFoodstuff;
+
+import static korablique.recipecalculator.ui.mainscreen.MainActivityController.createAddToHistoryIntent;
+import static korablique.recipecalculator.ui.mainscreen.MainActivityController.createMainScreenIntent;
 
 public class MainActivity extends BaseActivity implements HasSupportFragmentInjector {
     @Inject
@@ -32,8 +37,9 @@ public class MainActivity extends BaseActivity implements HasSupportFragmentInje
         return fragmentInjector;
     }
 
-    public static void start(Context context) {
-        Intent intent = new Intent(context, MainActivity.class);
+    public static void start(
+            Context context, ArrayList<Foodstuff> top, ArrayList<Foodstuff> allFoodstuffsFirstBatch) {
+        Intent intent = createMainScreenIntent(context, top, allFoodstuffsFirstBatch);
         context.startActivity(intent);
     }
 
@@ -42,12 +48,5 @@ public class MainActivity extends BaseActivity implements HasSupportFragmentInje
             List<WeightedFoodstuff> historyList,
             @NotNull LocalDate selectedDate) {
         context.startActivity(createAddToHistoryIntent(context, historyList, selectedDate));
-    }
-
-    public static Intent createAddToHistoryIntent(
-            Context context,
-            List<WeightedFoodstuff> historyList,
-            LocalDate date) {
-        return MainActivityController.createAndAddToHistoryIntent(context, historyList, date);
     }
 }

@@ -87,6 +87,13 @@ public class FoodstuffsAdapterChild extends AdapterChild {
         }
     }
 
+    public void clear() {
+        foodstuffs.clear();
+        for (Observer observer : getObservers()) {
+            observer.notifyCleared(this);
+        }
+    }
+
     private void setTextViewText(View parent, int viewId, String text) {
         ((TextView) parent.findViewById(viewId)).setText(text);
     }
