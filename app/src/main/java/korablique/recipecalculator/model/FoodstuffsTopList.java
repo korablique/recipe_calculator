@@ -11,13 +11,13 @@ import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.HistoryWorker;
 
 @Singleton
-public class TopList {
+public class FoodstuffsTopList {
     private static final int TOP_LIMIT = 5;
     private DatabaseWorker databaseWorker;
     private HistoryWorker historyWorker;
 
     @Inject
-    public TopList(DatabaseWorker databaseWorker, HistoryWorker historyWorker) {
+    public FoodstuffsTopList(DatabaseWorker databaseWorker, HistoryWorker historyWorker) {
         this.databaseWorker = databaseWorker;
         this.historyWorker = historyWorker;
     }

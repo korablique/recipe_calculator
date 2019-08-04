@@ -15,6 +15,7 @@ public abstract class AdapterChild {
         void notifyItemInsertedToChild(int index, AdapterChild child);
         void notifyItemChangedInChild(int index, AdapterChild child);
         void notifyItemRemoved(int index, AdapterChild child);
+        void notifyCleared(AdapterChild adapterChild);
     }
 
     public AdapterChild() {

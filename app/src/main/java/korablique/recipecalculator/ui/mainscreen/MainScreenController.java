@@ -6,8 +6,6 @@ import android.view.View;
 
 import androidx.annotation.StringRes;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Lifecycle;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -34,7 +32,7 @@ import korablique.recipecalculator.base.FragmentCallbacks;
 import korablique.recipecalculator.dagger.FragmentScope;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
-import korablique.recipecalculator.model.TopList;
+import korablique.recipecalculator.model.FoodstuffsTopList;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.KeyboardHandler;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
@@ -42,7 +40,6 @@ import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.card.NewCard;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
-import korablique.recipecalculator.ui.nestingadapters.AdapterParent;
 import korablique.recipecalculator.ui.nestingadapters.FoodstuffsAdapterChild;
 import korablique.recipecalculator.ui.nestingadapters.SectionedAdapterParent;
 import korablique.recipecalculator.ui.nestingadapters.SectionedFoodstuffsAdapterChild;
@@ -61,12 +58,14 @@ public class MainScreenController extends FragmentCallbacks.Observer implements 
     @StringRes
     private static final int CARD_BUTTON_TEXT_RES = R.string.add_foodstuff;
     private static final String EXTRA_DATE = "EXTRA_DATE";
+    private static final String EXTRA_INITIAL_TOP = "EXTRA_INITIAL_TOP";
+    private static final String EXTRA_ALL_FOODSTUFFS_FIRST_BATCH = "EXTRA_ALL_FOODSTUFFS_FIRST_BATCH";
     private final BaseActivity context;
     private final BaseFragment fragment;
     private final Lifecycle lifecycle;
     private final ActivityCallbacks activityCallbacks;
     private final FoodstuffsList foodstuffsList;
-    private final TopList topList;
+    private final FoodstuffsTopList topList;
     private SectionedAdapterParent adapterParent;
     private FoodstuffsAdapterChild topAdapterChild;
     private SectionedFoodstuffsAdapterChild foodstuffAdapterChild;
@@ -105,6 +104,8 @@ public class MainScreenController extends FragmentCallbacks.Observer implements 
             snackbar.update(BucketList.getInstance().getList());
         }
     };
+    private boolean isTopFilledFromArguments;
+    private boolean isAllFoodstuffsListFilledFromArguments;
 
     @Inject
     MainScreenController(
@@ -113,7 +114,7 @@ public class MainScreenController extends FragmentCallbacks.Observer implements 
             FragmentCallbacks fragmentCallbacks,
             ActivityCallbacks activityCallbacks,
             Lifecycle lifecycle,
-            TopList topList,
+            FoodstuffsTopList topList,
             FoodstuffsList foodstuffsList) {
         this.context = context;
         this.fragment = fragment;
@@ -203,17 +204,42 @@ public class MainScreenController extends FragmentCallbacks.Observer implements 
             cardDialog.setOnDeleteButtonClickListener(cardDialogOnDeleteButtonClickListener);
         }
 
+        fillListsFromArguments();
+
         topList.getTopList(foodstuffs -> {
+            if (isTopFilledFromArguments && topAdapterChild != null) {
+                topAdapterChild.clear();
+            }
             fillTop(foodstuffs);
+            isTopFilledFromArguments = false;
 
             foodstuffsList.getAllFoodstuffs(batch -> {
+                if (isAllFoodstuffsListFilledFromArguments && foodstuffAdapterChild != null) {
+                    foodstuffAdapterChild.clear();
+                }
                 fillAllFoodstuffsList(batch);
+                isAllFoodstuffsListFilledFromArguments = false;
             }, unused -> {
                 configureSuggestionsDisplaying();
-
                 configureSearch();
             });
         });
+    }
+
+    private void fillListsFromArguments() {
+        Bundle args = fragment.getArguments();
+        if (args != null) {
+            List<Foodstuff> top = args.getParcelableArrayList(EXTRA_INITIAL_TOP);
+            if (top != null) {
+                fillTop(top);
+                isTopFilledFromArguments = true;
+            }
+            List<Foodstuff> allFoodstuffsFirstBatch = args.getParcelableArrayList(EXTRA_ALL_FOODSTUFFS_FIRST_BATCH);
+            if (allFoodstuffsFirstBatch != null) {
+                fillAllFoodstuffsList(allFoodstuffsFirstBatch);
+                isAllFoodstuffsListFilledFromArguments = true;
+            }
+        }
     }
 
     @Override
@@ -248,8 +274,8 @@ public class MainScreenController extends FragmentCallbacks.Observer implements 
                 SingleItemAdapterChild topTitle = new SingleItemAdapterChild(R.layout.top_foodstuffs_header);
                 adapterParent.addChild(topTitle);
                 adapterParent.addChild(topAdapterChild);
-                topAdapterChild.addItems(foodstuffs);
             }
+            topAdapterChild.addItems(foodstuffs);
         }
     }
 
@@ -361,20 +387,18 @@ public class MainScreenController extends FragmentCallbacks.Observer implements 
         }
     }
 
-    public static void show(FragmentManager fragmentManager, LocalDate date) {
-        // чтобы не пересоздавать фрагмент, который уже показан прямо сейчас
-        // и чтобы сохранялся его стейт (потому что при пересоздании фрагмента стейт потеряется)
-        if (fragmentManager.findFragmentById(R.id.main_container) instanceof MainScreenFragment) {
-            return;
-        }
-        Fragment mainScreenFragment = new MainScreenFragment();
-        Bundle args = new Bundle();
-        args.putSerializable(EXTRA_DATE, date);
-        mainScreenFragment.setArguments(args);
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
-        transaction.replace(R.id.main_container, mainScreenFragment);
-        transaction.addToBackStack(null);
-        transaction.commit();
+    public static Bundle createInitialDataBundle(
+            ArrayList<Foodstuff> top, ArrayList<Foodstuff> allFoodstuffsFirstBatch) {
+        Bundle bundle = new Bundle();
+        bundle.putParcelableArrayList(EXTRA_INITIAL_TOP, top);
+        bundle.putParcelableArrayList(EXTRA_ALL_FOODSTUFFS_FIRST_BATCH, allFoodstuffsFirstBatch);
+        return bundle;
+    }
+
+    public static Bundle createInitialDataBundle(LocalDate date) {
+        Bundle bundle = new Bundle();
+        bundle.putSerializable(EXTRA_DATE, date);
+        return bundle;
     }
 
     private void showCard(Foodstuff foodstuff) {

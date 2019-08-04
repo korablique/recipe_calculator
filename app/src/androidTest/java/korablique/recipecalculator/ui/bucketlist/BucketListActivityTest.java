@@ -173,7 +173,8 @@ public class BucketListActivityTest {
         onView(withId(R.id.save_to_history_button)).perform(click());
 
         Intent expectedIntent =
-                MainActivity.createAddToHistoryIntent(activityRule.getActivity(), foodstuffs, timeProvider.now().toLocalDate());
+                MainActivityController.createAddToHistoryIntent(
+                        activityRule.getActivity(), foodstuffs, timeProvider.now().toLocalDate());
         intended(allOf(
                 hasAction(expectedIntent.getAction()),
                 hasComponent(expectedIntent.getComponent()),

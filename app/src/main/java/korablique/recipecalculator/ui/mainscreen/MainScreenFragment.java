@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import javax.inject.Inject;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -30,21 +31,40 @@ public class MainScreenFragment extends BaseFragment {
     }
 
     public static void show(FragmentManager fragmentManager, boolean addToBackStack) {
-        // чтобы не пересоздавать фрагмент, который уже показан прямо сейчас
-        // и чтобы сохранялся его стейт (потому что при пересоздании фрагмента стейт потеряется)
-        if (fragmentManager.findFragmentById(R.id.main_container) instanceof MainScreenFragment) {
-            return;
+        showImpl(fragmentManager, addToBackStack, null);
+    }
+
+    public static void show(FragmentManager fragmentManager, boolean addToBackStack, Bundle initialData) {
+        showImpl(fragmentManager, addToBackStack, initialData);
+    }
+
+    public static void show(FragmentManager fragmentManager, Bundle initialData) {
+        showImpl(fragmentManager, true, initialData);
+    }
+
+    private static void showImpl(FragmentManager fragmentManager, boolean addToBackStack, @Nullable Bundle initialData) {
+        Fragment existingFragment = fragmentManager.findFragmentById(R.id.main_container);
+        if (existingFragment instanceof MainScreenFragment) {
+            if (initialData == null) {
+                // Фрагмент уже есть, никаких конкретных данных для показа нам не дали -
+                // существующий фрагмент пойдёт.
+                return;
+            } else {
+                // Если сейчас показан фрагмент главного экрана, удаляем его, чтобы
+                // 2 одинаковых фрагмента не были в back stack'е.
+                fragmentManager.beginTransaction().remove(existingFragment).commit();
+            }
         }
+
         Fragment mainScreenFragment = new MainScreenFragment();
+        if (initialData != null) {
+            mainScreenFragment.setArguments(initialData);
+        }
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.main_container, mainScreenFragment);
         if (addToBackStack) {
             transaction.addToBackStack(null);
         }
         transaction.commit();
-    }
-
-    public static void show(FragmentManager fragmentManager, LocalDate date) {
-        MainScreenController.show(fragmentManager, date);
     }
 }
