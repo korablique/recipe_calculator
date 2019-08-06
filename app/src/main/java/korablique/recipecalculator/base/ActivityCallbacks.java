@@ -11,13 +11,17 @@ public class ActivityCallbacks {
 
     public interface Observer {
         default void onActivityCreate(Bundle savedInstanceState) {}
+        default void onActivityNewIntent(Intent intent) {}
         default void onActivityResume() {}
         default void onActivityPause() {}
         default void onActivityDestroy() {}
         default void onActivityResult(int requestCode, int resultCode, Intent data) {}
         default void onActivitySaveInstanceState(Bundle outState) {}
         default void onActivityRestoreInstanceState(Bundle savedInstanceState) {}
-        default void onActivityBackPressed() {}
+        /**
+         * @return true if event was consumed and Activity should not finish on back
+         */
+        default boolean onActivityBackPressed() { return false; }
     }
 
     public void addObserver(Observer observer) {
@@ -31,6 +35,12 @@ public class ActivityCallbacks {
     void dispatchActivityCreate(Bundle savedInstanceState) {
         for (Observer observer : observers) {
             observer.onActivityCreate(savedInstanceState);
+        }
+    }
+
+    void dispatchActivityNewIntent(Intent intent) {
+        for (Observer observer : observers) {
+            observer.onActivityNewIntent(intent);
         }
     }
 
@@ -70,9 +80,13 @@ public class ActivityCallbacks {
         }
     }
 
-    void dispatchActivityBackPressed() {
+    boolean dispatchActivityBackPressed() {
         for (Observer observer : observers) {
-            observer.onActivityBackPressed();
+            boolean eventConsumed = observer.onActivityBackPressed();
+            if (eventConsumed) {
+                return true;
+            }
         }
+        return false;
     }
 }

@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#EFF1F6"
+    android:id="@+id/fragment_history"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <include

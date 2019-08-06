@@ -41,6 +41,8 @@ import korablique.recipecalculator.ui.history.HistoryController;
 import korablique.recipecalculator.ui.history.HistoryFragment;
 import korablique.recipecalculator.ui.mainscreen.MainActivity;
 import korablique.recipecalculator.ui.mainscreen.MainActivityController;
+import korablique.recipecalculator.ui.mainscreen.MainActivityFragmentsController;
+import korablique.recipecalculator.ui.mainscreen.MainScreenSelectedDateStorage;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.InstantComputationsThreadsExecutor;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
@@ -61,6 +63,7 @@ import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.CoreMatchers.allOf;
+import static org.mockito.Mockito.mock;
 
 @RunWith(AndroidJUnit4.class)
 @LargeTest
@@ -106,9 +109,9 @@ public class BucketListActivityTest {
                         }
                         MainActivity activity = (MainActivity) target;
                         ActivityCallbacks activityCallbacks = new ActivityCallbacks();
-                        RxActivitySubscriptions subscriptions = new RxActivitySubscriptions(activityCallbacks);
                         MainActivityController controller = new MainActivityController(activity,
-                                activityCallbacks, userParametersWorker, subscriptions);
+                                activityCallbacks,
+                                mock(MainActivityFragmentsController.class));
                         return Arrays.asList(new RxActivitySubscriptions(activity.getActivityCallbacks()),
                                 controller);
                     })
@@ -119,7 +122,9 @@ public class BucketListActivityTest {
                         if (fragment instanceof HistoryFragment) {
                             historyController = new HistoryController((BaseActivity) fragment.getActivity(),
                                     fragment, fragmentCallbacks, historyWorker, userParametersWorker,
-                                    subscriptions, timeProvider);
+                                    subscriptions, timeProvider,
+                                    mock(MainActivityFragmentsController.class),
+                                    mock(MainScreenSelectedDateStorage.class));
                             return Arrays.asList(subscriptions, historyController);
                         }
                         return Collections.emptyList();

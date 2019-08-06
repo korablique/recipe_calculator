@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 
+import androidx.annotation.LayoutRes;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import korablique.recipecalculator.R;
@@ -16,8 +17,18 @@ public abstract class BaseActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         InjectorHolder.getInjector().inject(this);
         super.onCreate(savedInstanceState);
+        Integer layoutId = getLayoutId();
+        if (layoutId != null) {
+            setContentView(layoutId);
+        }
         activityCallbacks.dispatchActivityCreate(savedInstanceState);
     }
+
+    /**
+     * @return R.layout.XXX of the activity, or null, if the activity doesn't have a layout.
+     */
+    @LayoutRes
+    protected abstract Integer getLayoutId();
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
@@ -25,6 +36,12 @@ public abstract class BaseActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        activityCallbacks.dispatchActivityNewIntent(intent);
     }
 
     @Override
@@ -65,20 +82,9 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        activityCallbacks.dispatchActivityBackPressed();
-        super.onBackPressed();
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        //понятия не имею, что это
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                onBackPressed();
-                return true;
-
-            default:
-                return super.onOptionsItemSelected(item);
+        boolean eventConsumed = activityCallbacks.dispatchActivityBackPressed();
+        if (!eventConsumed) {
+            super.onBackPressed();
         }
     }
 

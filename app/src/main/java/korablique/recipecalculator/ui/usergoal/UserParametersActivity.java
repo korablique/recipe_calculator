@@ -35,6 +35,7 @@ import korablique.recipecalculator.ui.DatePickerFragment;
 import korablique.recipecalculator.ui.DecimalUtils;
 import korablique.recipecalculator.ui.TextWatcherAfterTextChangedAdapter;
 import korablique.recipecalculator.ui.mainscreen.MainScreenLoader;
+import korablique.recipecalculator.ui.splash.SplashScreenActivity;
 
 import static korablique.recipecalculator.util.SpinnerTuner.startTuningSpinner;
 
@@ -47,15 +48,17 @@ public class UserParametersActivity extends BaseActivity {
     UserNameProvider userNameProvider;
     @Inject
     TimeProvider timeProvider;
-    @Inject
-    MainScreenLoader mainScreenLoader;
     private TextWatcher textWatcher = new TextWatcherAfterTextChangedAdapter(editable -> updateSaveButtonEnability());
     private Button saveUserParamsButton;
 
     @Override
+    protected Integer getLayoutId() {
+        return R.layout.activity_user_parameters;
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_user_parameters);
 
         findViewById(R.id.privacy_policy).setOnClickListener((v) -> {
             Intent browserIntent = new Intent(Intent.ACTION_VIEW);
@@ -102,7 +105,7 @@ public class UserParametersActivity extends BaseActivity {
                     // если пользователь первый раз открыл приложение и у него ещё нет данных,
                     // то после того, как он их сохранит, открыть MainActivity
                     if (UserParametersActivity.this.isTaskRoot()) {
-                        mainScreenLoader.loadMainScreenActivity();
+                        SplashScreenActivity.start(getBaseContext());
                     }
                     finish();
                 });

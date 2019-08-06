@@ -17,7 +17,6 @@ import java.util.Calendar;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.TimeProvider;
-import korablique.recipecalculator.ui.history.HistoryActivity;
 
 import static android.content.Context.NOTIFICATION_SERVICE;
 
@@ -90,23 +89,23 @@ public class FoodReminder {
             notificationManager.createNotificationChannel(channel);
         }
 
-        // Create an Intent for the activity you want to start
-        Intent resultIntent = new Intent(context, HistoryActivity.class);
-        // Get the PendingIntent
-        PendingIntent resultPendingIntent = PendingIntent.getActivity(context, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, ANDROID_CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_products_apple_active)
-                .setContentTitle(context.getString(R.string.meal))
-                .setContentText(context.getString(R.string.meal_notification))
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setCategory(NotificationCompat.CATEGORY_REMINDER)
-                // Set the intent that will fire when the user taps the notification
-                .setContentIntent(resultPendingIntent)
-                .setAutoCancel(true);
-        builder.setContentIntent(resultPendingIntent);
-
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-        notificationManager.notify(BREAKFAST_NOTIFICATION_ID, builder.build());
+//        // Create an Intent for the activity you want to start
+//        Intent resultIntent = new Intent(context, HistoryActivity.class);
+//        // Get the PendingIntent
+//        PendingIntent resultPendingIntent = PendingIntent.getActivity(context, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+//
+//        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, ANDROID_CHANNEL_ID)
+//                .setSmallIcon(R.drawable.ic_products_apple_active)
+//                .setContentTitle(context.getString(R.string.meal))
+//                .setContentText(context.getString(R.string.meal_notification))
+//                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+//                .setCategory(NotificationCompat.CATEGORY_REMINDER)
+//                // Set the intent that will fire when the user taps the notification
+//                .setContentIntent(resultPendingIntent)
+//                .setAutoCancel(true);
+//        builder.setContentIntent(resultPendingIntent);
+//
+//        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+//        notificationManager.notify(BREAKFAST_NOTIFICATION_ID, builder.build());
     }
 }

@@ -62,7 +62,7 @@ public class MainScreenLoader {
         }));
 
         return Single.zip(topSingle, allFoodstuffsFirstBatch, Pair::create).subscribe((topAndFirstBatch) -> {
-            MainActivity.start(
+            MainActivity.openMainScreen(
                     context,
                     new ArrayList<>(topAndFirstBatch.first),
                     new ArrayList<>(topAndFirstBatch.second));

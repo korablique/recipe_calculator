@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
+import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
@@ -53,19 +54,21 @@ import static korablique.recipecalculator.IntentConstants.SEARCH_RESULT;
 import static korablique.recipecalculator.ui.mainscreen.SearchResultsFragment.SEARCH_RESULTS_FRAGMENT_TAG;
 
 @FragmentScope
-public class MainScreenController extends FragmentCallbacks.Observer implements ActivityCallbacks.Observer {
+public class MainScreenController
+        extends FragmentCallbacks.Observer
+        implements ActivityCallbacks.Observer {
+    private static final String EXTRA_INITIAL_TOP = "EXTRA_INITIAL_TOP";
+    private static final String EXTRA_ALL_FOODSTUFFS_FIRST_BATCH = "EXTRA_ALL_FOODSTUFFS_FIRST_BATCH";
     private static final int SEARCH_SUGGESTIONS_NUMBER = 3;
     @StringRes
     private static final int CARD_BUTTON_TEXT_RES = R.string.add_foodstuff;
-    private static final String EXTRA_DATE = "EXTRA_DATE";
-    private static final String EXTRA_INITIAL_TOP = "EXTRA_INITIAL_TOP";
-    private static final String EXTRA_ALL_FOODSTUFFS_FIRST_BATCH = "EXTRA_ALL_FOODSTUFFS_FIRST_BATCH";
     private final BaseActivity context;
     private final BaseFragment fragment;
     private final Lifecycle lifecycle;
     private final ActivityCallbacks activityCallbacks;
     private final FoodstuffsList foodstuffsList;
     private final FoodstuffsTopList topList;
+    private final MainScreenSelectedDateStorage selectedDateStorage;
     private SectionedAdapterParent adapterParent;
     private FoodstuffsAdapterChild topAdapterChild;
     private SectionedFoodstuffsAdapterChild foodstuffAdapterChild;
@@ -115,15 +118,25 @@ public class MainScreenController extends FragmentCallbacks.Observer implements 
             ActivityCallbacks activityCallbacks,
             Lifecycle lifecycle,
             FoodstuffsTopList topList,
-            FoodstuffsList foodstuffsList) {
+            FoodstuffsList foodstuffsList,
+            MainScreenSelectedDateStorage selectedDateStorage) {
         this.context = context;
         this.fragment = fragment;
         this.activityCallbacks = activityCallbacks;
         this.lifecycle = lifecycle;
         this.topList = topList;
         this.foodstuffsList = foodstuffsList;
+        this.selectedDateStorage = selectedDateStorage;
         fragmentCallbacks.addObserver(this);
         activityCallbacks.addObserver(this);
+    }
+
+    public static Bundle createArguments(
+            ArrayList<Foodstuff> top, ArrayList<Foodstuff> allFoodstuffsFirstBatch) {
+        Bundle bundle = new Bundle();
+        bundle.putParcelableArrayList(EXTRA_INITIAL_TOP, top);
+        bundle.putParcelableArrayList(EXTRA_ALL_FOODSTUFFS_FIRST_BATCH, allFoodstuffsFirstBatch);
+        return bundle;
     }
 
     @Override
@@ -170,13 +183,7 @@ public class MainScreenController extends FragmentCallbacks.Observer implements 
         });
 
         snackbar.setOnBasketClickRunnable(() -> {
-            Bundle args = fragment.getArguments();
-            if (args != null && args.containsKey(EXTRA_DATE)) {
-                LocalDate selectedDate = (LocalDate) args.getSerializable(EXTRA_DATE);
-                BucketListActivity.start(new ArrayList<>(snackbar.getSelectedFoodstuffs()), context, selectedDate);
-            } else {
-                BucketListActivity.start(new ArrayList<>(snackbar.getSelectedFoodstuffs()), context);
-            }
+            BucketListActivity.start(new ArrayList<>(snackbar.getSelectedFoodstuffs()), context, selectedDateStorage.getSelectedDate());
         });
 
         adapterParent = new SectionedAdapterParent();
@@ -369,7 +376,7 @@ public class MainScreenController extends FragmentCallbacks.Observer implements 
     }
 
     @Override
-    public void onActivityBackPressed() {
+    public boolean onActivityBackPressed() {
         // когда показан SearchResultFragment - возвращать в строку прошлый запрос
         // иначе - очистить историю запросов
         Fragment searchResultsFragment = context.getSupportFragmentManager().findFragmentByTag(SEARCH_RESULTS_FRAGMENT_TAG);
@@ -382,23 +389,13 @@ public class MainScreenController extends FragmentCallbacks.Observer implements 
             } else {
                 searchView.clearQuery();
             }
+            context.getSupportFragmentManager().beginTransaction().remove(searchResultsFragment).commit();
+            // Мы поглотили событие - сами решили, что должно происходить.
+            return true;
         } else {
             searchQueries.clear();
+            return false;
         }
-    }
-
-    public static Bundle createInitialDataBundle(
-            ArrayList<Foodstuff> top, ArrayList<Foodstuff> allFoodstuffsFirstBatch) {
-        Bundle bundle = new Bundle();
-        bundle.putParcelableArrayList(EXTRA_INITIAL_TOP, top);
-        bundle.putParcelableArrayList(EXTRA_ALL_FOODSTUFFS_FIRST_BATCH, allFoodstuffsFirstBatch);
-        return bundle;
-    }
-
-    public static Bundle createInitialDataBundle(LocalDate date) {
-        Bundle bundle = new Bundle();
-        bundle.putSerializable(EXTRA_DATE, date);
-        return bundle;
     }
 
     private void showCard(Foodstuff foodstuff) {

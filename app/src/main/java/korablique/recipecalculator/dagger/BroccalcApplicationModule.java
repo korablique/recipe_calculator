@@ -4,7 +4,6 @@ import android.content.Context;
 
 import javax.inject.Singleton;
 
-import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
 import dagger.android.ContributesAndroidInjector;
@@ -23,10 +22,7 @@ import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
-import korablique.recipecalculator.ui.foodstuffslist.ListOfFoodstuffsActivity;
-import korablique.recipecalculator.ui.history.HistoryActivity;
 import korablique.recipecalculator.ui.mainscreen.MainActivity;
-import korablique.recipecalculator.ui.history.HistoryModule;
 import korablique.recipecalculator.ui.mainscreen.MainScreenActivityModule;
 import korablique.recipecalculator.ui.notifications.FoodReminder;
 import korablique.recipecalculator.ui.notifications.FoodReminderReceiver;
@@ -83,14 +79,6 @@ public abstract class BroccalcApplicationModule {
     public static TimeProvider provideTimeProvider() {
         return new TimeProviderImpl();
     }
-
-    @ActivityScope
-    @ContributesAndroidInjector
-    abstract ListOfFoodstuffsActivity contributeListOfFoodstuffsActivityInjector();
-
-    @ActivityScope
-    @ContributesAndroidInjector(modules = { BaseActivityModule.class, HistoryModule.class })
-    abstract HistoryActivity contributeHistoryActivityInjector();
 
     @ActivityScope
     @ContributesAndroidInjector(modules = { BaseActivityModule.class, MainScreenActivityModule.class })
