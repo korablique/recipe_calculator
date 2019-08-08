@@ -21,6 +21,8 @@ import korablique.recipecalculator.base.BaseFragment;
 public class MainScreenFragment extends BaseFragment {
     @Inject
     MainScreenController controller;
+    @Inject
+    UpFABController upFABController;
 
     @Override
     public View createView(@NonNull LayoutInflater inflater,
