@@ -61,9 +61,13 @@ public class BucketListActivity extends BaseActivity {
     TimeProvider timeProvider;
 
     @Override
+    protected Integer getLayoutId() {
+        return R.layout.activity_bucket_list;
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_bucket_list);
 
         ViewGroup nutritionLayout = findViewById(R.id.nutrition_progress_with_values);
         pluralProgressBar = findViewById(R.id.new_nutrition_progress_bar);

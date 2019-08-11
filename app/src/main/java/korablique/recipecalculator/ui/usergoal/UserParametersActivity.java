@@ -53,9 +53,13 @@ public class UserParametersActivity extends BaseActivity {
     private Button saveUserParamsButton;
 
     @Override
+    protected Integer getLayoutId() {
+        return R.layout.activity_user_parameters;
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_user_parameters);
 
         findViewById(R.id.privacy_policy).setOnClickListener((v) -> {
             Intent browserIntent = new Intent(Intent.ACTION_VIEW);
@@ -102,9 +106,14 @@ public class UserParametersActivity extends BaseActivity {
                     // если пользователь первый раз открыл приложение и у него ещё нет данных,
                     // то после того, как он их сохранит, открыть MainActivity
                     if (UserParametersActivity.this.isTaskRoot()) {
-                        mainScreenLoader.loadMainScreenActivity();
+                        // Закажем загрузку MainActivity и подпишемся на окончание загрузки,
+                        // при окончании загрузки завершим себя (finish()).
+                        subscriptions.subscribe(
+                                mainScreenLoader.loadMainScreenActivity(),
+                                UserParametersActivity.this::finish);
+                    } else {
+                        finish();
                     }
-                    finish();
                 });
             }
         });

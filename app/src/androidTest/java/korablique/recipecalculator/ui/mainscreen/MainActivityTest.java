@@ -11,10 +11,10 @@ import android.widget.ProgressBar;
 
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
+import androidx.test.espresso.Espresso;
 import androidx.test.espresso.action.ViewActions;
 import androidx.test.espresso.contrib.PickerActions;
 import androidx.test.espresso.matcher.BoundedMatcher;
-import androidx.test.espresso.matcher.ViewMatchers;
 import androidx.test.filters.LargeTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.rule.ActivityTestRule;
@@ -46,7 +46,6 @@ import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.base.FragmentCallbacks;
-import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.base.RxFragmentSubscriptions;
 import korablique.recipecalculator.base.TimeProvider;
 import korablique.recipecalculator.base.executors.ComputationThreadsExecutor;
@@ -99,6 +98,7 @@ import static androidx.test.espresso.intent.matcher.BundleMatchers.hasValue;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasAction;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasExtras;
+import static androidx.test.espresso.matcher.ViewMatchers.Visibility.VISIBLE;
 import static androidx.test.espresso.matcher.ViewMatchers.isDescendantOfA;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.isRoot;
@@ -110,6 +110,7 @@ import static androidx.test.espresso.matcher.ViewMatchers.withParent;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertContains;
 import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertNotContains;
+import static junit.framework.TestCase.assertTrue;
 import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
 import static korablique.recipecalculator.util.EspressoUtils.matches;
 import static org.hamcrest.CoreMatchers.allOf;
@@ -137,6 +138,8 @@ public class MainActivityTest {
     private UserParameters userParameters;
     private UserNameProvider userNameProvider;
     private TimeProvider timeProvider;
+    private MainActivityFragmentsController fragmentsController;
+    private MainScreenSelectedDateStorage mainScreenSelectedDateStorage;
 
     @Rule
     public ActivityTestRule<MainActivity> mActivityRule =
@@ -165,9 +168,11 @@ public class MainActivityTest {
                     }
                     MainActivity activity = (MainActivity) injectionTarget;
                     ActivityCallbacks activityCallbacks = activity.getActivityCallbacks();
-                    RxActivitySubscriptions subscriptions = new RxActivitySubscriptions(activityCallbacks);
+                    mainScreenSelectedDateStorage = new MainScreenSelectedDateStorage(activityCallbacks);
+                    fragmentsController = new MainActivityFragmentsController(
+                            activity, activityCallbacks);
                     MainActivityController controller = new MainActivityController(
-                            activity, activityCallbacks, userParametersWorker, subscriptions);
+                            activity, activityCallbacks, fragmentsController);
                     return Collections.singletonList(controller);
                 })
                 .withFragmentScoped((injectionTarget -> {
@@ -183,7 +188,8 @@ public class MainActivityTest {
                     if (fragment instanceof MainScreenFragment) {
                         MainScreenController mainScreenController = new MainScreenController(
                                 activity, fragment, fragment.getFragmentCallbacks(),
-                                activity.getActivityCallbacks(), lifecycle, topList, foodstuffsList);
+                                activity.getActivityCallbacks(), lifecycle, topList,
+                                foodstuffsList, mainScreenSelectedDateStorage);
                         return Arrays.asList(subscriptions, mainScreenController);
 
                     } else if (fragment instanceof ProfileFragment) {
@@ -195,7 +201,8 @@ public class MainActivityTest {
                     } else if (fragment instanceof HistoryFragment) {
                         HistoryController historyController = new HistoryController(
                                 activity, fragment, fragmentCallbacks, historyWorker,
-                                userParametersWorker, subscriptions, timeProvider);
+                                userParametersWorker, subscriptions, timeProvider,
+                                fragmentsController, mainScreenSelectedDateStorage);
                         return Arrays.asList(subscriptions, historyController);
                     } else if (fragment instanceof SearchResultsFragment) {
                         return Arrays.asList(databaseWorker, lifecycle, activity, foodstuffsList, subscriptions);
@@ -453,7 +460,7 @@ public class MainActivityTest {
     @Test
     public void profileDisplaysCorrectUserParameters() {
         mActivityRule.launchActivity(null);
-        onView(allOf(withText(R.string.profile), withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)))
+        onView(allOf(withText(R.string.profile), withEffectiveVisibility(VISIBLE)))
                 .perform(click());
         // сейчас в UserParametersWorker'е только одни параметры.
         // проверяем, что они отображаются в профиле
@@ -476,14 +483,17 @@ public class MainActivityTest {
         Rates rates = RateCalculator.calculate(userParameters);
         onView(withId(R.id.calorie_intake)).check(matches(withText(toDecimalString(rates.getCalories()))));
         onView(allOf(
+                withEffectiveVisibility(VISIBLE),
                 withParent(withId(R.id.protein_layout)),
                 withId(R.id.nutrition_text_view)))
                 .check(matches(withText(toDecimalString(rates.getProtein()))));
         onView(allOf(
+                withEffectiveVisibility(VISIBLE),
                 withParent(withId(R.id.fats_layout)),
                 withId(R.id.nutrition_text_view)))
                 .check(matches(withText(toDecimalString(rates.getFats()))));
         onView(allOf(
+                withEffectiveVisibility(VISIBLE),
                 withParent(withId(R.id.carbs_layout)),
                 withId(R.id.nutrition_text_view)))
                 .check(matches(withText(toDecimalString(rates.getCarbs()))));
@@ -505,7 +515,7 @@ public class MainActivityTest {
 
         mActivityRule.launchActivity(null);
         // переходим в профиль
-        onView(allOf(withText(R.string.profile), withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)))
+        onView(allOf(withText(R.string.profile), withEffectiveVisibility(VISIBLE)))
                 .perform(click());
         // открываем карточку
         onView(withId(R.id.set_current_weight)).perform(click());
@@ -518,7 +528,7 @@ public class MainActivityTest {
     public void measurementsCardDisplaysTodaysDate() {
         mActivityRule.launchActivity(null);
         // переходим в профиль
-        onView(allOf(withText(R.string.profile), withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)))
+        onView(allOf(withText(R.string.profile), withEffectiveVisibility(VISIBLE)))
                 .perform(click());
         // открываем карточку
         onView(withId(R.id.set_current_weight)).perform(click());
@@ -550,7 +560,7 @@ public class MainActivityTest {
             measurementTime = measurementTime.minusMonths(1);
         }
         mActivityRule.launchActivity(null);
-        onView(allOf(withText(R.string.profile), withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)))
+        onView(allOf(withText(R.string.profile), withEffectiveVisibility(VISIBLE)))
                 .perform(click());
 
         // Check that there're 120 dots when all the time is open
@@ -594,17 +604,20 @@ public class MainActivityTest {
 
         Matcher<View> foodstuffBelowMatcher1 = allOf(
                 withText(containsString(foodstuffs[6].getName())),
-                matches(isCompletelyBelow(withId(R.id.title_layout))));
+                matches(isCompletelyBelow(withId(R.id.title_layout))),
+                withEffectiveVisibility(VISIBLE));
         onView(foodstuffBelowMatcher1).check(matches(isDisplayed()));
 
         Matcher<View> foodstuffBelowMatcher2 = allOf(
                 withText(containsString(foodstuffs[5].getName())),
-                matches(isCompletelyBelow(withText(containsString(foodstuffs[6].getName())))));
+                matches(isCompletelyBelow(foodstuffBelowMatcher1)),
+                withEffectiveVisibility(VISIBLE));
         onView(foodstuffBelowMatcher2).check(matches(isDisplayed()));
 
         Matcher<View> foodstuffBelowMatcher3 = allOf(
                 withText(containsString(foodstuffs[0].getName())),
-                matches(isCompletelyBelow(withText(containsString(foodstuffs[5].getName())))));
+                matches(isCompletelyBelow(foodstuffBelowMatcher2)),
+                withEffectiveVisibility(VISIBLE));
         onView(foodstuffBelowMatcher3).check(matches(isDisplayed()));
     }
 
@@ -616,34 +629,38 @@ public class MainActivityTest {
 
         // нажать на элемент
         Foodstuff deletedFoodstuff = foodstuffs[0];
-        onView(withText(containsString(deletedFoodstuff.getName()))).perform(click());
+        onView(allOf(
+                withText(containsString(deletedFoodstuff.getName())),
+                withEffectiveVisibility(VISIBLE))).perform(click());
         // нажать на кнопку удаления в карточке
         onView(withId(R.id.frame_layout_button_delete)).perform(click());
         // проверить, что элемент удалился
-        onView(withText(containsString(deletedFoodstuff.getName()))).check(doesNotExist());
+        onView(allOf(
+                withText(containsString(deletedFoodstuff.getName())),
+                withEffectiveVisibility(VISIBLE))).check(doesNotExist());
         // проверить заголовок с БЖУ
         Nutrition totalNutrition = Nutrition.of(foodstuffs[5].withWeight(100))
                 .plus(Nutrition.of(foodstuffs[6].withWeight(100)));
-        onView(allOf(withParent(withId(R.id.protein_layout)), withId(R.id.nutrition_text_view)))
+        onView(allOf(withParent(withId(R.id.protein_layout)), withId(R.id.nutrition_text_view), withEffectiveVisibility(VISIBLE)))
                 .check(matches(withText(toDecimalString(totalNutrition.getProtein()))));
-        onView(allOf(withParent(withId(R.id.fats_layout)), withId(R.id.nutrition_text_view)))
+        onView(allOf(withParent(withId(R.id.fats_layout)), withId(R.id.nutrition_text_view), withEffectiveVisibility(VISIBLE)))
                 .check(matches(withText(toDecimalString(totalNutrition.getFats()))));
-        onView(allOf(withParent(withId(R.id.carbs_layout)), withId(R.id.nutrition_text_view)))
+        onView(allOf(withParent(withId(R.id.carbs_layout)), withId(R.id.nutrition_text_view), withEffectiveVisibility(VISIBLE)))
                 .check(matches(withText(toDecimalString(totalNutrition.getCarbs()))));
-        onView(allOf(withParent(withId(R.id.calories_layout)), withId(R.id.nutrition_text_view)))
+        onView(allOf(withParent(withId(R.id.calories_layout)), withId(R.id.nutrition_text_view), withEffectiveVisibility(VISIBLE)))
                 .check(matches(withText(toDecimalString(totalNutrition.getCalories()))));
         // перезапустить активити и убедиться, что элемент удалён
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
         instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
         onView(withText(containsString(deletedFoodstuff.getName()))).check(doesNotExist());
         // ещё раз проверить заголовок
-        onView(allOf(withParent(withId(R.id.protein_layout)), withId(R.id.nutrition_text_view)))
+        onView(allOf(withParent(withId(R.id.protein_layout)), withId(R.id.nutrition_text_view), withEffectiveVisibility(VISIBLE)))
                 .check(matches(withText(toDecimalString(totalNutrition.getProtein()))));
-        onView(allOf(withParent(withId(R.id.fats_layout)), withId(R.id.nutrition_text_view)))
+        onView(allOf(withParent(withId(R.id.fats_layout)), withId(R.id.nutrition_text_view), withEffectiveVisibility(VISIBLE)))
                 .check(matches(withText(toDecimalString(totalNutrition.getFats()))));
-        onView(allOf(withParent(withId(R.id.carbs_layout)), withId(R.id.nutrition_text_view)))
+        onView(allOf(withParent(withId(R.id.carbs_layout)), withId(R.id.nutrition_text_view), withEffectiveVisibility(VISIBLE)))
                 .check(matches(withText(toDecimalString(totalNutrition.getCarbs()))));
-        onView(allOf(withParent(withId(R.id.calories_layout)), withId(R.id.nutrition_text_view)))
+        onView(allOf(withParent(withId(R.id.calories_layout)), withId(R.id.nutrition_text_view), withEffectiveVisibility(VISIBLE)))
                 .check(matches(withText(toDecimalString(totalNutrition.getCalories()))));
     }
 
@@ -655,39 +672,45 @@ public class MainActivityTest {
 
         // нажать на элемент
         Foodstuff editedFoodstuff = foodstuffs[0];
-        onView(withText(containsString(editedFoodstuff.getName()))).perform(click());
+        onView(allOf(
+                withText(containsString(editedFoodstuff.getName())),
+                withEffectiveVisibility(VISIBLE))).perform(click());
         // отредактировать вес
         double newWeight = 200;
         onView(withId(R.id.weight_edit_text)).perform(replaceText(String.valueOf(newWeight)));
         onView(withId(R.id.add_foodstuff_button)).perform(click());
         // проверить, что элемент отредактировался
-        onView(withText(containsString(editedFoodstuff.getName())))
+        onView(allOf(
+                withText(containsString(editedFoodstuff.getName())),
+                withEffectiveVisibility(VISIBLE)))
                 .check(matches(withText(containsString(toDecimalString(newWeight)))));
         // проверить заголовок с БЖУ
         Nutrition totalNutrition = Nutrition.of(editedFoodstuff.withWeight(newWeight))
                 .plus(Nutrition.of(foodstuffs[5].withWeight(100)))
                 .plus(Nutrition.of(foodstuffs[6].withWeight(100)));
-        onView(allOf(withParent(withId(R.id.protein_layout)), withId(R.id.nutrition_text_view)))
+        onView(allOf(withParent(withId(R.id.protein_layout)), withId(R.id.nutrition_text_view), withEffectiveVisibility(VISIBLE)))
                 .check(matches(withText(toDecimalString(totalNutrition.getProtein()))));
-        onView(allOf(withParent(withId(R.id.fats_layout)), withId(R.id.nutrition_text_view)))
+        onView(allOf(withParent(withId(R.id.fats_layout)), withId(R.id.nutrition_text_view), withEffectiveVisibility(VISIBLE)))
                 .check(matches(withText(toDecimalString(totalNutrition.getFats()))));
-        onView(allOf(withParent(withId(R.id.carbs_layout)), withId(R.id.nutrition_text_view)))
+        onView(allOf(withParent(withId(R.id.carbs_layout)), withId(R.id.nutrition_text_view), withEffectiveVisibility(VISIBLE)))
                 .check(matches(withText(toDecimalString(totalNutrition.getCarbs()))));
-        onView(allOf(withParent(withId(R.id.calories_layout)), withId(R.id.nutrition_text_view)))
+        onView(allOf(withParent(withId(R.id.calories_layout)), withId(R.id.nutrition_text_view), withEffectiveVisibility(VISIBLE)))
                 .check(matches(withText(toDecimalString(totalNutrition.getCalories()))));
         // перезапустить активити и убедиться, что элемент изменён
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
         instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
-        onView(withText(containsString(editedFoodstuff.getName())))
+        onView(allOf(
+                withText(containsString(editedFoodstuff.getName())),
+                withEffectiveVisibility(VISIBLE)))
                 .check(matches(withText(containsString(toDecimalString(newWeight)))));
         // ещё раз проверить заголовок
-        onView(allOf(withParent(withId(R.id.protein_layout)), withId(R.id.nutrition_text_view)))
+        onView(allOf(withParent(withId(R.id.protein_layout)), withId(R.id.nutrition_text_view), withEffectiveVisibility(VISIBLE)))
                 .check(matches(withText(toDecimalString(totalNutrition.getProtein()))));
-        onView(allOf(withParent(withId(R.id.fats_layout)), withId(R.id.nutrition_text_view)))
+        onView(allOf(withParent(withId(R.id.fats_layout)), withId(R.id.nutrition_text_view), withEffectiveVisibility(VISIBLE)))
                 .check(matches(withText(toDecimalString(totalNutrition.getFats()))));
-        onView(allOf(withParent(withId(R.id.carbs_layout)), withId(R.id.nutrition_text_view)))
+        onView(allOf(withParent(withId(R.id.carbs_layout)), withId(R.id.nutrition_text_view), withEffectiveVisibility(VISIBLE)))
                 .check(matches(withText(toDecimalString(totalNutrition.getCarbs()))));
-        onView(allOf(withParent(withId(R.id.calories_layout)), withId(R.id.nutrition_text_view)))
+        onView(allOf(withParent(withId(R.id.calories_layout)), withId(R.id.nutrition_text_view), withEffectiveVisibility(VISIBLE)))
                 .check(matches(withText(toDecimalString(totalNutrition.getCalories()))));
     }
 
@@ -704,16 +727,16 @@ public class MainActivityTest {
         onView(withId(R.id.menu_item_history)).perform(click());
 
         // проверяем значение съеденного нутриента
-        Matcher<View> proteinMatcher = allOf(withParent(withId(R.id.protein_layout)), withId(R.id.nutrition_text_view));
+        Matcher<View> proteinMatcher = allOf(withParent(withId(R.id.protein_layout)), withId(R.id.nutrition_text_view), withEffectiveVisibility(VISIBLE));
         onView(proteinMatcher).check(matches(withText(toDecimalString(totalNutrition.getProtein()))));
 
-        Matcher<View> fatsMatcher = allOf(withParent(withId(R.id.fats_layout)), withId(R.id.nutrition_text_view));
+        Matcher<View> fatsMatcher = allOf(withParent(withId(R.id.fats_layout)), withId(R.id.nutrition_text_view), withEffectiveVisibility(VISIBLE));
         onView(fatsMatcher).check(matches(withText(toDecimalString(totalNutrition.getFats()))));
 
-        Matcher<View> carbsMatcher = allOf(withParent(withId(R.id.carbs_layout)), withId(R.id.nutrition_text_view));
+        Matcher<View> carbsMatcher = allOf(withParent(withId(R.id.carbs_layout)), withId(R.id.nutrition_text_view), withEffectiveVisibility(VISIBLE));
         onView(carbsMatcher).check(matches(withText(toDecimalString(totalNutrition.getCarbs()))));
 
-        Matcher<View> caloriesMatcher = allOf(withParent(withId(R.id.calories_layout)), withId(R.id.nutrition_text_view));
+        Matcher<View> caloriesMatcher = allOf(withParent(withId(R.id.calories_layout)), withId(R.id.nutrition_text_view), withEffectiveVisibility(VISIBLE));
         onView(caloriesMatcher).check(matches(withText(toDecimalString(totalNutrition.getCalories()))));
 
         // проверяем значения норм БЖУК
@@ -732,19 +755,20 @@ public class MainActivityTest {
         // проверяем прогресс
         Activity activity = mActivityRule.getActivity();
         InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
-            ProgressBar proteinProgress = activity.findViewById(R.id.protein_layout).findViewById(R.id.nutrition_progress);
+            View fragmentView = activity.findViewById(R.id.fragment_history);
+            ProgressBar proteinProgress = fragmentView.findViewById(R.id.protein_layout).findViewById(R.id.nutrition_progress);
             Assert.assertEquals(Math.round((float)totalNutrition.getProtein()), proteinProgress.getProgress());
             Assert.assertEquals(Math.round(rates.getProtein()), proteinProgress.getMax());
 
-            ProgressBar fatsProgress = activity.findViewById(R.id.fats_layout).findViewById(R.id.nutrition_progress);
+            ProgressBar fatsProgress = fragmentView.findViewById(R.id.fats_layout).findViewById(R.id.nutrition_progress);
             Assert.assertEquals(Math.round((float)totalNutrition.getFats()), fatsProgress.getProgress());
             Assert.assertEquals(Math.round(rates.getFats()), fatsProgress.getMax());
 
-            ProgressBar carbsProgress = activity.findViewById(R.id.carbs_layout).findViewById(R.id.nutrition_progress);
+            ProgressBar carbsProgress = fragmentView.findViewById(R.id.carbs_layout).findViewById(R.id.nutrition_progress);
             Assert.assertEquals(Math.round((float)totalNutrition.getCarbs()), carbsProgress.getProgress());
             Assert.assertEquals(Math.round(rates.getCarbs()), carbsProgress.getMax());
 
-            ProgressBar caloriesProgress = activity.findViewById(R.id.calories_layout).findViewById(R.id.nutrition_progress);
+            ProgressBar caloriesProgress = fragmentView.findViewById(R.id.calories_layout).findViewById(R.id.nutrition_progress);
             Assert.assertEquals(Math.round((float)totalNutrition.getCalories()), caloriesProgress.getProgress());
             Assert.assertEquals(Math.round(rates.getCalories()), caloriesProgress.getMax());
         });
@@ -770,7 +794,7 @@ public class MainActivityTest {
                 .withWeight(13));
 
         Intent startIntent =
-                MainActivityController.createAddToHistoryIntent(
+                MainActivityController.createOpenHistoryAndAddFoodstuffsIntent(
                         context, foodstuffs, timeProvider.now().toLocalDate());
         mActivityRule.launchActivity(startIntent);
 
@@ -961,7 +985,7 @@ public class MainActivityTest {
                         .withNutrition(Nutrition.of100gramsOf(foodstuffs[0]))
                         .withWeight(200));
         LocalDate date = timeProvider.now().minusDays(25).toLocalDate();
-        Intent intent = MainActivityController.createAddToHistoryIntent(context, addedFoodstuffs, date);
+        Intent intent = MainActivityController.createOpenHistoryAndAddFoodstuffsIntent(context, addedFoodstuffs, date);
         mActivityRule.launchActivity(intent);
 
         onView(withText(containsString(addedFoodstuffs.get(0).getName()))).check(matches(isDisplayed()));
@@ -1038,10 +1062,79 @@ public class MainActivityTest {
 
         // убедиться, что в searchView находится название первого продукта
         onView(withId(R.id.search_bar_text)).check(matches(withText(foodstuffs[0].getName())));
+        onView(withId(R.id.search_results_layout)).check(matches(isDisplayed()));
 
         // нажать ещё раз назад и убедиться, что SearchResultsFragment закрылся
         onView(isRoot()).perform(ViewActions.pressBack());
         onView(withId(R.id.search_results_layout)).check(doesNotExist());
+    }
+
+    @Test
+    public void onBackPressedInMainScreen() {
+        mActivityRule.launchActivity(null);
+
+        // главная разметка есть на экране
+        onView(withId(R.id.fragment_main_screen)).check(matches(isDisplayed()));
+        // бэк
+        Espresso.pressBackUnconditionally();
+        // мы мертвы
+        assertTrue(mActivityRule.getActivity().isDestroyed());
+    }
+
+    @Test
+    public void onBackPressedInHistory() {
+        mActivityRule.launchActivity(null);
+        // история
+        onView(withId(R.id.menu_item_history)).perform(click());
+        onView(withId(R.id.fragment_history)).check(matches(isDisplayed()));
+
+        // бэк должен вернуть мейн-скрин
+        Espresso.pressBackUnconditionally();
+        onView(withId(R.id.fragment_history)).check(matches(not(isDisplayed())));
+        onView(withId(R.id.fragment_main_screen)).check(matches(isDisplayed()));
+
+        // бэк и мы мертвы
+        Espresso.pressBackUnconditionally();
+        assertTrue(mActivityRule.getActivity().isDestroyed());
+    }
+
+    @Test
+    public void onBackPressedInProfile() {
+        mActivityRule.launchActivity(null);
+        // история
+        onView(withId(R.id.menu_item_profile)).perform(click());
+        onView(withId(R.id.fragment_profile)).check(matches(isDisplayed()));
+
+        // бэк должен вернуть мейн-скрин
+        Espresso.pressBackUnconditionally();
+        onView(withId(R.id.fragment_profile)).check(matches(not(isDisplayed())));
+        onView(withId(R.id.fragment_main_screen)).check(matches(isDisplayed()));
+
+        // бэк и мы мертвы
+        Espresso.pressBackUnconditionally();
+        assertTrue(mActivityRule.getActivity().isDestroyed());
+    }
+
+    @Test
+    public void onBackPressedIn_afterMultipleFragmentSwitches() {
+        mActivityRule.launchActivity(null);
+        // меняем несколько раз фрагменты туда-сюда
+        for (int i = 0; i < 2; ++i) {
+            onView(withId(R.id.menu_item_profile)).perform(click());
+            onView(withId(R.id.menu_item_foodstuffs)).perform(click());
+            onView(withId(R.id.menu_item_history)).perform(click());
+        }
+        // последней открывали историю
+        onView(withId(R.id.menu_item_history)).check(matches(isDisplayed()));
+
+        // бэк должен вернуть мейн-скрин
+        Espresso.pressBackUnconditionally();
+        onView(withId(R.id.fragment_history)).check(matches(not(isDisplayed())));
+        onView(withId(R.id.fragment_main_screen)).check(matches(isDisplayed()));
+
+        // бэк и мы мертвы
+        Espresso.pressBackUnconditionally();
+        assertTrue(mActivityRule.getActivity().isDestroyed());
     }
 
     private void addFoodstuffsToday() {

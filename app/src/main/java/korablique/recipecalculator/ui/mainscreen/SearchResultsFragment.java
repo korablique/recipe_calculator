@@ -119,7 +119,6 @@ public class SearchResultsFragment extends BaseFragment {
         searchResultsFragment.setArguments(args);
         FragmentTransaction transaction = context.getSupportFragmentManager().beginTransaction();
         transaction.add(R.id.fragment_container, searchResultsFragment, SEARCH_RESULTS_FRAGMENT_TAG);
-        transaction.addToBackStack(null);
         transaction.commit();
     }
 }

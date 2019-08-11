@@ -1,47 +1,34 @@
 package korablique.recipecalculator.ui.mainscreen;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.test.espresso.intent.Intents;
 import androidx.test.filters.LargeTest;
 import androidx.test.platform.app.InstrumentationRegistry;
-import androidx.test.rule.ActivityTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import korablique.recipecalculator.base.Callback;
-import korablique.recipecalculator.base.TimeProvider;
 import korablique.recipecalculator.dagger.Injector;
 import korablique.recipecalculator.dagger.InjectorHolder;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.FoodstuffsTopList;
 import korablique.recipecalculator.model.Nutrition;
-import korablique.recipecalculator.util.EspressoUtils;
-import korablique.recipecalculator.util.InjectableActivityTestRule;
 
 import static androidx.test.espresso.intent.Intents.intended;
-import static androidx.test.espresso.intent.matcher.BundleMatchers.hasEntry;
-import static androidx.test.espresso.intent.matcher.BundleMatchers.hasValue;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasAction;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasExtras;
 import static korablique.recipecalculator.util.EspressoUtils.hasValueRecursive;
@@ -53,6 +40,8 @@ import static org.mockito.Mockito.mock;
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class MainScreenLoaderTest {
+    private Context context;
+
     @Mock
     private FoodstuffsList foodstuffsList;
     @Mock
@@ -62,6 +51,8 @@ public class MainScreenLoaderTest {
 
     @Before
     public void setUp() {
+        context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+
         // Init all @Mocks
         MockitoAnnotations.initMocks(this);
         // Init the library which checks intents
@@ -128,15 +119,17 @@ public class MainScreenLoaderTest {
         // We expect top foodstuffs list to be unchanged.
         List<Foodstuff> expectedTop = topFoodstuffs;
         // Create expected bundle.
-        Bundle expectedFoodstuffsBundle = MainScreenController.createInitialDataBundle(
-                new ArrayList<>(expectedTop), new ArrayList<>(expectedAllFoodstuffsPart));
+        Intent expectedIntent = MainActivityController
+                .createMainScreenIntent(context,
+                        new ArrayList<>(expectedTop),
+                        new ArrayList<>(expectedAllFoodstuffsPart));
 
         // Load main screen activity and verify that a start intent was sent
         // (with expected bundle inside).
-        mainScreenLoader.loadMainScreenActivity();
+        mainScreenLoader.loadMainScreenActivity().subscribe();
         intended(allOf(
-                hasAction(MainActivityController.ACTION_OPEN_MAIN_SCREEN),
-                hasExtras(hasValueRecursive(expectedFoodstuffsBundle))));
+                hasAction(expectedIntent.getAction()),
+                hasExtras(hasValueRecursive(expectedIntent.getExtras()))));
 
         // Let's wait for the activity to fully load so it wouldn't crash
         // (InjectableActivityTestRule erases all objects from injectable on tests finish).

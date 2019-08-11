@@ -44,9 +44,13 @@ public class EditFoodstuffActivity extends BaseActivity {
     private EditProgressTextCommonMaxController nutritionsCommonMaxController;
 
     @Override
+    protected Integer getLayoutId() {
+        return R.layout.activity_add_new_foodstuff;
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_add_new_foodstuff);
 
         TextView titleTextView = findViewById(R.id.title_text);
         titleTextView.setText(R.string.new_foodstuff);

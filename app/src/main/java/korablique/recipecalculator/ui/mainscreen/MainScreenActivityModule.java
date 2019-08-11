@@ -18,16 +18,6 @@ import korablique.recipecalculator.ui.profile.ProfileFragmentModule;
 
 @Module
 public abstract class MainScreenActivityModule {
-    @ActivityScope
-    @Provides
-    static MainActivityController provideMainActivityController(
-            MainActivity activity,
-            ActivityCallbacks activityCallbacks,
-            UserParametersWorker userParametersWorker,
-            RxActivitySubscriptions subscriptions) {
-        return new MainActivityController(activity, activityCallbacks, userParametersWorker, subscriptions);
-    }
-
     @FragmentScope
     @ContributesAndroidInjector(modules = { BaseFragmentModule.class, SearchResultsFragmentModule.class })
     abstract SearchResultsFragment searchResultsFragmentInjector();
