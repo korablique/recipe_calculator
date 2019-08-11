@@ -55,6 +55,9 @@ public class MainActivityController implements ActivityCallbacks.Observer {
 
     private void handleIntent(Intent intent, @Nullable Bundle savedInstanceState) {
         if (savedInstanceState != null) {
+            // If there's non-null saved-instance-state, that means that the activity is being
+            // restored, and given intent already was handled by the previous instance of the
+            // activity before its destruction.
             return;
         }
 
@@ -89,10 +92,11 @@ public class MainActivityController implements ActivityCallbacks.Observer {
             Context context,
             List<WeightedFoodstuff> historyList,
             LocalDate selectedDate) {
-        context.startActivity(createAddToHistoryIntent(context, historyList, selectedDate));
+        context.startActivity(createOpenHistoryAndAddFoodstuffsIntent(context, historyList, selectedDate));
     }
 
-    public static Intent createAddToHistoryIntent(Context context, List<WeightedFoodstuff> historyList, LocalDate date) {
+    public static Intent createOpenHistoryAndAddFoodstuffsIntent(
+            Context context, List<WeightedFoodstuff> historyList, LocalDate date) {
         Intent intent = new Intent(context, MainActivity.class);
         intent.putParcelableArrayListExtra(EXTRA_FOODSTUFFS_LIST, new ArrayList<>(historyList));
         intent.putExtra(EXTRA_DATE, date);

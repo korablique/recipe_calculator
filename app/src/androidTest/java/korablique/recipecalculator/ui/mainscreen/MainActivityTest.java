@@ -15,7 +15,6 @@ import androidx.test.espresso.Espresso;
 import androidx.test.espresso.action.ViewActions;
 import androidx.test.espresso.contrib.PickerActions;
 import androidx.test.espresso.matcher.BoundedMatcher;
-import androidx.test.espresso.matcher.ViewMatchers;
 import androidx.test.filters.LargeTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.rule.ActivityTestRule;
@@ -47,7 +46,6 @@ import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.base.FragmentCallbacks;
-import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.base.RxFragmentSubscriptions;
 import korablique.recipecalculator.base.TimeProvider;
 import korablique.recipecalculator.base.executors.ComputationThreadsExecutor;
@@ -796,7 +794,7 @@ public class MainActivityTest {
                 .withWeight(13));
 
         Intent startIntent =
-                MainActivityController.createAddToHistoryIntent(
+                MainActivityController.createOpenHistoryAndAddFoodstuffsIntent(
                         context, foodstuffs, timeProvider.now().toLocalDate());
         mActivityRule.launchActivity(startIntent);
 
@@ -987,7 +985,7 @@ public class MainActivityTest {
                         .withNutrition(Nutrition.of100gramsOf(foodstuffs[0]))
                         .withWeight(200));
         LocalDate date = timeProvider.now().minusDays(25).toLocalDate();
-        Intent intent = MainActivityController.createAddToHistoryIntent(context, addedFoodstuffs, date);
+        Intent intent = MainActivityController.createOpenHistoryAndAddFoodstuffsIntent(context, addedFoodstuffs, date);
         mActivityRule.launchActivity(intent);
 
         onView(withText(containsString(addedFoodstuffs.get(0).getName()))).check(matches(isDisplayed()));

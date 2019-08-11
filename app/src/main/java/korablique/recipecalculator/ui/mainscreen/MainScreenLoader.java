@@ -9,8 +9,8 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import io.reactivex.Completable;
 import io.reactivex.Single;
-import io.reactivex.disposables.Disposable;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.FoodstuffsTopList;
@@ -32,7 +32,7 @@ public class MainScreenLoader {
         this.topList = topList;
     }
 
-    public Disposable loadMainScreenActivity() {
+    public Completable loadMainScreenActivity() {
         Single<List<Foodstuff>> topSingle = Single.create((emitter -> {
             topList.getTopList(emitter::onSuccess);
         }));
@@ -61,11 +61,16 @@ public class MainScreenLoader {
             });
         }));
 
-        return Single.zip(topSingle, allFoodstuffsFirstBatch, Pair::create).subscribe((topAndFirstBatch) -> {
-            MainActivity.openMainScreen(
-                    context,
-                    new ArrayList<>(topAndFirstBatch.first),
-                    new ArrayList<>(topAndFirstBatch.second));
-        });
+
+        // Subscribe to both foodstuffs lists, map them to MainActivity opening,
+        // return a Completable.
+        return Single.zip(topSingle, allFoodstuffsFirstBatch, Pair::create)
+                .map((topAndFirstBatch) -> {
+                    MainActivity.openMainScreen(
+                            context,
+                            new ArrayList<>(topAndFirstBatch.first),
+                            new ArrayList<>(topAndFirstBatch.second));
+                    return 1;
+                }).ignoreElement();
     }
 }

@@ -57,6 +57,10 @@ public class RxActivitySubscriptions implements ActivityCallbacks.Observer {
         compositeDisposable.add(disposable);
     }
 
+    public void subscribe(Completable obs) {
+        subscribe(obs, ()->{});
+    }
+
     public void subscribe(Completable obs, Action action) {
         Disposable disposable = obs.subscribe(action);
         compositeDisposable.add(disposable);

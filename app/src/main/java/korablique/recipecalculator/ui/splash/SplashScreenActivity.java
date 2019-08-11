@@ -31,8 +31,7 @@ public class SplashScreenActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         rxSubscriptions.subscribe(userParametersWorker.requestCurrentUserParameters(), (params) -> {
             if (params.isPresent()) {
-                Disposable disposable = mainScreenLoader.loadMainScreenActivity();
-                rxSubscriptions.storeDisposable(disposable);
+                rxSubscriptions.subscribe(mainScreenLoader.loadMainScreenActivity());
             } else {
                 UserParametersActivity.start(this);
             }

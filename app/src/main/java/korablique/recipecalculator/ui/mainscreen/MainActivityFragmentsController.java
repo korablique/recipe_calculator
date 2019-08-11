@@ -34,16 +34,11 @@ public class MainActivityFragmentsController implements ActivityCallbacks.Observ
     private final MainActivity mainActivity;
     private final List<Observer> observers = new ArrayList<>();
 
-    @Nullable
     private BottomNavigationView bottomNavigationView;
 
-    @Nullable
     private Fragment currentFragment;
-    @Nullable
     private ProfileFragment profileFragment;
-    @Nullable
     private HistoryFragment historyFragment;
-    @Nullable
     private MainScreenFragment mainScreenFragment;
 
     public interface Observer {
@@ -64,10 +59,6 @@ public class MainActivityFragmentsController implements ActivityCallbacks.Observ
 
     @Override
     public void onActivityCreate(Bundle savedInstanceState) {
-        if (bottomNavigationView != null) {
-            return;
-        }
-
         FragmentManager fm = mainActivity.getSupportFragmentManager();
         if (savedInstanceState == null) {
             mainScreenFragment = new MainScreenFragment();

@@ -123,14 +123,13 @@ public class MainScreenLoaderTest {
                 .createMainScreenIntent(context,
                         new ArrayList<>(expectedTop),
                         new ArrayList<>(expectedAllFoodstuffsPart));
-        Bundle expectedFoodstuffsBundle = expectedIntent.getExtras();
 
         // Load main screen activity and verify that a start intent was sent
         // (with expected bundle inside).
-        mainScreenLoader.loadMainScreenActivity();
+        mainScreenLoader.loadMainScreenActivity().subscribe();
         intended(allOf(
-                hasAction(MainActivityController.ACTION_OPEN_MAIN_SCREEN),
-                hasExtras(hasValueRecursive(expectedFoodstuffsBundle))));
+                hasAction(expectedIntent.getAction()),
+                hasExtras(hasValueRecursive(expectedIntent.getExtras()))));
 
         // Let's wait for the activity to fully load so it wouldn't crash
         // (InjectableActivityTestRule erases all objects from injectable on tests finish).
