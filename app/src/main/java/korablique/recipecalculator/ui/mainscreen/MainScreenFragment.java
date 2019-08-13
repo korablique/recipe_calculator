@@ -27,6 +27,8 @@ import korablique.recipecalculator.model.Foodstuff;
 public class MainScreenFragment extends BaseFragment {
     @Inject
     MainScreenController controller;
+    @Inject
+    UpFABController upFABController;
 
     public static Bundle createArguments(
             ArrayList<Foodstuff> top, ArrayList<Foodstuff> allFoodstuffsFirstBatch) {
