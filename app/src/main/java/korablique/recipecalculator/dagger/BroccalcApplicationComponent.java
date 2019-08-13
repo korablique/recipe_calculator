@@ -8,7 +8,6 @@ import dagger.BindsInstance;
 import dagger.Component;
 import dagger.android.AndroidInjector;
 import korablique.recipecalculator.BroccalcApplication;
-import korablique.recipecalculator.ui.mainscreen.MainScreenActivityModule;
 
 @Singleton
 @Component(modules = {

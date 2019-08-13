@@ -6,12 +6,11 @@ import android.os.Bundle;
 
 import javax.inject.Inject;
 
-import io.reactivex.disposables.Disposable;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.database.UserParametersWorker;
-import korablique.recipecalculator.ui.mainscreen.MainScreenLoader;
-import korablique.recipecalculator.ui.usergoal.UserParametersActivity;
+import korablique.recipecalculator.ui.mainactivity.MainScreenLoader;
+import korablique.recipecalculator.ui.userparameters.UserParametersActivity;
 
 public class SplashScreenActivity extends BaseActivity {
     @Inject

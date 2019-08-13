@@ -33,8 +33,8 @@ import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.NutritionValuesWrapper;
 import korablique.recipecalculator.ui.card.CardDialog;
-import korablique.recipecalculator.ui.card.NewCard;
-import korablique.recipecalculator.ui.mainscreen.MainActivity;
+import korablique.recipecalculator.ui.card.Card;
+import korablique.recipecalculator.ui.mainactivity.MainActivity;
 import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
 import korablique.recipecalculator.util.FloatUtils;
 
@@ -56,7 +56,7 @@ public class BucketListActivity extends BaseActivity {
     private Button saveAsSingleFoodstuffButton;
     private BucketList bucketList;
     private int displayedInCardFoodstuffPosition;
-    private NewCard.OnAddFoodstuffButtonClickListener onAddFoodstuffButtonClickListener;
+    private Card.OnAddFoodstuffButtonClickListener onAddFoodstuffButtonClickListener;
     @Inject
     TimeProvider timeProvider;
 
@@ -98,7 +98,7 @@ public class BucketListActivity extends BaseActivity {
             updateSaveButtonsEnability();
         };
 
-        onAddFoodstuffButtonClickListener = new NewCard.OnAddFoodstuffButtonClickListener() {
+        onAddFoodstuffButtonClickListener = new Card.OnAddFoodstuffButtonClickListener() {
             @Override
             public void onClick(WeightedFoodstuff newFoodstuff) {
                 adapter.replaceItem(newFoodstuff, displayedInCardFoodstuffPosition);
