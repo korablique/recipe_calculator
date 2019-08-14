@@ -13,7 +13,7 @@ import java.util.List;
 import androidx.annotation.ArrayRes;
 import androidx.annotation.Nullable;
 import korablique.recipecalculator.ui.ArrayAdapterWithDisabledItem;
-import korablique.recipecalculator.ui.usergoal.RobotoMonoArrayAdapter;
+import korablique.recipecalculator.ui.userparameters.RobotoMonoArrayAdapter;
 
 /**
  * Utility class for pretty-tuning spinners, for example:

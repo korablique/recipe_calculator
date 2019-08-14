@@ -9,7 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.fragment.app.FragmentActivity;
-import korablique.recipecalculator.R;
+
 import korablique.recipecalculator.base.BaseBottomDialog;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.WeightedFoodstuff;
@@ -18,13 +18,13 @@ public class CardDialog extends BaseBottomDialog {
     private static final String CLICKED_FOODSTUFF = "CLICKED_FOODSTUFF";
     private static final String CLICKED_WEIGHTED_FOODSTUFF = "CLICKED_WEIGHTED_FOODSTUFF";
     private static final String FOODSTUFF_CARD = "FOODSTUFF_CARD";
-    private NewCard card;
-    private NewCard.OnAddFoodstuffButtonClickListener onAddFoodstuffButtonClickListener;
+    private Card card;
+    private Card.OnAddFoodstuffButtonClickListener onAddFoodstuffButtonClickListener;
     @StringRes
     private int buttonTextRes;
-    private NewCard.OnEditButtonClickListener onEditButtonClickListener;
-    private NewCard.OnCloseButtonClickListener onCloseButtonClickListener = this::dismiss;
-    private NewCard.OnDeleteButtonClickListener onDeleteButtonClickListener;
+    private Card.OnEditButtonClickListener onEditButtonClickListener;
+    private Card.OnCloseButtonClickListener onCloseButtonClickListener = this::dismiss;
+    private Card.OnDeleteButtonClickListener onDeleteButtonClickListener;
     private boolean prohibitEditingFlag;
     private boolean prohibitDeletingFlag;
 
@@ -33,7 +33,7 @@ public class CardDialog extends BaseBottomDialog {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container,
                              Bundle savedInstanceState) {
-        card = new NewCard(getContext(), container);
+        card = new Card(getContext(), container);
         card.setUpAddFoodstuffButton(onAddFoodstuffButtonClickListener, buttonTextRes);
         card.setOnEditButtonClickListener(onEditButtonClickListener);
         card.setOnCloseButtonClickListener(onCloseButtonClickListener);
@@ -54,7 +54,7 @@ public class CardDialog extends BaseBottomDialog {
     }
 
     public void setUpAddFoodstuffButton(
-            NewCard.OnAddFoodstuffButtonClickListener listener, @StringRes int buttonTextRes) {
+            Card.OnAddFoodstuffButtonClickListener listener, @StringRes int buttonTextRes) {
         onAddFoodstuffButtonClickListener = listener;
         this.buttonTextRes = buttonTextRes;
         if (card != null) {
@@ -62,21 +62,21 @@ public class CardDialog extends BaseBottomDialog {
         }
     }
 
-    public void setOnEditButtonClickListener(NewCard.OnEditButtonClickListener listener) {
+    public void setOnEditButtonClickListener(Card.OnEditButtonClickListener listener) {
         onEditButtonClickListener = listener;
         if (card != null) {
             card.setOnEditButtonClickListener(listener);
         }
     }
 
-    public void setOnCloseButtonClickListener(NewCard.OnCloseButtonClickListener listener) {
+    public void setOnCloseButtonClickListener(Card.OnCloseButtonClickListener listener) {
         onCloseButtonClickListener = listener;
         if (card != null) {
             card.setOnCloseButtonClickListener(listener);
         }
     }
 
-    public void setOnDeleteButtonClickListener(NewCard.OnDeleteButtonClickListener listener) {
+    public void setOnDeleteButtonClickListener(Card.OnDeleteButtonClickListener listener) {
         onDeleteButtonClickListener = listener;
         if (card != null) {
             card.setOnDeleteButtonClickListener(listener);

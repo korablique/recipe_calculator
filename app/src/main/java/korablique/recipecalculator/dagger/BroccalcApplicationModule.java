@@ -22,14 +22,14 @@ import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
-import korablique.recipecalculator.ui.mainscreen.MainActivity;
-import korablique.recipecalculator.ui.mainscreen.MainScreenActivityModule;
+import korablique.recipecalculator.ui.mainactivity.MainActivity;
+import korablique.recipecalculator.ui.mainactivity.MainScreenActivityModule;
 import korablique.recipecalculator.ui.notifications.FoodReminder;
 import korablique.recipecalculator.ui.notifications.FoodReminderReceiver;
 import korablique.recipecalculator.ui.splash.SplashScreenActivity;
 import korablique.recipecalculator.ui.splash.SplashScreenActivityModule;
-import korablique.recipecalculator.ui.usergoal.UserParametersActivity;
-import korablique.recipecalculator.ui.usergoal.UserParametersActivityModule;
+import korablique.recipecalculator.ui.userparameters.UserParametersActivity;
+import korablique.recipecalculator.ui.userparameters.UserParametersActivityModule;
 
 @Module(includes = {AndroidSupportInjectionModule.class})
 public abstract class BroccalcApplicationModule {

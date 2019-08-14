@@ -37,12 +37,12 @@ import korablique.recipecalculator.database.room.DatabaseHolder;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.WeightedFoodstuff;
-import korablique.recipecalculator.ui.history.HistoryController;
-import korablique.recipecalculator.ui.history.HistoryFragment;
-import korablique.recipecalculator.ui.mainscreen.MainActivity;
-import korablique.recipecalculator.ui.mainscreen.MainActivityController;
-import korablique.recipecalculator.ui.mainscreen.MainActivityFragmentsController;
-import korablique.recipecalculator.ui.mainscreen.MainScreenSelectedDateStorage;
+import korablique.recipecalculator.ui.mainactivity.history.HistoryController;
+import korablique.recipecalculator.ui.mainactivity.history.HistoryFragment;
+import korablique.recipecalculator.ui.mainactivity.MainActivity;
+import korablique.recipecalculator.ui.mainactivity.MainActivityController;
+import korablique.recipecalculator.ui.mainactivity.MainActivityFragmentsController;
+import korablique.recipecalculator.ui.mainactivity.MainActivitySelectedDateStorage;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.InstantComputationsThreadsExecutor;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
@@ -124,7 +124,7 @@ public class BucketListActivityTest {
                                     fragment, fragmentCallbacks, historyWorker, userParametersWorker,
                                     subscriptions, timeProvider,
                                     mock(MainActivityFragmentsController.class),
-                                    mock(MainScreenSelectedDateStorage.class));
+                                    mock(MainActivitySelectedDateStorage.class));
                             return Arrays.asList(subscriptions, historyController);
                         }
                         return Collections.emptyList();

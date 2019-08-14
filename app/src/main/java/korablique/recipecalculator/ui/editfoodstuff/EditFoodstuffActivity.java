@@ -28,7 +28,7 @@ import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
 import static korablique.recipecalculator.IntentConstants.EDIT_FOODSTUFF_REQUEST;
 import static korablique.recipecalculator.IntentConstants.EDIT_RESULT;
 import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
-import static korablique.recipecalculator.ui.card.NewCard.EDITED_FOODSTUFF;
+import static korablique.recipecalculator.ui.card.Card.EDITED_FOODSTUFF;
 
 public class EditFoodstuffActivity extends BaseActivity {
     public static final String EDIT_FOODSTUFF_ACTION = "korablique.recipecalculator.EDIT_FOODSTUFF_ACTION";

@@ -4,7 +4,7 @@ import android.content.Context;
 
 import java.util.List;
 
-import korablique.recipecalculator.ui.usergoal.RobotoMonoArrayAdapter;
+import korablique.recipecalculator.ui.userparameters.RobotoMonoArrayAdapter;
 
 public class ArrayAdapterWithDisabledItem extends RobotoMonoArrayAdapter {
     private int disableItemIndex;
