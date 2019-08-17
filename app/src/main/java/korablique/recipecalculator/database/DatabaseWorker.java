@@ -44,7 +44,7 @@ public class DatabaseWorker {
 
     public interface SaveFoodstuffCallback {
         void onResult(long id);
-        void onDuplication();
+        default void onDuplication() {}
     }
 
     public interface SaveGroupOfFoodstuffsCallback {

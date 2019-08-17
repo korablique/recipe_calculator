@@ -29,6 +29,7 @@ import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.base.FragmentCallbacks;
 import korablique.recipecalculator.dagger.FragmentScope;
 import korablique.recipecalculator.database.FoodstuffsList;
+import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.FoodstuffsTopList;
 import korablique.recipecalculator.model.WeightedFoodstuff;
@@ -65,6 +66,7 @@ public class MainScreenController
     private final FoodstuffsList foodstuffsList;
     private final FoodstuffsTopList topList;
     private final MainActivitySelectedDateStorage selectedDateStorage;
+    private final HistoryWorker historyWorker;
     private SectionedAdapterParent adapterParent;
     private FoodstuffsAdapterChild topAdapterChild;
     private SectionedFoodstuffsAdapterChild foodstuffAdapterChild;
@@ -115,7 +117,8 @@ public class MainScreenController
             Lifecycle lifecycle,
             FoodstuffsTopList topList,
             FoodstuffsList foodstuffsList,
-            MainActivitySelectedDateStorage selectedDateStorage) {
+            MainActivitySelectedDateStorage selectedDateStorage,
+            HistoryWorker historyWorker) {
         this.context = context;
         this.fragment = fragment;
         this.activityCallbacks = activityCallbacks;
@@ -123,6 +126,7 @@ public class MainScreenController
         this.topList = topList;
         this.foodstuffsList = foodstuffsList;
         this.selectedDateStorage = selectedDateStorage;
+        this.historyWorker = historyWorker;
         fragmentCallbacks.addObserver(this);
         activityCallbacks.addObserver(this);
     }
@@ -227,6 +231,18 @@ public class MainScreenController
                 configureSearch();
             });
         });
+
+        historyWorker.addObserver(new HistoryWorker.Observer() {
+            @Override
+            public void onHistoryChange() {
+                topList.getTopList(foodstuffs -> {
+                    if (topAdapterChild != null) {
+                        topAdapterChild.clear();
+                    }
+                    fillTop(foodstuffs);
+                });
+            }
+        });
     }
 
     private void fillListsFromArguments() {
@@ -275,8 +291,8 @@ public class MainScreenController
             if (topAdapterChild == null) {
                 topAdapterChild = new FoodstuffsAdapterChild(context, (foodstuff, pos) -> showCard(foodstuff));
                 SingleItemAdapterChild topTitle = new SingleItemAdapterChild(R.layout.top_foodstuffs_header);
-                adapterParent.addChild(topTitle);
-                adapterParent.addChild(topAdapterChild);
+                adapterParent.addChildToPosition(topTitle, 0);
+                adapterParent.addChildToPosition(topAdapterChild, 1);
             }
             topAdapterChild.addItems(foodstuffs);
         }

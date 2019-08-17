@@ -39,6 +39,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import korablique.recipecalculator.IntentConstants;
 import korablique.recipecalculator.R;
@@ -194,7 +195,8 @@ public class MainActivityTest {
                         MainScreenController mainScreenController = new MainScreenController(
                                 activity, fragment, fragmentCallbacks,
                                 activity.getActivityCallbacks(), lifecycle, topList,
-                                foodstuffsList, mainActivitySelectedDateStorage);
+                                foodstuffsList, mainActivitySelectedDateStorage,
+                                historyWorker);
                         UpFABController upFABController = new UpFABController(fragmentCallbacks);
                         return Arrays.asList(subscriptions, mainScreenController, upFABController);
 
@@ -1141,6 +1143,40 @@ public class MainActivityTest {
         // бэк и мы мертвы
         Espresso.pressBackUnconditionally();
         assertTrue(mActivityRule.getActivity().isDestroyed());
+    }
+
+    @Test
+    public void mainScreenSeesTopFoodstuffsUpdate() {
+        mActivityRule.launchActivity(null);
+
+        // Добавим новый продукт в БД
+        Foodstuff newFoodstuff = Foodstuff.withName("newfoodstuff").withNutrition(1, 2, 3, 4);
+        AtomicLong newFoodstuffId = new AtomicLong();
+        databaseWorker.saveFoodstuff(newFoodstuff, id -> newFoodstuffId.set(id));
+
+        // Убедимся, что в начале теста продукта на экране нет
+        onView(withText(newFoodstuff.getName())).check(doesNotExist());
+
+        // "Съедим" его 100 раз сегодня
+        NewHistoryEntry[] newEntries = new NewHistoryEntry[100];
+        for (int index = 0; index < newEntries.length; ++index) {
+            newEntries[index] = new NewHistoryEntry(newFoodstuffId.get(), 100, timeProvider.now().toDate());
+        }
+        historyWorker.saveGroupOfFoodstuffsToHistory(newEntries);
+
+        // Убедимся, что продукт действительно попал в топ
+        boolean found = false;
+        List<Foodstuff> top = extractFoodstuffsTopFromDB();
+        for (Foodstuff foodstuff : top) {
+            if (foodstuff.getId() == newFoodstuffId.get()) {
+                found = true;
+                break;
+            }
+        }
+        Assert.assertTrue(found);
+
+        // Продукт должен появиться на экране в топе
+        onView(withText(newFoodstuff.getName())).check(matches(isDisplayed()));
     }
 
     private void addFoodstuffsToday() {

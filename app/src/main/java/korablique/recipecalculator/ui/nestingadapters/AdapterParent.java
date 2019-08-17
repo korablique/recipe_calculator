@@ -94,11 +94,13 @@ public class AdapterParent extends RecyclerView.Adapter {
         return itemCount;
     }
 
-    public void addChild(AdapterChild... children) {
-        for (AdapterChild child : children) {
-            this.children.add(child);
-            child.addObserver(new ChildrenObserver());
-        }
+    public void addChild(AdapterChild child) {
+        addChildToPosition(child, this.children.size());
+    }
+
+    public void addChildToPosition(AdapterChild child, int position) {
+        this.children.add(position, child);
+        child.addObserver(new ChildrenObserver());
         notifyDataSetChanged();
     }
 
