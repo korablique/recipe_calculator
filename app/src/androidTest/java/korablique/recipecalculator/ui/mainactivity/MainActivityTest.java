@@ -9,11 +9,13 @@ import android.view.View;
 import android.widget.DatePicker;
 import android.widget.ProgressBar;
 
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
 import androidx.test.espresso.Espresso;
 import androidx.test.espresso.action.ViewActions;
 import androidx.test.espresso.contrib.PickerActions;
+import androidx.test.espresso.contrib.RecyclerViewActions;
 import androidx.test.espresso.matcher.BoundedMatcher;
 import androidx.test.filters.LargeTest;
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -45,6 +47,7 @@ import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.BaseFragment;
+import korablique.recipecalculator.base.CurrentActivityProvider;
 import korablique.recipecalculator.base.FragmentCallbacks;
 import korablique.recipecalculator.base.RxFragmentSubscriptions;
 import korablique.recipecalculator.base.TimeProvider;
@@ -71,6 +74,7 @@ import korablique.recipecalculator.model.Rates;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.model.WeightedFoodstuff;
+import korablique.recipecalculator.session.SessionController;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
@@ -86,6 +90,7 @@ import korablique.recipecalculator.ui.mainactivity.profile.ProfileFragment;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.InstantComputationsThreadsExecutor;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
+import korablique.recipecalculator.util.SessionTestingHelper;
 import korablique.recipecalculator.util.SyncMainThreadExecutor;
 import korablique.recipecalculator.util.TestingTimeProvider;
 
@@ -142,9 +147,11 @@ public class MainActivityTest {
     private BucketList bucketList = BucketList.getInstance();
     private UserParameters userParameters;
     private UserNameProvider userNameProvider;
-    private TimeProvider timeProvider;
+    private TestingTimeProvider timeProvider;
     private MainActivityFragmentsController fragmentsController;
     private MainActivitySelectedDateStorage mainActivitySelectedDateStorage;
+    private CurrentActivityProvider currentActivityProvider;
+    private SessionController sessionController;
 
     @Rule
     public ActivityTestRule<MainActivity> mActivityRule =
@@ -163,9 +170,11 @@ public class MainActivityTest {
                     topList = new FoodstuffsTopList(databaseWorker, historyWorker);
                     userNameProvider = new UserNameProvider(context);
                     timeProvider = new TestingTimeProvider();
+                    currentActivityProvider = new CurrentActivityProvider();
+                    sessionController = new SessionController(context, timeProvider, currentActivityProvider);
                     return Arrays.asList(databaseWorker, historyWorker, userParametersWorker,
                             foodstuffsList, databaseHolder, userNameProvider,
-                            timeProvider);
+                            timeProvider, currentActivityProvider, sessionController);
                 })
                 .withActivityScoped((injectionTarget) -> {
                     if (!(injectionTarget instanceof MainActivity)) {
@@ -173,9 +182,10 @@ public class MainActivityTest {
                     }
                     MainActivity activity = (MainActivity) injectionTarget;
                     ActivityCallbacks activityCallbacks = activity.getActivityCallbacks();
-                    mainActivitySelectedDateStorage = new MainActivitySelectedDateStorage(activityCallbacks);
+                    mainActivitySelectedDateStorage = new MainActivitySelectedDateStorage(
+                            activity, activityCallbacks, sessionController, timeProvider);
                     fragmentsController = new MainActivityFragmentsController(
-                            activity, activityCallbacks);
+                            activity, sessionController, activityCallbacks);
                     MainActivityController controller = new MainActivityController(
                             activity, activityCallbacks, fragmentsController);
                     return Collections.singletonList(controller);
@@ -1107,7 +1117,7 @@ public class MainActivityTest {
     @Test
     public void onBackPressedInProfile() {
         mActivityRule.launchActivity(null);
-        // история
+        // профиль
         onView(withId(R.id.menu_item_profile)).perform(click());
         onView(withId(R.id.fragment_profile)).check(matches(isDisplayed()));
 
@@ -1141,6 +1151,132 @@ public class MainActivityTest {
         // бэк и мы мертвы
         Espresso.pressBackUnconditionally();
         assertTrue(mActivityRule.getActivity().isDestroyed());
+    }
+
+    @Test
+    public void activeFragment_afterRestart_WithoutSessionChange() {
+        mActivityRule.launchActivity(null);
+        // профиль
+        onView(withId(R.id.menu_item_profile)).perform(click());
+        onView(withId(R.id.fragment_profile)).check(matches(isDisplayed()));
+
+        // Рестарт
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
+
+        // Должен быть всё ещё показан профиль
+        onView(withId(R.id.fragment_profile)).check(matches(isDisplayed()));
+    }
+
+    @Test
+    public void activeFragment_afterRestart_WithSessionChange() {
+        SessionTestingHelper.testSessionWith(mActivityRule, timeProvider, currentActivityProvider)
+                .withFirstSession(() -> {
+                    mActivityRule.launchActivity(null);
+                    // профиль
+                    onView(withId(R.id.menu_item_profile)).perform(click());
+                    onView(withId(R.id.fragment_profile)).check(matches(isDisplayed()));
+                })
+                .withSecondSession(() -> {
+                    // Должен быть показан главный экран, т.к. прошла сессия
+                    onView(withId(R.id.fragment_profile)).check(matches(not(isDisplayed())));
+                    onView(withId(R.id.fragment_main_screen)).check(matches(isDisplayed()));
+                })
+                .performActivityRestart();
+    }
+
+    @Test
+    public void activeFragment_afterStopAndStart_WithSessionChange() {
+        SessionTestingHelper.testSessionWith(mActivityRule, timeProvider, currentActivityProvider)
+                .withFirstSession(() -> {
+                    mActivityRule.launchActivity(null);
+                    // профиль
+                    onView(withId(R.id.menu_item_profile)).perform(click());
+                    onView(withId(R.id.fragment_profile)).check(matches(isDisplayed()));
+                })
+                .withSecondSession(() -> {
+                    // Должен быть показан главный экран, т.к. прошла сессия
+                    onView(withId(R.id.fragment_profile)).check(matches(not(isDisplayed())));
+                    onView(withId(R.id.fragment_main_screen)).check(matches(isDisplayed()));
+                })
+                .performActivityStopAndStart();
+    }
+
+    @Test
+    public void mainScreenSelectedDate_afterRestart_withoutSessionChange() {
+        mActivityRule.launchActivity(null);
+        onView(withId(R.id.menu_item_history)).perform(click());
+
+        // проверяем, что на сегодняшней дате кнопки "Сегодня" нет
+        onView(withId(R.id.return_for_today_button)).check(matches(not(isDisplayed())));
+
+        // открываем другую дату и проверяем, что кнопка появилась
+        DateTime anotherDate = timeProvider.now().minusDays(10);
+        onView(withId(R.id.calendar_button)).perform(click());
+        onView(withClassName(equalTo(DatePicker.class.getName())))
+                .perform(PickerActions.setDate(
+                        anotherDate.getYear(), anotherDate.getMonthOfYear(), anotherDate.getDayOfMonth()));
+        onView(withId(android.R.id.button1)).perform(click());
+        onView(withId(R.id.return_for_today_button)).check(matches(isDisplayed()));
+
+        // Рестарт
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
+
+        // Кнопка всё ещё должна быть на экране
+        onView(withId(R.id.return_for_today_button)).check(matches(isDisplayed()));
+    }
+
+    @Test
+    public void mainScreenSelectedDate_afterRestart_withSessionChange() {
+        SessionTestingHelper.testSessionWith(mActivityRule, timeProvider, currentActivityProvider)
+                .withFirstSession(() -> {
+                    mActivityRule.launchActivity(null);
+                    onView(withId(R.id.menu_item_history)).perform(click());
+
+                    // проверяем, что на сегодняшней дате кнопки "Сегодня" нет
+                    onView(withId(R.id.return_for_today_button)).check(matches(not(isDisplayed())));
+
+                    // открываем другую дату и проверяем, что кнопка появилась
+                    DateTime anotherDate = timeProvider.now().minusDays(10);
+                    onView(withId(R.id.calendar_button)).perform(click());
+                    onView(withClassName(equalTo(DatePicker.class.getName())))
+                            .perform(PickerActions.setDate(
+                                    anotherDate.getYear(), anotherDate.getMonthOfYear(), anotherDate.getDayOfMonth()));
+                    onView(withId(android.R.id.button1)).perform(click());
+                    onView(withId(R.id.return_for_today_button)).check(matches(isDisplayed()));
+                })
+                .withSecondSession(() -> {
+                    // Кнопка должна пропасть с экрана, т.к. новая сессия
+                    onView(withId(R.id.return_for_today_button)).check(matches(not(isDisplayed())));
+                })
+                .performActivityRestart();
+    }
+
+    @Test
+    public void mainScreenSelectedDate_afterStopAndStart_withSessionChange() {
+        SessionTestingHelper.testSessionWith(mActivityRule, timeProvider, currentActivityProvider)
+                .withFirstSession(() -> {
+                    mActivityRule.launchActivity(null);
+                    onView(withId(R.id.menu_item_history)).perform(click());
+
+                    // проверяем, что на сегодняшней дате кнопки "Сегодня" нет
+                    onView(withId(R.id.return_for_today_button)).check(matches(not(isDisplayed())));
+
+                    // открываем другую дату и проверяем, что кнопка появилась
+                    DateTime anotherDate = timeProvider.now().minusDays(10);
+                    onView(withId(R.id.calendar_button)).perform(click());
+                    onView(withClassName(equalTo(DatePicker.class.getName())))
+                            .perform(PickerActions.setDate(
+                                    anotherDate.getYear(), anotherDate.getMonthOfYear(), anotherDate.getDayOfMonth()));
+                    onView(withId(android.R.id.button1)).perform(click());
+                    onView(withId(R.id.return_for_today_button)).check(matches(isDisplayed()));
+                })
+                .withSecondSession(() -> {
+                    // Кнопка должна пропасть с экрана, т.к. новая сессия
+                    onView(withId(R.id.return_for_today_button)).check(matches(not(isDisplayed())));
+                })
+                .performActivityStopAndStart();
     }
 
     private void addFoodstuffsToday() {

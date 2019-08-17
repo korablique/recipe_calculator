@@ -16,16 +16,20 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import korablique.recipecalculator.base.Callback;
+import korablique.recipecalculator.base.CurrentActivityProvider;
 import korablique.recipecalculator.dagger.Injector;
 import korablique.recipecalculator.dagger.InjectorHolder;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.FoodstuffsTopList;
 import korablique.recipecalculator.model.Nutrition;
+import korablique.recipecalculator.util.TestingInjector;
 
 import static androidx.test.espresso.intent.Intents.intended;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasAction;
@@ -40,6 +44,7 @@ import static org.mockito.Mockito.mock;
 @LargeTest
 public class MainScreenLoaderTest {
     private Context context;
+    private TestingInjector injector;
 
     @Mock
     private FoodstuffsList foodstuffsList;
@@ -51,13 +56,17 @@ public class MainScreenLoaderTest {
     @Before
     public void setUp() {
         context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        injector = new TestingInjector(
+                () -> Collections.singletonList(new CurrentActivityProvider()),
+                (activity) -> Collections.singletonList(mock(MainActivityController.class)),
+                null);
 
         // Init all @Mocks
         MockitoAnnotations.initMocks(this);
         // Init the library which checks intents
         Intents.init();
-        // Provide a mock injector (we don't care about real injectable objects in this test)
-        InjectorHolder.setInjector(mock(Injector.class));
+        // Provide an injector which is capable of giving basic dependencies
+        InjectorHolder.setInjector(injector);
         // Create an instance of the tested class.
         mainScreenLoader = new MainScreenLoader(
                 InstrumentationRegistry.getInstrumentation().getTargetContext(),

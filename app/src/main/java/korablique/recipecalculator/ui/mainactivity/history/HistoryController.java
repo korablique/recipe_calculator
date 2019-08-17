@@ -156,9 +156,6 @@ public class HistoryController extends FragmentCallbacks.Observer {
 
         initHistoryList(fragmentView);
         initCard();
-        if (!mainActivitySelectedDateStorage.hasSelectedDate()) {
-            mainActivitySelectedDateStorage.setSelectedDate(timeProvider.now().toLocalDate());
-        }
         switchToDate(mainActivitySelectedDateStorage.getSelectedDate(), fragmentView);
         initCalendarButton(fragmentView);
 
@@ -208,14 +205,9 @@ public class HistoryController extends FragmentCallbacks.Observer {
     private void initCalendarButton(View fragmentView) {
         View calendarButton = fragmentView.findViewById(R.id.calendar_button);
         calendarButton.setOnClickListener(v -> {
-            DatePickerFragment datePickerFragment;
-            if (mainActivitySelectedDateStorage.hasSelectedDate()) {
-                datePickerFragment = DatePickerFragment.showDialog(
-                        context.getSupportFragmentManager(),
-                        mainActivitySelectedDateStorage.getSelectedDate());
-            } else {
-                datePickerFragment = DatePickerFragment.showDialog(context.getSupportFragmentManager());
-            }
+            DatePickerFragment datePickerFragment = DatePickerFragment.showDialog(
+                    context.getSupportFragmentManager(),
+                    mainActivitySelectedDateStorage.getSelectedDate());
             datePickerFragment.setOnDateSetListener(dateSetListener);
         });
     }

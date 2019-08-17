@@ -2,10 +2,13 @@ package korablique.recipecalculator.util;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -102,7 +105,13 @@ public class TestingInjector implements Injector {
     }
 
     private <T> void injectImpl(T target, List<Object> injectedObjects) {
-        for (Field field : target.getClass().getDeclaredFields()) {
+        Set<Field> allFields = new HashSet<>();
+        Class c = target.getClass();
+        while (c != null) {
+            allFields.addAll(Arrays.asList(c.getDeclaredFields()));
+            c = c.getSuperclass();
+        }
+        for (Field field : allFields) {
             if (field.getType() != DispatchingAndroidInjector.class && field.isAnnotationPresent(Inject.class)) {
                 injectInto(target, field, injectedObjects);
             }

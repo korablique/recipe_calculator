@@ -23,15 +23,19 @@ import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.mainactivity.history.HistoryFragment;
 import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenFragment;
 import korablique.recipecalculator.ui.mainactivity.profile.ProfileFragment;
+import korablique.recipecalculator.session.SessionClient;
+import korablique.recipecalculator.session.SessionController;
 
 /**
  * Controls main-activity fragments initialization and switching between them.
  */
 @ActivityScope
-public class MainActivityFragmentsController implements ActivityCallbacks.Observer {
+public class MainActivityFragmentsController implements
+        ActivityCallbacks.Observer, SessionController.Observer {
     private static final String BOTTOM_NAVIGATION_VIEW_SELECTED_ITEM_ID = "BOTTOM_NAVIGATION_VIEW_SELECTED_ITEM_ID";
     private static final String EXTRA_MAIN_SCREEN_ARGUMENTS = "EXTRA_MAIN_SCREEN_ARGUMENTS";
     private final MainActivity mainActivity;
+    private final SessionController sessionController;
     private final List<Observer> observers = new ArrayList<>();
 
     private BottomNavigationView bottomNavigationView;
@@ -48,9 +52,12 @@ public class MainActivityFragmentsController implements ActivityCallbacks.Observ
     @Inject
     public MainActivityFragmentsController(
             MainActivity mainActivity,
+            SessionController sessionController,
             ActivityCallbacks activityCallbacks) {
         this.mainActivity = mainActivity;
+        this.sessionController = sessionController;
         activityCallbacks.addObserver(this);
+        sessionController.addObserver(this);
     }
 
     public void addObserver(Observer observer) {
@@ -110,6 +117,14 @@ public class MainActivityFragmentsController implements ActivityCallbacks.Observ
             }
             return true;
         });
+
+        if (savedInstanceState != null) {
+            bottomNavigationView.setSelectedItemId(savedInstanceState.getInt(BOTTOM_NAVIGATION_VIEW_SELECTED_ITEM_ID));
+        }
+
+        if (sessionController.shouldStartNewSessionFor(SessionClient.MAIN_ACTIVITY_FRAGMENT)) {
+            onNewSession();
+        }
     }
 
     private void switchToFragment(Fragment newShownFragment) {
@@ -127,11 +142,6 @@ public class MainActivityFragmentsController implements ActivityCallbacks.Observ
     @Override
     public void onActivitySaveInstanceState(Bundle outState) {
         outState.putInt(BOTTOM_NAVIGATION_VIEW_SELECTED_ITEM_ID, bottomNavigationView.getSelectedItemId());
-    }
-
-    @Override
-    public void onActivityRestoreInstanceState(Bundle savedInstanceState) {
-        bottomNavigationView.setSelectedItemId(savedInstanceState.getInt(BOTTOM_NAVIGATION_VIEW_SELECTED_ITEM_ID));
     }
 
     @Override
@@ -157,5 +167,17 @@ public class MainActivityFragmentsController implements ActivityCallbacks.Observ
     public void addFoodstuffsToHistory(LocalDate selectedDate, List<WeightedFoodstuff> foodstuffs) {
         bottomNavigationView.setSelectedItemId(R.id.menu_item_history);
         historyFragment.addFoodstuffs(selectedDate, foodstuffs);
+    }
+
+    @Override
+    public void onNewSession() {
+        // В начале новой сессии меняем активный фрагмент на MainScreen
+        bottomNavigationView.setSelectedItemId(R.id.menu_item_foodstuffs);
+        sessionController.onClientStartedNewSession(SessionClient.MAIN_ACTIVITY_FRAGMENT);
+    }
+
+    @Override
+    public void onActivityDestroy() {
+        sessionController.removeObserver(this);
     }
 }

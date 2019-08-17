@@ -23,6 +23,7 @@ import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.BaseFragment;
+import korablique.recipecalculator.base.CurrentActivityProvider;
 import korablique.recipecalculator.base.FragmentCallbacks;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.base.RxFragmentSubscriptions;
@@ -79,6 +80,7 @@ public class BucketListActivityTest {
     private UserNameProvider userNameProvider;
     private HistoryController historyController;
     private TimeProvider timeProvider;
+    private CurrentActivityProvider currentActivityProvider;
 
     @Rule
     public ActivityTestRule<BucketListActivity> activityRule =
@@ -99,9 +101,10 @@ public class BucketListActivityTest {
                                 new InstantComputationsThreadsExecutor());
                         userNameProvider = new UserNameProvider(context);
                         timeProvider = new TestingTimeProvider();
+                        currentActivityProvider = new CurrentActivityProvider();
                         return Arrays.asList(mainThreadExecutor, databaseThreadExecutor, databaseWorker,
                                 historyWorker, userParametersWorker, foodstuffsList, userNameProvider,
-                                timeProvider);
+                                timeProvider, currentActivityProvider);
                     })
                     .withActivityScoped((target) -> {
                         if (target instanceof BucketListActivity) {
