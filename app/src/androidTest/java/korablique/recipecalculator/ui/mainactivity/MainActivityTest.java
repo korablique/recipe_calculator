@@ -9,13 +9,11 @@ import android.view.View;
 import android.widget.DatePicker;
 import android.widget.ProgressBar;
 
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
 import androidx.test.espresso.Espresso;
 import androidx.test.espresso.action.ViewActions;
 import androidx.test.espresso.contrib.PickerActions;
-import androidx.test.espresso.contrib.RecyclerViewActions;
 import androidx.test.espresso.matcher.BoundedMatcher;
 import androidx.test.filters.LargeTest;
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -50,7 +48,6 @@ import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.base.CurrentActivityProvider;
 import korablique.recipecalculator.base.FragmentCallbacks;
 import korablique.recipecalculator.base.RxFragmentSubscriptions;
-import korablique.recipecalculator.base.TimeProvider;
 import korablique.recipecalculator.base.executors.ComputationThreadsExecutor;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.database.DatabaseThreadExecutor;
@@ -1154,7 +1151,7 @@ public class MainActivityTest {
     }
 
     @Test
-    public void activeFragment_afterRestart_WithoutSessionChange() {
+    public void checkActiveFragment_afterRestart_WithoutSessionChange() {
         mActivityRule.launchActivity(null);
         // профиль
         onView(withId(R.id.menu_item_profile)).perform(click());
@@ -1169,7 +1166,7 @@ public class MainActivityTest {
     }
 
     @Test
-    public void activeFragment_afterRestart_WithSessionChange() {
+    public void checkActiveFragment_afterRestart_WithSessionChange() {
         SessionTestingHelper.testSessionWith(mActivityRule, timeProvider, currentActivityProvider)
                 .withFirstSession(() -> {
                     mActivityRule.launchActivity(null);
@@ -1182,11 +1179,11 @@ public class MainActivityTest {
                     onView(withId(R.id.fragment_profile)).check(matches(not(isDisplayed())));
                     onView(withId(R.id.fragment_main_screen)).check(matches(isDisplayed()));
                 })
-                .performActivityRestart();
+                .performActivityRecreation();
     }
 
     @Test
-    public void activeFragment_afterStopAndStart_WithSessionChange() {
+    public void checkActiveFragment_afterStopAndStart_WithSessionChange() {
         SessionTestingHelper.testSessionWith(mActivityRule, timeProvider, currentActivityProvider)
                 .withFirstSession(() -> {
                     mActivityRule.launchActivity(null);
@@ -1203,7 +1200,7 @@ public class MainActivityTest {
     }
 
     @Test
-    public void mainScreenSelectedDate_afterRestart_withoutSessionChange() {
+    public void checkMainScreenSelectedDate_afterRestart_withoutSessionChange() {
         mActivityRule.launchActivity(null);
         onView(withId(R.id.menu_item_history)).perform(click());
 
@@ -1228,7 +1225,7 @@ public class MainActivityTest {
     }
 
     @Test
-    public void mainScreenSelectedDate_afterRestart_withSessionChange() {
+    public void checkMainScreenSelectedDate_afterRestart_withSessionChange() {
         SessionTestingHelper.testSessionWith(mActivityRule, timeProvider, currentActivityProvider)
                 .withFirstSession(() -> {
                     mActivityRule.launchActivity(null);
@@ -1250,11 +1247,11 @@ public class MainActivityTest {
                     // Кнопка должна пропасть с экрана, т.к. новая сессия
                     onView(withId(R.id.return_for_today_button)).check(matches(not(isDisplayed())));
                 })
-                .performActivityRestart();
+                .performActivityRecreation();
     }
 
     @Test
-    public void mainScreenSelectedDate_afterStopAndStart_withSessionChange() {
+    public void checkMainScreenSelectedDate_afterStopAndStart_withSessionChange() {
         SessionTestingHelper.testSessionWith(mActivityRule, timeProvider, currentActivityProvider)
                 .withFirstSession(() -> {
                     mActivityRule.launchActivity(null);

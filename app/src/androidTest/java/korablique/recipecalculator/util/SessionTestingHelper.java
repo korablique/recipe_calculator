@@ -47,7 +47,7 @@ public class SessionTestingHelper {
         return this;
     }
 
-    public void performActivityRestart() {
+    public void performActivityRecreation() {
         firstSessionRunnable.run();
 
         // Настройка отдачи времени конца первой сессии
@@ -57,11 +57,14 @@ public class SessionTestingHelper {
         // Настройка отдачи времени начала второй сессии
         DateTime secondSessionStartTime = firstSessionEndTime.plus(SessionController.MAX_SESSION_LENGTH + 1);
         timeProvider.setTimeSource(() -> {
-            if (currentActivityProvider.getCurrentActivity() != null
-                    && currentActivityProvider.getCurrentActivity() != oldActivity) {
+            boolean isOldActivityGone =
+                    currentActivityProvider.getCurrentActivity() != null
+                        && currentActivityProvider.getCurrentActivity() != oldActivity;
+            if (isOldActivityGone) {
                 return secondSessionStartTime;
+            } else {
+                return firstSessionEndTime;
             }
-            return firstSessionEndTime;
         });
 
         // Рестарт активити

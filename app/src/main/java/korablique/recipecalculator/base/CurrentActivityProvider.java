@@ -1,5 +1,7 @@
 package korablique.recipecalculator.base;
 
+import android.os.Bundle;
+
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
@@ -40,6 +42,10 @@ public class CurrentActivityProvider {
         observers.add(observer);
     }
 
+    /**
+     * Called from {@link BaseActivity#onCreate(Bundle)} so that we would start observing the new
+     * activity.
+     */
     void watchNewActivity(BaseActivity activity) {
         ActivityWatcher activityWatcher = new ActivityWatcher(activity);
         activity.getActivityCallbacks().addObserver(activityWatcher);
@@ -71,6 +77,11 @@ public class CurrentActivityProvider {
         return currentActivity;
     }
 
+    /**
+     * Observes concrete a instance of BaseActivity (methods of ActivityCallbacks.Observer
+     * don't provide reference to the activity which caused an event, so we must have a separate
+     * observer of each activity with a reference to observed object).
+     */
     private class ActivityWatcher implements ActivityCallbacks.Observer {
         BaseActivity activity;
         ActivityWatcher(BaseActivity activity) {
