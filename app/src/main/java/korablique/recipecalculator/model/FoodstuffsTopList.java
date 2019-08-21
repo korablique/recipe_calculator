@@ -13,13 +13,32 @@ import korablique.recipecalculator.database.HistoryWorker;
 @Singleton
 public class FoodstuffsTopList {
     private static final int TOP_LIMIT = 5;
-    private DatabaseWorker databaseWorker;
-    private HistoryWorker historyWorker;
+    private final HistoryWorker historyWorker;
+    private final List<Observer> observers = new ArrayList<>();
+
+    public interface Observer {
+        void onFoodstuffsTopPossiblyChanged();
+    }
 
     @Inject
-    public FoodstuffsTopList(DatabaseWorker databaseWorker, HistoryWorker historyWorker) {
-        this.databaseWorker = databaseWorker;
+    public FoodstuffsTopList(HistoryWorker historyWorker) {
         this.historyWorker = historyWorker;
+        historyWorker.addObserver(new HistoryWorker.Observer() {
+            @Override
+            public void onHistoryChange() {
+                for (Observer observer : observers) {
+                    observer.onFoodstuffsTopPossiblyChanged();
+                }
+            }
+        });
+    }
+
+    public void addObserver(Observer observer) {
+        observers.add(observer);
+    }
+
+    public void removeObserver(Observer observer) {
+        observers.remove(observer);
     }
 
     public void getTopList(Callback<List<Foodstuff>> resultCallback) {

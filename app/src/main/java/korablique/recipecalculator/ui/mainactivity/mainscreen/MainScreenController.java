@@ -66,7 +66,6 @@ public class MainScreenController
     private final FoodstuffsList foodstuffsList;
     private final FoodstuffsTopList topList;
     private final MainActivitySelectedDateStorage selectedDateStorage;
-    private final HistoryWorker historyWorker;
     private SectionedAdapterParent adapterParent;
     private FoodstuffsAdapterChild topAdapterChild;
     private SectionedFoodstuffsAdapterChild foodstuffAdapterChild;
@@ -105,6 +104,17 @@ public class MainScreenController
             snackbar.update(BucketList.getInstance().getList());
         }
     };
+    private FoodstuffsTopList.Observer topListObserver = new FoodstuffsTopList.Observer() {
+        @Override
+        public void onFoodstuffsTopPossiblyChanged() {
+            topList.getTopList(foodstuffs -> {
+                if (topAdapterChild != null) {
+                    topAdapterChild.clear();
+                }
+                fillTop(foodstuffs);
+            });
+        }
+    };
     private boolean isTopFilledFromArguments;
     private boolean isAllFoodstuffsListFilledFromArguments;
 
@@ -117,8 +127,7 @@ public class MainScreenController
             Lifecycle lifecycle,
             FoodstuffsTopList topList,
             FoodstuffsList foodstuffsList,
-            MainActivitySelectedDateStorage selectedDateStorage,
-            HistoryWorker historyWorker) {
+            MainActivitySelectedDateStorage selectedDateStorage) {
         this.context = context;
         this.fragment = fragment;
         this.activityCallbacks = activityCallbacks;
@@ -126,7 +135,6 @@ public class MainScreenController
         this.topList = topList;
         this.foodstuffsList = foodstuffsList;
         this.selectedDateStorage = selectedDateStorage;
-        this.historyWorker = historyWorker;
         fragmentCallbacks.addObserver(this);
         activityCallbacks.addObserver(this);
     }
@@ -231,18 +239,7 @@ public class MainScreenController
                 configureSearch();
             });
         });
-
-        historyWorker.addObserver(new HistoryWorker.Observer() {
-            @Override
-            public void onHistoryChange() {
-                topList.getTopList(foodstuffs -> {
-                    if (topAdapterChild != null) {
-                        topAdapterChild.clear();
-                    }
-                    fillTop(foodstuffs);
-                });
-            }
-        });
+        topList.addObserver(topListObserver);
     }
 
     private void fillListsFromArguments() {
@@ -265,6 +262,7 @@ public class MainScreenController
     public void onFragmentDestroy() {
         BucketList bucketList = BucketList.getInstance();
         bucketList.removeObserver(bucketListObserver);
+        topList.removeObserver(topListObserver);
 
         activityCallbacks.removeObserver(this);
     }

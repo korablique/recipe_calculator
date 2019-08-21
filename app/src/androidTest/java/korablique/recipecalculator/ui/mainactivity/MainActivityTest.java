@@ -165,7 +165,7 @@ public class MainActivityTest {
                             databaseHolder, mainThreadExecutor, databaseThreadExecutor);
                     foodstuffsList = new FoodstuffsList(
                             databaseWorker, mainThreadExecutor, computationThreadsExecutor);
-                    topList = new FoodstuffsTopList(databaseWorker, historyWorker);
+                    topList = new FoodstuffsTopList(historyWorker);
                     userNameProvider = new UserNameProvider(context);
                     timeProvider = new TestingTimeProvider();
                     currentActivityProvider = new CurrentActivityProvider();
@@ -202,8 +202,7 @@ public class MainActivityTest {
                         MainScreenController mainScreenController = new MainScreenController(
                                 activity, fragment, fragmentCallbacks,
                                 activity.getActivityCallbacks(), lifecycle, topList,
-                                foodstuffsList, mainActivitySelectedDateStorage,
-                                historyWorker);
+                                foodstuffsList, mainActivitySelectedDateStorage);
                         UpFABController upFABController = new UpFABController(fragmentCallbacks);
                         return Arrays.asList(subscriptions, mainScreenController, upFABController);
 

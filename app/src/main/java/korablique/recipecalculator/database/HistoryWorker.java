@@ -67,7 +67,7 @@ public class HistoryWorker {
         observers.remove(observer);
     }
 
-    private void notifyObserversAbountHistoryChange() {
+    private void notifyObserversAboutHistoryChange() {
         mainThreadExecutor.execute(() -> {
             for (Observer observer : observers) {
                 observer.onHistoryChange();
@@ -209,7 +209,7 @@ public class HistoryWorker {
                 mainThreadExecutor.execute(() -> callback.onResult(historyEntitiesIds));
             }
             updateCache();
-            notifyObserversAbountHistoryChange();
+            notifyObserversAboutHistoryChange();
         });
     }
 
@@ -219,7 +219,7 @@ public class HistoryWorker {
             HistoryDao historyDao = database.historyDao();
             historyDao.deleteHistoryEntity(historyEntry.getHistoryId());
             updateCache();
-            notifyObserversAbountHistoryChange();
+            notifyObserversAboutHistoryChange();
         });
     }
 
@@ -239,7 +239,7 @@ public class HistoryWorker {
                 mainThreadExecutor.execute(callback);
             }
             updateCache();
-            notifyObserversAbountHistoryChange();
+            notifyObserversAboutHistoryChange();
         });
     }
 
@@ -261,7 +261,7 @@ public class HistoryWorker {
                 mainThreadExecutor.execute(callback);
             }
             updateCache();
-            notifyObserversAbountHistoryChange();
+            notifyObserversAboutHistoryChange();
         });
     }
 
