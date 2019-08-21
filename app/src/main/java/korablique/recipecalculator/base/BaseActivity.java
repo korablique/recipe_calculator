@@ -5,17 +5,28 @@ import android.os.Bundle;
 import android.view.MenuItem;
 
 import androidx.annotation.LayoutRes;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+
+import javax.inject.Inject;
+
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.dagger.InjectorHolder;
 
 public abstract class BaseActivity extends AppCompatActivity {
     private final ActivityCallbacks activityCallbacks = new ActivityCallbacks();
+    @Nullable
+    private Bundle savedInstanceState;
+
+    @Inject
+    CurrentActivityProvider currentActivityProvider;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        this.savedInstanceState = savedInstanceState;
         InjectorHolder.getInjector().inject(this);
+        currentActivityProvider.watchNewActivity(this);
         super.onCreate(savedInstanceState);
         Integer layoutId = getLayoutId();
         if (layoutId != null) {
@@ -45,6 +56,12 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        activityCallbacks.dispatchActivityStart();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         activityCallbacks.dispatchActivityResume();
@@ -54,6 +71,12 @@ public abstract class BaseActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         activityCallbacks.dispatchActivityPause();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        activityCallbacks.dispatchActivityStop();
     }
 
     @Override
@@ -90,5 +113,10 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     public ActivityCallbacks getActivityCallbacks() {
         return activityCallbacks;
+    }
+
+    @Nullable
+    public Bundle getSavedInstanceState() {
+        return savedInstanceState;
     }
 }
