@@ -29,6 +29,7 @@ import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.base.FragmentCallbacks;
 import korablique.recipecalculator.dagger.FragmentScope;
 import korablique.recipecalculator.database.FoodstuffsList;
+import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.FoodstuffsTopList;
 import korablique.recipecalculator.model.WeightedFoodstuff;
@@ -101,6 +102,17 @@ public class MainScreenController
         }
         public void onFoodstuffRemoved(WeightedFoodstuff weightedFoodstuff) {
             snackbar.update(BucketList.getInstance().getList());
+        }
+    };
+    private FoodstuffsTopList.Observer topListObserver = new FoodstuffsTopList.Observer() {
+        @Override
+        public void onFoodstuffsTopPossiblyChanged() {
+            topList.getTopList(foodstuffs -> {
+                if (topAdapterChild != null) {
+                    topAdapterChild.clear();
+                }
+                fillTop(foodstuffs);
+            });
         }
     };
     private boolean isTopFilledFromArguments;
@@ -227,6 +239,7 @@ public class MainScreenController
                 configureSearch();
             });
         });
+        topList.addObserver(topListObserver);
     }
 
     private void fillListsFromArguments() {
@@ -249,6 +262,7 @@ public class MainScreenController
     public void onFragmentDestroy() {
         BucketList bucketList = BucketList.getInstance();
         bucketList.removeObserver(bucketListObserver);
+        topList.removeObserver(topListObserver);
 
         activityCallbacks.removeObserver(this);
     }
@@ -275,8 +289,8 @@ public class MainScreenController
             if (topAdapterChild == null) {
                 topAdapterChild = new FoodstuffsAdapterChild(context, (foodstuff, pos) -> showCard(foodstuff));
                 SingleItemAdapterChild topTitle = new SingleItemAdapterChild(R.layout.top_foodstuffs_header);
-                adapterParent.addChild(topTitle);
-                adapterParent.addChild(topAdapterChild);
+                adapterParent.addChildToPosition(topTitle, 0);
+                adapterParent.addChildToPosition(topAdapterChild, 1);
             }
             topAdapterChild.addItems(foodstuffs);
         }

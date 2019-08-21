@@ -41,19 +41,12 @@ public class HistoryWorker {
     private DatabaseHolder databaseHolder;
     private DatabaseThreadExecutor databaseThreadExecutor;
     private MainThreadExecutor mainThreadExecutor;
+    private List<Observer> observers = new ArrayList<>();
 
     private List<HistoryEntry> cachedFirstBatch = new ArrayList<>();
 
-    public interface RequestHistoryCallback {
-        void onResult(List<HistoryEntry> historyEntries);
-    }
-
-    public interface AddHistoryEntriesCallback {
-        void onResult(List<Long> historyEntriesIds);
-    }
-
-    public interface RequestFoodstuffsIdsFromHistoryCallback {
-        void onResult(List<Long> ids);
+    public interface Observer {
+        void onHistoryChange();
     }
 
     @Inject
@@ -64,6 +57,22 @@ public class HistoryWorker {
         this.databaseHolder = databaseHolder;
         this.mainThreadExecutor = mainThreadExecutor;
         this.databaseThreadExecutor = databaseThreadExecutor;
+    }
+
+    public void addObserver(Observer observer) {
+        observers.add(observer);
+    }
+
+    public void removeObserver(Observer observer) {
+        observers.remove(observer);
+    }
+
+    private void notifyObserversAboutHistoryChange() {
+        mainThreadExecutor.execute(() -> {
+            for (Observer observer : observers) {
+                observer.onHistoryChange();
+            }
+        });
     }
 
     public void initCache() {
@@ -82,13 +91,13 @@ public class HistoryWorker {
     }
 
     public void requestAllHistoryFromDb(
-            @NonNull final RequestHistoryCallback callback) {
+            @NonNull final Callback<List<HistoryEntry>> callback) {
         requestHistoryPartFromDb(NO_LIMIT, callback);
     }
 
     private void requestHistoryPartFromDb(
             final int limit,
-            @NonNull final RequestHistoryCallback callback) {
+            @NonNull final Callback<List<HistoryEntry>> callback) {
         databaseThreadExecutor.execute(() -> {
             requestHistoryFromDbImpl(limit, historyEntries -> {
                 List<HistoryEntry> historyEntriesCopy = new ArrayList<>(historyEntries);
@@ -106,7 +115,7 @@ public class HistoryWorker {
      */
     private void requestHistoryFromDbImpl(
             final int limit,
-            @NonNull final RequestHistoryCallback historyBatchesCallback) {
+            @NonNull final Callback<List<HistoryEntry>> historyBatchesCallback) {
         boolean cacheWasUsed = false;
         if (!cachedFirstBatch.isEmpty()) {
             historyBatchesCallback.onResult(cachedFirstBatch);
@@ -175,7 +184,7 @@ public class HistoryWorker {
             final Date date,
             final long foodstuffId,
             final double foodstuffWeight,
-            final AddHistoryEntriesCallback callback) {
+            final Callback<List<Long>> callback) {
         NewHistoryEntry[] array = new NewHistoryEntry[]{new NewHistoryEntry(foodstuffId, foodstuffWeight, date)};
         saveGroupOfFoodstuffsToHistory(array, callback);
     }
@@ -186,7 +195,7 @@ public class HistoryWorker {
 
     public void saveGroupOfFoodstuffsToHistory(
             final NewHistoryEntry[] newEntries,
-            final AddHistoryEntriesCallback callback) {
+            final Callback<List<Long>> callback) {
         databaseThreadExecutor.execute(() -> {
             AppDatabase database = databaseHolder.getDatabase();
             HistoryDao historyDao = database.historyDao();
@@ -200,6 +209,7 @@ public class HistoryWorker {
                 mainThreadExecutor.execute(() -> callback.onResult(historyEntitiesIds));
             }
             updateCache();
+            notifyObserversAboutHistoryChange();
         });
     }
 
@@ -209,6 +219,7 @@ public class HistoryWorker {
             HistoryDao historyDao = database.historyDao();
             historyDao.deleteHistoryEntity(historyEntry.getHistoryId());
             updateCache();
+            notifyObserversAboutHistoryChange();
         });
     }
 
@@ -228,6 +239,7 @@ public class HistoryWorker {
                 mainThreadExecutor.execute(callback);
             }
             updateCache();
+            notifyObserversAboutHistoryChange();
         });
     }
 
@@ -249,13 +261,14 @@ public class HistoryWorker {
                 mainThreadExecutor.execute(callback);
             }
             updateCache();
+            notifyObserversAboutHistoryChange();
         });
     }
 
     public void requestFoodstuffsIdsFromHistoryForPeriod(
             final long from,
             final long to,
-            @NonNull final RequestFoodstuffsIdsFromHistoryCallback callback) {
+            @NonNull final Callback<List<Long>> callback) {
         databaseThreadExecutor.execute(() -> {
             AppDatabase database = databaseHolder.getDatabase();
             HistoryDao historyDao = database.historyDao();
