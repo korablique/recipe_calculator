@@ -30,7 +30,7 @@ public class SplashScreenActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         rxSubscriptions.subscribe(userParametersWorker.requestCurrentUserParameters(), (params) -> {
             if (params.isPresent()) {
-                rxSubscriptions.subscribe(mainScreenLoader.loadMainScreenActivity());
+                rxSubscriptions.subscribe(mainScreenLoader.loadMainScreenActivity(this));
             } else {
                 UserParametersActivity.start(this);
             }

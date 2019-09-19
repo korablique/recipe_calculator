@@ -6,29 +6,31 @@ import android.content.Intent;
 import androidx.test.espresso.intent.Intents;
 import androidx.test.filters.LargeTest;
 import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.rule.ActivityTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import korablique.recipecalculator.base.Callback;
 import korablique.recipecalculator.base.CurrentActivityProvider;
-import korablique.recipecalculator.dagger.Injector;
 import korablique.recipecalculator.dagger.InjectorHolder;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.FoodstuffsTopList;
 import korablique.recipecalculator.model.Nutrition;
+import korablique.recipecalculator.test.FakeTestActivity;
+import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.TestingInjector;
 
 import static androidx.test.espresso.intent.Intents.intended;
@@ -45,6 +47,10 @@ import static org.mockito.Mockito.mock;
 public class MainScreenLoaderTest {
     private Context context;
     private TestingInjector injector;
+
+    @Rule
+    public ActivityTestRule<FakeTestActivity> fakeActivityTestRule =
+            new ActivityTestRule<>(FakeTestActivity.class, false, false /* launch activity */);
 
     @Mock
     private FoodstuffsList foodstuffsList;
@@ -72,6 +78,8 @@ public class MainScreenLoaderTest {
                 InstrumentationRegistry.getInstrumentation().getTargetContext(),
                 foodstuffsList,
                 foodstuffsTopList);
+
+        fakeActivityTestRule.launchActivity(null);
     }
 
     @After
@@ -134,7 +142,7 @@ public class MainScreenLoaderTest {
 
         // Load main screen activity and verify that a start intent was sent
         // (with expected bundle inside).
-        mainScreenLoader.loadMainScreenActivity().subscribe();
+        mainScreenLoader.loadMainScreenActivity(fakeActivityTestRule.getActivity()).subscribe();
         intended(allOf(
                 hasAction(expectedIntent.getAction()),
                 hasExtras(hasValueRecursive(expectedIntent.getExtras()))));
