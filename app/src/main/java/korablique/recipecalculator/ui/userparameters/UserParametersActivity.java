@@ -109,7 +109,7 @@ public class UserParametersActivity extends BaseActivity {
                         // Закажем загрузку MainActivity и подпишемся на окончание загрузки,
                         // при окончании загрузки завершим себя (finish()).
                         subscriptions.subscribe(
-                                mainScreenLoader.loadMainScreenActivity(),
+                                mainScreenLoader.loadMainScreenActivity(UserParametersActivity.this),
                                 UserParametersActivity.this::finish);
                     } else {
                         finish();

@@ -1,5 +1,6 @@
 package korablique.recipecalculator.ui.mainactivity;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -73,8 +74,8 @@ public class MainActivityController implements ActivityCallbacks.Observer {
     }
 
     public static void openMainScreen(
-            Context context, ArrayList<Foodstuff> top, ArrayList<Foodstuff> allFoodstuffsFirstBatch) {
-        context.startActivity(createMainScreenIntent(context, top, allFoodstuffsFirstBatch));
+            Activity parent, ArrayList<Foodstuff> top, ArrayList<Foodstuff> allFoodstuffsFirstBatch) {
+        parent.startActivity(createMainScreenIntent(parent, top, allFoodstuffsFirstBatch));
     }
 
     public static Intent createMainScreenIntent(

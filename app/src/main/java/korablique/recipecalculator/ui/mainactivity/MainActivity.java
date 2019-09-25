@@ -1,5 +1,6 @@
 package korablique.recipecalculator.ui.mainactivity;
 
+import android.app.Activity;
 import android.content.Context;
 
 import androidx.fragment.app.Fragment;
@@ -36,8 +37,8 @@ public class MainActivity extends BaseActivity implements HasSupportFragmentInje
     }
 
     public static void openMainScreen(
-            Context context, ArrayList<Foodstuff> top, ArrayList<Foodstuff> allFoodstuffsFirstBatch) {
-        MainActivityController.openMainScreen(context, top, allFoodstuffsFirstBatch);
+            Activity parent, ArrayList<Foodstuff> top, ArrayList<Foodstuff> allFoodstuffsFirstBatch) {
+        MainActivityController.openMainScreen(parent, top, allFoodstuffsFirstBatch);
     }
 
     public static void openHistoryAndAddFoodstuffs(

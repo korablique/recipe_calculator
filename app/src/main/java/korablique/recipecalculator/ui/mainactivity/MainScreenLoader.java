@@ -1,5 +1,6 @@
 package korablique.recipecalculator.ui.mainactivity;
 
+import android.app.Activity;
 import android.content.Context;
 import android.util.Pair;
 
@@ -32,7 +33,7 @@ public class MainScreenLoader {
         this.topList = topList;
     }
 
-    public Completable loadMainScreenActivity() {
+    public Completable loadMainScreenActivity(Activity parent) {
         Single<List<Foodstuff>> topSingle = Single.create((emitter -> {
             topList.getTopList(emitter::onSuccess);
         }));
@@ -67,7 +68,7 @@ public class MainScreenLoader {
         return Single.zip(topSingle, allFoodstuffsFirstBatch, Pair::create)
                 .map((topAndFirstBatch) -> {
                     MainActivity.openMainScreen(
-                            context,
+                            parent,
                             new ArrayList<>(topAndFirstBatch.first),
                             new ArrayList<>(topAndFirstBatch.second));
                     return 1;
