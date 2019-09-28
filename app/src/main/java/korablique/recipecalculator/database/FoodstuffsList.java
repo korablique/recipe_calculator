@@ -24,7 +24,7 @@ public class FoodstuffsList {
         default void onFoodstuffDeleted(Foodstuff deleted) {}
     }
     public interface SaveFoodstuffCallback {
-        void onResult(long id);
+        void onResult(Foodstuff addedFoodstuff);
         void onDuplication();
     }
     public final static int BATCH_SIZE = 100;
@@ -101,7 +101,7 @@ public class FoodstuffsList {
                     Foodstuff foodstuffWithId = Foodstuff.withId(id).withName(foodstuff.getName()).withNutrition(
                             foodstuff.getProtein(), foodstuff.getFats(), foodstuff.getCarbs(), foodstuff.getCalories());
                     int index = addLexicographically(foodstuffWithId);
-                    callback.onResult(id);
+                    callback.onResult(foodstuffWithId);
                     for (Observer observer : observers) {
                         observer.onFoodstuffSaved(foodstuffWithId, index);
                     }

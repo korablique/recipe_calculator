@@ -29,6 +29,7 @@ import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.TimeProvider;
 import korablique.recipecalculator.database.FoodstuffsList;
+import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.NutritionValuesWrapper;
@@ -162,7 +163,7 @@ public class BucketListActivity extends BaseActivity {
         SaveDishDialog.OnSaveDishButtonClickListener saveDishButtonClickListener = (foodstuff) -> {
             foodstuffsList.saveFoodstuff(foodstuff, new FoodstuffsList.SaveFoodstuffCallback() {
                 @Override
-                public void onResult(long id) {
+                public void onResult(Foodstuff addedFoodstuff) {
                     SaveDishDialog dialog = SaveDishDialog.findDialog(BucketListActivity.this);
                     if (dialog != null) {
                         dialog.dismiss();

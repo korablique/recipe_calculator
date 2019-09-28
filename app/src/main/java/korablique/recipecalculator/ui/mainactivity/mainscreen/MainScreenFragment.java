@@ -17,10 +17,14 @@ import korablique.recipecalculator.model.Foodstuff;
 
 
 public class MainScreenFragment extends BaseFragment {
+    // The objects below are @Injected, because they need to be instantiated
+    // at the fragment creation (they need to receive Fragment's lifecycle events).
     @Inject
     MainScreenController controller;
     @Inject
     UpFABController upFABController;
+    @Inject
+    MainScreenCardController mainScreenCardController;
 
     public static Bundle createArguments(
             ArrayList<Foodstuff> top, ArrayList<Foodstuff> allFoodstuffsFirstBatch) {

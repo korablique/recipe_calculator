@@ -1,11 +1,7 @@
 package korablique.recipecalculator.ui.editfoodstuff;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -13,6 +9,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
 import com.arlib.floatingsearchview.util.adapter.TextWatcherAdapter;
 
@@ -27,13 +26,12 @@ import korablique.recipecalculator.ui.numbersediting.EditProgressText;
 import korablique.recipecalculator.ui.numbersediting.EditProgressTextCommonMaxController;
 import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
 
-import static korablique.recipecalculator.IntentConstants.EDIT_FOODSTUFF_REQUEST;
-import static korablique.recipecalculator.IntentConstants.EDIT_RESULT;
 import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
 import static korablique.recipecalculator.ui.card.Card.EDITED_FOODSTUFF;
 
 public class EditFoodstuffActivity extends BaseActivity {
-    public static final String EDIT_FOODSTUFF_ACTION = "korablique.recipecalculator.EDIT_FOODSTUFF_ACTION";
+    public static final String EDIT_FOODSTUFF_ACTION = "EDIT_FOODSTUFF_ACTION";
+    public static final String EXTRA_RESULT_FOODSTUFF = "EXTRA_RESULT_FOODSTUFF";
     @Inject
     FoodstuffsList foodstuffsList;
     private PluralProgressBar pluralProgressBar;
@@ -123,7 +121,7 @@ public class EditFoodstuffActivity extends BaseActivity {
             deleteButton.setVisibility(View.VISIBLE);
             deleteButton.setOnClickListener(v -> {
                 foodstuffsList.deleteFoodstuff(editingFoodstuff);
-                Intent intent = createEditingResultIntent(null);
+                Intent intent = createResultIntent(null);
                 setResult(RESULT_OK, intent);
                 finish();
             });
@@ -137,18 +135,19 @@ public class EditFoodstuffActivity extends BaseActivity {
                         Foodstuff.withId(id)
                                 .withName(editedFoodstuff.getName())
                                 .withNutrition(Nutrition.of100gramsOf(editedFoodstuff));
-                Intent intent = createEditingResultIntent(editedFoodstuffWithId);
-                setResult(RESULT_OK, intent);
+                setResult(RESULT_OK, createResultIntent(editedFoodstuffWithId));
                 finish();
             });
         } else {
             saveButton.setOnClickListener(v -> {
+                Foodstuff foodstuff = parseFoodstuff();
                 foodstuffsList.saveFoodstuff(
-                        parseFoodstuff(),
+                        foodstuff,
                         new FoodstuffsList.SaveFoodstuffCallback() {
                     @Override
-                    public void onResult(long id) {
+                    public void onResult(Foodstuff addedFoodstuff) {
                         Toast.makeText(EditFoodstuffActivity.this, R.string.saved, Toast.LENGTH_SHORT).show();
+                        setResult(RESULT_OK, createResultIntent(addedFoodstuff));
                         finish();
                     }
 
@@ -161,21 +160,26 @@ public class EditFoodstuffActivity extends BaseActivity {
         }
     }
 
-    public static void startForCreation(Context context) {
-        Intent intent = new Intent(context, EditFoodstuffActivity.class);
-        context.startActivity(intent);
+    public static void startForCreation(
+            Fragment fragment,
+            int requestCode) {
+        Intent intent = new Intent(fragment.getContext(), EditFoodstuffActivity.class);
+        fragment.startActivityForResult(intent, requestCode);
     }
 
-    public static void startForEditing(Fragment fragment, Foodstuff foodstuff) {
+    public static void startForEditing(
+            Fragment fragment,
+            Foodstuff foodstuff,
+            int requestCode) {
         Intent intent = new Intent(fragment.getContext(), EditFoodstuffActivity.class);
         intent.setAction(EDIT_FOODSTUFF_ACTION);
         intent.putExtra(EDITED_FOODSTUFF, foodstuff);
-        fragment.startActivityForResult(intent, EDIT_FOODSTUFF_REQUEST);
+        fragment.startActivityForResult(intent, requestCode);
     }
 
-    public static Intent createEditingResultIntent(@Nullable Foodstuff editedFoodstuff) {
+    private static Intent createResultIntent(@Nullable Foodstuff editedFoodstuff) {
         Intent intent = new Intent();
-        intent.putExtra(EDIT_RESULT, editedFoodstuff);
+        intent.putExtra(EXTRA_RESULT_FOODSTUFF, editedFoodstuff);
         return intent;
     }
 

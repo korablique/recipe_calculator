@@ -1,6 +1,8 @@
 package korablique.recipecalculator.ui.mainactivity.mainscreen;
 
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,6 +23,8 @@ import javax.inject.Inject;
 
 import io.reactivex.Single;
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.RequestCodes;
+import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.base.RxFragmentSubscriptions;
 import korablique.recipecalculator.database.DatabaseWorker;
@@ -31,7 +35,7 @@ import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
 import korablique.recipecalculator.ui.mainactivity.MainActivity;
 
-public class SearchResultsFragment extends BaseFragment {
+public class SearchResultsFragment extends BaseFragment implements ActivityCallbacks.Observer {
     public static final String SEARCH_RESULTS_FRAGMENT_TAG = "SEARCH_RESULTS_FRAGMENT_TAG";
     public static final String REQUEST = "REQUEST";
     @Inject
@@ -44,6 +48,20 @@ public class SearchResultsFragment extends BaseFragment {
     FoodstuffsList foodstuffsList;
     @Inject
     RxFragmentSubscriptions fragmentSubscriptions;
+    @Inject
+    MainScreenCardController cardController;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mainActivity.getActivityCallbacks().addObserver(this);
+    }
+
+    @Override
+    public void onDestroy() {
+        mainActivity.getActivityCallbacks().removeObserver(this);
+        super.onDestroy();
+    }
 
     @Override
     protected View createView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -74,7 +92,7 @@ public class SearchResultsFragment extends BaseFragment {
 
         Button addNewFoodstuffButton = fragmentView.findViewById(R.id.add_new_foodstuff_button);
         addNewFoodstuffButton.setOnClickListener(v -> {
-            EditFoodstuffActivity.startForCreation(fragmentView.getContext());
+            EditFoodstuffActivity.startForCreation(this, RequestCodes.MAIN_SCREEN_SEARCH_RESULTS_CREATE_FOODSTUFF);
         });
         // подписываемся на FoodstuffsList, чтобы после добавления нового продукта
         // он отображался в результатах поиска
@@ -110,6 +128,15 @@ public class SearchResultsFragment extends BaseFragment {
 
     private void closeThisFragment() {
         getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == RequestCodes.MAIN_SCREEN_SEARCH_RESULTS_CREATE_FOODSTUFF
+                && resultCode == Activity.RESULT_OK) {
+            Foodstuff foodstuff = data.getParcelableExtra(EditFoodstuffActivity.EXTRA_RESULT_FOODSTUFF);
+            cardController.showCard(foodstuff);
+        }
     }
 
     public static void show(String request, FragmentActivity context) {
