@@ -3,6 +3,8 @@ package korablique.recipecalculator.ui.editfoodstuff;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -117,6 +119,15 @@ public class EditFoodstuffActivity extends BaseActivity {
             Foodstuff editingFoodstuff = receivedIntent.getParcelableExtra(EDITED_FOODSTUFF);
             setDisplayingFoodstuff(editingFoodstuff);
 
+            View deleteButton = findViewById(R.id.button_delete);
+            deleteButton.setVisibility(View.VISIBLE);
+            deleteButton.setOnClickListener(v -> {
+                foodstuffsList.deleteFoodstuff(editingFoodstuff);
+                Intent intent = createEditingResultIntent(null);
+                setResult(RESULT_OK, intent);
+                finish();
+            });
+
             saveButton.setOnClickListener(v -> {
                 Foodstuff editedFoodstuff = parseFoodstuff();
                 long id = editingFoodstuff.getId();
@@ -162,7 +173,7 @@ public class EditFoodstuffActivity extends BaseActivity {
         fragment.startActivityForResult(intent, EDIT_FOODSTUFF_REQUEST);
     }
 
-    public static Intent createEditingResultIntent(Foodstuff editedFoodstuff) {
+    public static Intent createEditingResultIntent(@Nullable Foodstuff editedFoodstuff) {
         Intent intent = new Intent();
         intent.putExtra(EDIT_RESULT, editedFoodstuff);
         return intent;

@@ -416,6 +416,7 @@ public class MainActivityTest {
                 withText(deletingFoodstuff.getName()),
                 matches(isCompletelyBelow(withText(R.string.all_foodstuffs_header)))))
                 .perform(click());
+        onView(withId(R.id.button_edit)).perform(click());
         onView(withId(R.id.button_delete)).perform(click());
         onView(withText(deletingFoodstuff.getName())).check(doesNotExist());
 

@@ -54,7 +54,7 @@ public class Card {
     private NutritionValuesWrapper nutritionValuesWrapper;
 
     public Card(Context context, ViewGroup parent) {
-        cardLayout = (ViewGroup) LayoutInflater.from(context).inflate(R.layout.new_card_layout, parent);
+        cardLayout = (ViewGroup) LayoutInflater.from(context).inflate(R.layout.card_layout, parent);
         addFoodstuffButton = cardLayout.findViewById(R.id.add_foodstuff_button);
         editButton = cardLayout.findViewById(R.id.frame_layout_button_edit);
         closeButton = cardLayout.findViewById(R.id.button_close);

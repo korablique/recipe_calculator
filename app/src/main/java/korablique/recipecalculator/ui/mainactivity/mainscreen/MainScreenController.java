@@ -74,7 +74,6 @@ public class MainScreenController
     private SelectedFoodstuffsSnackbar snackbar;
     private Card.OnAddFoodstuffButtonClickListener cardDialogOnAddFoodstuffButtonClickListener;
     private Card.OnEditButtonClickListener cardDialogOnEditButtonClickListener;
-    private Card.OnDeleteButtonClickListener cardDialogOnDeleteButtonClickListener;
     // Действие, которое нужно выполнить с диалогом после savedInstanceState (показ или скрытие диалога)
     // Поле нужно, чтобы приложение не крешило при показе диалога, когда тот показывается в момент,
     // когда активити в фоне (запаузена).
@@ -207,16 +206,11 @@ public class MainScreenController
         cardDialogOnEditButtonClickListener = foodstuff -> {
             EditFoodstuffActivity.startForEditing(fragment, foodstuff);
         };
-        cardDialogOnDeleteButtonClickListener = foodstuff -> {
-            hideCard();
-            foodstuffsList.deleteFoodstuff(foodstuff.withoutWeight());
-        };
 
         CardDialog cardDialog = CardDialog.findCard(context);
         if (cardDialog != null) {
             cardDialog.setUpAddFoodstuffButton(cardDialogOnAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
             cardDialog.setOnEditButtonClickListener(cardDialogOnEditButtonClickListener);
-            cardDialog.setOnDeleteButtonClickListener(cardDialogOnDeleteButtonClickListener);
         }
 
         fillListsFromArguments();
@@ -369,6 +363,10 @@ public class MainScreenController
         if (requestCode == EDIT_FOODSTUFF_REQUEST) {
             if (resultCode == RESULT_OK) {
                 Foodstuff editedFoodstuff = data.getParcelableExtra(EDIT_RESULT);
+                if (editedFoodstuff == null) {
+                    hideCard();
+                    return;
+                }
                 if (topAdapterChild != null) {
                     topAdapterChild.replaceItem(editedFoodstuff);
                 }
@@ -408,7 +406,7 @@ public class MainScreenController
             CardDialog cardDialog = CardDialog.showCard(context, foodstuff);
             cardDialog.setUpAddFoodstuffButton(cardDialogOnAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
             cardDialog.setOnEditButtonClickListener(cardDialogOnEditButtonClickListener);
-            cardDialog.setOnDeleteButtonClickListener(cardDialogOnDeleteButtonClickListener);
+            cardDialog.prohibitDeleting(true);
             dialogAction = null;
         };
         if (lifecycle.getCurrentState() == Lifecycle.State.RESUMED) {
