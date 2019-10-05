@@ -15,7 +15,6 @@ import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.model.Foodstuff;
 
-
 public class MainScreenFragment extends BaseFragment {
     // The objects below are @Injected, because they need to be instantiated
     // at the fragment creation (they need to receive Fragment's lifecycle events).
