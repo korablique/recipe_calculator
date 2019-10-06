@@ -41,8 +41,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
-import korablique.recipecalculator.IntentConstants;
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.RequestCodes;
 import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.BaseFragment;
@@ -78,6 +78,7 @@ import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
 import korablique.recipecalculator.ui.mainactivity.history.HistoryController;
 import korablique.recipecalculator.ui.mainactivity.history.HistoryFragment;
+import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenCardController;
 import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenController;
 import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenFragment;
 import korablique.recipecalculator.ui.mainactivity.mainscreen.SearchResultsFragment;
@@ -198,13 +199,16 @@ public class MainActivityTest {
                     RxFragmentSubscriptions subscriptions = new RxFragmentSubscriptions(fragmentCallbacks);
                     BaseActivity activity = (BaseActivity) fragment.getActivity();
                     Lifecycle lifecycle = activity.getLifecycle();
+                    MainScreenCardController cardController = new MainScreenCardController(
+                            activity, fragment, fragmentCallbacks, lifecycle, foodstuffsList);
                     if (fragment instanceof MainScreenFragment) {
                         MainScreenController mainScreenController = new MainScreenController(
                                 activity, fragment, fragmentCallbacks,
-                                activity.getActivityCallbacks(), lifecycle, topList,
-                                foodstuffsList, mainActivitySelectedDateStorage);
+                                activity.getActivityCallbacks(), topList, foodstuffsList,
+                                mainActivitySelectedDateStorage, cardController);
                         UpFABController upFABController = new UpFABController(fragmentCallbacks);
-                        return Arrays.asList(subscriptions, mainScreenController, upFABController);
+                        return Arrays.asList(subscriptions, mainScreenController, upFABController,
+                                cardController);
 
                     } else if (fragment instanceof ProfileFragment) {
                         ProfileController profileController = new ProfileController(
@@ -219,7 +223,8 @@ public class MainActivityTest {
                                 fragmentsController, mainActivitySelectedDateStorage);
                         return Arrays.asList(subscriptions, historyController);
                     } else if (fragment instanceof SearchResultsFragment) {
-                        return Arrays.asList(databaseWorker, lifecycle, activity, foodstuffsList, subscriptions);
+                        return Arrays.asList(databaseWorker, lifecycle, activity,
+                                foodstuffsList, subscriptions, cardController);
                     } else {
                         throw new IllegalStateException("There is no such fragment class");
                     }
@@ -376,30 +381,30 @@ public class MainActivityTest {
         mActivityRule.launchActivity(null);
         List<Foodstuff> topFoodstuffs = extractFoodstuffsTopFromDB();
 
-        long id = topFoodstuffs.get(0).getId();
-        Foodstuff edited = Foodstuff.withId(id).withName(topFoodstuffs.get(0).getName() + "1").withNutrition(1, 2, 3, 4);
+        Matcher<View> topMatcher = allOf(
+                withText(topFoodstuffs.get(0).getName()),
+                matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header))),
+                matches(isCompletelyBelow(withText(R.string.top_header))));
+        onView(topMatcher).perform(click());
+        onView(withId(R.id.button_edit)).perform(click());
 
-        Intent data = EditFoodstuffActivity.createEditingResultIntent(edited);
+        // Редактируем
+        String newName = topFoodstuffs.get(0).getName() + "1";
+        onView(withId(R.id.foodstuff_name)).perform(replaceText(newName));
+        onView(withId(R.id.save_button)).perform(click());
 
-        // onActivityResult нельзя вызвать на потоке тестов,
-        // поэтому запускаем на главном потоке блокирующую операцию
-        mainThreadExecutor.execute(() -> {
-            List<Fragment> fragments = mActivityRule.getActivity().getSupportFragmentManager().getFragments();
-            for (Fragment fragment : fragments) {
-                fragment.onActivityResult(IntentConstants.EDIT_FOODSTUFF_REQUEST, Activity.RESULT_OK, data);
-            }
-        });
-
+        // Закрываем карточку
         onView(withId(R.id.button_close)).perform(click());
 
-        Matcher<View> topMatcher = allOf(
-                withText(edited.getName()),
+        // Проверяем отредактированное
+        topMatcher = allOf(
+                withText(newName),
                 matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header))),
                 matches(isCompletelyBelow(withText(R.string.top_header))));
         onView(topMatcher).check(matches(isDisplayed()));
 
         Matcher<View> allFoodstuffsMatcher = allOf(
-                withText(edited.getName()),
+                withText(newName),
                 matches(isCompletelyBelow(withText(R.string.all_foodstuffs_header))));
         onView(allFoodstuffsMatcher).check(matches(isDisplayed()));
     }
@@ -1044,7 +1049,7 @@ public class MainActivityTest {
         mainThreadExecutor.execute(() -> {
             foodstuffsList.saveFoodstuff(newFoodstuff, new FoodstuffsList.SaveFoodstuffCallback() {
                 @Override
-                public void onResult(long id) {}
+                public void onResult(Foodstuff addedFoodstuff) {}
 
                 @Override
                 public void onDuplication() {}
@@ -1310,6 +1315,75 @@ public class MainActivityTest {
                     onView(withId(R.id.return_for_today_button)).check(matches(not(isDisplayed())));
                 })
                 .performActivityStopAndStart();
+    }
+
+    @Test
+    public void mainScreenDisplaysCard_afterFoodstuffEditing() {
+        mActivityRule.launchActivity(null);
+        List<Foodstuff> topFoodstuffs = extractFoodstuffsTopFromDB();
+
+        Matcher<View> topMatcher = allOf(
+                withText(topFoodstuffs.get(0).getName()),
+                matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header))),
+                matches(isCompletelyBelow(withText(R.string.top_header))));
+        onView(topMatcher).perform(click());
+        onView(withId(R.id.button_edit)).perform(click());
+
+        String newName = topFoodstuffs.get(0).getName() + "1";
+        onView(withId(R.id.foodstuff_name)).perform(replaceText(newName));
+        onView(withId(R.id.save_button)).perform(click());
+
+        onView(withId(R.id.foodstuff_card_layout)).check(matches(isDisplayed()));
+    }
+
+    @Test
+    public void mainScreenDisplaysCard_afterFoodstuffCreation() {
+        mActivityRule.launchActivity(null);
+
+        String name = "111first_foodstuff";
+        onView(withText(name)).check(doesNotExist());
+
+        onView(withId(R.id.add_new_foodstuff)).perform(click());
+
+        onView(withId(R.id.foodstuff_name)).perform(replaceText(name));
+        onView(withId(R.id.protein_value)).perform(replaceText("10"));
+        onView(withId(R.id.fats_value)).perform(replaceText("10"));
+        onView(withId(R.id.carbs_value)).perform(replaceText("10"));
+        onView(withId(R.id.calories_value)).perform(replaceText("10"));
+        onView(withId(R.id.save_button)).perform(click());
+
+        onView(withId(R.id.foodstuff_card_layout)).check(matches(isDisplayed()));
+        onView(allOf(
+                isDescendantOfA(withId(R.id.foodstuff_card_layout)),
+                withText(name))).check(matches(isDisplayed()));
+    }
+
+    @Test
+    public void mainScreenDisplaysCard_afterFoodstuffCreation_fromSearchFragment() {
+        mActivityRule.launchActivity(null);
+
+        String name = "111first_foodstuff";
+        onView(withText(name)).check(doesNotExist());
+
+        onView(withHint(R.string.search)).perform(click());
+        onView(withHint(R.string.search)).perform(replaceText(name));
+        onView(withHint(R.string.search)).perform(pressImeActionButton()); // enter
+
+        // We expect the foodstuff to not exist yet
+        onView(withId(R.id.nothing_found_view)).check(matches(isDisplayed()));
+        onView(withId(R.id.add_new_foodstuff_button)).perform(click());
+
+        onView(withId(R.id.foodstuff_name)).perform(replaceText(name));
+        onView(withId(R.id.protein_value)).perform(replaceText("10"));
+        onView(withId(R.id.fats_value)).perform(replaceText("10"));
+        onView(withId(R.id.carbs_value)).perform(replaceText("10"));
+        onView(withId(R.id.calories_value)).perform(replaceText("10"));
+        onView(withId(R.id.save_button)).perform(click());
+
+        onView(withId(R.id.foodstuff_card_layout)).check(matches(isDisplayed()));
+        onView(allOf(
+                isDescendantOfA(withId(R.id.foodstuff_card_layout)),
+                withText(name))).check(matches(isDisplayed()));
     }
 
     private void addFoodstuffsToday() {
