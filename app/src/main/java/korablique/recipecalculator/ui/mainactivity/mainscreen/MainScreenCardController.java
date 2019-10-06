@@ -34,8 +34,8 @@ public class MainScreenCardController extends FragmentCallbacks.Observer {
     private final Lifecycle lifecycle;
     private final FoodstuffsList foodstuffsList;
     private final BucketList bucketList;
-    private Card.OnAddFoodstuffButtonClickListener cardDialogOnAddFoodstuffButtonClickListener;
-    private Card.OnEditButtonClickListener cardDialogOnEditButtonClickListener;
+    private Card.OnAddFoodstuffButtonClickListener onAddFoodstuffButtonClickListener;
+    private Card.OnEditButtonClickListener onEditButtonClickListener;
 
     // Действие, которое нужно выполнить с диалогом после savedInstanceState (показ или скрытие диалога)
     // Поле нужно, чтобы приложение не крешило при показе диалога, когда тот показывается в момент,
@@ -68,19 +68,19 @@ public class MainScreenCardController extends FragmentCallbacks.Observer {
 
     @Override
     public void onFragmentViewCreated(View fragmentView, Bundle savedInstanceState) {
-        cardDialogOnAddFoodstuffButtonClickListener = foodstuff -> {
+        onAddFoodstuffButtonClickListener = foodstuff -> {
             hideCard();
             new KeyboardHandler(context).hideKeyBoard();
             bucketList.add(foodstuff);
         };
-        cardDialogOnEditButtonClickListener = foodstuff -> {
+        onEditButtonClickListener = foodstuff -> {
             EditFoodstuffActivity.startForEditing(fragment, foodstuff, RequestCodes.MAIN_SCREEN_CARD_EDIT_FOODSTUFF);
         };
 
         CardDialog cardDialog = CardDialog.findCard(context);
         if (cardDialog != null) {
-            cardDialog.setUpAddFoodstuffButton(cardDialogOnAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
-            cardDialog.setOnEditButtonClickListener(cardDialogOnEditButtonClickListener);
+            cardDialog.setUpAddFoodstuffButton(onAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
+            cardDialog.setOnEditButtonClickListener(onEditButtonClickListener);
         }
     }
 
@@ -107,8 +107,8 @@ public class MainScreenCardController extends FragmentCallbacks.Observer {
     public void showCard(Foodstuff foodstuff) {
         dialogAction = () -> {
             CardDialog cardDialog = CardDialog.showCard(context, foodstuff);
-            cardDialog.setUpAddFoodstuffButton(cardDialogOnAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
-            cardDialog.setOnEditButtonClickListener(cardDialogOnEditButtonClickListener);
+            cardDialog.setUpAddFoodstuffButton(onAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
+            cardDialog.setOnEditButtonClickListener(onEditButtonClickListener);
             cardDialog.prohibitDeleting(true);
             dialogAction = null;
         };
