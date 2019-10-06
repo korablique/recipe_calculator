@@ -3,6 +3,7 @@ package korablique.recipecalculator.ui.mainactivity.mainscreen;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 
 import androidx.fragment.app.Fragment;
@@ -27,6 +28,7 @@ import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.base.FragmentCallbacks;
+import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.dagger.FragmentScope;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
@@ -50,6 +52,7 @@ public class MainScreenController
     private static final String EXTRA_INITIAL_TOP = "EXTRA_INITIAL_TOP";
     private static final String EXTRA_ALL_FOODSTUFFS_FIRST_BATCH = "EXTRA_ALL_FOODSTUFFS_FIRST_BATCH";
     private static final int SEARCH_SUGGESTIONS_NUMBER = 3;
+    private final MainThreadExecutor mainThreadExecutor;
     private final BaseActivity context;
     private final BaseFragment fragment;
     private final ActivityCallbacks activityCallbacks;
@@ -96,6 +99,7 @@ public class MainScreenController
 
     @Inject
     public MainScreenController(
+            MainThreadExecutor mainThreadExecutor,
             BaseActivity context,
             BaseFragment fragment,
             FragmentCallbacks fragmentCallbacks,
@@ -104,6 +108,7 @@ public class MainScreenController
             FoodstuffsList foodstuffsList,
             MainActivitySelectedDateStorage selectedDateStorage,
             MainScreenCardController cardController) {
+        this.mainThreadExecutor = mainThreadExecutor;
         this.context = context;
         this.fragment = fragment;
         this.activityCallbacks = activityCallbacks;
@@ -134,6 +139,17 @@ public class MainScreenController
 
         snackbar = new SelectedFoodstuffsSnackbar(fragmentView);
         searchView = fragmentView.findViewById(R.id.floating_search_view);
+        searchView.setOnFocusChangeListener(new SearchViewFocusListener() {
+            @Override
+            public void onFocusCleared() {
+                // Когда со строки поиска ушёл фокус - очищаем текст поиска.
+                // Но только в том случае, если на экране нет результатов поиска.
+                // Делаем это в следующей итерации главного UI-цикла, т.к. фокус мог пропасть
+                // из-за того, что вот-вот покажутся результаты поиска (в следующей итерации
+                // главного UI-цикла они уже будут показаны).
+                mainThreadExecutor.execute(() -> clearSearchQueryIfSearchResultsNotShown());
+            }
+        });
 
         RecyclerView recyclerView = fragmentView.findViewById(R.id.main_screen_recycler_view);
         LinearLayoutManager layoutManager = new LinearLayoutManager(context);
@@ -210,6 +226,16 @@ public class MainScreenController
                 isAllFoodstuffsListFilledFromArguments = true;
             }
         }
+    }
+
+    private void clearSearchQueryIfSearchResultsNotShown() {
+        for (Fragment f : context.getSupportFragmentManager().getFragments()) {
+            if (f instanceof SearchResultsFragment) {
+                return;
+            }
+        }
+        searchView.clearQuery();
+        searchQueries.clear();
     }
 
     @Override
@@ -332,6 +358,9 @@ public class MainScreenController
                 searchView.clearQuery();
             }
             context.getSupportFragmentManager().beginTransaction().remove(searchResultsFragment).commit();
+            // В следующей итерации основного UI-цикла очистим строку поиска, если
+            // фрагментов с результатами поиска больше нет
+            mainThreadExecutor.execute(this::clearSearchQueryIfSearchResultsNotShown);
             // Мы поглотили событие - сами решили, что должно происходить.
             return true;
         } else {

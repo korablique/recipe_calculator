@@ -997,6 +997,67 @@ public class MainActivityTest extends MainActivityTestsBase {
     }
 
     @Test
+    public void searchQueryCleaned_whenFocusedLost() {
+        mActivityRule.launchActivity(null);
+
+        // Клик на строку поиска и ввод строки поиска
+        onView(withHint(R.string.search)).perform(click());
+        onView(withHint(R.string.search)).perform(replaceText("word"));
+        // Убеждаемся, что текст на месте
+        onView(withHint(R.string.search)).check(matches(withText("word")));
+
+        // Убираем фокус нажатием на Back и проверяем, что текст пропал
+        Espresso.pressBack();
+        onView(withHint(R.string.search)).check(matches(withText("")));
+    }
+
+    @Test
+    public void searchQueryNotCleaned_whenFocusedLost_whenSearchResultsArePresent() {
+        mActivityRule.launchActivity(null);
+
+        // Делаем поиск продукта
+        Foodstuff searchingFoodstuff = foodstuffs[0];
+        onView(withHint(R.string.search)).perform(click());
+        onView(withHint(R.string.search)).perform(replaceText(searchingFoodstuff.getName()));
+        onView(withHint(R.string.search)).perform(pressImeActionButton()); // enter
+
+        // Убеждаемся, что показаны результаты поиска
+        onView(withId(R.id.search_results_layout)).check(matches(isDisplayed()));
+
+        // На всякий случай кликаем на строку поиска ещё раз, чтобы она точно была в фокусе
+        onView(withHint(R.string.search)).perform(click());
+        // Убираем фокус со строки поиска
+        Espresso.pressBack();
+        // Убеждаемся, что текст никуда не делся
+        onView(withHint(R.string.search)).check(matches(withText(searchingFoodstuff.getName())));
+    }
+
+    @Test
+    public void searchQueryCleaned_whenSearchResultsGone() {
+        mActivityRule.launchActivity(null);
+
+        // Делаем поиск продукта
+        Foodstuff searchingFoodstuff = foodstuffs[0];
+        onView(withHint(R.string.search)).perform(click());
+        onView(withHint(R.string.search)).perform(replaceText(searchingFoodstuff.getName()));
+        onView(withHint(R.string.search)).perform(pressImeActionButton()); // enter
+
+        // Убеждаемся, что показаны результаты поиска
+        onView(withId(R.id.search_results_layout)).check(matches(isDisplayed()));
+
+        // На всякий случай кликаем на строку поиска ещё раз, чтобы она точно была в фокусе
+        onView(withHint(R.string.search)).perform(click());
+        // Убираем фокус со строки поиска
+        Espresso.pressBack();
+        // Закрываем экран поиска
+        Espresso.pressBack();
+        // Убеждаемся, что результат поиска пропал
+        onView(withId(R.id.search_results_layout)).check(doesNotExist());
+        // Убеждаемся, что текст запроса пропал
+        onView(withHint(R.string.search)).check(matches(withText("")));
+    }
+
+    @Test
     public void mainScreenDisplaysCard_afterFoodstuffEditing() {
         mActivityRule.launchActivity(null);
         List<Foodstuff> topFoodstuffs = extractFoodstuffsTopFromDB();

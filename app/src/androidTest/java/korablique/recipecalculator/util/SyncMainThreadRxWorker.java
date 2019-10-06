@@ -11,17 +11,20 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.disposables.Disposables;
 
 /**
- * Реализует Rx-класс Scheduler.Worker т.о., что все задачи выполняются синхронно на главном потоке.
- * Данное поведение реализуется либо моментальным выполнением переданной задачи (если передача
- * была осуществлена уже на главном потоке), либо отправкой задачи в Handler с блокировкой текущего
- * потока до окончания выполнения задачи.
+ * Реализует Rx-класс Scheduler.Worker т.о., что все переданные задачи выполняются на главном потоке.
+ * При этом:
+ * - если объект используется из фонового потока, то фоновый поток блокируется до окончания выполнения
+ * переданного Runnable,
+ * - а если с главного, то переданный Runnable выполняется в Handler.post.
+ * @see korablique.recipecalculator.util.SyncMainThreadExecutor - тут подробности о причинах такого
+ * поведения.
  */
 class SyncMainThreadRxWorker extends Scheduler.Worker {
     private volatile boolean isDisposed;
     private final Handler handler = new Handler(Looper.getMainLooper());
 
     /**
-     * @return т.к. задача выполняется синхронно, метод всегда возвращает Disposables.disposed().
+     * @return для простоты, метод всегда возвращает Disposables.disposed().
      */
     @Override
     public Disposable schedule(Runnable run, long delay, TimeUnit unit) {
@@ -38,7 +41,7 @@ class SyncMainThreadRxWorker extends Scheduler.Worker {
         }
 
         if (Looper.getMainLooper().isCurrentThread()) {
-            run.run();
+            handler.post(run);
             return Disposables.disposed();
         }
 
