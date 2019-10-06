@@ -101,12 +101,7 @@ public class SelectedFoodstuffsSnackbar {
     }
 
     public void setOnBasketClickRunnable(Runnable runnable) {
-        snackbarLayout.findViewById(R.id.basket).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                runnable.run();
-            }
-        });
+        snackbarLayout.setOnClickListener(v -> runnable.run());
     }
 
     public List<WeightedFoodstuff> getSelectedFoodstuffs() {
