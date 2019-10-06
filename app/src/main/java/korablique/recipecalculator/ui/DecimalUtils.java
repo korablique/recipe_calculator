@@ -9,6 +9,10 @@ public class DecimalUtils {
 
     public static String toDecimalString(double decimal) {
         DecimalFormat df = new DecimalFormat("#.#");
-        return df.format(decimal).replace(',', '.');
+        String result = df.format(decimal).replace(',', '.');
+        if ("-0".equals(result)) {
+            return "0";
+        }
+        return result;
     }
 }
