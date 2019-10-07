@@ -14,8 +14,9 @@ import korablique.recipecalculator.RequestCodes;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.base.FragmentCallbacks;
+import korablique.recipecalculator.base.TimeProvider;
 import korablique.recipecalculator.dagger.FragmentScope;
-import korablique.recipecalculator.database.FoodstuffsList;
+import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.ui.KeyboardHandler;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
@@ -28,13 +29,17 @@ import static android.app.Activity.RESULT_OK;
 @FragmentScope
 public class MainScreenCardController extends FragmentCallbacks.Observer {
     @StringRes
-    private static final int CARD_BUTTON_TEXT_RES = R.string.add_foodstuff;
+    private static final int ADD_FOODSTUFF_TO_RECIPE_CARD_TEXT = R.string.add_foodstuff_to_recipe;
+    @StringRes
+    private static final int ADD_FOODSTUFF_TO_HISTORY_CARD_TEXT = R.string.add_foodstuff_to_history;
     private final BaseActivity context;
     private final BaseFragment fragment;
     private final Lifecycle lifecycle;
-    private final FoodstuffsList foodstuffsList;
     private final BucketList bucketList;
-    private Card.OnAddFoodstuffButtonClickListener onAddFoodstuffButtonClickListener;
+    private final HistoryWorker historyWorker;
+    private final TimeProvider timeProvider;
+    private Card.OnMainButtonClickListener onAddFoodstuffToRecipeListener;
+    private Card.OnMainButtonClickListener onAddFoodstuffToHistoryListener;
     private Card.OnEditButtonClickListener onEditButtonClickListener;
 
     // Действие, которое нужно выполнить с диалогом после savedInstanceState (показ или скрытие диалога)
@@ -57,21 +62,29 @@ public class MainScreenCardController extends FragmentCallbacks.Observer {
             BaseFragment fragment,
             FragmentCallbacks fragmentCallbacks,
             Lifecycle lifecycle,
-            FoodstuffsList foodstuffsList) {
+            HistoryWorker historyWorker,
+            TimeProvider timeProvider) {
         this.context = context;
         this.fragment = fragment;
         this.lifecycle = lifecycle;
-        this.foodstuffsList = foodstuffsList;
         this.bucketList = BucketList.getInstance();
+        this.historyWorker = historyWorker;
+        this.timeProvider = timeProvider;
         fragmentCallbacks.addObserver(this);
     }
 
     @Override
     public void onFragmentViewCreated(View fragmentView, Bundle savedInstanceState) {
-        onAddFoodstuffButtonClickListener = foodstuff -> {
+        onAddFoodstuffToRecipeListener = foodstuff -> {
             hideCard();
             new KeyboardHandler(context).hideKeyBoard();
             bucketList.add(foodstuff);
+        };
+        onAddFoodstuffToHistoryListener = foodstuff -> {
+            hideCard();
+            new KeyboardHandler(context).hideKeyBoard();
+            historyWorker.saveFoodstuffToHistory(
+                    timeProvider.now().toDate(), foodstuff.getId(), foodstuff.getWeight());
         };
         onEditButtonClickListener = foodstuff -> {
             EditFoodstuffActivity.startForEditing(fragment, foodstuff, RequestCodes.MAIN_SCREEN_CARD_EDIT_FOODSTUFF);
@@ -79,7 +92,8 @@ public class MainScreenCardController extends FragmentCallbacks.Observer {
 
         CardDialog cardDialog = CardDialog.findCard(context);
         if (cardDialog != null) {
-            cardDialog.setUpAddFoodstuffButton(onAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
+            cardDialog.setUpButton1(onAddFoodstuffToRecipeListener, ADD_FOODSTUFF_TO_RECIPE_CARD_TEXT);
+            cardDialog.setUpButton2(onAddFoodstuffToHistoryListener, ADD_FOODSTUFF_TO_HISTORY_CARD_TEXT);
             cardDialog.setOnEditButtonClickListener(onEditButtonClickListener);
         }
     }
@@ -107,7 +121,8 @@ public class MainScreenCardController extends FragmentCallbacks.Observer {
     public void showCard(Foodstuff foodstuff) {
         dialogAction = () -> {
             CardDialog cardDialog = CardDialog.showCard(context, foodstuff);
-            cardDialog.setUpAddFoodstuffButton(onAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
+            cardDialog.setUpButton1(onAddFoodstuffToRecipeListener, ADD_FOODSTUFF_TO_RECIPE_CARD_TEXT);
+            cardDialog.setUpButton2(onAddFoodstuffToHistoryListener, ADD_FOODSTUFF_TO_HISTORY_CARD_TEXT);
             cardDialog.setOnEditButtonClickListener(onEditButtonClickListener);
             cardDialog.prohibitDeleting(true);
             dialogAction = null;

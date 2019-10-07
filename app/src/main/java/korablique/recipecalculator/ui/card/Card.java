@@ -24,7 +24,7 @@ import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
 import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
 
 public class Card {
-    public interface OnAddFoodstuffButtonClickListener {
+    public interface OnMainButtonClickListener {
         void onClick(WeightedFoodstuff foodstuff);
     }
 
@@ -45,7 +45,8 @@ public class Card {
     private Foodstuff displayedFoodstuff;
     private EditText weightEditText;
     private TextView nameTextView;
-    private Button addFoodstuffButton;
+    private Button button1;
+    private Button button2;
     private View editButton;
     private View closeButton;
     private View deleteButton;
@@ -55,12 +56,13 @@ public class Card {
 
     public Card(Context context, ViewGroup parent) {
         cardLayout = (ViewGroup) LayoutInflater.from(context).inflate(R.layout.card_layout, parent);
-        addFoodstuffButton = cardLayout.findViewById(R.id.add_foodstuff_button);
+        button1 = cardLayout.findViewById(R.id.button1);
+        button2 = cardLayout.findViewById(R.id.button2);
         editButton = cardLayout.findViewById(R.id.frame_layout_button_edit);
         closeButton = cardLayout.findViewById(R.id.button_close);
         deleteButton = cardLayout.findViewById(R.id.frame_layout_button_delete);
         weightEditText = cardLayout.findViewById(R.id.weight_edit_text);
-        updateAddButtonEnability(weightEditText.getText());
+        updateMainButtonsEnability(weightEditText.getText());
 
         nameTextView = cardLayout.findViewById(R.id.foodstuff_name_text_view);
         ViewGroup nutritionLayout = cardLayout.findViewById(R.id.nutrition_progress_with_values);
@@ -68,11 +70,13 @@ public class Card {
         nutritionValuesWrapper = new NutritionValuesWrapper(context, nutritionLayout);
     }
 
-    private void updateAddButtonEnability(Editable text) {
+    private void updateMainButtonsEnability(Editable text) {
         if (TextUtils.isEmpty(text)) {
-            addFoodstuffButton.setEnabled(false);
+            button1.setEnabled(false);
+            button2.setEnabled(false);
         } else {
-            addFoodstuffButton.setEnabled(true);
+            button1.setEnabled(true);
+            button2.setEnabled(true);
         }
     }
 
@@ -103,7 +107,7 @@ public class Card {
             public void afterTextChanged(Editable s) {
                 // пользователь отредактировал массу - показываем значения БЖУ на новую массу
                 super.afterTextChanged(s);
-                updateAddButtonEnability(s);
+                updateMainButtonsEnability(s);
                 double newWeight = 0;
                 if (!s.toString().isEmpty()) {
                     newWeight = Double.parseDouble(s.toString());
@@ -119,12 +123,21 @@ public class Card {
         return cardLayout;
     }
 
-    public void setUpAddFoodstuffButton(OnAddFoodstuffButtonClickListener listener, @StringRes int buttonTextRes) {
-        addFoodstuffButton.setText(buttonTextRes);
-        addFoodstuffButton.setOnClickListener(v -> {
+    public void setUpButton1(OnMainButtonClickListener listener, @StringRes int buttonTextRes) {
+        setUpMainButton(button1, listener, buttonTextRes);
+    }
+
+    public void setUpButton2(OnMainButtonClickListener listener, @StringRes int buttonTextRes) {
+        setUpMainButton(button2, listener, buttonTextRes);
+    }
+
+    private void setUpMainButton(Button button, OnMainButtonClickListener listener, @StringRes int buttonTextRes) {
+        button.setText(buttonTextRes);
+        button.setOnClickListener(v -> {
             WeightedFoodstuff clickedFoodstuff = extractWeightedFoodstuff();
             listener.onClick(clickedFoodstuff);
         });
+        button.setVisibility(View.VISIBLE);
     }
 
     private WeightedFoodstuff extractWeightedFoodstuff() {

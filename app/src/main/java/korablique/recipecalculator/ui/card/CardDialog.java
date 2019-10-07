@@ -19,9 +19,14 @@ public class CardDialog extends BaseBottomDialog {
     private static final String CLICKED_WEIGHTED_FOODSTUFF = "CLICKED_WEIGHTED_FOODSTUFF";
     private static final String FOODSTUFF_CARD = "FOODSTUFF_CARD";
     private Card card;
-    private Card.OnAddFoodstuffButtonClickListener onAddFoodstuffButtonClickListener;
+    @Nullable
+    private Card.OnMainButtonClickListener button1ClickListener;
+    @Nullable
+    private Card.OnMainButtonClickListener button2ClickListener;
     @StringRes
-    private int buttonTextRes;
+    private int button1TextRes;
+    @StringRes
+    private int button2TextRes;
     private Card.OnEditButtonClickListener onEditButtonClickListener;
     private Card.OnCloseButtonClickListener onCloseButtonClickListener = this::dismiss;
     private Card.OnDeleteButtonClickListener onDeleteButtonClickListener;
@@ -34,7 +39,12 @@ public class CardDialog extends BaseBottomDialog {
                              ViewGroup container,
                              Bundle savedInstanceState) {
         card = new Card(getContext(), container);
-        card.setUpAddFoodstuffButton(onAddFoodstuffButtonClickListener, buttonTextRes);
+        if (button1ClickListener != null) {
+            card.setUpButton1(button1ClickListener, button1TextRes);
+        }
+        if (button2ClickListener != null) {
+            card.setUpButton2(button2ClickListener, button2TextRes);
+        }
         card.setOnEditButtonClickListener(onEditButtonClickListener);
         card.setOnCloseButtonClickListener(onCloseButtonClickListener);
         card.setOnDeleteButtonClickListener(onDeleteButtonClickListener);
@@ -53,12 +63,21 @@ public class CardDialog extends BaseBottomDialog {
         return card.getCardLayout();
     }
 
-    public void setUpAddFoodstuffButton(
-            Card.OnAddFoodstuffButtonClickListener listener, @StringRes int buttonTextRes) {
-        onAddFoodstuffButtonClickListener = listener;
-        this.buttonTextRes = buttonTextRes;
+    public void setUpButton1(
+            Card.OnMainButtonClickListener listener, @StringRes int buttonTextRes) {
+        button1ClickListener = listener;
+        this.button1TextRes = buttonTextRes;
         if (card != null) {
-            card.setUpAddFoodstuffButton(listener, buttonTextRes);
+            card.setUpButton1(listener, buttonTextRes);
+        }
+    }
+
+    public void setUpButton2(
+            Card.OnMainButtonClickListener listener, @StringRes int buttonTextRes) {
+        button2ClickListener = listener;
+        this.button2TextRes = buttonTextRes;
+        if (card != null) {
+            card.setUpButton2(listener, buttonTextRes);
         }
     }
 

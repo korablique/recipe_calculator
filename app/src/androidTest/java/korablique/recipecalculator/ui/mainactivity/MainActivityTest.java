@@ -149,19 +149,19 @@ public class MainActivityTest extends MainActivityTestsBase {
                 withText(clickedFoodstuffs.get(0).getName()),
                 matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header))))).perform(click());
         onView(withId(R.id.weight_edit_text)).perform(replaceText("123"));
-        onView(withId(R.id.add_foodstuff_button)).perform(click());
+        onView(withId(R.id.button1)).perform(click());
 
         onView(allOf(
                 withText(clickedFoodstuffs.get(1).getName()),
                 matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header))))).perform(click());
         onView(withId(R.id.weight_edit_text)).perform(replaceText("123"));
-        onView(withId(R.id.add_foodstuff_button)).perform(click());
+        onView(withId(R.id.button1)).perform(click());
 
         onView(allOf(
                 withText(clickedFoodstuffs.get(2).getName()),
                 matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header))))).perform(click());
         onView(withId(R.id.weight_edit_text)).perform(replaceText("123"));
-        onView(withId(R.id.add_foodstuff_button)).perform(click());
+        onView(withId(R.id.button1)).perform(click());
 
         // Кликаем на корзинку в снэкбаре
         onView(withId(R.id.basket)).perform(click());
@@ -537,7 +537,7 @@ public class MainActivityTest extends MainActivityTestsBase {
         // отредактировать вес
         double newWeight = 200;
         onView(withId(R.id.weight_edit_text)).perform(replaceText(String.valueOf(newWeight)));
-        onView(withId(R.id.add_foodstuff_button)).perform(click());
+        onView(withId(R.id.button1)).perform(click());
         // проверить, что элемент отредактировался
         onView(allOf(
                 withText(containsString(editedFoodstuff.getName())),
@@ -822,7 +822,7 @@ public class MainActivityTest extends MainActivityTestsBase {
                 withText(addedFoodstuffs.get(0).getName()),
                 matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header))))).perform(click());
         onView(withId(R.id.weight_edit_text)).perform(replaceText("123"));
-        onView(withId(R.id.add_foodstuff_button)).perform(click());
+        onView(withId(R.id.button1)).perform(click());
         onView(withId(R.id.basket)).perform(click());
 
         // Проверяем, что была попытка стартовать активити по интенту от BucketListActivity
@@ -1089,6 +1089,34 @@ public class MainActivityTest extends MainActivityTestsBase {
         onView(withId(R.id.search_results_layout)).check(doesNotExist());
         // Убеждаемся, что текст запроса пропал
         onView(withHint(R.string.search)).check(matches(withText("")));
+    }
+
+    @Test
+    public void mainScreenFoodstuffCard_addsFoodstuffToHistory() {
+        mActivityRule.launchActivity(null);
+
+        // Клик на продукт и ввод массы
+        onView(allOf(
+                withText(foodstuffs[0].getName()),
+                matches(isCompletelyBelow(withText(R.string.all_foodstuffs_header))))).perform(click());
+        onView(withId(R.id.weight_edit_text)).perform(replaceText("123"));
+
+        // Жмём на кнопку добавления в Историю
+        onView(withId(R.id.button2)).perform(click());
+
+        // Переходим в Историю и убеждаемся, что продукт там
+        onView(withId(R.id.menu_item_history)).perform(click());
+        onView(allOf(
+                isDescendantOfA(withId(R.id.fragment_history)),
+                withText(containsString(foodstuffs[0].getName()))))
+                .check(matches(isDisplayed()));
+
+        // Делаем рестарт и проверяем ещё раз
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> mActivityRule.getActivity().recreate());
+        onView(allOf(
+                isDescendantOfA(withId(R.id.fragment_history)),
+                withText(containsString(foodstuffs[0].getName()))))
+                .check(matches(isDisplayed()));
     }
 
     @Test

@@ -46,7 +46,7 @@ import korablique.recipecalculator.ui.mainactivity.MainActivityFragmentsControll
 import korablique.recipecalculator.ui.mainactivity.MainActivitySelectedDateStorage;
 
 @FragmentScope
-public class HistoryController extends FragmentCallbacks.Observer {
+public class HistoryController extends FragmentCallbacks.Observer implements HistoryWorker.Observer {
     private static final int CARD_BUTTON_TEXT_RES = R.string.save;
     private BaseActivity context;
     private BaseFragment fragment;
@@ -59,8 +59,8 @@ public class HistoryController extends FragmentCallbacks.Observer {
     private HistoryAdapter adapter;
     private HistoryNutritionValuesWrapper nutritionValuesWrapper;
     private NutritionProgressWrapper nutritionProgressWrapper;
-    private Card.OnAddFoodstuffButtonClickListener onAddFoodstuffButtonClickListener
-            = new Card.OnAddFoodstuffButtonClickListener() {
+    private Card.OnMainButtonClickListener onAddFoodstuffButtonClickListener
+            = new Card.OnMainButtonClickListener() {
         @Override
         public void onClick(WeightedFoodstuff foodstuff) {
             CardDialog.hideCard(context);
@@ -167,6 +167,13 @@ public class HistoryController extends FragmentCallbacks.Observer {
         }
 
         initReturnToCurrentDateButton(fragmentView);
+
+        historyWorker.addObserver(this);
+    }
+
+    @Override
+    public void onFragmentDestroy() {
+        historyWorker.removeObserver(this);
     }
 
     private void switchToDate(LocalDate date) {
@@ -194,7 +201,7 @@ public class HistoryController extends FragmentCallbacks.Observer {
             adapter.setOnItemClickObserver((historyEntry, displayedPosition) -> {
                 CardDialog card = CardDialog.showCard(context, historyEntry.getFoodstuff());
                 card.prohibitEditing(true);
-                card.setUpAddFoodstuffButton(onAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
+                card.setUpButton1(onAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
                 card.setOnDeleteButtonClickListener(onDeleteButtonClickListener);
             });
             updateWrappers(historyEntries, currentUserParams);
@@ -276,7 +283,7 @@ public class HistoryController extends FragmentCallbacks.Observer {
     private void initCard() {
         CardDialog existingCardDialog = CardDialog.findCard(context);
         if (existingCardDialog != null) {
-            existingCardDialog.setUpAddFoodstuffButton(onAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
+            existingCardDialog.setUpButton1(onAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
             existingCardDialog.setOnDeleteButtonClickListener(onDeleteButtonClickListener);
         }
     }
@@ -334,6 +341,20 @@ public class HistoryController extends FragmentCallbacks.Observer {
             returnButton.setVisibility(View.GONE);
         } else {
             returnButton.setVisibility(View.VISIBLE);
+        }
+    }
+
+    @Override
+    public void onHistoryChange() {
+        View view = fragment.getView();
+        if (view == null) {
+            return;
+        }
+        // Если История поменялась, но фрагмент Истории не показан - История была изменена
+        // не через экран Истории - обновимся, чтобы при заходе на экран Истории были отображены
+        // правильные продукты.
+        if (!view.isShown()) {
+            switchToDate(timeProvider.now().toLocalDate());
         }
     }
 }

@@ -128,7 +128,8 @@ public class MainActivityTestsBase {
                         BaseActivity activity = (BaseActivity) fragment.getActivity();
                         Lifecycle lifecycle = activity.getLifecycle();
                         MainScreenCardController cardController = new MainScreenCardController(
-                                activity, fragment, fragmentCallbacks, lifecycle, foodstuffsList);
+                                activity, fragment, fragmentCallbacks, lifecycle,
+                                historyWorker, timeProvider);
 
                         if (fragment instanceof MainScreenFragment) {
                             MainScreenController mainScreenController = new MainScreenController(

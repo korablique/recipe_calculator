@@ -118,24 +118,38 @@
             app:layout_constraintTop_toBottomOf="@id/row_fake_top"
             tools:text="100" />
 
-        <FrameLayout
-            android:layout_width="match_parent"
+        <Button
+            android:id="@+id/button1"
+            style="@style/VioletButton"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             app:layout_constraintTop_toBottomOf="@+id/weight_edit_text"
-            app:layout_constraintBottom_toBottomOf="@id/constraint_layout">
+            app:layout_constraintBottom_toBottomOf="@id/constraint_layout"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/button2"
+            android:text="@string/add_foodstuff"
+            android:layout_marginTop="8dp"
+            android:layout_marginStart="15dp"
+            android:layout_marginEnd="7dp"
+            android:layout_marginBottom="15dp"
+            android:visibility="gone"
+            tools:visibility="visible"/>
 
-            <Button
-                android:id="@+id/add_foodstuff_button"
-                style="@style/VioletButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/add_foodstuff"
-                android:layout_marginTop="8dp"
-                android:layout_marginStart="15dp"
-                android:layout_marginEnd="15dp"
-                android:layout_marginBottom="15dp" />
-        </FrameLayout>
-
+        <Button
+            android:id="@+id/button2"
+            style="@style/VioletButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@+id/weight_edit_text"
+            app:layout_constraintBottom_toBottomOf="@id/constraint_layout"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/button1"
+            android:text="@string/add_foodstuff"
+            android:layout_marginTop="8dp"
+            android:layout_marginStart="7dp"
+            android:layout_marginEnd="15dp"
+            android:layout_marginBottom="15dp"
+            android:visibility="gone"
+            tools:visibility="visible"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 </FrameLayout>
