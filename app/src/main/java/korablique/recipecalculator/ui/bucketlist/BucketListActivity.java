@@ -53,7 +53,6 @@ public class BucketListActivity extends BaseActivity {
     FoodstuffsList foodstuffsList;
     private BucketListAdapter adapter;
     private EditText totalWeightEditText;
-    private Button saveToHistoryButton;
     private Button saveAsSingleFoodstuffButton;
     private BucketList bucketList;
     private int displayedInCardFoodstuffPosition;
@@ -82,7 +81,6 @@ public class BucketListActivity extends BaseActivity {
         double totalWeight = countTotalWeight(foodstuffs);
         updateNutritionWrappers(foodstuffs, totalWeight);
 
-        saveToHistoryButton = findViewById(R.id.save_to_history_button);
         saveAsSingleFoodstuffButton = findViewById(R.id.save_as_single_foodstuff_button);
 
         totalWeightEditText = findViewById(R.id.total_weight_edit_text);
@@ -192,17 +190,6 @@ public class BucketListActivity extends BaseActivity {
             dialog.setOnSaveDishButtonClickListener(saveDishButtonClickListener);
         });
 
-        saveToHistoryButton.setOnClickListener((view) -> {
-            bucketList.clear();
-            Intent receivedIntent = getIntent();
-            LocalDate selectedDate = (LocalDate) receivedIntent.getSerializableExtra(EXTRA_DATE);
-            if (selectedDate == null) {
-                selectedDate = timeProvider.now().toLocalDate();
-            }
-            MainActivity.openHistoryAndAddFoodstuffs(this, adapter.getItems(), selectedDate);
-            finish();
-        });
-
         View cancelView = findViewById(R.id.button_close);
         cancelView.setOnClickListener(view -> BucketListActivity.this.finish());
     }
@@ -245,7 +232,7 @@ public class BucketListActivity extends BaseActivity {
     private Nutrition countTotalNutrition(List<WeightedFoodstuff> foodstuffs) {
         Nutrition totalNutrition = Nutrition.zero();
         for (WeightedFoodstuff foodstuff : foodstuffs) {
-            totalNutrition = totalNutrition.plus(Nutrition.of(foodstuff));
+            totalNutrition = totalNutrition.plus(Nutrition.of100gramsOf(foodstuff.withoutWeight()));
         }
         return totalNutrition;
     }
@@ -256,10 +243,8 @@ public class BucketListActivity extends BaseActivity {
                 || FloatUtils.areFloatsEquals(Double.parseDouble(text), 0.0)
                 || adapter.getItemCount() == 0) {
             saveAsSingleFoodstuffButton.setEnabled(false);
-            saveToHistoryButton.setEnabled(false);
         } else {
             saveAsSingleFoodstuffButton.setEnabled(true);
-            saveToHistoryButton.setEnabled(true);
         }
     }
 

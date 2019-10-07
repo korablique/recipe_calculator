@@ -156,40 +156,6 @@ public class BucketListActivityTest {
     }
 
     @Test
-    public void addsFoodstuffsToHistory() {
-        // сохраняем в БД фудстаффы, которые будем потом добавлять в историю
-        Foodstuff f1 = Foodstuff.withName("carrot").withNutrition(1.3, 0.1, 6.9, 32);
-        Foodstuff f2 = Foodstuff.withName("oil").withNutrition(0, 99.9, 0, 899);
-        List<Long> addingFoodstuffsIds = new ArrayList<>();
-        databaseWorker.saveGroupOfFoodstuffs(
-                new Foodstuff[]{f1, f2},
-                addingFoodstuffsIds::addAll);
-        List<WeightedFoodstuff> foodstuffs = new ArrayList<>();
-        foodstuffs.add(Foodstuff.withId(addingFoodstuffsIds.get(0))
-                .withName(f1.getName())
-                .withNutrition(f1.getProtein(), f1.getFats(), f1.getCarbs(), f1.getCalories())
-                .withWeight(310));
-        foodstuffs.add(Foodstuff.withId(addingFoodstuffsIds.get(1))
-                .withName(f2.getName())
-                .withNutrition(f2.getProtein(), f2.getFats(), f2.getCarbs(), f2.getCalories())
-                .withWeight(13));
-
-        Intent startIntent =
-                BucketListActivity.createStartIntentFor(foodstuffs, InstrumentationRegistry.getTargetContext());
-        activityRule.launchActivity(startIntent);
-
-        onView(withId(R.id.save_to_history_button)).perform(click());
-
-        Intent expectedIntent =
-                MainActivityController.createOpenHistoryAndAddFoodstuffsIntent(
-                        activityRule.getActivity(), foodstuffs, timeProvider.now().toLocalDate());
-        intended(allOf(
-                hasAction(expectedIntent.getAction()),
-                hasComponent(expectedIntent.getComponent()),
-                hasExtras(hasValue(foodstuffs))));
-    }
-
-    @Test
     public void savesDishToFoodstuffsList() {
         ArrayList<WeightedFoodstuff> ingredients = new ArrayList<>();
         ingredients.add(Foodstuff.withName("carrot").withNutrition(1.3, 0.1, 6.9, 32).withWeight(310));
