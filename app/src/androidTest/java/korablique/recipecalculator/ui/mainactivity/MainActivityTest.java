@@ -53,6 +53,7 @@ import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.pressImeActionButton;
 import static androidx.test.espresso.action.ViewActions.replaceText;
+import static androidx.test.espresso.action.ViewActions.swipeRight;
 import static androidx.test.espresso.assertion.PositionAssertions.isCompletelyAbove;
 import static androidx.test.espresso.assertion.PositionAssertions.isCompletelyBelow;
 import static androidx.test.espresso.assertion.ViewAssertions.doesNotExist;
@@ -74,13 +75,15 @@ import static androidx.test.espresso.matcher.ViewMatchers.withParent;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertContains;
 import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertNotContains;
-import static junit.framework.TestCase.assertTrue;
 import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
 import static korablique.recipecalculator.util.EspressoUtils.matches;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(AndroidJUnit4.class)
 @LargeTest
@@ -280,6 +283,59 @@ public class MainActivityTest extends MainActivityTestsBase {
         instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
         instrumentation.waitForIdleSync();
         onView(withId(R.id.selected_foodstuffs_counter)).check(matches(not(isDisplayed())));
+    }
+
+    @Test
+    public void swipedOutSnackbar_cleansBuckerList() throws InterruptedException {
+        // добавляем в bucket list продукты, запускаем активити
+        WeightedFoodstuff wf0 = foodstuffs[0].withWeight(100);
+        WeightedFoodstuff wf1 = foodstuffs[1].withWeight(100);
+
+        mainThreadExecutor.execute(() -> {
+            bucketList.add(wf0);
+            bucketList.add(wf1);
+            assertEquals(2, bucketList.getList().size());
+        });
+
+        mActivityRule.launchActivity(null);
+
+        // "Высвайпываем" снекбар
+        onView(withId(R.id.snackbar)).perform(swipeRight());
+        Thread.sleep(500); // Ждем 0.5с, потому что SwipeDismissBehaviour криво уведомляет о высвайпывании
+
+        // Убеждаемся, что в бакетлисте пусто и снекбар не показан
+        onView(withId(R.id.snackbar)).check(matches(not(isDisplayed())));
+        mainThreadExecutor.execute(() -> {
+            assertTrue(bucketList.getList().isEmpty());
+        });
+    }
+
+    @Test
+    public void swipedOutSnackbar_canBeCanceled() throws InterruptedException {
+        // добавляем в bucket list продукты, запускаем активити
+        WeightedFoodstuff wf0 = foodstuffs[0].withWeight(100);
+        WeightedFoodstuff wf1 = foodstuffs[1].withWeight(100);
+
+        mainThreadExecutor.execute(() -> {
+            bucketList.add(wf0);
+            bucketList.add(wf1);
+            assertEquals(2, bucketList.getList().size());
+        });
+
+        mActivityRule.launchActivity(null);
+
+        // "Высвайпываем" снекбар
+        onView(withId(R.id.snackbar)).perform(swipeRight());
+        Thread.sleep(500); // Ждем 0.5с, потому что SwipeDismissBehaviour криво уведомляет о высвайпывании
+
+        // Тут же отменяем "высвайпывание"
+        onView(withText(R.string.undo)).perform(click());
+
+        // Убеждаемся, что в бакетлисте по-прежнему есть продукты и снекбар показан
+        onView(withId(R.id.snackbar)).check(matches(isDisplayed()));
+        mainThreadExecutor.execute(() -> {
+            assertEquals(2, bucketList.getList().size());
+        });
     }
 
     @Test

@@ -8,6 +8,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+
+import com.google.android.material.behavior.SwipeDismissBehavior;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -26,9 +31,44 @@ public class SelectedFoodstuffsSnackbar {
     private TextView selectedFoodstuffsCounter;
     private List<WeightedFoodstuff> selectedFoodstuffs = new ArrayList<>();
 
+    @Nullable
+    private Runnable onDismissListener;
+
     public SelectedFoodstuffsSnackbar(View fragmentView) {
         snackbarLayout = fragmentView.findViewById(R.id.snackbar);
         selectedFoodstuffsCounter = fragmentView.findViewById(R.id.selected_foodstuffs_counter);
+
+        // Настраиваем "высвайпываемость" снекбара
+        SwipeDismissBehavior<View> swipeDismissBehavior = new SwipeDismissBehavior<>();
+        swipeDismissBehavior.setSwipeDirection(SwipeDismissBehavior.SWIPE_DIRECTION_ANY);
+
+        // Задаём behaviour в часть снекбара, которая позволяет себя "высвайпывать" (swipeable_snackbar_part)
+        CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams)
+                snackbarLayout.findViewById(R.id.swipeable_snackbar_part).getLayoutParams();
+        params.setBehavior(swipeDismissBehavior);
+
+        // Задаём слушателя "высвайпывания"
+        swipeDismissBehavior.setListener(new SwipeDismissBehaviourListener() {
+            @Override
+            public void onDismiss(View view) {
+                // Сбрасываем состояние "высвайпности" (https://stackoverflow.com/a/40193547)
+                CoordinatorLayout.LayoutParams swipedParams =
+                        (CoordinatorLayout.LayoutParams) view.getLayoutParams();
+                swipedParams.setMargins(0, 0, 0, 0);
+                view.requestLayout();
+                view.setAlpha(1.0f);
+                // Прячем основной леяут снекбара так же, как это делается в методе hide
+                // (чтобы снекбар потом нормально показался через вызов метода show)
+                snackbarLayout.setVisibility(View.INVISIBLE);
+                snackbarLayout.setTranslationY(getParentHeight());
+                isShown = false;
+
+                // Уведомляем о "высвайпывании"
+                if (onDismissListener != null) {
+                    onDismissListener.run();
+                }
+            }
+        });
     }
 
     public void show() {
@@ -101,7 +141,15 @@ public class SelectedFoodstuffsSnackbar {
     }
 
     public void setOnBasketClickRunnable(Runnable runnable) {
-        snackbarLayout.setOnClickListener(v -> runnable.run());
+        // "Высвайпываемая" часть снекбара уже ждёт жеста свайпа, поэтому вешаем на неё ещё
+        // и слушателя кликов - если 2 разные вьюшки в иерархии будут ждать 2 разных жестов,
+        // они будут конфликтовать за них.
+        snackbarLayout.findViewById(R.id.swipeable_snackbar_part)
+                .setOnClickListener(v -> runnable.run());
+    }
+
+    public void setOnDismissListener(Runnable dismissListener) {
+        this.onDismissListener = dismissListener;
     }
 
     public List<WeightedFoodstuff> getSelectedFoodstuffs() {

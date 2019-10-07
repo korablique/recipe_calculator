@@ -57,7 +57,8 @@
     <string name="new_foodstuff">Новый продукт</string>
     <string name="nutrition_per_100_g">Белки, жиры и углеводы указаны на 100 г</string>
     <string name="undo">Отмена</string>
-    <string name="deleted">Продукт удалён</string>
+    <string name="foodstuff_deleted">Продукт удалён</string>
+    <string name="foodstuffs_deleted">Продукты удалёны</string>
     <string name="change_foodstuff">Изменить продукт</string>
     <string name="search_results">Результаты поиска \"%s\"</string>
     <string name="add_new_foodstuff">Добавить новый продукт</string>

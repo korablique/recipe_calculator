@@ -147,8 +147,9 @@ public class BucketListActivity extends BaseActivity {
                 updateNutritionWrappers(adapter.getItems(), newWeight);
 
                 Snackbar snackbar = Snackbar.make(foodstuffsListRecyclerView,
-                        R.string.deleted, Snackbar.LENGTH_SHORT);
+                        R.string.foodstuff_deleted, Snackbar.LENGTH_SHORT);
                 snackbar.setAction(R.string.undo, v -> {
+                    bucketList.add(deleting);
                     adapter.addItem(deleting, position);
                     totalWeightEditText.setText(toDecimalString(newWeight + deleting.getWeight()));
                     updateNutritionWrappers(adapter.getItems(), newWeight + deleting.getWeight());
