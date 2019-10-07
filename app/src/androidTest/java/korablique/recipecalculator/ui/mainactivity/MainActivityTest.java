@@ -2,22 +2,18 @@ package korablique.recipecalculator.ui.mainactivity;
 
 import android.app.Activity;
 import android.app.Instrumentation;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.view.View;
 import android.widget.DatePicker;
 import android.widget.ProgressBar;
 
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Lifecycle;
 import androidx.test.espresso.Espresso;
 import androidx.test.espresso.action.ViewActions;
 import androidx.test.espresso.contrib.PickerActions;
 import androidx.test.espresso.matcher.BoundedMatcher;
 import androidx.test.filters.LargeTest;
 import androidx.test.platform.app.InstrumentationRegistry;
-import androidx.test.rule.ActivityTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.github.mikephil.charting.charts.LineChart;
@@ -29,38 +25,18 @@ import org.hamcrest.Matcher;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import korablique.recipecalculator.R;
-import korablique.recipecalculator.RequestCodes;
-import korablique.recipecalculator.base.ActivityCallbacks;
-import korablique.recipecalculator.base.BaseActivity;
-import korablique.recipecalculator.base.BaseFragment;
-import korablique.recipecalculator.base.CurrentActivityProvider;
-import korablique.recipecalculator.base.FragmentCallbacks;
-import korablique.recipecalculator.base.RxFragmentSubscriptions;
-import korablique.recipecalculator.base.executors.ComputationThreadsExecutor;
-import korablique.recipecalculator.base.executors.MainThreadExecutor;
-import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.FoodstuffsList;
-import korablique.recipecalculator.database.HistoryWorker;
-import korablique.recipecalculator.database.UserParametersWorker;
-import korablique.recipecalculator.database.room.DatabaseHolder;
 import korablique.recipecalculator.model.Foodstuff;
-import korablique.recipecalculator.model.FoodstuffsTopList;
 import korablique.recipecalculator.model.Formula;
-import korablique.recipecalculator.model.FullName;
 import korablique.recipecalculator.model.Gender;
 import korablique.recipecalculator.model.GoalCalculator;
 import korablique.recipecalculator.model.Lifestyle;
@@ -69,29 +45,9 @@ import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.model.PopularProductsUtils;
 import korablique.recipecalculator.model.RateCalculator;
 import korablique.recipecalculator.model.Rates;
-import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.model.WeightedFoodstuff;
-import korablique.recipecalculator.session.SessionController;
-import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
-import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
-import korablique.recipecalculator.ui.mainactivity.history.HistoryController;
-import korablique.recipecalculator.ui.mainactivity.history.HistoryFragment;
-import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenCardController;
-import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenController;
-import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenFragment;
-import korablique.recipecalculator.ui.mainactivity.mainscreen.SearchResultsFragment;
-import korablique.recipecalculator.ui.mainactivity.mainscreen.UpFABController;
-import korablique.recipecalculator.ui.mainactivity.profile.NewMeasurementsDialog;
-import korablique.recipecalculator.ui.mainactivity.profile.ProfileController;
-import korablique.recipecalculator.ui.mainactivity.profile.ProfileFragment;
-import korablique.recipecalculator.util.InjectableActivityTestRule;
-import korablique.recipecalculator.util.InstantComputationsThreadsExecutor;
-import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
-import korablique.recipecalculator.util.SessionTestingHelper;
-import korablique.recipecalculator.util.SyncMainThreadExecutor;
-import korablique.recipecalculator.util.TestingTimeProvider;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
@@ -125,161 +81,10 @@ import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
-import static org.mockito.Mockito.mock;
 
 @RunWith(AndroidJUnit4.class)
 @LargeTest
-public class MainActivityTest {
-    private DatabaseThreadExecutor databaseThreadExecutor = new InstantDatabaseThreadExecutor();
-    private ComputationThreadsExecutor computationThreadsExecutor =
-            new InstantComputationsThreadsExecutor();
-    private MainThreadExecutor mainThreadExecutor = new SyncMainThreadExecutor();
-    private DatabaseHolder databaseHolder;
-    private DatabaseWorker databaseWorker;
-    private HistoryWorker historyWorker;
-    private UserParametersWorker userParametersWorker;
-    private FoodstuffsList foodstuffsList;
-    private FoodstuffsTopList topList;
-    private Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-    private Foodstuff[] foodstuffs;
-    private List<Long> foodstuffsIds = new ArrayList<>();
-    private BucketList bucketList = BucketList.getInstance();
-    private UserParameters userParameters;
-    private UserNameProvider userNameProvider;
-    private TestingTimeProvider timeProvider;
-    private MainActivityFragmentsController fragmentsController;
-    private MainActivitySelectedDateStorage mainActivitySelectedDateStorage;
-    private CurrentActivityProvider currentActivityProvider;
-    private SessionController sessionController;
-
-    @Rule
-    public ActivityTestRule<MainActivity> mActivityRule =
-            InjectableActivityTestRule.forActivity(MainActivity.class)
-                .withManualStart()
-                .withSingletones(() -> {
-                    databaseHolder = new DatabaseHolder(context, databaseThreadExecutor);
-                    databaseWorker = new DatabaseWorker(
-                            databaseHolder, mainThreadExecutor, databaseThreadExecutor);
-                    historyWorker = new HistoryWorker(
-                            databaseHolder, mainThreadExecutor, databaseThreadExecutor);
-                    userParametersWorker = new UserParametersWorker(
-                            databaseHolder, mainThreadExecutor, databaseThreadExecutor);
-                    foodstuffsList = new FoodstuffsList(
-                            databaseWorker, mainThreadExecutor, computationThreadsExecutor);
-                    topList = new FoodstuffsTopList(historyWorker);
-                    userNameProvider = new UserNameProvider(context);
-                    timeProvider = new TestingTimeProvider();
-                    currentActivityProvider = new CurrentActivityProvider();
-                    sessionController = new SessionController(context, timeProvider, currentActivityProvider);
-                    return Arrays.asList(databaseWorker, historyWorker, userParametersWorker,
-                            foodstuffsList, databaseHolder, userNameProvider,
-                            timeProvider, currentActivityProvider, sessionController);
-                })
-                .withActivityScoped((injectionTarget) -> {
-                    if (!(injectionTarget instanceof MainActivity)) {
-                        return Collections.emptyList();
-                    }
-                    MainActivity activity = (MainActivity) injectionTarget;
-                    ActivityCallbacks activityCallbacks = activity.getActivityCallbacks();
-                    mainActivitySelectedDateStorage = new MainActivitySelectedDateStorage(
-                            activity, activityCallbacks, sessionController, timeProvider);
-                    fragmentsController = new MainActivityFragmentsController(
-                            activity, sessionController, activityCallbacks);
-                    MainActivityController controller = new MainActivityController(
-                            activity, activityCallbacks, fragmentsController);
-                    return Collections.singletonList(controller);
-                })
-                .withFragmentScoped((injectionTarget -> {
-                    if (injectionTarget instanceof NewMeasurementsDialog) {
-                        return Collections.emptyList();
-                    }
-
-                    BaseFragment fragment = (BaseFragment) injectionTarget;
-                    FragmentCallbacks fragmentCallbacks = fragment.getFragmentCallbacks();
-                    RxFragmentSubscriptions subscriptions = new RxFragmentSubscriptions(fragmentCallbacks);
-                    BaseActivity activity = (BaseActivity) fragment.getActivity();
-                    Lifecycle lifecycle = activity.getLifecycle();
-                    MainScreenCardController cardController = new MainScreenCardController(
-                            activity, fragment, fragmentCallbacks, lifecycle, foodstuffsList);
-                    if (fragment instanceof MainScreenFragment) {
-                        MainScreenController mainScreenController = new MainScreenController(
-                                activity, fragment, fragmentCallbacks,
-                                activity.getActivityCallbacks(), topList, foodstuffsList,
-                                mainActivitySelectedDateStorage, cardController);
-                        UpFABController upFABController = new UpFABController(fragmentCallbacks);
-                        return Arrays.asList(subscriptions, mainScreenController, upFABController,
-                                cardController);
-
-                    } else if (fragment instanceof ProfileFragment) {
-                        ProfileController profileController = new ProfileController(
-                                fragment, fragmentCallbacks, userParametersWorker, subscriptions,
-                                userNameProvider,
-                                timeProvider);
-                        return Arrays.asList(subscriptions, profileController);
-                    } else if (fragment instanceof HistoryFragment) {
-                        HistoryController historyController = new HistoryController(
-                                activity, fragment, fragmentCallbacks, historyWorker,
-                                userParametersWorker, subscriptions, timeProvider,
-                                fragmentsController, mainActivitySelectedDateStorage);
-                        return Arrays.asList(subscriptions, historyController);
-                    } else if (fragment instanceof SearchResultsFragment) {
-                        return Arrays.asList(databaseWorker, lifecycle, activity,
-                                foodstuffsList, subscriptions, cardController);
-                    } else {
-                        throw new IllegalStateException("There is no such fragment class");
-                    }
-                }))
-                .build();
-
-    @Before
-    public void setUp() {
-        databaseHolder.getDatabase().clearAllTables();
-
-        mainThreadExecutor.execute(() -> {
-            bucketList.clear();
-        });
-
-        foodstuffs = new Foodstuff[7];
-        foodstuffs[0] = Foodstuff.withName("apple").withNutrition(1, 1, 1, 1);
-        foodstuffs[1] = Foodstuff.withName("pineapple").withNutrition(1, 1, 1, 1);
-        foodstuffs[2] = Foodstuff.withName("plum").withNutrition(1, 1, 1, 1);
-        foodstuffs[3] = Foodstuff.withName("water").withNutrition(1, 1, 1, 1);
-        foodstuffs[4] = Foodstuff.withName("soup").withNutrition(1, 1, 1, 1);
-        foodstuffs[5] = Foodstuff.withName("bread").withNutrition(1, 1, 1, 1);
-        foodstuffs[6] = Foodstuff.withName("banana").withNutrition(1, 1, 1, 1);
-
-        databaseWorker.saveGroupOfFoodstuffs(foodstuffs, (ids) -> {
-            foodstuffsIds.addAll(ids);
-        });
-
-        NewHistoryEntry[] newEntries = new NewHistoryEntry[10];
-        // 1 day: apple, bread, banana
-        newEntries[0] = new NewHistoryEntry(foodstuffsIds.get(0), 100, new Date(118, 0, 1));
-        newEntries[1] = new NewHistoryEntry(foodstuffsIds.get(5), 100, new Date(118, 0, 1));
-        newEntries[2] = new NewHistoryEntry(foodstuffsIds.get(6), 100, new Date(118, 0, 1));
-        // 2 day: apple, water
-        newEntries[3] = new NewHistoryEntry(foodstuffsIds.get(0), 100, new Date(118, 0, 2));
-        newEntries[4] = new NewHistoryEntry(foodstuffsIds.get(3), 100, new Date(118, 0, 2));
-        // 3 day: bread, soup
-        newEntries[5] = new NewHistoryEntry(foodstuffsIds.get(5), 100, new Date(118, 0, 3));
-        newEntries[6] = new NewHistoryEntry(foodstuffsIds.get(4), 100, new Date(118, 0, 3));
-        // 4 day: apple, pineapple, water
-        newEntries[7] = new NewHistoryEntry(foodstuffsIds.get(0), 100, new Date(118, 0, 1));
-        newEntries[8] = new NewHistoryEntry(foodstuffsIds.get(1), 100, new Date(118, 0, 1));
-        newEntries[9] = new NewHistoryEntry(foodstuffsIds.get(3), 100, new Date(118, 0, 1));
-        historyWorker.saveGroupOfFoodstuffsToHistory(newEntries);
-
-        // сохраняем userParameters в БД
-        userParameters = new UserParameters(45, Gender.FEMALE, new LocalDate(1993, 9, 27),
-                158, 48, Lifestyle.PASSIVE_LIFESTYLE, Formula.HARRIS_BENEDICT, timeProvider.nowUtc().getMillis());
-        userParametersWorker.saveUserParameters(userParameters);
-
-        FullName fullName = new FullName("Yulia", "Zhilyaeva");
-        userNameProvider.saveUserName(fullName);
-
-        // каждый тест должен сам сделать launchActivity()
-    }
-
+public class MainActivityTest extends MainActivityTestsBase {
     @Test
     public void topHeaderDoNotDisplayedIfHistoryIsEmpty() {
         databaseHolder.getDatabase().clearAllTables();
@@ -1189,132 +994,6 @@ public class MainActivityTest {
 
         // Продукт должен появиться на экране в топе
         onView(withText(newFoodstuff.getName())).check(matches(isDisplayed()));
-    }
-
-    @Test
-    public void checkActiveFragment_afterRestart_WithoutSessionChange() {
-        mActivityRule.launchActivity(null);
-        // профиль
-        onView(withId(R.id.menu_item_profile)).perform(click());
-        onView(withId(R.id.fragment_profile)).check(matches(isDisplayed()));
-
-        // Рестарт
-        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
-        instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
-
-        // Должен быть всё ещё показан профиль
-        onView(withId(R.id.fragment_profile)).check(matches(isDisplayed()));
-    }
-
-    @Test
-    public void checkActiveFragment_afterRestart_WithSessionChange() {
-        SessionTestingHelper.testSessionWith(mActivityRule, timeProvider, currentActivityProvider)
-                .withFirstSession(() -> {
-                    mActivityRule.launchActivity(null);
-                    // профиль
-                    onView(withId(R.id.menu_item_profile)).perform(click());
-                    onView(withId(R.id.fragment_profile)).check(matches(isDisplayed()));
-                })
-                .withSecondSession(() -> {
-                    // Должен быть показан главный экран, т.к. прошла сессия
-                    onView(withId(R.id.fragment_profile)).check(matches(not(isDisplayed())));
-                    onView(withId(R.id.fragment_main_screen)).check(matches(isDisplayed()));
-                })
-                .performActivityRecreation();
-    }
-
-    @Test
-    public void checkActiveFragment_afterStopAndStart_WithSessionChange() {
-        SessionTestingHelper.testSessionWith(mActivityRule, timeProvider, currentActivityProvider)
-                .withFirstSession(() -> {
-                    mActivityRule.launchActivity(null);
-                    // профиль
-                    onView(withId(R.id.menu_item_profile)).perform(click());
-                    onView(withId(R.id.fragment_profile)).check(matches(isDisplayed()));
-                })
-                .withSecondSession(() -> {
-                    // Должен быть показан главный экран, т.к. прошла сессия
-                    onView(withId(R.id.fragment_profile)).check(matches(not(isDisplayed())));
-                    onView(withId(R.id.fragment_main_screen)).check(matches(isDisplayed()));
-                })
-                .performActivityStopAndStart();
-    }
-
-    @Test
-    public void checkMainScreenSelectedDate_afterRestart_withoutSessionChange() {
-        mActivityRule.launchActivity(null);
-        onView(withId(R.id.menu_item_history)).perform(click());
-
-        // проверяем, что на сегодняшней дате кнопки "Сегодня" нет
-        onView(withId(R.id.return_for_today_button)).check(matches(not(isDisplayed())));
-
-        // открываем другую дату и проверяем, что кнопка появилась
-        DateTime anotherDate = timeProvider.now().minusDays(10);
-        onView(withId(R.id.calendar_button)).perform(click());
-        onView(withClassName(equalTo(DatePicker.class.getName())))
-                .perform(PickerActions.setDate(
-                        anotherDate.getYear(), anotherDate.getMonthOfYear(), anotherDate.getDayOfMonth()));
-        onView(withId(android.R.id.button1)).perform(click());
-        onView(withId(R.id.return_for_today_button)).check(matches(isDisplayed()));
-
-        // Рестарт
-        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
-        instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
-
-        // Кнопка всё ещё должна быть на экране
-        onView(withId(R.id.return_for_today_button)).check(matches(isDisplayed()));
-    }
-
-    @Test
-    public void checkMainScreenSelectedDate_afterRestart_withSessionChange() {
-        SessionTestingHelper.testSessionWith(mActivityRule, timeProvider, currentActivityProvider)
-                .withFirstSession(() -> {
-                    mActivityRule.launchActivity(null);
-                    onView(withId(R.id.menu_item_history)).perform(click());
-
-                    // проверяем, что на сегодняшней дате кнопки "Сегодня" нет
-                    onView(withId(R.id.return_for_today_button)).check(matches(not(isDisplayed())));
-
-                    // открываем другую дату и проверяем, что кнопка появилась
-                    DateTime anotherDate = timeProvider.now().minusDays(10);
-                    onView(withId(R.id.calendar_button)).perform(click());
-                    onView(withClassName(equalTo(DatePicker.class.getName())))
-                            .perform(PickerActions.setDate(
-                                    anotherDate.getYear(), anotherDate.getMonthOfYear(), anotherDate.getDayOfMonth()));
-                    onView(withId(android.R.id.button1)).perform(click());
-                    onView(withId(R.id.return_for_today_button)).check(matches(isDisplayed()));
-                })
-                .withSecondSession(() -> {
-                    // Кнопка должна пропасть с экрана, т.к. новая сессия
-                    onView(withId(R.id.return_for_today_button)).check(matches(not(isDisplayed())));
-                })
-                .performActivityRecreation();
-    }
-
-    @Test
-    public void checkMainScreenSelectedDate_afterStopAndStart_withSessionChange() {
-        SessionTestingHelper.testSessionWith(mActivityRule, timeProvider, currentActivityProvider)
-                .withFirstSession(() -> {
-                    mActivityRule.launchActivity(null);
-                    onView(withId(R.id.menu_item_history)).perform(click());
-
-                    // проверяем, что на сегодняшней дате кнопки "Сегодня" нет
-                    onView(withId(R.id.return_for_today_button)).check(matches(not(isDisplayed())));
-
-                    // открываем другую дату и проверяем, что кнопка появилась
-                    DateTime anotherDate = timeProvider.now().minusDays(10);
-                    onView(withId(R.id.calendar_button)).perform(click());
-                    onView(withClassName(equalTo(DatePicker.class.getName())))
-                            .perform(PickerActions.setDate(
-                                    anotherDate.getYear(), anotherDate.getMonthOfYear(), anotherDate.getDayOfMonth()));
-                    onView(withId(android.R.id.button1)).perform(click());
-                    onView(withId(R.id.return_for_today_button)).check(matches(isDisplayed()));
-                })
-                .withSecondSession(() -> {
-                    // Кнопка должна пропасть с экрана, т.к. новая сессия
-                    onView(withId(R.id.return_for_today_button)).check(matches(not(isDisplayed())));
-                })
-                .performActivityStopAndStart();
     }
 
     @Test
