@@ -22,6 +22,7 @@ import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
+import korablique.recipecalculator.ui.TwoOptionsDialog;
 import korablique.recipecalculator.ui.numbersediting.EditProgressText;
 import korablique.recipecalculator.ui.numbersediting.EditProgressTextCommonMaxController;
 import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
@@ -32,6 +33,7 @@ import static korablique.recipecalculator.ui.card.Card.EDITED_FOODSTUFF;
 public class EditFoodstuffActivity extends BaseActivity {
     public static final String EDIT_FOODSTUFF_ACTION = "EDIT_FOODSTUFF_ACTION";
     public static final String EXTRA_RESULT_FOODSTUFF = "EXTRA_RESULT_FOODSTUFF";
+    public static final String ARE_YOU_SURE_DIALOG_TAG = "ARE_YOU_SURE_DIALOG_TAG";
     @Inject
     FoodstuffsList foodstuffsList;
     private PluralProgressBar pluralProgressBar;
@@ -120,11 +122,18 @@ public class EditFoodstuffActivity extends BaseActivity {
             View deleteButton = findViewById(R.id.button_delete);
             deleteButton.setVisibility(View.VISIBLE);
             deleteButton.setOnClickListener(v -> {
-                foodstuffsList.deleteFoodstuff(editingFoodstuff);
-                Intent intent = createResultIntent(null);
-                setResult(RESULT_OK, intent);
-                finish();
+                TwoOptionsDialog dialog = TwoOptionsDialog.showDialog(
+                        getSupportFragmentManager(),
+                        ARE_YOU_SURE_DIALOG_TAG,
+                        getString(R.string.foodstuff_deletion_are_you_sure_dialog_title),
+                        getString(R.string.foodstuff_deletion_are_you_sure_positive_response),
+                        getString(R.string.foodstuff_deletion_are_you_sure_negative_response));
+                initDeletionDialog(dialog, editingFoodstuff);
             });
+            TwoOptionsDialog dialog = TwoOptionsDialog.findDialog(getSupportFragmentManager(), ARE_YOU_SURE_DIALOG_TAG);
+            if (dialog != null) {
+                initDeletionDialog(dialog, editingFoodstuff);
+            }
 
             saveButton.setOnClickListener(v -> {
                 Foodstuff editedFoodstuff = parseFoodstuff();
@@ -158,6 +167,19 @@ public class EditFoodstuffActivity extends BaseActivity {
                 });
             });
         }
+    }
+
+    private void initDeletionDialog(TwoOptionsDialog dialog, Foodstuff editingFoodstuff) {
+        dialog.setOnButtonsClickListener(buttonName -> {
+            if (buttonName == TwoOptionsDialog.ButtonName.POSITIVE) {
+                foodstuffsList.deleteFoodstuff(editingFoodstuff);
+                Intent intent = createResultIntent(null);
+                setResult(RESULT_OK, intent);
+                finish();
+            } else {
+                dialog.dismiss();
+            }
+        });
     }
 
     public static void startForCreation(

@@ -228,20 +228,54 @@ public class MainActivityTest extends MainActivityTestsBase {
                 .perform(click());
         onView(withId(R.id.button_edit)).perform(click());
         onView(withId(R.id.button_delete)).perform(click());
+        onView(withId(R.id.positive_button)).perform(click());
         onView(withText(deletingFoodstuff.getName())).check(doesNotExist());
 
         List<Foodstuff> foodstuffsListAfterDeleting = new ArrayList<>();
-        databaseWorker.requestListedFoodstuffsFromDb(100, new DatabaseWorker.FoodstuffsBatchReceiveCallback() {
-            @Override
-            public void onReceive(List<Foodstuff> foodstuffs) {
-                foodstuffsListAfterDeleting.addAll(foodstuffs);
-            }
+        databaseWorker.requestListedFoodstuffsFromDb(100, foodstuffs -> {
+            foodstuffsListAfterDeleting.addAll(foodstuffs);
         });
         Assert.assertFalse(foodstuffsListAfterDeleting.contains(deletingFoodstuff));
 
+        // Recreate activity and check again
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
         instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
         onView(withText(deletingFoodstuff.getName())).check(doesNotExist());
+    }
+
+
+    @Test
+    public void foodstuffDeletionCancellationWorks() {
+        mActivityRule.launchActivity(null);
+
+        Foodstuff deletingFoodstuff = Foodstuff
+                .withId(foodstuffsIds.get(0))
+                .withName(foodstuffs[0].getName())
+                .withNutrition(Nutrition.of100gramsOf(foodstuffs[0]));
+        onView(allOf(
+                withText(deletingFoodstuff.getName()),
+                matches(isCompletelyBelow(withText(R.string.all_foodstuffs_header)))))
+                .perform(click());
+        onView(withId(R.id.button_edit)).perform(click());
+        onView(withId(R.id.button_delete)).perform(click());
+
+        // Cancel deletion!
+        onView(withId(R.id.negative_button)).perform(click());
+        // Return to main screen
+        onView(isRoot()).perform(ViewActions.pressBack());
+
+        onView(withText(deletingFoodstuff.getName())).check(matches(isDisplayed()));
+
+        List<Foodstuff> foodstuffsListAfterDeleting = new ArrayList<>();
+        databaseWorker.requestListedFoodstuffsFromDb(100, foodstuffs -> {
+            foodstuffsListAfterDeleting.addAll(foodstuffs);
+        });
+        Assert.assertTrue(foodstuffsListAfterDeleting.contains(deletingFoodstuff));
+
+        // Recreate activity and check again
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
+        onView(withText(deletingFoodstuff.getName())).check(matches(isDisplayed()));
     }
 
     @Test

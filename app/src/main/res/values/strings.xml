@@ -132,6 +132,10 @@
     <string name="privacy_policy">Политика\nконфиденциальности</string>
     <string name="privacy_policy_address">https://docs.google.com/document/d/1H2mWhrd1rBVvFluqyf6SI2zsWqFnXbMrnnHas_zf9z0</string>
 
+    <string name="foodstuff_deletion_are_you_sure_dialog_title">Вы уверены?</string>
+    <string name="foodstuff_deletion_are_you_sure_positive_response">Удалить</string>
+    <string name="foodstuff_deletion_are_you_sure_negative_response">Отмена</string>
+
     <string-array name="gender_array">
         <item name="not_selected">—</item>
         <item name="male">Мужской</item>
