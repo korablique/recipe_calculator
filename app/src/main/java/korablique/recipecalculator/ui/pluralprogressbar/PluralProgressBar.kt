@@ -7,7 +7,7 @@ import android.util.AttributeSet
 import android.view.View
 import korablique.recipecalculator.R
 
-class PluralProgressBar : View {
+open class PluralProgressBar : View {
     // Bounds of the view
     private val bounds = RectF()
     // All the colorful bars of this view
@@ -117,6 +117,10 @@ class PluralProgressBar : View {
     }
 
     fun setProgress(vararg progress: Float) {
+        setProgress(progress.toTypedArray())
+    }
+
+    open fun setProgress(progress: Array<Float>) {
         progress.forEachIndexed { index, value ->
             bars[index].progress = value
         }
