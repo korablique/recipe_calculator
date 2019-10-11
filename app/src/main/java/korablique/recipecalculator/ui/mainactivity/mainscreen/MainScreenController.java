@@ -184,7 +184,11 @@ public class MainScreenController
         });
 
         snackbar.setOnBasketClickRunnable(() -> {
-            BucketListActivity.start(new ArrayList<>(snackbar.getSelectedFoodstuffs()), context, selectedDateStorage.getSelectedDate());
+            BucketListActivity.start(
+                    context,
+                    RequestCodes.MAIN_SCREEN_BUCKET_LIST_CREATE_FOODSTUFF,
+                    new ArrayList<>(snackbar.getSelectedFoodstuffs()),
+                    selectedDateStorage.getSelectedDate());
         });
         snackbar.setOnDismissListener(() -> {
             List<WeightedFoodstuff> dismissedFoodstuffs = new ArrayList<>(snackbar.getSelectedFoodstuffs());
@@ -382,9 +386,14 @@ public class MainScreenController
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == RequestCodes.MAIN_SCREEN_CREATE_FOODSTUFF
-                && resultCode == Activity.RESULT_OK) {
+        if (resultCode != Activity.RESULT_OK) {
+            return;
+        }
+        if (requestCode == RequestCodes.MAIN_SCREEN_CREATE_FOODSTUFF) {
             Foodstuff foodstuff = data.getParcelableExtra(EditFoodstuffActivity.EXTRA_RESULT_FOODSTUFF);
+            cardController.showCard(foodstuff);
+        } else if (requestCode == RequestCodes.MAIN_SCREEN_BUCKET_LIST_CREATE_FOODSTUFF) {
+            Foodstuff foodstuff = data.getParcelableExtra(BucketListActivity.EXTRA_CREATED_FOODSTUFF);
             cardController.showCard(foodstuff);
         }
     }
