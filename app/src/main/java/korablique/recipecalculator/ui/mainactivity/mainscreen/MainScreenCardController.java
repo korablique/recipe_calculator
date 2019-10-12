@@ -185,6 +185,7 @@ public class MainScreenCardController extends FragmentCallbacks.Observer {
             case NONE:
                 card.deinitButton1();
                 card.deinitButton2();
+                break;
             case DEFAULT:
                 card.setUpButton1(onAddFoodstuffToRecipeListener, ADD_FOODSTUFF_TO_RECIPE_CARD_TEXT);
                 card.setUpButton2(onAddFoodstuffToHistoryListener, ADD_FOODSTUFF_TO_HISTORY_CARD_TEXT);
