@@ -31,6 +31,12 @@ public class BucketList {
         return Collections.unmodifiableList(bucketList);
     }
 
+    public void add(List<WeightedFoodstuff> wf) {
+        for (WeightedFoodstuff f : wf) {
+            add(f);
+        }
+    }
+
     public void add(WeightedFoodstuff wf) {
         checkCurrentThread();
         bucketList.add(wf);

@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -184,6 +185,16 @@ public class MainScreenController
 
         snackbar.setOnBasketClickRunnable(() -> {
             BucketListActivity.start(new ArrayList<>(snackbar.getSelectedFoodstuffs()), context, selectedDateStorage.getSelectedDate());
+        });
+        snackbar.setOnDismissListener(() -> {
+            List<WeightedFoodstuff> dismissedFoodstuffs = new ArrayList<>(snackbar.getSelectedFoodstuffs());
+            bucketList.clear();
+
+            Snackbar snackbar = Snackbar.make(fragmentView, R.string.foodstuffs_deleted, Snackbar.LENGTH_LONG);
+            snackbar.setAction(R.string.undo, v -> {
+                bucketList.add(dismissedFoodstuffs);
+            });
+            snackbar.show();
         });
 
         adapterParent = new SectionedAdapterParent();
