@@ -1,5 +1,6 @@
 package korablique.recipecalculator.ui.bucketlist;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -42,6 +43,7 @@ import korablique.recipecalculator.util.FloatUtils;
 import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
 
 public class BucketListActivity extends BaseActivity {
+    public static final String EXTRA_CREATED_FOODSTUFF = "EXTRA_CREATED_FOODSTUFF";
     private static final String DISPLAYED_IN_CARD_FOODSTUFF_POSITION = "DISPLAYED_IN_CARD_FOODSTUFF_POSITION";
     @StringRes
     private static final int CARD_BUTTON_TEXT_RES = R.string.save;
@@ -168,6 +170,10 @@ public class BucketListActivity extends BaseActivity {
                         dialog.dismiss();
                     }
                     Toast.makeText(BucketListActivity.this, R.string.saved, Toast.LENGTH_SHORT).show();
+
+                    BucketListActivity.this.setResult(
+                            Activity.RESULT_OK, createFoodstuffResultIntent(foodstuff));
+                    bucketList.clear();
                     BucketListActivity.this.finish();
                 }
 
@@ -184,7 +190,6 @@ public class BucketListActivity extends BaseActivity {
         }
 
         saveAsSingleFoodstuffButton.setOnClickListener((view) -> {
-            bucketList.clear();
             // т.к. вес готового продукта мог быть изменён, получаем его ещё раз
             double resultWeight = Double.parseDouble(totalWeightEditText.getText().toString());
             SaveDishDialog dialog = SaveDishDialog.showDialog(BucketListActivity.this, foodstuffs, resultWeight);
@@ -193,6 +198,12 @@ public class BucketListActivity extends BaseActivity {
 
         View cancelView = findViewById(R.id.button_close);
         cancelView.setOnClickListener(view -> BucketListActivity.this.finish());
+    }
+
+    public static Intent createFoodstuffResultIntent(Foodstuff createdFoodstuff) {
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra(EXTRA_CREATED_FOODSTUFF, createdFoodstuff);
+        return resultIntent;
     }
 
     @Override
@@ -249,24 +260,18 @@ public class BucketListActivity extends BaseActivity {
         }
     }
 
-    public static void start(ArrayList<WeightedFoodstuff> foodstuffs, Context context) {
-        context.startActivity(createStartIntentFor(foodstuffs, context));
-    }
-
     /**
      * @param selectedDate the date on which to save foodstuffs to history
      */
-    public static void start(ArrayList<WeightedFoodstuff> foodstuffs, Context context, LocalDate selectedDate) {
-        context.startActivity(createStartIntentFor(foodstuffs, context, selectedDate));
+    public static void start(
+            Activity context,
+            int requestCode,
+            ArrayList<WeightedFoodstuff> foodstuffs,
+            LocalDate selectedDate) {
+        context.startActivityForResult(createStartIntentFor(context, foodstuffs, selectedDate), requestCode);
     }
 
-    public static Intent createStartIntentFor(List<WeightedFoodstuff> foodstuffs, Context context) {
-        Intent intent = new Intent(context, BucketListActivity.class);
-        intent.putParcelableArrayListExtra(EXTRA_FOODSTUFFS_LIST, new ArrayList<>(foodstuffs));
-        return intent;
-    }
-
-    public static Intent createStartIntentFor(List<WeightedFoodstuff> foodstuffs, Context context, LocalDate date) {
+    public static Intent createStartIntentFor(Context context, List<WeightedFoodstuff> foodstuffs, LocalDate date) {
         Intent intent = new Intent(context, BucketListActivity.class);
         intent.putParcelableArrayListExtra(EXTRA_FOODSTUFFS_LIST, new ArrayList<>(foodstuffs));
         intent.putExtra(EXTRA_DATE, date);

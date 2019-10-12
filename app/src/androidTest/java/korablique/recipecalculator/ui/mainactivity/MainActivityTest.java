@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import korablique.recipecalculator.R;
-import korablique.recipecalculator.database.DatabaseWorker;
+import korablique.recipecalculator.RequestCodes;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Formula;
@@ -177,11 +177,38 @@ public class MainActivityTest extends MainActivityTestsBase {
         // Проверяем, что была попытка стартовать активити по интенту от BucketListActivity,
         // также что этот интент содержит информацию о кликнутых продуктах.
         Intent expectedIntent =
-                BucketListActivity.createStartIntentFor(clickedWeightedFoodstuffs, mActivityRule.getActivity());
+                BucketListActivity.createStartIntentFor(
+                        mActivityRule.getActivity(),
+                        clickedWeightedFoodstuffs,
+                        timeProvider.now().toLocalDate());
         intended(allOf(
                 hasAction(expectedIntent.getAction()),
                 hasComponent(expectedIntent.getComponent()),
                 hasExtras(hasValue(clickedWeightedFoodstuffs))));
+    }
+
+    @Test
+    public void showsCardWhenBucketListActivityCreatesFoodstuff() {
+        mActivityRule.launchActivity(null);
+
+        // Проверяем, что сперва карточка не показана
+        onView(withId(R.id.foodstuff_card_layout)).check(doesNotExist());
+
+        // Создаём продукт и сообщаем Activity, что его создал бакетлист
+        Foodstuff foodstuff = Foodstuff
+                .withName("new_foodstuff_with_new_name")
+                .withNutrition(1, 2, 3, 4);
+        mActivityRule.getActivity().onActivityResult(
+                RequestCodes.MAIN_SCREEN_BUCKET_LIST_CREATE_FOODSTUFF,
+                Activity.RESULT_OK,
+                BucketListActivity.createFoodstuffResultIntent(foodstuff));
+
+        // Убеждаемся, что показана карточка с новым продуктом
+        onView(withId(R.id.foodstuff_card_layout)).check(matches(isDisplayed()));
+        onView(allOf(
+                isDescendantOfA(withId(R.id.foodstuff_card_layout)),
+                withText(containsString("new_foodstuff_with_new_name"))))
+                .check(matches(isDisplayed()));
     }
 
     @Test
@@ -883,7 +910,7 @@ public class MainActivityTest extends MainActivityTestsBase {
 
         // Проверяем, что была попытка стартовать активити по интенту от BucketListActivity
         Intent expectedIntent =
-                BucketListActivity.createStartIntentFor(addedFoodstuffs, mActivityRule.getActivity(), anyDay.toLocalDate());
+                BucketListActivity.createStartIntentFor(mActivityRule.getActivity(), addedFoodstuffs, anyDay.toLocalDate());
         intended(allOf(
                 hasAction(expectedIntent.getAction()),
                 hasComponent(expectedIntent.getComponent()),

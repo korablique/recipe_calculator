@@ -147,7 +147,10 @@ public class BucketListActivityTest {
         foodstuffs.add(Foodstuff.withName("beer").withNutrition(1, 2, 3, 4).withWeight(123));
 
         Intent startIntent =
-                BucketListActivity.createStartIntentFor(foodstuffs, InstrumentationRegistry.getTargetContext());
+                BucketListActivity.createStartIntentFor(
+                        InstrumentationRegistry.getTargetContext(),
+                        foodstuffs,
+                        timeProvider.now().toLocalDate());
         activityRule.launchActivity(startIntent);
 
         onView(withText("apple")).check(matches(isDisplayed()));
@@ -162,7 +165,10 @@ public class BucketListActivityTest {
         ingredients.add(Foodstuff.withName("oil").withNutrition(0, 99.9, 0, 899).withWeight(13));
 
         Intent startIntent =
-                BucketListActivity.createStartIntentFor(ingredients, InstrumentationRegistry.getTargetContext());
+                BucketListActivity.createStartIntentFor(
+                        InstrumentationRegistry.getTargetContext(),
+                        ingredients,
+                        timeProvider.now().toLocalDate());
         activityRule.launchActivity(startIntent);
 
         onView(withId(R.id.save_as_single_foodstuff_button)).perform(click());
@@ -175,5 +181,26 @@ public class BucketListActivityTest {
                 DatabaseWorker.NO_LIMIT);
 
         Assert.assertEquals(1, foodstuffs.blockingGet().size());
+    }
+
+    @Test
+    public void setsActivityResultWhenSavesDish() {
+        ArrayList<WeightedFoodstuff> ingredients = new ArrayList<>();
+        ingredients.add(Foodstuff.withName("carrot").withNutrition(1, 2, 3, 4).withWeight(310));
+
+        Intent startIntent =
+                BucketListActivity.createStartIntentFor(
+                        InstrumentationRegistry.getTargetContext(),
+                        ingredients,
+                        timeProvider.now().toLocalDate());
+        activityRule.launchActivity(startIntent);
+
+        onView(withId(R.id.save_as_single_foodstuff_button)).perform(click());
+        onView(withId(R.id.dish_name_edit_text)).perform(typeText("new super carrot"), closeSoftKeyboard());
+        onView(withId(R.id.save_button)).perform(click());
+
+        Intent resultIntent = activityRule.getActivityResult().getResultData();
+        Foodstuff resultDish = resultIntent.getParcelableExtra(BucketListActivity.EXTRA_CREATED_FOODSTUFF);
+        Assert.assertEquals("new super carrot", resultDish.getName());
     }
 }

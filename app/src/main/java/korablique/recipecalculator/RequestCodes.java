@@ -8,4 +8,5 @@ public class RequestCodes {
     public static final int MAIN_SCREEN_CREATE_FOODSTUFF = 1;
     public static final int MAIN_SCREEN_CARD_EDIT_FOODSTUFF = 2;
     public static final int MAIN_SCREEN_SEARCH_RESULTS_CREATE_FOODSTUFF = 3;
+    public static final int MAIN_SCREEN_BUCKET_LIST_CREATE_FOODSTUFF = 4;
 }
