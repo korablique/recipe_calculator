@@ -49,7 +49,7 @@
     <string name="channel_name">Напоминание о приеме пищи</string>
     <string name="save_as_dish">Сохранить как блюдо</string>
     <string name="add_to_history">Добавить в журнал</string>
-    <string name="selected_foodstuffs_summary">Всего из списка продуктов</string>
+    <string name="selected_foodstuffs_summary">Всего из списка продуктов (на 100 г)</string>
     <string name="name">Название</string>
     <string name="saved">Сохранено</string>
     <string name="foodstuff_already_exists">Такой продукт уже существует</string>
