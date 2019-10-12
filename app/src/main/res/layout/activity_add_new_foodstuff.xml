@@ -45,6 +45,8 @@
             android:layout_height="wrap_content"
             android:inputType="textCapSentences"
             app:layout_constraintTop_toBottomOf="@+id/row_fake_top_1"
+            android:layout_marginTop="8dp"
+            android:nextFocusDown="@+id/protein_value"
             tools:text="Чечевица" />
 
         <View
@@ -91,6 +93,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/row_fake_top_2"
             app:layout_constraintWidth_percent="0.5"
+            android:nextFocusDown="@+id/fats_value"
             custom:color_underline_filled="@color/colorProtein"
             custom:max_value="100"
             tools:text="17" />
@@ -131,6 +134,7 @@
             app:layout_constraintStart_toEndOf="@id/protein_value"
             app:layout_constraintTop_toBottomOf="@id/row_fake_top_2"
             app:layout_constraintWidth_percent="0.5"
+            android:nextFocusDown="@+id/carbs_value"
             custom:color_underline_filled="@color/colorFats"
             custom:max_value="100"
             tools:text="2" />
@@ -179,6 +183,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/row_fake_top_3"
             app:layout_constraintWidth_percent="0.5"
+            android:nextFocusDown="@+id/calories_value"
             custom:color_underline_filled="#FF5768E9"
             custom:max_value="100"
             tools:text="68" />
@@ -204,32 +209,36 @@
             app:layout_constraintStart_toEndOf="@id/carbs_value"
             app:layout_constraintTop_toBottomOf="@id/row_fake_top_3"
             app:layout_constraintWidth_percent="0.5"
+            android:imeOptions="actionDone"
             android:maxLength="5"
             tools:text="17" />
 
         <TextView
+            android:id="@+id/progress_bar_description"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             style="@style/RobotoMonoHintText"
             android:text="@string/nutrition_per_100_g"
-            app:layout_constraintBottom_toTopOf="@id/new_nutrition_progress_bar"
+            app:layout_constraintTop_toBottomOf="@id/calories_value"
+            android:layout_marginTop="8dp"
             android:layout_marginBottom="10dp"
             android:layout_marginStart="9dp"
             android:layout_marginEnd="9dp" />
 
-        <korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar
+        <korablique.recipecalculator.ui.pluralprogressbar.AnimatedPluralProgressBar
             android:id="@+id/new_nutrition_progress_bar"
             android:layout_width="match_parent"
             android:layout_height="30dp"
             android:layout_marginBottom="20dp"
             android:layout_marginStart="9dp"
             android:layout_marginEnd="9dp"
+            android:layout_marginTop="4dp"
             custom:color0="@color/colorProtein"
             custom:color1="@color/colorFats"
             custom:color2="@color/colorCarbs"
             custom:corners_radii="10dp"
             custom:background_bar_color="#EFF1F6"
-            app:layout_constraintBottom_toTopOf="@+id/save_button"
+            app:layout_constraintTop_toBottomOf="@+id/progress_bar_description"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
