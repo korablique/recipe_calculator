@@ -140,6 +140,19 @@ public class Card {
         button.setVisibility(View.VISIBLE);
     }
 
+    public void deinitButton1() {
+        deinitMainButton(button1);
+    }
+
+    public void deinitButton2() {
+        deinitMainButton(button2);
+    }
+
+    private void deinitMainButton(Button button) {
+        button.setOnClickListener(null);
+        button.setVisibility(View.GONE);
+    }
+
     private WeightedFoodstuff extractWeightedFoodstuff() {
         String weightText = weightEditText.getText().toString();
         if (TextUtils.isEmpty(weightText)) {

@@ -18,6 +18,7 @@ import korablique.recipecalculator.base.TimeProvider;
 import korablique.recipecalculator.dagger.FragmentScope;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.KeyboardHandler;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.card.Card;
@@ -28,6 +29,11 @@ import static android.app.Activity.RESULT_OK;
 
 @FragmentScope
 public class MainScreenCardController extends FragmentCallbacks.Observer {
+    private enum CardMode {
+        NONE, // Пустой режим для непроинициализированной карточки
+        DEFAULT, // Режим по-умолчанию, в карточке обе кнопки
+        DISH_CREATION // Режим создания блюда, в карточке только кнопка добавления блюда
+    }
     @StringRes
     private static final int ADD_FOODSTUFF_TO_RECIPE_CARD_TEXT = R.string.add_foodstuff_to_recipe;
     @StringRes
@@ -38,9 +44,26 @@ public class MainScreenCardController extends FragmentCallbacks.Observer {
     private final BucketList bucketList;
     private final HistoryWorker historyWorker;
     private final TimeProvider timeProvider;
+    private final BucketList.Observer bucketListObserver = new BucketList.Observer() {
+        @Override
+        public void onFoodstuffAdded(WeightedFoodstuff wf) {
+            // Первый продукт добавлен в бакетлист
+            if (bucketList.getList().size() == 1) {
+                switchCardMode(CardMode.DISH_CREATION);
+            }
+        }
+        @Override
+        public void onFoodstuffRemoved(WeightedFoodstuff wf) {
+            // Последний продукт удален из бакетлиста
+            if (bucketList.getList().isEmpty()) {
+                switchCardMode(CardMode.DEFAULT);
+            }
+        }
+    };
     private Card.OnMainButtonClickListener onAddFoodstuffToRecipeListener;
     private Card.OnMainButtonClickListener onAddFoodstuffToHistoryListener;
     private Card.OnEditButtonClickListener onEditButtonClickListener;
+    private CardMode currentCardMode = CardMode.NONE;
 
     // Действие, которое нужно выполнить с диалогом после savedInstanceState (показ или скрытие диалога)
     // Поле нужно, чтобы приложение не крешило при показе диалога, когда тот показывается в момент,
@@ -89,13 +112,18 @@ public class MainScreenCardController extends FragmentCallbacks.Observer {
         onEditButtonClickListener = foodstuff -> {
             EditFoodstuffActivity.startForEditing(fragment, foodstuff, RequestCodes.MAIN_SCREEN_CARD_EDIT_FOODSTUFF);
         };
+        bucketList.addObserver(bucketListObserver);
 
-        CardDialog cardDialog = CardDialog.findCard(context);
-        if (cardDialog != null) {
-            cardDialog.setUpButton1(onAddFoodstuffToRecipeListener, ADD_FOODSTUFF_TO_RECIPE_CARD_TEXT);
-            cardDialog.setUpButton2(onAddFoodstuffToHistoryListener, ADD_FOODSTUFF_TO_HISTORY_CARD_TEXT);
-            cardDialog.setOnEditButtonClickListener(onEditButtonClickListener);
+        if (bucketList.getList().isEmpty()) {
+            switchCardMode(CardMode.DEFAULT);
+        } else {
+            switchCardMode(CardMode.DISH_CREATION);
         }
+    }
+
+    @Override
+    public void onFragmentDestroy() {
+        bucketList.removeObserver(bucketListObserver);
     }
 
     @Override
@@ -121,10 +149,7 @@ public class MainScreenCardController extends FragmentCallbacks.Observer {
     public void showCard(Foodstuff foodstuff) {
         dialogAction = () -> {
             CardDialog cardDialog = CardDialog.showCard(context, foodstuff);
-            cardDialog.setUpButton1(onAddFoodstuffToRecipeListener, ADD_FOODSTUFF_TO_RECIPE_CARD_TEXT);
-            cardDialog.setUpButton2(onAddFoodstuffToHistoryListener, ADD_FOODSTUFF_TO_HISTORY_CARD_TEXT);
-            cardDialog.setOnEditButtonClickListener(onEditButtonClickListener);
-            cardDialog.prohibitDeleting(true);
+            setUpCard(cardDialog);
             dialogAction = null;
         };
         if (lifecycle.getCurrentState() == Lifecycle.State.RESUMED) {
@@ -139,6 +164,38 @@ public class MainScreenCardController extends FragmentCallbacks.Observer {
         };
         if (lifecycle.getCurrentState() == Lifecycle.State.RESUMED) {
             dialogAction.run();
+        }
+    }
+
+    private void switchCardMode(CardMode newMode) {
+        if (newMode == currentCardMode) {
+            return;
+        }
+        currentCardMode = newMode;
+        CardDialog cardDialog = CardDialog.findCard(context);
+        if (cardDialog != null) {
+            setUpCard(cardDialog);
+        }
+    }
+
+    private void setUpCard(CardDialog card) {
+        card.setOnEditButtonClickListener(onEditButtonClickListener);
+        card.prohibitDeleting(true);
+        switch (currentCardMode) {
+            case NONE:
+                card.deinitButton1();
+                card.deinitButton2();
+                break;
+            case DEFAULT:
+                card.setUpButton1(onAddFoodstuffToRecipeListener, ADD_FOODSTUFF_TO_RECIPE_CARD_TEXT);
+                card.setUpButton2(onAddFoodstuffToHistoryListener, ADD_FOODSTUFF_TO_HISTORY_CARD_TEXT);
+                break;
+            case DISH_CREATION:
+                card.setUpButton1(onAddFoodstuffToRecipeListener, ADD_FOODSTUFF_TO_RECIPE_CARD_TEXT);
+                card.deinitButton2();
+                break;
+            default:
+                throw new IllegalStateException("Unhandled card mode: " + currentCardMode);
         }
     }
 }

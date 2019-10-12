@@ -1203,6 +1203,64 @@ public class MainActivityTest extends MainActivityTestsBase {
     }
 
     @Test
+    public void mainScreenFoodstuffCard_hidesDirectAdditionToHistory_whenBucketListNotEmpty() {
+        mActivityRule.launchActivity(null);
+
+        // Клик на продукт
+        onView(allOf(
+                withText(foodstuffs[0].getName()),
+                matches(isCompletelyBelow(withText(R.string.all_foodstuffs_header))))).perform(click());
+
+        // Обе кнопки в карточке должны быть видны
+        onView(allOf(
+                isDescendantOfA(withId(R.id.foodstuff_card_layout)),
+                withId(R.id.button1))).check(matches(isDisplayed()));
+        onView(allOf(
+                isDescendantOfA(withId(R.id.foodstuff_card_layout)),
+                withId(R.id.button2))).check(matches(isDisplayed()));
+
+        // Жмём на кнопку создания блюда
+        onView(withId(R.id.weight_edit_text)).perform(replaceText("123"));
+        onView(withId(R.id.button1)).perform(click());
+
+        // Снова клик на продукт
+        onView(allOf(
+                withText(foodstuffs[0].getName()),
+                matches(isCompletelyBelow(withText(R.string.all_foodstuffs_header))))).perform(click());
+
+        // Только кнопка добавления блюда должна быть видна
+        onView(allOf(
+                isDescendantOfA(withId(R.id.foodstuff_card_layout)),
+                withId(R.id.button1))).check(matches(isDisplayed()));
+        onView(allOf(
+                isDescendantOfA(withId(R.id.foodstuff_card_layout)),
+                withId(R.id.button2))).check(matches(not(isDisplayed())));
+
+        // Закрываем карточку
+        onView(allOf(
+                isDescendantOfA(withId(R.id.foodstuff_card_layout)),
+                withId(R.id.button_close))).perform(click());
+
+        // Очищаем бакетлист
+        mainThreadExecutor.execute(() -> {
+            bucketList.clear();
+        });
+
+        // Снова клик на продукт
+        onView(allOf(
+                withText(foodstuffs[0].getName()),
+                matches(isCompletelyBelow(withText(R.string.all_foodstuffs_header))))).perform(click());
+
+        // Обе кнопки в карточке снова должны быть видны
+        onView(allOf(
+                isDescendantOfA(withId(R.id.foodstuff_card_layout)),
+                withId(R.id.button1))).check(matches(isDisplayed()));
+        onView(allOf(
+                isDescendantOfA(withId(R.id.foodstuff_card_layout)),
+                withId(R.id.button2))).check(matches(isDisplayed()));
+    }
+
+    @Test
     public void mainScreenDisplaysCard_afterFoodstuffEditing() {
         mActivityRule.launchActivity(null);
         List<Foodstuff> topFoodstuffs = extractFoodstuffsTopFromDB();
