@@ -81,6 +81,20 @@ public class CardDialog extends BaseBottomDialog {
         }
     }
 
+    public void deinitButton1() {
+        button1ClickListener = null;
+        if (card != null) {
+            card.deinitButton1();
+        }
+    }
+
+    public void deinitButton2() {
+        button2ClickListener = null;
+        if (card != null) {
+            card.deinitButton2();
+        }
+    }
+
     public void setOnEditButtonClickListener(Card.OnEditButtonClickListener listener) {
         onEditButtonClickListener = listener;
         if (card != null) {
