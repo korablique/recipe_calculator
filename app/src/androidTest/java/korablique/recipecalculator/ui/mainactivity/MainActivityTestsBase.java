@@ -132,6 +132,7 @@ public class MainActivityTestsBase {
 
                         if (fragment instanceof MainScreenFragment) {
                             MainScreenController mainScreenController = new MainScreenController(
+                                    mainThreadExecutor,
                                     activity, fragment, fragmentCallbacks,
                                     activity.getActivityCallbacks(), topList,
                                     foodstuffsList, mainActivitySelectedDateStorage,
