@@ -75,7 +75,7 @@ public class SearchResultsFragment extends BaseFragment implements ActivityCallb
         SearchResultsAdapter adapter = new SearchResultsAdapter(getActivity(), (foodstuff, position) -> {
             CardDialog cardDialog = CardDialog.showCard(getActivity(), foodstuff);
             cardDialog.prohibitEditing(true);
-            cardDialog.setUpAddFoodstuffButton(foodstuff1 -> {
+            cardDialog.setUpButton1(foodstuff1 -> {
                 CardDialog.hideCard(getActivity());
                 BucketList bucketList = BucketList.getInstance();
                 bucketList.add(foodstuff1);

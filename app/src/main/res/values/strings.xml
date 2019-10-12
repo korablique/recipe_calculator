@@ -43,6 +43,8 @@
     <string name="add">Добавить</string>
     <string name="weight_in_card">Масса, граммов</string>
     <string name="add_foodstuff">Добавить продукт</string>
+    <string name="add_foodstuff_to_recipe">В рецепт</string>
+    <string name="add_foodstuff_to_history">В журнал</string>
     <string name="selected_foodstuffs">Выбранные продукты</string>
     <string name="meal">Приём пищи</string>
     <string name="meal_notification">Не забудьте внести в приложение, что вы кушали</string>

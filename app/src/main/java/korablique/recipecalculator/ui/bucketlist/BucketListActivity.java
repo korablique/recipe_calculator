@@ -56,7 +56,7 @@ public class BucketListActivity extends BaseActivity {
     private Button saveAsSingleFoodstuffButton;
     private BucketList bucketList;
     private int displayedInCardFoodstuffPosition;
-    private Card.OnAddFoodstuffButtonClickListener onAddFoodstuffButtonClickListener;
+    private Card.OnMainButtonClickListener onAddFoodstuffButtonClickListener;
     @Inject
     TimeProvider timeProvider;
 
@@ -97,7 +97,7 @@ public class BucketListActivity extends BaseActivity {
             updateSaveButtonsEnability();
         };
 
-        onAddFoodstuffButtonClickListener = new Card.OnAddFoodstuffButtonClickListener() {
+        onAddFoodstuffButtonClickListener = new Card.OnMainButtonClickListener() {
             @Override
             public void onClick(WeightedFoodstuff newFoodstuff) {
                 adapter.replaceItem(newFoodstuff, displayedInCardFoodstuffPosition);
@@ -112,7 +112,7 @@ public class BucketListActivity extends BaseActivity {
 
         CardDialog existingCardDialog = CardDialog.findCard(this);
         if (existingCardDialog != null) {
-            existingCardDialog.setUpAddFoodstuffButton(onAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
+            existingCardDialog.setUpButton1(onAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
         }
 
         BucketListAdapter.OnItemClickedObserver onItemClickedObserver = (foodstuff, position) -> {
@@ -121,7 +121,7 @@ public class BucketListActivity extends BaseActivity {
             cardDialog.prohibitEditing(true);
             // чтобы не запутать пользователя. для удаления продукта из выбранных нужно его смахнуть
             cardDialog.prohibitDeleting(true);
-            cardDialog.setUpAddFoodstuffButton(onAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
+            cardDialog.setUpButton1(onAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
         };
 
         adapter = new BucketListAdapter(this, R.layout.new_foodstuff_layout, onItemsCountChangeListener, onItemClickedObserver);
@@ -207,7 +207,7 @@ public class BucketListActivity extends BaseActivity {
         displayedInCardFoodstuffPosition = savedInstanceState.getInt(DISPLAYED_IN_CARD_FOODSTUFF_POSITION);
         CardDialog cardDialog = CardDialog.findCard(this);
         if (cardDialog != null) {
-            cardDialog.setUpAddFoodstuffButton(onAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
+            cardDialog.setUpButton1(onAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
         }
     }
 
