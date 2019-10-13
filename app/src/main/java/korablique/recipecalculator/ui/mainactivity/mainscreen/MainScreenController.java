@@ -48,12 +48,10 @@ import static korablique.recipecalculator.ui.mainactivity.mainscreen.SearchResul
 
 @FragmentScope
 public class MainScreenController
-        extends FragmentCallbacks.Observer
-        implements ActivityCallbacks.Observer {
+        implements FragmentCallbacks.Observer,
+        ActivityCallbacks.Observer {
     private static final String EXTRA_INITIAL_TOP = "EXTRA_INITIAL_TOP";
     private static final String EXTRA_ALL_FOODSTUFFS_FIRST_BATCH = "EXTRA_ALL_FOODSTUFFS_FIRST_BATCH";
-    private static final int SEARCH_SUGGESTIONS_NUMBER = 3;
-    private final MainThreadExecutor mainThreadExecutor;
     private final BaseActivity context;
     private final BaseFragment fragment;
     private final ActivityCallbacks activityCallbacks;
@@ -61,25 +59,19 @@ public class MainScreenController
     private final FoodstuffsTopList topList;
     private final MainActivitySelectedDateStorage selectedDateStorage;
     private final MainScreenCardController cardController;
+    private final MainScreenReadinessDispatcher readinessDispatcher;
     private SectionedAdapterParent adapterParent;
     private FoodstuffsAdapterChild topAdapterChild;
     private SectionedFoodstuffsAdapterChild foodstuffAdapterChild;
-    private FloatingSearchView searchView;
-    private Stack<String> searchQueries = new Stack<>();
     private SelectedFoodstuffsSnackbar snackbar;
 
-    // Disposable чтобы отменить последний начатый поиск при старте нового.
-    // Такая отмена нужна на случай, если поиск 2 будет быстрее поиска 1 - чтобы между
-    // поисками не было состояния гонки и именно последний поиск всегда был отображен.
-    // По-умолчанию Disposables.empty() чтобы не нужно было делать проверки на null.
-    private Disposable lastSearchDisposable = Disposables.empty();
     private BucketList.Observer bucketListObserver = new BucketList.Observer() {
         @Override
         public void onFoodstuffAdded(WeightedFoodstuff weightedFoodstuff) {
             snackbar.addFoodstuff(weightedFoodstuff);
             snackbar.show();
-            searchView.clearQuery();
         }
+        @Override
         public void onFoodstuffRemoved(WeightedFoodstuff weightedFoodstuff) {
             snackbar.update(BucketList.getInstance().getList());
         }
@@ -100,7 +92,6 @@ public class MainScreenController
 
     @Inject
     public MainScreenController(
-            MainThreadExecutor mainThreadExecutor,
             BaseActivity context,
             BaseFragment fragment,
             FragmentCallbacks fragmentCallbacks,
@@ -108,8 +99,8 @@ public class MainScreenController
             FoodstuffsTopList topList,
             FoodstuffsList foodstuffsList,
             MainActivitySelectedDateStorage selectedDateStorage,
-            MainScreenCardController cardController) {
-        this.mainThreadExecutor = mainThreadExecutor;
+            MainScreenCardController cardController,
+            MainScreenReadinessDispatcher readinessDispatcher) {
         this.context = context;
         this.fragment = fragment;
         this.activityCallbacks = activityCallbacks;
@@ -117,6 +108,7 @@ public class MainScreenController
         this.foodstuffsList = foodstuffsList;
         this.selectedDateStorage = selectedDateStorage;
         this.cardController = cardController;
+        this.readinessDispatcher = readinessDispatcher;
         fragmentCallbacks.addObserver(this);
         activityCallbacks.addObserver(this);
     }
@@ -139,18 +131,6 @@ public class MainScreenController
         foodstuffAdapterChild = null;
 
         snackbar = new SelectedFoodstuffsSnackbar(fragmentView);
-        searchView = fragmentView.findViewById(R.id.floating_search_view);
-        searchView.setOnFocusChangeListener(new SearchViewFocusListener() {
-            @Override
-            public void onFocusCleared() {
-                // Когда со строки поиска ушёл фокус - очищаем текст поиска.
-                // Но только в том случае, если на экране нет результатов поиска.
-                // Делаем это в следующей итерации главного UI-цикла, т.к. фокус мог пропасть
-                // из-за того, что вот-вот покажутся результаты поиска (в следующей итерации
-                // главного UI-цикла они уже будут показаны).
-                mainThreadExecutor.execute(() -> clearSearchQueryIfSearchResultsNotShown());
-            }
-        });
 
         RecyclerView recyclerView = fragmentView.findViewById(R.id.main_screen_recycler_view);
         LinearLayoutManager layoutManager = new LinearLayoutManager(context);
@@ -220,8 +200,7 @@ public class MainScreenController
                 fillAllFoodstuffsList(batch);
                 isAllFoodstuffsListFilledFromArguments = false;
             }, unused -> {
-                configureSuggestionsDisplaying();
-                configureSearch();
+                readinessDispatcher.onMainScreenReady();
             });
         });
         topList.addObserver(topListObserver);
@@ -241,16 +220,6 @@ public class MainScreenController
                 isAllFoodstuffsListFilledFromArguments = true;
             }
         }
-    }
-
-    private void clearSearchQueryIfSearchResultsNotShown() {
-        for (Fragment f : context.getSupportFragmentManager().getFragments()) {
-            if (f instanceof SearchResultsFragment) {
-                return;
-            }
-        }
-        searchView.clearQuery();
-        searchQueries.clear();
     }
 
     @Override
@@ -294,52 +263,6 @@ public class MainScreenController
         }
     }
 
-    private void configureSearch() {
-        searchView.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
-            // действие при нажатии на подсказку
-            @Override
-            public void onSuggestionClicked(SearchSuggestion searchSuggestion) {
-                FoodstuffSearchSuggestion suggestion = (FoodstuffSearchSuggestion) searchSuggestion;
-                cardController.showCard(suggestion.getFoodstuff());
-            }
-
-            // когда пользователь нажал на клавиатуре enter
-            @Override
-            public void onSearchAction(String currentQuery) {
-                if (!currentQuery.isEmpty()) {
-                    searchQueries.push(currentQuery);
-                }
-                SearchResultsFragment.show(currentQuery, context);
-            }
-        });
-
-        // когда пользователь нажал кнопку лупы в searchView
-        searchView.setOnMenuItemClickListener(item -> {
-            String currentQuery = searchView.getQuery();
-            if (!currentQuery.isEmpty()) {
-                searchQueries.push(currentQuery);
-            }
-            SearchResultsFragment.show(currentQuery, context);
-        });
-    }
-
-    private void configureSuggestionsDisplaying() {
-        searchView.setOnQueryChangeListener((oldQuery, newQuery) -> {
-            lastSearchDisposable.dispose();
-            //get suggestions based on newQuery
-            Single<List<Foodstuff>> searchResult = foodstuffsList.requestFoodstuffsLike(newQuery, SEARCH_SUGGESTIONS_NUMBER);
-            lastSearchDisposable = searchResult.subscribe((result) -> {
-                //pass them on to the search view
-                List<FoodstuffSearchSuggestion> newSuggestions = new ArrayList<>();
-                for (Foodstuff foodstuff : result) {
-                    FoodstuffSearchSuggestion suggestion = new FoodstuffSearchSuggestion(foodstuff);
-                    newSuggestions.add(suggestion);
-                }
-                searchView.swapSuggestions(newSuggestions);
-            });
-        });
-    }
-
     @Override
     public void onFragmentSaveInstanceState(Bundle outState) {
         snackbar.onSaveInstanceState(outState);
@@ -359,33 +282,7 @@ public class MainScreenController
     }
 
     @Override
-    public boolean onActivityBackPressed() {
-        // когда показан SearchResultFragment - возвращать в строку прошлый запрос
-        // иначе - очистить историю запросов
-        Fragment searchResultsFragment = context.getSupportFragmentManager().findFragmentByTag(SEARCH_RESULTS_FRAGMENT_TAG);
-        if (searchResultsFragment != null && searchResultsFragment.isVisible()) {
-            if (!searchQueries.empty()) {
-                searchQueries.pop();
-            }
-            if (!searchQueries.empty()) {
-                searchView.setSearchText(searchQueries.peek());
-            } else {
-                searchView.clearQuery();
-            }
-            context.getSupportFragmentManager().beginTransaction().remove(searchResultsFragment).commit();
-            // В следующей итерации основного UI-цикла очистим строку поиска, если
-            // фрагментов с результатами поиска больше нет
-            mainThreadExecutor.execute(this::clearSearchQueryIfSearchResultsNotShown);
-            // Мы поглотили событие - сами решили, что должно происходить.
-            return true;
-        } else {
-            searchQueries.clear();
-            return false;
-        }
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    public void onFragmentActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode != Activity.RESULT_OK) {
             return;
         }

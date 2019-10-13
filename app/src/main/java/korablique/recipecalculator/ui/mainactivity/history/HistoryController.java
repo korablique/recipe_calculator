@@ -46,7 +46,7 @@ import korablique.recipecalculator.ui.mainactivity.MainActivityFragmentsControll
 import korablique.recipecalculator.ui.mainactivity.MainActivitySelectedDateStorage;
 
 @FragmentScope
-public class HistoryController extends FragmentCallbacks.Observer implements HistoryWorker.Observer {
+public class HistoryController implements FragmentCallbacks.Observer, HistoryWorker.Observer {
     private static final int CARD_BUTTON_TEXT_RES = R.string.save;
     private BaseActivity context;
     private BaseFragment fragment;

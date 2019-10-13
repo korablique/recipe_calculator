@@ -28,7 +28,7 @@ import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
 import static android.app.Activity.RESULT_OK;
 
 @FragmentScope
-public class MainScreenCardController extends FragmentCallbacks.Observer {
+public class MainScreenCardController implements FragmentCallbacks.Observer {
     private enum CardMode {
         NONE, // Пустой режим для непроинициализированной карточки
         DEFAULT, // Режим по-умолчанию, в карточке обе кнопки
@@ -134,7 +134,7 @@ public class MainScreenCardController extends FragmentCallbacks.Observer {
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    public void onFragmentActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == RequestCodes.MAIN_SCREEN_CARD_EDIT_FOODSTUFF
                 && resultCode == RESULT_OK) {
             Foodstuff editedFoodstuff = data.getParcelableExtra(EditFoodstuffActivity.EXTRA_RESULT_FOODSTUFF);

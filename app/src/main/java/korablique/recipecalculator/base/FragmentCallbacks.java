@@ -10,15 +10,15 @@ import java.util.List;
 public class FragmentCallbacks {
     private final List<Observer> observers = new ArrayList<>();
 
-    public static abstract class Observer {
-        public void onFragmentCreate(Bundle savedInstanceState) {}
-        public void onFragmentViewCreated(View fragmentView, Bundle savedInstanceState) {}
-        public void onFragmentStart() {}
-        public void onFragmentResume() {}
-        public void onActivityResult(int requestCode, int resultCode, Intent data) {}
-        public void onFragmentSaveInstanceState(Bundle outState) {}
-        public void onFragmentRestoreInstanceState(Bundle savedInstanceState) {}
-        public void onFragmentDestroy() {}
+    public interface Observer {
+        default void onFragmentCreate(Bundle savedInstanceState) {}
+        default void onFragmentViewCreated(View fragmentView, Bundle savedInstanceState) {}
+        default void onFragmentStart() {}
+        default void onFragmentResume() {}
+        default void onFragmentActivityResult(int requestCode, int resultCode, Intent data) {}
+        default void onFragmentSaveInstanceState(Bundle outState) {}
+        default void onFragmentRestoreInstanceState(Bundle savedInstanceState) {}
+        default void onFragmentDestroy() {}
     }
 
     public void addObserver(Observer observer) {
@@ -55,7 +55,7 @@ public class FragmentCallbacks {
 
     void dispatchActivityResult(int requestCode, int resultCode, Intent data) {
         for (Observer observer : observers) {
-            observer.onActivityResult(requestCode, resultCode, data);
+            observer.onFragmentActivityResult(requestCode, resultCode, data);
         }
     }
 

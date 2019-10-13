@@ -14,7 +14,7 @@ import korablique.recipecalculator.dagger.FragmentScope;
  * Управляет подписками фрагмента на Observable'ы
  */
 @FragmentScope
-public class RxFragmentSubscriptions extends FragmentCallbacks.Observer {
+public class RxFragmentSubscriptions implements FragmentCallbacks.Observer {
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     @Inject

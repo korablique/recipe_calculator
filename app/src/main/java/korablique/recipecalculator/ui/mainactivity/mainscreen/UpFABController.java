@@ -19,12 +19,16 @@ import korablique.recipecalculator.dagger.FragmentScope;
  * Controls the up FAB button located in the main screen.
  */
 @FragmentScope
-public class UpFABController extends FragmentCallbacks.Observer {
+public class UpFABController implements FragmentCallbacks.Observer {
+    private final MainScreenReadinessDispatcher readinessDispatcher;
     private FloatingActionButton fab;
     private RecyclerView recyclerView;
 
     @Inject
-    public UpFABController(FragmentCallbacks fragmentCallbacks) {
+    public UpFABController(
+            FragmentCallbacks fragmentCallbacks,
+            MainScreenReadinessDispatcher readinessDispatcher) {
+        this.readinessDispatcher = readinessDispatcher;
         fragmentCallbacks.addObserver(this);
     }
 
@@ -33,16 +37,18 @@ public class UpFABController extends FragmentCallbacks.Observer {
         fab = fragmentView.findViewById(R.id.up_fab);
         recyclerView = fragmentView.findViewById(R.id.main_screen_recycler_view);
 
-        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-                onRecyclerViewScrolled();
-            }
+        readinessDispatcher.runWhenReady(() -> {
+            recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                @Override
+                public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                    onRecyclerViewScrolled();
+                }
+            });
+
+            fab.setOnClickListener(v -> onFabClicked());
+
+            onRecyclerViewScrolled();
         });
-
-        fab.setOnClickListener(v -> onFabClicked());
-
-        onRecyclerViewScrolled();
     }
 
     private void onRecyclerViewScrolled() {
