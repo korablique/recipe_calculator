@@ -202,4 +202,8 @@ public class Card {
             deleteButton.setVisibility(View.VISIBLE);
         }
     }
+
+    void focusOnEditing() {
+        weightEditText.requestFocus();
+    }
 }
