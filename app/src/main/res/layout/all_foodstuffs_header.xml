@@ -37,7 +37,7 @@
             android:layout_marginTop="3dp"
             android:lineSpacingMultiplier="1.30"
             android:paddingRight="10dp"
-            android:text="@string/add" />
+            android:text="@string/create_new_foodstuff" />
 
         <ImageView
             android:id="@+id/plus_button"
