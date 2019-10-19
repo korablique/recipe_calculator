@@ -7,9 +7,14 @@ import androidx.test.espresso.Espresso;
 import androidx.test.espresso.contrib.PickerActions;
 import androidx.test.platform.app.InstrumentationRegistry;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+
 import org.joda.time.DateTime;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.util.SessionTestingHelper;
@@ -130,12 +135,24 @@ public class MainActivitySessionsTest extends MainActivityTestsBase {
         Runnable whenSessionNotChanged = () -> {
             // Должен быть всё ещё показан профиль
             onView(withId(R.id.fragment_profile)).check(matches(isDisplayed()));
+            AtomicInteger selectedItem = new AtomicInteger();
+            mainThreadExecutor.execute(() -> {
+                BottomNavigationView bottomBar = mActivityRule.getActivity().findViewById(R.id.navigation);
+                selectedItem.set(bottomBar.getSelectedItemId());
+            });
+            Assert.assertEquals(R.id.menu_item_profile, selectedItem.get());
         };
 
         Runnable whenSessionChanged = () -> {
             // Должен быть показан главный экран, т.к. прошла сессия
             onView(withId(R.id.fragment_profile)).check(matches(not(isDisplayed())));
             onView(withId(R.id.fragment_main_screen)).check(matches(isDisplayed()));
+            AtomicInteger selectedItem = new AtomicInteger();
+            mainThreadExecutor.execute(() -> {
+                BottomNavigationView bottomBar = mActivityRule.getActivity().findViewById(R.id.navigation);
+                selectedItem.set(bottomBar.getSelectedItemId());
+            });
+            Assert.assertEquals(R.id.menu_item_foodstuffs, selectedItem.get());
         };
 
         performSessionsTest(init, whenSessionNotChanged, whenSessionChanged);

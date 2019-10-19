@@ -103,6 +103,11 @@ public class MainActivityFragmentsController implements
         }
 
         bottomNavigationView = mainActivity.findViewById(R.id.navigation);
+        // We save and restore bottom bar's state ourselves (onRestoreInstanceState is called
+        // after onCreate, but we check and start new session in onCreate - if view would restore
+        // its state by itself, it would override our intention of starting new state).
+        bottomNavigationView.setSaveEnabled(false);
+
         bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
             switch (item.getItemId()) {
                 case R.id.menu_item_foodstuffs:
