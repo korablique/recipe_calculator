@@ -152,19 +152,19 @@ public class MainActivityTest extends MainActivityTestsBase {
                 withText(clickedFoodstuffs.get(0).getName()),
                 matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header))))).perform(click());
         onView(withId(R.id.weight_edit_text)).perform(replaceText("123"));
-        onView(withId(R.id.button1)).perform(click());
+        onView(withId(R.id.button2)).perform(click());
 
         onView(allOf(
                 withText(clickedFoodstuffs.get(1).getName()),
                 matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header))))).perform(click());
         onView(withId(R.id.weight_edit_text)).perform(replaceText("123"));
-        onView(withId(R.id.button1)).perform(click());
+        onView(withId(R.id.button2)).perform(click());
 
         onView(allOf(
                 withText(clickedFoodstuffs.get(2).getName()),
                 matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header))))).perform(click());
         onView(withId(R.id.weight_edit_text)).perform(replaceText("123"));
-        onView(withId(R.id.button1)).perform(click());
+        onView(withId(R.id.button2)).perform(click());
 
         // Кликаем на корзинку в снэкбаре
         onView(withId(R.id.basket)).perform(click());
@@ -905,7 +905,7 @@ public class MainActivityTest extends MainActivityTestsBase {
                 withText(addedFoodstuffs.get(0).getName()),
                 matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header))))).perform(click());
         onView(withId(R.id.weight_edit_text)).perform(replaceText("123"));
-        onView(withId(R.id.button1)).perform(click());
+        onView(withId(R.id.button2)).perform(click());
         onView(withId(R.id.basket)).perform(click());
 
         // Проверяем, что была попытка стартовать активити по интенту от BucketListActivity
@@ -1185,7 +1185,7 @@ public class MainActivityTest extends MainActivityTestsBase {
         onView(withId(R.id.weight_edit_text)).perform(replaceText("123"));
 
         // Жмём на кнопку добавления в Историю
-        onView(withId(R.id.button2)).perform(click());
+        onView(withId(R.id.button1)).perform(click());
 
         // Переходим в Историю и убеждаемся, что продукт там
         onView(withId(R.id.menu_item_history)).perform(click());
@@ -1221,7 +1221,7 @@ public class MainActivityTest extends MainActivityTestsBase {
 
         // Жмём на кнопку создания блюда
         onView(withId(R.id.weight_edit_text)).perform(replaceText("123"));
-        onView(withId(R.id.button1)).perform(click());
+        onView(withId(R.id.button2)).perform(click());
 
         // Снова клик на продукт
         onView(allOf(
@@ -1231,10 +1231,10 @@ public class MainActivityTest extends MainActivityTestsBase {
         // Только кнопка добавления блюда должна быть видна
         onView(allOf(
                 isDescendantOfA(withId(R.id.foodstuff_card_layout)),
-                withId(R.id.button1))).check(matches(isDisplayed()));
+                withId(R.id.button2))).check(matches(isDisplayed()));
         onView(allOf(
                 isDescendantOfA(withId(R.id.foodstuff_card_layout)),
-                withId(R.id.button2))).check(matches(not(isDisplayed())));
+                withId(R.id.button1))).check(matches(not(isDisplayed())));
 
         // Закрываем карточку
         onView(allOf(

@@ -73,7 +73,7 @@
         <item name="android:stateListAnimator">@animator/copy_of_mtrl_btn_state_list_anim</item>
         <item name="elevation">@dimen/copy_of_mtrl_btn_elevation</item>
         <item name="android:letterSpacing">0</item>
-        <item name="strokeColor">#FF5768E9</item>
+        <item name="strokeColor">@color/violet_lining_button_stroke_color</item>
         <item name="backgroundTint">#EFF1F6</item>
     </style>
 

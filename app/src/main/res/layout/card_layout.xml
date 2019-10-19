@@ -119,14 +119,14 @@
             tools:text="100" />
 
         <Button
-            android:id="@+id/button1"
-            style="@style/VioletButton"
+            android:id="@+id/button2"
+            style="@style/VioletLiningButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             app:layout_constraintTop_toBottomOf="@+id/weight_edit_text"
             app:layout_constraintBottom_toBottomOf="@id/constraint_layout"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/button2"
+            app:layout_constraintEnd_toStartOf="@+id/button1"
             android:text="@string/add_foodstuff"
             android:layout_marginTop="8dp"
             android:layout_marginStart="15dp"
@@ -136,14 +136,14 @@
             tools:visibility="visible"/>
 
         <Button
-            android:id="@+id/button2"
+            android:id="@+id/button1"
             style="@style/VioletButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             app:layout_constraintTop_toBottomOf="@+id/weight_edit_text"
             app:layout_constraintBottom_toBottomOf="@id/constraint_layout"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/button1"
+            app:layout_constraintStart_toEndOf="@+id/button2"
             android:text="@string/add_foodstuff"
             android:layout_marginTop="8dp"
             android:layout_marginStart="7dp"
