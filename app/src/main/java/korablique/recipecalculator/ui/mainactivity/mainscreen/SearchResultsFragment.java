@@ -73,18 +73,7 @@ public class SearchResultsFragment extends BaseFragment implements ActivityCallb
 
         RecyclerView searchResultsRecyclerView = fragmentView.findViewById(R.id.search_results_recycler_view);
         SearchResultsAdapter adapter = new SearchResultsAdapter(getActivity(), (foodstuff, position) -> {
-            CardDialog cardDialog = CardDialog.showCard(getActivity(), foodstuff);
-            cardDialog.prohibitEditing(true);
-            cardDialog.setUpButton1(foodstuff1 -> {
-                CardDialog.hideCard(getActivity());
-                BucketList bucketList = BucketList.getInstance();
-                bucketList.add(foodstuff1);
-                closeThisFragment();
-            }, R.string.add_foodstuff);
-            cardDialog.setOnDeleteButtonClickListener(foodstuff2 -> {
-                CardDialog.hideCard(getActivity());
-                foodstuffsList.deleteFoodstuff(foodstuff2.withoutWeight());
-            });
+            cardController.showCard(foodstuff);
         });
         searchResultsRecyclerView.setAdapter(adapter);
 
