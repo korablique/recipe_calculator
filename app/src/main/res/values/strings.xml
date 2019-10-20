@@ -40,7 +40,7 @@
     <string name="all_foodstuffs_header">Все продукты</string>
     <string name="foodstuffs">Продукты</string>
     <string name="profile">Профиль</string>
-    <string name="add">Добавить</string>
+    <string name="create_new_foodstuff">Новый</string>
     <string name="weight_in_card">Масса, граммов</string>
     <string name="add_foodstuff">Добавить продукт</string>
     <string name="add_foodstuff_to_recipe">В рецепт</string>
