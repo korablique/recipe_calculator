@@ -33,6 +33,7 @@ public class CardDialog extends BaseBottomDialog {
     private boolean prohibitEditingFlag;
     private boolean prohibitDeletingFlag;
 
+    private boolean requestedEditingFocus;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -61,6 +62,16 @@ public class CardDialog extends BaseBottomDialog {
         }
 
         return card.getCardLayout();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Форсирует открытие клавиатуры на поле ввода
+        if (!requestedEditingFocus) {
+            card.focusOnEditing();
+            requestedEditingFocus = true;
+        }
     }
 
     public void setUpButton1(
