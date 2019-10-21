@@ -23,7 +23,7 @@ public class BaseBottomDialog extends DialogFragment {
             layoutParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
             layoutParams.gravity = Gravity.BOTTOM;
             dialog1.getWindow().setAttributes(layoutParams);
-            dialog1.getWindow().setBackgroundDrawable(getContext().getResources().getDrawable(R.drawable.new_card_background));
+            dialog1.getWindow().setBackgroundDrawable(getContext().getResources().getDrawable(R.drawable.bottom_dialog_transparent_background));
         });
         dialog1.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
         return dialog1;
