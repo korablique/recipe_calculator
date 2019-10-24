@@ -25,7 +25,13 @@ public class BaseBottomDialog extends DialogFragment {
             dialog1.getWindow().setAttributes(layoutParams);
             dialog1.getWindow().setBackgroundDrawable(getContext().getResources().getDrawable(R.drawable.bottom_dialog_transparent_background));
         });
-        dialog1.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        if (shouldOpenKeyboardWhenShown()) {
+            dialog1.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        }
         return dialog1;
+    }
+
+    protected boolean shouldOpenKeyboardWhenShown() {
+        return false;
     }
 }
