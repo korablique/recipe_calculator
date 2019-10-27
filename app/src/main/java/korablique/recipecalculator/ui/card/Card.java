@@ -11,14 +11,17 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import androidx.annotation.StringRes;
+
 import com.arlib.floatingsearchview.util.adapter.TextWatcherAdapter;
 
-import androidx.annotation.StringRes;
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.base.BaseBottomDialog;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.NutritionValuesWrapper;
+import korablique.recipecalculator.ui.calckeyboard.CalcKeyboardController;
 import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
 
 import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
@@ -41,6 +44,7 @@ public class Card {
     }
 
     public static final String EDITED_FOODSTUFF = "EDITED_FOODSTUFF";
+    private final CalcKeyboardController calcKeyboardController;
     private ViewGroup cardLayout;
     private Foodstuff displayedFoodstuff;
     private EditText weightEditText;
@@ -54,7 +58,9 @@ public class Card {
     private PluralProgressBar pluralProgressBar;
     private NutritionValuesWrapper nutritionValuesWrapper;
 
-    public Card(Context context, ViewGroup parent) {
+    public Card(BaseBottomDialog dialog, ViewGroup parent, CalcKeyboardController calcKeyboardController) {
+        this.calcKeyboardController = calcKeyboardController;
+        Context context = dialog.getContext();
         cardLayout = (ViewGroup) LayoutInflater.from(context).inflate(R.layout.card_layout, parent);
         button1 = cardLayout.findViewById(R.id.button1);
         button2 = cardLayout.findViewById(R.id.button2);
@@ -68,6 +74,8 @@ public class Card {
         ViewGroup nutritionLayout = cardLayout.findViewById(R.id.nutrition_progress_with_values);
         pluralProgressBar = nutritionLayout.findViewById(R.id.new_nutrition_progress_bar);
         nutritionValuesWrapper = new NutritionValuesWrapper(context, nutritionLayout);
+
+        calcKeyboardController.useCalcKeyboardWith(weightEditText, dialog);
     }
 
     private void updateMainButtonsEnability(Editable text) {

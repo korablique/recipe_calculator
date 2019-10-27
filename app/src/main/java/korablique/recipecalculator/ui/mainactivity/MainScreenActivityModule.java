@@ -7,6 +7,7 @@ import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.BaseFragmentModule;
 import korablique.recipecalculator.dagger.ActivityScope;
 import korablique.recipecalculator.dagger.FragmentScope;
+import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.mainactivity.history.HistoryFragment;
 import korablique.recipecalculator.ui.mainactivity.history.HistoryFragmentModule;
 import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenFragment;
@@ -38,6 +39,10 @@ public abstract class MainScreenActivityModule {
     @FragmentScope
     @ContributesAndroidInjector
     abstract NewMeasurementsDialog newMeasurementsDialogInjector();
+
+    @FragmentScope
+    @ContributesAndroidInjector
+    abstract CardDialog newCardDialogInjector();
 
     @ActivityScope
     @Provides

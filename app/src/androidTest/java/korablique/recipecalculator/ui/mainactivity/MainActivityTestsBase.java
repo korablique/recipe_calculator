@@ -41,6 +41,8 @@ import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.session.SessionController;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
+import korablique.recipecalculator.ui.calckeyboard.CalcKeyboardController;
+import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.mainactivity.history.HistoryController;
 import korablique.recipecalculator.ui.mainactivity.history.HistoryFragment;
 import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenCardController;
@@ -101,7 +103,8 @@ public class MainActivityTestsBase {
                         sessionController = new SessionController(context, timeProvider, currentActivityProvider);
                         return Arrays.asList(databaseWorker, historyWorker, userParametersWorker,
                                 foodstuffsList, databaseHolder, userNameProvider,
-                                timeProvider, currentActivityProvider, sessionController);
+                                timeProvider, currentActivityProvider, sessionController,
+                                new CalcKeyboardController());
                     })
                     .withActivityScoped((injectionTarget) -> {
                         if (!(injectionTarget instanceof MainActivity)) {
@@ -118,7 +121,8 @@ public class MainActivityTestsBase {
                         return Collections.singletonList(controller);
                     })
                     .withFragmentScoped((injectionTarget -> {
-                        if (injectionTarget instanceof NewMeasurementsDialog) {
+                        if (injectionTarget instanceof NewMeasurementsDialog
+                                || injectionTarget instanceof CardDialog) {
                             return Collections.emptyList();
                         }
 

@@ -23,6 +23,7 @@ import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.ui.TwoOptionsDialog;
+import korablique.recipecalculator.ui.calckeyboard.CalcKeyboardController;
 import korablique.recipecalculator.ui.numbersediting.EditProgressText;
 import korablique.recipecalculator.ui.numbersediting.EditProgressTextCommonMaxController;
 import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
@@ -36,6 +37,8 @@ public class EditFoodstuffActivity extends BaseActivity {
     public static final String ARE_YOU_SURE_DIALOG_TAG = "ARE_YOU_SURE_DIALOG_TAG";
     @Inject
     FoodstuffsList foodstuffsList;
+    @Inject
+    CalcKeyboardController calcKeyboardController;
     private PluralProgressBar pluralProgressBar;
     private EditText foodstuffNameEditText;
     private EditProgressText proteinEditText;
@@ -63,6 +66,11 @@ public class EditFoodstuffActivity extends BaseActivity {
         carbsEditText = findViewById(R.id.carbs_value);
         caloriesEditText = findViewById(R.id.calories_value);
         saveButton = findViewById(R.id.save_button);
+
+        calcKeyboardController.useCalcKeyboardWith(proteinEditText, this);
+        calcKeyboardController.useCalcKeyboardWith(fatsEditText, this);
+        calcKeyboardController.useCalcKeyboardWith(carbsEditText, this);
+        calcKeyboardController.useCalcKeyboardWith(caloriesEditText, this);
 
         pluralProgressBar = findViewById(R.id.new_nutrition_progress_bar);
         pluralProgressBar.setProgress(0, 0, 0);

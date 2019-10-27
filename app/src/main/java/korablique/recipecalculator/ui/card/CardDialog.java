@@ -10,14 +10,22 @@ import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.fragment.app.FragmentActivity;
 
+import javax.inject.Inject;
+
 import korablique.recipecalculator.base.BaseBottomDialog;
+import korablique.recipecalculator.dagger.InjectorHolder;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.WeightedFoodstuff;
+import korablique.recipecalculator.ui.calckeyboard.CalcKeyboardController;
 
 public class CardDialog extends BaseBottomDialog {
     private static final String CLICKED_FOODSTUFF = "CLICKED_FOODSTUFF";
     private static final String CLICKED_WEIGHTED_FOODSTUFF = "CLICKED_WEIGHTED_FOODSTUFF";
     private static final String FOODSTUFF_CARD = "FOODSTUFF_CARD";
+
+    @Inject
+    CalcKeyboardController calcKeyboardController;
+
     private Card card;
     @Nullable
     private Card.OnMainButtonClickListener button1ClickListener;
@@ -36,10 +44,16 @@ public class CardDialog extends BaseBottomDialog {
     private boolean requestedEditingFocus;
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        InjectorHolder.getInjector().inject(this);
+    }
+
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container,
                              Bundle savedInstanceState) {
-        card = new Card(getContext(), container);
+        card = new Card(this, container, calcKeyboardController);
         if (button1ClickListener != null) {
             card.setUpButton1(button1ClickListener, button1TextRes);
         }
