@@ -937,6 +937,30 @@ public class MainActivityTest extends MainActivityTestsBase {
     // поиск
 
     @Test
+    public void transliteratedQueriesSearch() {
+        Foodstuff foodstuff = Foodstuff.withName("шоколад Ritter Sport").withNutrition(1, 2, 3, 4);
+        foodstuffsList.saveFoodstuff(foodstuff, new FoodstuffsList.SaveFoodstuffCallback() {
+            @Override public void onResult(Foodstuff addedFoodstuff) {}
+            @Override public void onDuplication() {}
+        });
+
+        mActivityRule.launchActivity(null);
+
+        onView(allOf(
+                isDescendantOfA(withId(R.id.search_layout)),
+                withText(containsString("Ritter Sport")))).check(doesNotExist());
+
+        onView(withHint(R.string.search)).perform(click());
+        onView(withHint(R.string.search)).perform(replaceText("риттер спорт"));
+
+        onView(allOf(
+                isDescendantOfA(withId(R.id.search_layout)),
+                withText(containsString("Ritter Sport")))).check(matches(isDisplayed()));
+
+        Espresso.closeSoftKeyboard();
+    }
+
+    @Test
     public void deletingFromSearchResultsWorks() {
         mActivityRule.launchActivity(null);
 
