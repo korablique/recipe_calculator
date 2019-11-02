@@ -21,12 +21,13 @@ import java.util.List;
 
 import korablique.recipecalculator.DishNutritionCalculator;
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.base.BaseBottomDialog;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.TextWatcherAfterTextChangedAdapter;
 
-public class SaveDishDialog extends DialogFragment {
+public class SaveDishDialog extends BaseBottomDialog {
     public static String SELECTED_FOODSTUFFS = "SELECTED_FOODSTUFFS";
     public static String RESULT_WEIGHT = "RESULT_WEIGHT";
     public static String SAVE_DISH = "SAVE_DISH";
@@ -35,6 +36,11 @@ public class SaveDishDialog extends DialogFragment {
 
     public interface OnSaveDishButtonClickListener {
         void onClick(Foodstuff foodstuff);
+    }
+
+    @Override
+    protected boolean shouldOpenKeyboardWhenShown() {
+        return true;
     }
 
     @Override
@@ -62,22 +68,6 @@ public class SaveDishDialog extends DialogFragment {
         EditText dishNameView = dialogView.findViewById(R.id.dish_name_edit_text);
         boolean isDishNameFilled = !dishNameView.getText().toString().isEmpty();
         saveDishButton.setEnabled(isDishNameFilled);
-    }
-
-    @Override
-    @NonNull public Dialog onCreateDialog(Bundle savedInstanceState) {
-        Dialog dialog = super.onCreateDialog(savedInstanceState);
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setOnShowListener(unused -> {
-            WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
-            layoutParams.copyFrom(dialog.getWindow().getAttributes());
-            layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
-            layoutParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
-            layoutParams.gravity = Gravity.BOTTOM;
-            dialog.getWindow().setAttributes(layoutParams);
-            dialog.getWindow().setBackgroundDrawable(getContext().getResources().getDrawable(R.drawable.new_card_background));
-        });
-        return dialog;
     }
 
     public static SaveDishDialog showDialog(FragmentActivity activity, List<WeightedFoodstuff> foodstuffs, double resultWeight) {
