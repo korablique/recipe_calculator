@@ -1,0 +1,320 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 7,
+    "identityHash": "d1f5bf262fac74401fbe76a4b48d747b",
+    "entities": [
+      {
+        "tableName": "foodstuffs",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`ID` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `foodstuff_name` TEXT NOT NULL, `name_nocase` TEXT NOT NULL, `protein` REAL NOT NULL, `fats` REAL NOT NULL, `carbs` REAL NOT NULL, `calories` REAL NOT NULL, `is_listed` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "ID",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "foodstuff_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nameNoCase",
+            "columnName": "name_nocase",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "protein",
+            "columnName": "protein",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fats",
+            "columnName": "fats",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "carbs",
+            "columnName": "carbs",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "calories",
+            "columnName": "calories",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isListed",
+            "columnName": "is_listed",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "ID"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "user_parameters",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `target_weight` REAL NOT NULL, `gender` INTEGER NOT NULL, `day_of_birth` INTEGER NOT NULL, `month_of_birth` INTEGER NOT NULL, `year_of_birth` INTEGER NOT NULL, `height` INTEGER NOT NULL, `weight` REAL NOT NULL, `lifestyle` INTEGER NOT NULL, `formula` INTEGER NOT NULL, `measurements_timestamp` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "targetWeight",
+            "columnName": "target_weight",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "genderId",
+            "columnName": "gender",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dayOfBirth",
+            "columnName": "day_of_birth",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "monthOfBirth",
+            "columnName": "month_of_birth",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "yearOfBirth",
+            "columnName": "year_of_birth",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "height",
+            "columnName": "height",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "weight",
+            "columnName": "weight",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lifestyleId",
+            "columnName": "lifestyle",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "formulaId",
+            "columnName": "formula",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "measurementsTimestamp",
+            "columnName": "measurements_timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "id"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "history",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `date` INTEGER NOT NULL, `foodstuff_id` INTEGER NOT NULL, `weight` REAL NOT NULL, FOREIGN KEY(`foodstuff_id`) REFERENCES `foodstuffs`(`ID`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "foodstuffId",
+            "columnName": "foodstuff_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "weight",
+            "columnName": "weight",
+            "affinity": "REAL",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "id"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [
+          {
+            "name": "index_history_foodstuff_id",
+            "unique": false,
+            "columnNames": [
+              "foodstuff_id"
+            ],
+            "createSql": "CREATE  INDEX `index_history_foodstuff_id` ON `${TABLE_NAME}` (`foodstuff_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "foodstuffs",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "foodstuff_id"
+            ],
+            "referencedColumns": [
+              "ID"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "recipe",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `foodstuff_id` INTEGER NOT NULL, `ingredients_total_weight` REAL NOT NULL, FOREIGN KEY(`foodstuff_id`) REFERENCES `foodstuffs`(`ID`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "foodstuffId",
+            "columnName": "foodstuff_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ingredientsTotalWeight",
+            "columnName": "ingredients_total_weight",
+            "affinity": "REAL",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "id"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [],
+        "foreignKeys": [
+          {
+            "table": "foodstuffs",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "foodstuff_id"
+            ],
+            "referencedColumns": [
+              "ID"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "ingredient",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `recipe_id` INTEGER NOT NULL, `ingredient_weight` REAL NOT NULL, `ingredient_foodstuff_id` INTEGER NOT NULL, FOREIGN KEY(`recipe_id`) REFERENCES `recipe`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION , FOREIGN KEY(`ingredient_foodstuff_id`) REFERENCES `foodstuffs`(`ID`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "recipeId",
+            "columnName": "recipe_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ingredientWeight",
+            "columnName": "ingredient_weight",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ingredientFoodstuffId",
+            "columnName": "ingredient_foodstuff_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "id"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [],
+        "foreignKeys": [
+          {
+            "table": "recipe",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "recipe_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "foodstuffs",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "ingredient_foodstuff_id"
+            ],
+            "referencedColumns": [
+              "ID"
+            ]
+          }
+        ]
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd1f5bf262fac74401fbe76a4b48d747b')"
+    ]
+  }
+}
