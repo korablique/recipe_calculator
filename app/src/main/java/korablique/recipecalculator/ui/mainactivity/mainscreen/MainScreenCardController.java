@@ -187,12 +187,12 @@ public class MainScreenCardController extends FragmentCallbacks.Observer {
                 card.deinitButton2();
                 break;
             case DEFAULT:
-                card.setUpButton1(onAddFoodstuffToRecipeListener, ADD_FOODSTUFF_TO_RECIPE_CARD_TEXT);
-                card.setUpButton2(onAddFoodstuffToHistoryListener, ADD_FOODSTUFF_TO_HISTORY_CARD_TEXT);
+                card.setUpButton1(onAddFoodstuffToHistoryListener, ADD_FOODSTUFF_TO_HISTORY_CARD_TEXT);
+                card.setUpButton2(onAddFoodstuffToRecipeListener, ADD_FOODSTUFF_TO_RECIPE_CARD_TEXT);
                 break;
             case DISH_CREATION:
-                card.setUpButton1(onAddFoodstuffToRecipeListener, ADD_FOODSTUFF_TO_RECIPE_CARD_TEXT);
-                card.deinitButton2();
+                card.deinitButton1();
+                card.setUpButton2(onAddFoodstuffToRecipeListener, ADD_FOODSTUFF_TO_RECIPE_CARD_TEXT);
                 break;
             default:
                 throw new IllegalStateException("Unhandled card mode: " + currentCardMode);
