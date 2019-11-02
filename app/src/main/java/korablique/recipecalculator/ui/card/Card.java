@@ -21,6 +21,7 @@ import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.NutritionValuesWrapper;
+import korablique.recipecalculator.ui.calckeyboard.CalcEditText;
 import korablique.recipecalculator.ui.calckeyboard.CalcKeyboardController;
 import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
 
@@ -47,7 +48,7 @@ public class Card {
     private final CalcKeyboardController calcKeyboardController;
     private ViewGroup cardLayout;
     private Foodstuff displayedFoodstuff;
-    private EditText weightEditText;
+    private CalcEditText weightEditText;
     private TextView nameTextView;
     private Button button1;
     private Button button2;
@@ -68,7 +69,7 @@ public class Card {
         closeButton = cardLayout.findViewById(R.id.button_close);
         deleteButton = cardLayout.findViewById(R.id.frame_layout_button_delete);
         weightEditText = cardLayout.findViewById(R.id.weight_edit_text);
-        updateMainButtonsEnability(weightEditText.getText());
+        updateMainButtonsEnability();
 
         nameTextView = cardLayout.findViewById(R.id.foodstuff_name_text_view);
         ViewGroup nutritionLayout = cardLayout.findViewById(R.id.nutrition_progress_with_values);
@@ -78,8 +79,9 @@ public class Card {
         calcKeyboardController.useCalcKeyboardWith(weightEditText, dialog);
     }
 
-    private void updateMainButtonsEnability(Editable text) {
-        if (TextUtils.isEmpty(text)) {
+    private void updateMainButtonsEnability() {
+        Float currentVal = weightEditText.calcCurrentValue();
+        if (currentVal == null) {
             button1.setEnabled(false);
             button2.setEnabled(false);
         } else {
@@ -115,10 +117,11 @@ public class Card {
             public void afterTextChanged(Editable s) {
                 // пользователь отредактировал массу - показываем значения БЖУ на новую массу
                 super.afterTextChanged(s);
-                updateMainButtonsEnability(s);
+                updateMainButtonsEnability();
+                Float value = weightEditText.calcCurrentValue();
                 double newWeight = 0;
-                if (!s.toString().isEmpty()) {
-                    newWeight = Double.parseDouble(s.toString());
+                if (value != null) {
+                    newWeight = value;
                 }
                 WeightedFoodstuff foodstuffWithNewWeight = foodstuff.withWeight(newWeight);
                 Nutrition newNutrition = Nutrition.of(foodstuffWithNewWeight);
@@ -162,9 +165,9 @@ public class Card {
     }
 
     private WeightedFoodstuff extractWeightedFoodstuff() {
-        String weightText = weightEditText.getText().toString();
-        if (TextUtils.isEmpty(weightText)) {
-            weightText = "0";
+        Float weight = weightEditText.calcCurrentValue();
+        if (weight == null) {
+            weight = 0f;
         }
         return Foodstuff
                 .withId(displayedFoodstuff.getId())
@@ -173,7 +176,7 @@ public class Card {
                         nutritionValuesWrapper.getFoodstuff().getFats(),
                         nutritionValuesWrapper.getFoodstuff().getCarbs(),
                         nutritionValuesWrapper.getFoodstuff().getCalories())
-                .withWeight(Double.valueOf(weightText));
+                .withWeight(weight);
     }
 
     void setOnEditButtonClickListener(OnEditButtonClickListener listener) {

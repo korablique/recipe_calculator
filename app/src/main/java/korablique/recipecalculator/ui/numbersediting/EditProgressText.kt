@@ -4,20 +4,15 @@ import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.text.InputFilter
 import android.text.InputType
 import android.util.AttributeSet
 import android.util.TypedValue.COMPLEX_UNIT_DIP
 import android.util.TypedValue.applyDimension
-import android.widget.EditText
 import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
 import korablique.recipecalculator.R
-import korablique.recipecalculator.ui.inputfilters.DecimalNumberInputFilter
-import java.lang.IllegalStateException
-import korablique.recipecalculator.ui.inputfilters.NumericBoundsInputFilter
-import java.lang.IllegalArgumentException
+import korablique.recipecalculator.ui.calckeyboard.CalcEditText
 
 
 // Bright red default color so that it would be easy to spot a mistake in code
@@ -35,7 +30,7 @@ private const val UNDERLINE_HEIGHT_FILLED = 3f
 /**
  * Inheritor of EditText, which purpose is to turn the EditText's underline into a progress bar.
  */
-class EditProgressText : EditText {
+class EditProgressText : CalcEditText {
     private val filledUnderlinePaint = Paint()
     private val emptyUnderlinePaint = Paint()
 
@@ -46,9 +41,6 @@ class EditProgressText : EditText {
 
     private val minValue = 0f
     private val maxValue: Float
-
-    // Main set of input filters used to filter our values.
-    private val mainInputFilters: Array<InputFilter>
 
     // % of progress from minValue to maxValue
     private var realProgress = 0f
@@ -75,9 +67,7 @@ class EditProgressText : EditText {
         @ColorInt
         val underlineColorFilled: Int
         val isBackgroundSpecified: Boolean
-        val hasInputType: Boolean
         try {
-            hasInputType = typedArray.hasValue(R.styleable.EditProgressText_android_inputType)
             isBackgroundSpecified = typedArray.hasValue(R.styleable.EditProgressText_android_background)
             emptyUnderlineColorNormal = typedArray.getColor(
                     R.styleable.EditProgressText_android_colorControlNormal,
@@ -89,10 +79,10 @@ class EditProgressText : EditText {
                     R.styleable.EditProgressText_color_underline_empty_focused,
                     getColor(DEFAULT_COLOR_RES_FOCUSED_UNDERLINE))
 
-            if (!typedArray.hasValue(R.styleable.EditProgressText_max_value)) {
+            if (!typedArray.hasValue(R.styleable.EditProgressText_progress_max_value)) {
                 throw IllegalStateException("EditProgressText needs specified max value to work")
             }
-            maxValue = typedArray.getFloat(R.styleable.EditProgressText_max_value, -1f)
+            maxValue = typedArray.getFloat(R.styleable.EditProgressText_progress_max_value, -1f)
         } finally {
             typedArray.recycle()
         }
@@ -119,15 +109,7 @@ class EditProgressText : EditText {
         filledUnderlinePaint.isAntiAlias = true
         emptyUnderlinePaint.isAntiAlias = true
 
-        if (!hasInputType) {
-            inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
-        }
-
-        mainInputFilters = arrayOf(
-                NumericBoundsInputFilter.withBounds(minValue, maxValue),
-                DecimalNumberInputFilter.of1DigitAfterPoint())
-        setFilters(mainInputFilters)
-
+        setBounds(minValue, maxValue)
         constructed = true
     }
 
@@ -171,7 +153,7 @@ class EditProgressText : EditText {
     }
 
     fun getDisplayedNumber(): Float? {
-        return text.toString().toFloatOrNull()
+        return calcCurrentValue()
     }
 
     public override fun onDraw(canvas: Canvas) {
@@ -217,7 +199,6 @@ class EditProgressText : EditText {
         if (intermediateMax < minValue || maxValue < intermediateMax) {
             throw IllegalArgumentException("Intermediate max must be within absolute min-max bounds")
         }
-        val intermediateMaxFilter = NumericBoundsInputFilter.withBounds(minValue, intermediateMax)
-        setFilters(mainInputFilters + intermediateMaxFilter)
+        setBounds(minValue, intermediateMax)
     }
 }

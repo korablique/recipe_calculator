@@ -101,7 +101,7 @@
             app:layout_constraintWidth_percent="0.5"
             android:nextFocusDown="@+id/fats_value"
             custom:color_underline_filled="@color/colorProtein"
-            custom:max_value="100"
+            custom:progress_max_value="100"
             tools:text="17" />
 
         <!--fats-->
@@ -142,7 +142,7 @@
             app:layout_constraintWidth_percent="0.5"
             android:nextFocusDown="@+id/carbs_value"
             custom:color_underline_filled="@color/colorFats"
-            custom:max_value="100"
+            custom:progress_max_value="100"
             tools:text="2" />
 
         <View
@@ -191,7 +191,7 @@
             app:layout_constraintWidth_percent="0.5"
             android:nextFocusDown="@+id/calories_value"
             custom:color_underline_filled="#FF5768E9"
-            custom:max_value="100"
+            custom:progress_max_value="100"
             tools:text="68" />
 
         <!--calories-->
@@ -206,12 +206,11 @@
             app:layout_constraintStart_toEndOf="@id/carbs_views"
             app:layout_constraintTop_toBottomOf="@+id/fats_value"
             app:layout_constraintWidth_percent="0.5" />
-        <EditText
+        <korablique.recipecalculator.ui.calckeyboard.CalcEditText
             android:id="@+id/calories_value"
             style="@style/RobotoMonoText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:inputType="numberDecimal"
             app:layout_constraintStart_toEndOf="@id/carbs_value"
             app:layout_constraintTop_toBottomOf="@id/row_fake_top_3"
             app:layout_constraintWidth_percent="0.5"

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:custom="http://schemas.android.com/apk/res-auto"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:tag="calc_keyboard_parent">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="normal edit text"/>
+    <EditText
+        android:id="@+id/normal_edit_text"
+        style="@style/RobotoMonoText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="calc edit text"/>
+    <korablique.recipecalculator.ui.calckeyboard.CalcEditText
+        android:id="@+id/calc_edit_text"
+        style="@style/RobotoMonoText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/row_fake_top"
+        android:maxLength="15"
+        custom:min_value="0"
+        custom:max_value="99999" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="edit progress text"/>
+    <korablique.recipecalculator.ui.numbersediting.EditProgressText
+        android:id="@+id/edit_progress_text"
+        style="@style/RobotoMonoText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        custom:color_underline_filled="@android:color/holo_red_dark"
+        custom:progress_max_value="100"/>
+
+</LinearLayout>

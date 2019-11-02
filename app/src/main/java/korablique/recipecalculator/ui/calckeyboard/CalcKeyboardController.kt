@@ -3,7 +3,6 @@ package korablique.recipecalculator.ui.calckeyboard
 import android.app.Activity
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
@@ -33,14 +32,14 @@ class CalcKeyboardController @Inject constructor() {
     /**
      * Настраивает переданный EditText для работы с клавиатурой-калькулятором (вместо системной).
      */
-    fun useCalcKeyboardWith(editText: EditText, parentActivity: BaseActivity) {
+    fun useCalcKeyboardWith(editText: CalcEditText, parentActivity: BaseActivity) {
         useCalcKeyboardWith(editText, backPressHandlingInitializer = { initActivityBackPress(editText, parentActivity) })
     }
 
     /**
      * Настраивает переданный EditText для работы с клавиатурой-калькулятором (вместо системной).
      */
-    fun useCalcKeyboardWith(editText: EditText, parentDialog: BaseBottomDialog) {
+    fun useCalcKeyboardWith(editText: CalcEditText, parentDialog: BaseBottomDialog) {
         useCalcKeyboardWith(editText, backPressHandlingInitializer = { initDialogBackPress(editText, parentDialog) })
     }
 
@@ -48,11 +47,7 @@ class CalcKeyboardController @Inject constructor() {
      * @param backPressHandlingInitializer - функция, настраивающая перехват нажатий на "Назад", чтобы
      * по этим нажатиям скрывать клавиатуру-калькулятор.
      */
-    private fun useCalcKeyboardWith(editText: EditText, backPressHandlingInitializer: ()->Unit) {
-        if (!BuildConfig.DEBUG) {
-            return
-        }
-
+    private fun useCalcKeyboardWith(editText: CalcEditText, backPressHandlingInitializer: ()->Unit) {
         // Не показываем системную клавиатуру при захвате фокуса
         editText.showSoftInputOnFocus = false
 
@@ -74,14 +69,13 @@ class CalcKeyboardController @Inject constructor() {
         }
     }
 
-    private fun showKeyboardFor(editText: EditText) {
+    private fun showKeyboardFor(editText: CalcEditText) {
         var parent: ViewGroup = findCalcKeyboardParent(editText)
         val keyboard = CalcKeyboard(editText.context)
         addCalcKeyboardToParent(keyboard, parent)
 
         // Подключим EditText к клавиатуре-калькулятору
-        val inputConnection = editText.onCreateInputConnection(EditorInfo())
-        keyboard.setInputConnection(inputConnection)
+        keyboard.connectWith(editText)
 
         shownKeyboards[editText] = keyboard
 
