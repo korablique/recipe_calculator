@@ -16,9 +16,22 @@ public class KeyboardHandler {
      * Hides keyboard and clears focus.
      */
     public void hideKeyBoard() {
+        hideKeyBoard(true);
+    }
+
+    /**
+     * Hides keyboard but doesn't clear focus.
+     */
+    public void hideKeyBoardWithoutClearingFocus() {
+        hideKeyBoard(false);
+    }
+
+    private void hideKeyBoard(boolean clearFocus) {
         View view = activity.getCurrentFocus();
         if (view != null) {
-            view.clearFocus();
+            if (clearFocus) {
+                view.clearFocus();
+            }
             InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
             // For some views (FloatingSearchView) hiding of the keyboard doesn't in the same frame
             // in which we cleared focus from them. So we clear the focus in the next frame.

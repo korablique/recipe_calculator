@@ -13,9 +13,15 @@
         android:id="@+id/title_layout"
         layout="@layout/title_view_with_cancel_button" />
 
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/calc_keyboard_parent"
+        android:tag="calc_keyboard_parent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
     <!--layout margin 11dp + textview margin 4.5dp == ~16dp-->
     <!--because of default edittext margin-->
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/main_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_margin="11dp">
@@ -254,6 +260,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </LinearLayout>

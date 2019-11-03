@@ -5,9 +5,11 @@ import android.os.Bundle;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ActivityCallbacks {
-    private final List<Observer> observers = new ArrayList<>();
+    private final List<Observer> observers = new CopyOnWriteArrayList<>();
 
     public interface Observer {
         default void onActivityCreate(Bundle savedInstanceState) {}
@@ -95,9 +97,19 @@ public class ActivityCallbacks {
     }
 
     boolean dispatchActivityBackPressed() {
-        for (Observer observer : observers) {
+        // Notify observers in reversed order, so that the most recently added observers would
+        // receive the event first.
+        // What this is for - usually new UI elements which appear on top of the UI want to react to
+        // back presses before any other UI elements. For example, if a Dialog is shown, user expects
+        // that a back press would close it immediately, so the dialog needs to receive the back press
+        // event first.
+        ListIterator<Observer> reversedIterator =
+                observers.listIterator(observers.size());
+        while (reversedIterator.hasPrevious()) {
+            Observer observer = reversedIterator.previous();
             boolean eventConsumed = observer.onActivityBackPressed();
             if (eventConsumed) {
+                // Event consumed by current observer - other observers must not receive it.
                 return true;
             }
         }
