@@ -32,7 +32,7 @@ class CalcKeyboardTest {
     private val normalEditText = R.id.foodstuff_name
     private lateinit var context: Context
 
-    // Тест использует EditFoodstuffActivity в качестве "подопотного" экрана для тестирования клавиатуры
+    // Тест использует EditFoodstuffActivity в качестве "подопытного" экрана для тестирования клавиатуры
     @get:Rule
     val activityRule: ActivityTestRule<EditFoodstuffActivity> =
             InjectableActivityTestRule.forActivity(EditFoodstuffActivity::class.java)
