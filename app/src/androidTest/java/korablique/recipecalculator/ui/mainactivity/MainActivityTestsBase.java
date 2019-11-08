@@ -115,7 +115,7 @@ public class MainActivityTestsBase {
                         mainActivitySelectedDateStorage = new MainActivitySelectedDateStorage(
                                 activity, activityCallbacks, sessionController, timeProvider);
                         fragmentsController = new MainActivityFragmentsController(
-                                activity, sessionController, activityCallbacks);
+                                activity, sessionController, currentActivityProvider, activityCallbacks);
                         MainActivityController controller = new MainActivityController(
                                 activity, activityCallbacks, fragmentsController);
                         return Collections.singletonList(controller);

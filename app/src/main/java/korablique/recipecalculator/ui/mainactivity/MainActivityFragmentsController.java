@@ -17,6 +17,7 @@ import javax.inject.Inject;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.ActivityCallbacks;
+import korablique.recipecalculator.base.CurrentActivityProvider;
 import korablique.recipecalculator.dagger.ActivityScope;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.WeightedFoodstuff;
@@ -36,6 +37,7 @@ public class MainActivityFragmentsController implements
     private static final String EXTRA_MAIN_SCREEN_ARGUMENTS = "EXTRA_MAIN_SCREEN_ARGUMENTS";
     private final MainActivity mainActivity;
     private final SessionController sessionController;
+    private final CurrentActivityProvider currentActivityProvider;
     private final List<Observer> observers = new ArrayList<>();
 
     private BottomNavigationView bottomNavigationView;
@@ -53,9 +55,11 @@ public class MainActivityFragmentsController implements
     public MainActivityFragmentsController(
             MainActivity mainActivity,
             SessionController sessionController,
+            CurrentActivityProvider currentActivityProvider,
             ActivityCallbacks activityCallbacks) {
         this.mainActivity = mainActivity;
         this.sessionController = sessionController;
+        this.currentActivityProvider = currentActivityProvider;
         activityCallbacks.addObserver(this);
         sessionController.addObserver(this);
     }
@@ -176,6 +180,10 @@ public class MainActivityFragmentsController implements
 
     @Override
     public void onNewSession() {
+        if (mainActivity != currentActivityProvider.getCurrentActivity()) {
+            // Началась какая-то другая сессия, к нам не относящаяся.
+            return;
+        }
         // В начале новой сессии меняем активный фрагмент на MainScreen
         bottomNavigationView.setSelectedItemId(R.id.menu_item_foodstuffs);
         sessionController.onClientStartedNewSession(SessionClient.MAIN_ACTIVITY_FRAGMENT);
