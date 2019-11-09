@@ -42,10 +42,10 @@ open class CalcEditText : EditText {
     }
 
     private fun calcValueAsBigDecimal(inputStr: String): BigDecimal? {
-        // Преобразуем строка вида "-" в 0 (если отрицательные числе приемлимы),
+        // Будем считать строку вида "-" нулём (если отрицательные числе приемлимы),
         // т.к. либа "-" не распарсит, но пользователь может находиться в процессе
         // ввода отрицательного числа.
-        if (inputStr.length == 1 && inputStr == "-" && minValue < BigDecimal.ZERO) {
+        if (inputStr == "-" && minValue < BigDecimal.ZERO) {
             return BigDecimal.ZERO
         }
 
@@ -59,11 +59,11 @@ open class CalcEditText : EditText {
             return null
         }
 
-        // Обрежем символы справа, если они не цифры (на случай, если они операторы)
         val lastDigit = str.indexOfLast { it in '0'..'9' }
         if (lastDigit == -1) {
             return null
         }
+        // Обрежем символы справа, если они не цифры (на случай, если они операторы)
         val croppedStr = str.substring(0..lastDigit)
 
         try {

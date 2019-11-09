@@ -96,6 +96,7 @@ dependencies {
     implementation 'joda-time:joda-time:2.10.1'
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0-alpha'
     implementation 'com.simplecityapps:recyclerview-fastscroll:2.0.0'
+    implementation 'com.udojava:EvalEx:2.1'
 
     implementation 'com.google.dagger:dagger:2.18'
     annotationProcessor 'com.google.dagger:dagger-compiler:2.18'
@@ -116,6 +117,4 @@ dependencies {
     testImplementation 'org.robolectric:robolectric:3.8'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.31"
     testImplementation "androidx.test:runner:1.2.0"
-
-    implementation 'com.udojava:EvalEx:2.1'
 }

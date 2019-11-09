@@ -199,7 +199,7 @@ class CalcKeyboardTest {
         onView(withId(R.id.button_minus)).perform(click())
         onView(withId(R.id.button_1)).perform(click())
 
-        // "-" не должен быть введён - допустимы только положительные значения (0..10)
+        // "-" не должен быть введён - допустимы только положительные значения и ноль (0..10)
         onView(withId(R.id.calc_edit_text)).check(matches(withText("1")))
     }
 
