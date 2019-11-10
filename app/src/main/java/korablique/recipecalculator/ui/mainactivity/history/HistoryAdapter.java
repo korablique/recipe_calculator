@@ -21,8 +21,12 @@ import korablique.recipecalculator.ui.MyViewHolder;
 import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
 
 public class HistoryAdapter extends RecyclerView.Adapter<MyViewHolder> {
+    private static final int VIEW_TYPE_EMPTY_TOP = 0;
+    private static final int VIEW_TYPE_FOODSTUFF = 1;
+    private static final int VIEW_TYPE_EMPTY_BOTTOM = 2;
+
     public interface Observer {
-        void onItemClicked(HistoryEntry historyEntry, int displayedPosition);
+        void onItemClicked(HistoryEntry historyEntry);
     }
     private List<HistoryEntry> historyEntries = new ArrayList<>();
     private Context context;
@@ -36,13 +40,32 @@ public class HistoryAdapter extends RecyclerView.Adapter<MyViewHolder> {
     @NonNull
     @Override
     public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        ViewGroup historyItemView = (ViewGroup) LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.history_item_layout, parent, false);
-        return new MyViewHolder(historyItemView);
+        ViewGroup view;
+        switch (viewType) {
+            case VIEW_TYPE_EMPTY_TOP:
+                view = (ViewGroup) LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.history_recycler_view_empty_top, parent, false);
+                break;
+            case VIEW_TYPE_FOODSTUFF:
+                view = (ViewGroup) LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.history_item_layout, parent, false);
+                break;
+            case VIEW_TYPE_EMPTY_BOTTOM:
+                view = (ViewGroup) LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.history_recycler_view_empty_bottom, parent, false);
+                break;
+            default:
+                throw new IllegalStateException("Unknown view type: " + viewType);
+        }
+        return new MyViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
+        if (position == 0 || position == getItemCount()-1) {
+            // Empty item is not bound to any data
+            return;
+        }
         ViewGroup item = holder.getItem();
         TextView foodstuffNameWithWeightView = item.findViewById(R.id.foodstuff_name_and_weight);
         TextView proteinView = item.findViewById(R.id.protein);
@@ -50,7 +73,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<MyViewHolder> {
         TextView carbsView = item.findViewById(R.id.carbs);
         TextView caloriesView = item.findViewById(R.id.calories);
 
-        HistoryEntry entry = historyEntries.get(position);
+        HistoryEntry entry = historyEntries.get(position - 1); // First item is empty space
         WeightedFoodstuff foodstuff = entry.getFoodstuff();
         foodstuffNameWithWeightView.setText(context.getString(R.string.foodstuff_name_and_weight,
                 foodstuff.getName(), foodstuff.getWeight()));
@@ -60,19 +83,27 @@ public class HistoryAdapter extends RecyclerView.Adapter<MyViewHolder> {
         carbsView.setText(toDecimalString(foodstuff.getCarbs() * foodstuffWeight * 0.01));
         caloriesView.setText(toDecimalString(foodstuff.getCalories() * foodstuffWeight * 0.01));
 
-        item.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (onItemClickObserver != null) {
-                    onItemClickObserver.onItemClicked(entry, position);
-                }
+        item.setOnClickListener(v -> {
+            if (onItemClickObserver != null) {
+                onItemClickObserver.onItemClicked(entry); // First item is empty space
             }
         });
     }
 
     @Override
     public int getItemCount() {
-        return historyEntries.size();
+        return historyEntries.size() + 2; // First and last items are empty spaces
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        if (position == 0) {
+            return VIEW_TYPE_EMPTY_TOP;
+        } else if (position == getItemCount() - 1) {
+            return VIEW_TYPE_EMPTY_BOTTOM;
+        } else {
+            return VIEW_TYPE_FOODSTUFF;
+        }
     }
 
     public List<HistoryEntry> getItems() {
@@ -81,7 +112,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<MyViewHolder> {
 
     public void addItem(HistoryEntry historyEntry) {
         historyEntries.add(0, historyEntry);
-        notifyItemInserted(0);
+        notifyItemInserted(1); // First item is empty space
     }
 
     public void addItems(List<HistoryEntry> historyEntries) {
@@ -103,7 +134,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<MyViewHolder> {
             if (foodstuff.getId() == f.getId()) {
                 HistoryEntry removingEntry = historyEntries.get(index);
                 historyEntries.remove(index);
-                notifyItemRemoved(index);
+                notifyItemRemoved(index + 1); // First item is empty space
                 return removingEntry;
             }
         }
@@ -123,7 +154,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<MyViewHolder> {
             if (newFoodstuff.getId() == foodstuff.getId()) {
                 HistoryEntry oldEntry = historyEntries.get(index);
                 historyEntries.set(index, new HistoryEntry(oldEntry.getHistoryId(), newFoodstuff, oldEntry.getTime()));
-                notifyItemChanged(index);
+                notifyItemChanged(index + 1); // First item is empty space
                 return oldEntry.getHistoryId();
             }
         }

@@ -198,7 +198,7 @@ public class HistoryController extends FragmentCallbacks.Observer implements His
             adapter.clear();
             adapter.addItems(historyEntries);
             // листенер на нажатия на элемент адаптера
-            adapter.setOnItemClickObserver((historyEntry, displayedPosition) -> {
+            adapter.setOnItemClickObserver((historyEntry) -> {
                 CardDialog card = CardDialog.showCard(context, historyEntry.getFoodstuff());
                 card.prohibitEditing(true);
                 card.setUpButton1(onAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
