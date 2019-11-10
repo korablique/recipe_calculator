@@ -22,6 +22,7 @@ import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.base.CurrentActivityProvider;
 import korablique.recipecalculator.base.FragmentCallbacks;
+import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.base.RxFragmentSubscriptions;
 import korablique.recipecalculator.base.executors.ComputationThreadsExecutor;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
@@ -82,6 +83,7 @@ public class MainActivityTestsBase {
     protected TestingTimeProvider timeProvider;
     protected MainActivityFragmentsController fragmentsController;
     protected MainActivitySelectedDateStorage mainActivitySelectedDateStorage;
+    protected RxActivitySubscriptions activitySubscriptions;
     protected CurrentActivityProvider currentActivityProvider;
     protected SessionController sessionController;
     private MainScreenCardController mainScreenCardController;
@@ -122,6 +124,7 @@ public class MainActivityTestsBase {
                                 activity, sessionController, activityCallbacks);
                         MainActivityController controller = new MainActivityController(
                                 activity, activityCallbacks, fragmentsController);
+                        activitySubscriptions = new RxActivitySubscriptions(activityCallbacks);
                         return Collections.singletonList(controller);
                     })
                     .withFragmentScoped((injectionTarget -> {
@@ -145,7 +148,8 @@ public class MainActivityTestsBase {
 
                             MainScreenSearchController searchController = new MainScreenSearchController(
                                     mainThreadExecutor, foodstuffsList, fragment, activity.getActivityCallbacks(),
-                                    fragmentCallbacks, mainScreenCardController, readinessDispatcher);
+                                    fragmentCallbacks, mainScreenCardController, readinessDispatcher,
+                                    activitySubscriptions);
 
                             UpFABController upFABController = new UpFABController(
                                     fragmentCallbacks, readinessDispatcher);

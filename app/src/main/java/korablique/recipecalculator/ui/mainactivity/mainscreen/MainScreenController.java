@@ -44,8 +44,6 @@ import korablique.recipecalculator.ui.nestingadapters.SectionedAdapterParent;
 import korablique.recipecalculator.ui.nestingadapters.SectionedFoodstuffsAdapterChild;
 import korablique.recipecalculator.ui.nestingadapters.SingleItemAdapterChild;
 
-import static korablique.recipecalculator.ui.mainactivity.mainscreen.SearchResultsFragment.SEARCH_RESULTS_FRAGMENT_TAG;
-
 @FragmentScope
 public class MainScreenController
         implements FragmentCallbacks.Observer,
