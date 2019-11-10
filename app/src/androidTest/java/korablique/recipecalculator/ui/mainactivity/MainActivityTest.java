@@ -974,7 +974,9 @@ public class MainActivityTest extends MainActivityTestsBase {
                 isDescendantOfA(withId(R.id.search_results_recycler_view)),
                 matches(isCompletelyBelow(withId(R.id.add_new_foodstuff_button))))).perform(click());
         // удаляем его
+        onView(withId(R.id.button_edit)).perform(click());
         onView(withId(R.id.button_delete)).perform(click());
+        onView(withId(R.id.positive_button)).perform(click());
         // нужно проверять не только текст, но и родителя,
         // т к иначе в проверку попадут вьюшки из MainScreen
         onView(allOf(

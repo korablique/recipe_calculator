@@ -4,161 +4,249 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@android:color/white">
+    android:background="#fbfbfb">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="5dp"
+        android:background="#dddddd"/>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
-        <Button
+        <TextView
+            style="@style/RobotoMonoText"
             android:id="@+id/button_plus"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            style="@style/VioletLiningButton"
-            android:text="+"/>
-
-        <Button
+            android:gravity="center"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:textSize="24sp"
+            android:textColor="@color/colorPrimary"
+            android:background="@drawable/rectangular_button_click_selector"
+            android:text="+" />
+        <TextView
+            style="@style/RobotoMonoText"
             android:id="@+id/button_minus"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            style="@style/VioletLiningButton"
-            android:text="-"/>
-
-        <Button
+            android:gravity="center"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:textSize="24sp"
+            android:textColor="@color/colorPrimary"
+            android:background="@drawable/rectangular_button_click_selector"
+            android:text="-" />
+        <TextView
+            style="@style/RobotoMonoText"
             android:id="@+id/button_multiply"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            style="@style/VioletLiningButton"
-            android:text="×"/>
-
-        <Button
+            android:gravity="center"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:textSize="24sp"
+            android:textColor="@color/colorPrimary"
+            android:background="@drawable/rectangular_button_click_selector"
+            android:text="×" />
+        <TextView
+            style="@style/RobotoMonoText"
             android:id="@+id/button_divide"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            style="@style/VioletLiningButton"
-            android:text="÷"/>
+            android:gravity="center"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:textSize="24sp"
+            android:textColor="@color/colorPrimary"
+            android:background="@drawable/rectangular_button_click_selector"
+            android:text="÷" />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
-        <Button
+        <TextView
+            style="@style/RobotoMonoText"
             android:id="@+id/button_1"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            style="@style/VioletLiningButton"
-            android:text="1"/>
-
-        <Button
+            android:gravity="center"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:textSize="24sp"
+            android:textColor="@color/colorPrimary"
+            android:background="@drawable/rectangular_button_click_selector"
+            android:text="1" />
+        <TextView
+            style="@style/RobotoMonoText"
             android:id="@+id/button_2"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            style="@style/VioletLiningButton"
-            android:text="2"/>
-
-        <Button
+            android:gravity="center"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:textSize="24sp"
+            android:textColor="@color/colorPrimary"
+            android:background="@drawable/rectangular_button_click_selector"
+            android:text="2" />
+        <TextView
+            style="@style/RobotoMonoText"
             android:id="@+id/button_3"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            style="@style/VioletLiningButton"
-            android:text="3"/>
+            android:gravity="center"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:textSize="24sp"
+            android:textColor="@color/colorPrimary"
+            android:background="@drawable/rectangular_button_click_selector"
+            android:text="3" />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
-        <Button
+        <TextView
+            style="@style/RobotoMonoText"
             android:id="@+id/button_4"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            style="@style/VioletLiningButton"
-            android:text="4"/>
-
-        <Button
+            android:gravity="center"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:textSize="24sp"
+            android:textColor="@color/colorPrimary"
+            android:background="@drawable/rectangular_button_click_selector"
+            android:text="4" />
+        <TextView
+            style="@style/RobotoMonoText"
             android:id="@+id/button_5"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            style="@style/VioletLiningButton"
-            android:text="5"/>
-
-        <Button
+            android:gravity="center"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:textSize="24sp"
+            android:textColor="@color/colorPrimary"
+            android:background="@drawable/rectangular_button_click_selector"
+            android:text="5" />
+        <TextView
+            style="@style/RobotoMonoText"
             android:id="@+id/button_6"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            style="@style/VioletLiningButton"
-            android:text="6"/>
+            android:gravity="center"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:textSize="24sp"
+            android:textColor="@color/colorPrimary"
+            android:background="@drawable/rectangular_button_click_selector"
+            android:text="6" />
     </LinearLayout>
-
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
-        <Button
+        <TextView
+            style="@style/RobotoMonoText"
             android:id="@+id/button_7"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            style="@style/VioletLiningButton"
-            android:text="7"/>
-
-        <Button
+            android:gravity="center"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:textSize="24sp"
+            android:textColor="@color/colorPrimary"
+            android:background="@drawable/rectangular_button_click_selector"
+            android:text="7" />
+        <TextView
+            style="@style/RobotoMonoText"
             android:id="@+id/button_8"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            style="@style/VioletLiningButton"
-            android:text="8"/>
-
-        <Button
+            android:gravity="center"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:textSize="24sp"
+            android:textColor="@color/colorPrimary"
+            android:background="@drawable/rectangular_button_click_selector"
+            android:text="8" />
+        <TextView
+            style="@style/RobotoMonoText"
             android:id="@+id/button_9"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            style="@style/VioletLiningButton"
-            android:text="9"/>
+            android:gravity="center"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:textSize="24sp"
+            android:textColor="@color/colorPrimary"
+            android:background="@drawable/rectangular_button_click_selector"
+            android:text="9" />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:paddingBottom="7dp"
         android:orientation="horizontal">
-
-        <Button
+        <TextView
+            style="@style/RobotoMonoText"
             android:id="@+id/button_point"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            style="@style/VioletLiningButton"
-            android:text="."/>
-
-
-        <Button
+            android:gravity="center"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:textSize="24sp"
+            android:textColor="@color/colorPrimary"
+            android:background="@drawable/rectangular_button_click_selector"
+            android:text="." />
+        <TextView
+            style="@style/RobotoMonoText"
             android:id="@+id/button_0"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            style="@style/VioletLiningButton"
-            android:text="0"/>
-
-        <Button
+            android:gravity="center"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:textSize="24sp"
+            android:textColor="@color/colorPrimary"
+            android:background="@drawable/rectangular_button_click_selector"
+            android:text="0" />
+        <TextView
+            style="@style/RobotoMonoText"
             android:id="@+id/button_backspace"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            style="@style/VioletLiningButton"
-            android:text="⌫"/>
+            android:gravity="center"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:textSize="24sp"
+            android:textColor="@color/colorPrimary"
+            android:background="@drawable/rectangular_button_click_selector"
+            android:text="⌫" />
     </LinearLayout>
 </LinearLayout>

@@ -23,6 +23,7 @@ import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.ui.TwoOptionsDialog;
+import korablique.recipecalculator.ui.calckeyboard.CalcEditText;
 import korablique.recipecalculator.ui.calckeyboard.CalcKeyboardController;
 import korablique.recipecalculator.ui.numbersediting.EditProgressText;
 import korablique.recipecalculator.ui.numbersediting.EditProgressTextCommonMaxController;
@@ -44,7 +45,7 @@ public class EditFoodstuffActivity extends BaseActivity {
     private EditProgressText proteinEditText;
     private EditProgressText fatsEditText;
     private EditProgressText carbsEditText;
-    private EditText caloriesEditText;
+    private CalcEditText caloriesEditText;
     private Button saveButton;
     private EditProgressTextCommonMaxController nutritionsCommonMaxController;
 
@@ -229,19 +230,19 @@ public class EditFoodstuffActivity extends BaseActivity {
 
     private Foodstuff parseFoodstuff() {
         String foodstuffName = foodstuffNameEditText.getText().toString();
-        double protein = Double.parseDouble(proteinEditText.getText().toString());
-        double fats = Double.parseDouble(fatsEditText.getText().toString());
-        double carbs = Double.parseDouble(carbsEditText.getText().toString());
-        double calories = Double.parseDouble(caloriesEditText.getText().toString());
+        double protein = parseNutrient(proteinEditText);
+        double fats = parseNutrient(fatsEditText);
+        double carbs = parseNutrient(carbsEditText);
+        double calories = parseNutrient(caloriesEditText);
         return Foodstuff.withName(foodstuffName).withNutrition(protein, fats, carbs, calories);
     }
 
-    private double parseNutrient(EditText editText) {
-        String valueString = editText.getText().toString();
-        if (valueString.isEmpty()) {
-            return 0.0;
+    private double parseNutrient(CalcEditText editText) {
+        Float value = ((CalcEditText) editText).calcCurrentValue();
+        if (value != null) {
+            return value;
         } else {
-            return Double.parseDouble(valueString);
+            return 0.0;
         }
     }
 

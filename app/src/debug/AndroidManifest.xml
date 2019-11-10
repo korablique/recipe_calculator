@@ -6,5 +6,9 @@
         <activity
             android:name=".test.FakeTestActivity">
         </activity>
+
+        <activity
+            android:name=".test.CalcKeyboardTestActivity">
+        </activity>
     </application>
 </manifest>
