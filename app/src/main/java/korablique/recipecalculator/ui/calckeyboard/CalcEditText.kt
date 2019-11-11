@@ -70,6 +70,8 @@ open class CalcEditText : EditText {
             return Expression(croppedStr).eval()
         } catch (e: Expression.ExpressionException) {
             return null
+        } catch (e: ArithmeticException) {
+            return null
         }
     }
 
