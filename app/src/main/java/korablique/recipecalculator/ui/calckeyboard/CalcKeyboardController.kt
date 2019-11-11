@@ -1,6 +1,5 @@
 package korablique.recipecalculator.ui.calckeyboard
 
-import android.app.Activity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
@@ -17,7 +16,6 @@ import korablique.recipecalculator.base.BaseActivity
 import korablique.recipecalculator.base.BaseBottomDialog
 import java.lang.IllegalStateException
 import androidx.constraintlayout.widget.ConstraintSet
-import korablique.recipecalculator.BuildConfig
 import korablique.recipecalculator.ui.KeyboardHandler
 
 private const val CALC_KEYBOARD_PARENT_EXPECTED_TAG = "calc_keyboard_parent"
@@ -82,7 +80,7 @@ class CalcKeyboardController @Inject constructor() {
         // Если по какой-то причине системная клавиатура показана, спрячем её.
         // (Такое возможно, например, если нажать tab и сместить фокус с обычного EditText'а на
         // наш - системная клавиатура никуда не денется, останется открытой)
-        KeyboardHandler(editText.context as Activity).hideKeyBoardWithoutClearingFocus()
+        KeyboardHandler(editText.context as BaseActivity).hideKeyBoardWithoutClearingFocus()
     }
 
     private fun findCalcKeyboardParent(editText: EditText): ViewGroup {
