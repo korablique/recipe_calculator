@@ -3,12 +3,10 @@ package korablique.recipecalculator.ui.card;
 
 import android.content.Context;
 import android.text.Editable;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.annotation.StringRes;
@@ -81,7 +79,7 @@ public class Card {
     }
 
     private void updateMainButtonsEnability() {
-        Float currentVal = weightEditText.calcCurrentValue();
+        Float currentVal = weightEditText.getCurrentCalculatedValue();
         if (currentVal == null
                 || FloatUtils.areFloatsEquals(0, currentVal)) {
             button1.setEnabled(false);
@@ -120,7 +118,7 @@ public class Card {
                 // пользователь отредактировал массу - показываем значения БЖУ на новую массу
                 super.afterTextChanged(s);
                 updateMainButtonsEnability();
-                Float value = weightEditText.calcCurrentValue();
+                Float value = weightEditText.getCurrentCalculatedValue();
                 double newWeight = 0;
                 if (value != null) {
                     newWeight = value;
@@ -167,7 +165,7 @@ public class Card {
     }
 
     private WeightedFoodstuff extractWeightedFoodstuff() {
-        Float weight = weightEditText.calcCurrentValue();
+        Float weight = weightEditText.getCurrentCalculatedValue();
         if (weight == null) {
             weight = 0f;
         }

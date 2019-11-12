@@ -4,7 +4,6 @@ import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.text.InputType
 import android.util.AttributeSet
 import android.util.TypedValue.COMPLEX_UNIT_DIP
 import android.util.TypedValue.applyDimension
@@ -153,7 +152,7 @@ class EditProgressText : CalcEditText {
     }
 
     fun getDisplayedNumber(): Float? {
-        return calcCurrentValue()
+        return getCurrentCalculatedValue()
     }
 
     public override fun onDraw(canvas: Canvas) {
