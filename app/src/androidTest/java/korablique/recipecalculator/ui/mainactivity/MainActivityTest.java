@@ -32,6 +32,7 @@ import org.junit.runner.RunWith;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.RequestCodes;
@@ -40,6 +41,7 @@ import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Formula;
 import korablique.recipecalculator.model.Gender;
 import korablique.recipecalculator.model.GoalCalculator;
+import korablique.recipecalculator.model.HistoryEntry;
 import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.Nutrition;
@@ -180,6 +182,64 @@ public class MainActivityTest extends MainActivityTestsBase {
                 withText(newFoodstuff2.getName()),
                 matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header)))))
                 .check(doesNotExist());
+    }
+
+    @Test
+    public void addedToHistoryFoodstuffs_appearInTop() {
+        databaseHolder.getDatabase().clearAllTables();
+        mActivityRule.launchActivity(null);
+        onView(withText(R.string.top_header)).check(doesNotExist());
+
+        // Сохраним продукт в Историю
+        AtomicReference<Foodstuff> newFoodstuff = new AtomicReference<>(
+                Foodstuff.withName("new foodstuff").withNutrition(1, 2, 3, 4));
+        foodstuffsList.saveFoodstuff(newFoodstuff.get(), new FoodstuffsList.SaveFoodstuffCallback() {
+            @Override
+            public void onResult(Foodstuff addedFoodstuff) {
+                newFoodstuff.set(addedFoodstuff);
+            }
+            @Override public void onDuplication() {}
+        });
+        historyWorker.saveFoodstuffToHistory(timeProvider.now().toDate(), newFoodstuff.get().getId(), 123);
+
+        // Проверим, что появился топ и продукт в нём.
+        onView(withText(R.string.top_header)).check(matches(isDisplayed()));
+        onView(allOf(
+                withText(newFoodstuff.get().getName()),
+                matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header))),
+                matches(isCompletelyBelow(withText(R.string.top_header)))
+        )).check(matches(isDisplayed()));
+    }
+
+    @Test
+    public void topDisappears_whenHistoryIsCleaned() {
+        mActivityRule.launchActivity(null);
+
+        List<Foodstuff> topFoodstuffs = extractFoodstuffsTopFromDB();
+        // Проверим, что заголовок топа есть
+        onView(withText(R.string.top_header)).check(matches(isDisplayed()));
+        // Проверим, что продукт есть в топе
+        onView(allOf(
+                withText(topFoodstuffs.get(0).getName()),
+                matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header))),
+                matches(isCompletelyBelow(withText(R.string.top_header)))
+        )).check(matches(isDisplayed()));
+
+        // Очистим историю
+        historyWorker.requestAllHistoryFromDb((allHistory)->{
+            for (HistoryEntry entry : allHistory) {
+                historyWorker.deleteEntryFromHistory(entry);
+            }
+        });
+
+        // Проверим, что щаголовок топа пропал
+        onView(withText(R.string.top_header)).check(doesNotExist());
+        // Проверим, что продукта в топе больше нет
+        onView(allOf(
+                withText(topFoodstuffs.get(0).getName()),
+                matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header))),
+                matches(isCompletelyBelow(withText(R.string.top_header)))
+        )).check(doesNotExist());
     }
 
     @Test

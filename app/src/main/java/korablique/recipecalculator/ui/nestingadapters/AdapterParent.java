@@ -2,6 +2,8 @@ package korablique.recipecalculator.ui.nestingadapters;
 
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -10,7 +12,10 @@ import java.util.List;
 
 
 public class AdapterParent extends RecyclerView.Adapter {
-    private List<AdapterChild> children = new ArrayList<>();
+    @Nullable
+    private RecyclerView recyclerView;
+    private final List<AdapterChild> children = new ArrayList<>();
+    private final ChildrenObserver childrenObserver = new ChildrenObserver();
 
     @VisibleForTesting
     static class ChildWithPosition {
@@ -100,8 +105,40 @@ public class AdapterParent extends RecyclerView.Adapter {
 
     public void addChildToPosition(AdapterChild child, int position) {
         this.children.add(position, child);
-        child.addObserver(new ChildrenObserver());
+        child.addObserver(childrenObserver);
         notifyDataSetChanged();
+        invalidateAllViewHolders();
+    }
+
+    private void invalidateAllViewHolders() {
+        // Действия ниже вызовут onDetachedFromRecyclerView, поэтому
+        // запомним наш recyclerView в локальную переменную.
+        RecyclerView recyclerView = this.recyclerView;
+        if (recyclerView != null) {
+            // Удалим себя из recyclerView и заново добавим.
+            //
+            // Это костыль, нужный из-за того, что каждый child у нас имеет свой viewType,
+            // и этот viewType вычисляется динамически исходя из позиции view - как только
+            // добавляется новый child на позицию 0, он забирает себе viewType child'а, который до
+            // этого был на позиции 0.
+            //
+            // Но RecyclerView запоминает, какие view holder'ы каким viewType'ам соответствуют,
+            // отчего после создания view holder'а, он навсегда будет проассоциирован с viewType'ом,
+            // и наша система смены "владельца" viewType'а ломается - recyclerView о ней не знает.
+            //
+            // Чтобы исправить эту проблему, заставляем recyclerView нас забыть, а потом снова
+            // вставляем себя в него - recyclerView от этого забывает, какие view holder'ам
+            // соответствуют какие viewType'ы.
+            recyclerView.setAdapter(null);
+            recyclerView.setAdapter(this);
+        }
+    }
+
+    public void removeChild(AdapterChild child) {
+        child.removeObserver(childrenObserver);
+        this.children.remove(child);
+        notifyDataSetChanged();
+        invalidateAllViewHolders();
     }
 
     ChildWithPosition transformParentPositionIntoChildPosition(int parentPosition) {
@@ -131,5 +168,17 @@ public class AdapterParent extends RecyclerView.Adapter {
             }
         }
         return parentPosition;
+    }
+
+    @Override
+    public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
+        this.recyclerView = recyclerView;
+    }
+
+    @Override
+    public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
+        if (this.recyclerView == recyclerView) {
+            this.recyclerView = null;
+        }
     }
 }
