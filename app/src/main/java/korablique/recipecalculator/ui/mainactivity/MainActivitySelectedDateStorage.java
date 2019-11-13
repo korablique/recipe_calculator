@@ -7,6 +7,9 @@ import androidx.lifecycle.Lifecycle;
 
 import org.joda.time.LocalDate;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.inject.Inject;
 
 import korablique.recipecalculator.base.ActivityCallbacks;
@@ -25,8 +28,13 @@ public class MainActivitySelectedDateStorage implements
     private final MainActivity mainActivity;
     private final SessionController sessionController;
     private final TimeProvider timeProvider;
+    private final List<Observer> observers = new ArrayList<>();
     @Nullable
     private LocalDate selectedDate;
+
+    public interface Observer {
+        void onSelectedDateChanged(LocalDate selectedDate);
+    }
 
     @Inject
     public MainActivitySelectedDateStorage(
@@ -46,8 +54,19 @@ public class MainActivitySelectedDateStorage implements
         }
     }
 
+    public void addObserver(Observer observer) {
+        observers.add(observer);
+    }
+
+    public void removeObserver(Observer observer) {
+        observers.remove(observer);
+    }
+
     public void setSelectedDate(LocalDate date) {
         this.selectedDate = date;
+        for (Observer observer : observers) {
+            observer.onSelectedDateChanged(date);
+        }
     }
 
     public LocalDate getSelectedDate() {

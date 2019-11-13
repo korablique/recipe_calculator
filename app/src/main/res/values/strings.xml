@@ -139,6 +139,10 @@
     <string name="foodstuff_deletion_are_you_sure_positive_response">Удалить</string>
     <string name="foodstuff_deletion_are_you_sure_negative_response">Отмена</string>
 
+    <string name="add_foodstuff_to_other_date_dialog_title">Добавить продукт на %s?</string>
+    <string name="add_foodstuff_to_other_date_dialog_other_date_response">На %s</string>
+    <string name="add_foodstuff_to_other_date_dialog_current_day_response">На сегодня</string>
+
     <string-array name="gender_array">
         <item name="not_selected">—</item>
         <item name="male">Мужской</item>

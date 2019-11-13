@@ -46,10 +46,14 @@ import korablique.recipecalculator.ui.mainactivity.MainActivityFragmentsControll
 import korablique.recipecalculator.ui.mainactivity.MainActivitySelectedDateStorage;
 
 @FragmentScope
-public class HistoryController implements FragmentCallbacks.Observer, HistoryWorker.Observer {
+public class HistoryController implements
+        FragmentCallbacks.Observer,
+        HistoryWorker.Observer,
+        MainActivitySelectedDateStorage.Observer {
     private static final int CARD_BUTTON_TEXT_RES = R.string.save;
     private BaseActivity context;
     private BaseFragment fragment;
+    private View fragmentView;
     private HistoryWorker historyWorker;
     private UserParametersWorker userParametersWorker;
     private RxFragmentSubscriptions subscriptions;
@@ -138,6 +142,7 @@ public class HistoryController implements FragmentCallbacks.Observer, HistoryWor
 
     @Override
     public void onFragmentViewCreated(View fragmentView, Bundle savedInstanceState) {
+        this.fragmentView = fragmentView;
         FloatingActionButton fab = fragmentView.findViewById(R.id.history_fab);
         fab.setOnClickListener(v -> {
             fragmentsController.showMainScreen();
@@ -156,7 +161,6 @@ public class HistoryController implements FragmentCallbacks.Observer, HistoryWor
 
         initHistoryList(fragmentView);
         initCard();
-        switchToDate(mainActivitySelectedDateStorage.getSelectedDate(), fragmentView);
         initCalendarButton(fragmentView);
 
         // если DatePicker уже существует (открыт) - подписываемся на него,
@@ -168,20 +172,23 @@ public class HistoryController implements FragmentCallbacks.Observer, HistoryWor
 
         initReturnToCurrentDateButton(fragmentView);
 
+        mainActivitySelectedDateStorage.addObserver(this);
         historyWorker.addObserver(this);
+        switchToDate(mainActivitySelectedDateStorage.getSelectedDate());
     }
 
     @Override
     public void onFragmentDestroy() {
         historyWorker.removeObserver(this);
+        mainActivitySelectedDateStorage.removeObserver(this);
     }
 
     private void switchToDate(LocalDate date) {
-        switchToDate(date, fragment.getView());
+        mainActivitySelectedDateStorage.setSelectedDate(date);
     }
 
-    private void switchToDate(LocalDate date, View fragmentView) {
-        mainActivitySelectedDateStorage.setSelectedDate(date);
+    @Override
+    public void onSelectedDateChanged(LocalDate date) {
         setDateInToolbar(date, fragmentView);
         // загрузить историю за выбранный день
         DateTime from = new DateTime(date.getYear(), date.getMonthOfYear(), date.getDayOfMonth(), 0, 0, 0);
@@ -346,15 +353,11 @@ public class HistoryController implements FragmentCallbacks.Observer, HistoryWor
 
     @Override
     public void onHistoryChange() {
-        View view = fragment.getView();
-        if (view == null) {
-            return;
-        }
         // Если История поменялась, но фрагмент Истории не показан - История была изменена
         // не через экран Истории - обновимся, чтобы при заходе на экран Истории были отображены
         // правильные продукты.
-        if (!view.isShown()) {
-            switchToDate(timeProvider.now().toLocalDate());
+        if (!fragmentView.isShown()) {
+            switchToDate(mainActivitySelectedDateStorage.getSelectedDate());
         }
     }
 }
