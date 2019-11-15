@@ -137,6 +137,51 @@ public class MainActivityTest extends MainActivityTestsBase {
     }
 
     @Test
+    public void moreThanMonthOldFoodstuffs_dontGoToTop() {
+        mActivityRule.launchActivity(null);
+
+        Foodstuff newFoodstuff1 = Foodstuff.withName("newfoodstuff1").withNutrition(1, 2, 3, 4);
+        Foodstuff newFoodstuff2 = Foodstuff.withName("newfoodstuff2").withNutrition(1, 2, 3, 4);
+        long[] ids = new long[2];
+        foodstuffsList.saveFoodstuff(newFoodstuff1, new FoodstuffsList.SaveFoodstuffCallback() {
+            @Override
+            public void onResult(Foodstuff addedFoodstuff) {
+                ids[0] = addedFoodstuff.getId();
+            }
+            @Override public void onDuplication() {}
+        });
+        foodstuffsList.saveFoodstuff(newFoodstuff2, new FoodstuffsList.SaveFoodstuffCallback() {
+            @Override
+            public void onResult(Foodstuff addedFoodstuff) {
+                ids[1] = addedFoodstuff.getId();
+            }
+            @Override public void onDuplication() {}
+        });
+
+        // newFoodstuff1 на сегодня
+        for (int index = 0; index < 5; ++index) {
+            addFoodstuffToDate(timeProvider.now(), ids[0]);
+        }
+        // newFoodstuff2 на 2 месяца в прошлом
+        for (int index = 0; index < 5; ++index) {
+            addFoodstuffToDate(timeProvider.now().minusMonths(2), ids[1]);
+        }
+
+        // newFoodstuff1 должен быть в топе
+        onView(allOf(
+                isDescendantOfA(withId(R.id.fragment_main_screen)),
+                withText(newFoodstuff1.getName()),
+                matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header)))))
+                .check(matches(isDisplayed()));
+        // newFoodstuff2 НЕ должен быть в топе
+        onView(allOf(
+                isDescendantOfA(withId(R.id.fragment_main_screen)),
+                withText(newFoodstuff2.getName()),
+                matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header)))))
+                .check(doesNotExist());
+    }
+
+    @Test
     public void startsBucketListActivityWithSelectedFoodstuffs() {
         mActivityRule.launchActivity(null);
 
@@ -217,14 +262,14 @@ public class MainActivityTest extends MainActivityTestsBase {
         List<Foodstuff> topFoodstuffs = extractFoodstuffsTopFromDB();
 
         Matcher<View> topMatcher = allOf(
-                withText(topFoodstuffs.get(0).getName()),
+                withText(topFoodstuffs.get(2).getName()),
                 matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header))),
                 matches(isCompletelyBelow(withText(R.string.top_header))));
         onView(topMatcher).perform(click());
         onView(withId(R.id.button_edit)).perform(click());
 
         // Редактируем
-        String newName = topFoodstuffs.get(0).getName() + "1";
+        String newName = topFoodstuffs.get(2).getName() + "1";
         onView(withId(R.id.foodstuff_name)).perform(replaceText(newName));
         onView(withId(R.id.save_button)).perform(click());
 
@@ -1356,26 +1401,26 @@ public class MainActivityTest extends MainActivityTestsBase {
     }
 
     private void addFoodstuffsToday() {
-        NewHistoryEntry[] newEntries = new NewHistoryEntry[3];
-        DateTime today = timeProvider.now();
-        newEntries[0] = new NewHistoryEntry(foodstuffsIds.get(0), 100,
-                new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 8, 0).toDate());
-        newEntries[1] = new NewHistoryEntry(foodstuffsIds.get(5), 100,
-                new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 9, 0).toDate());
-        newEntries[2] = new NewHistoryEntry(foodstuffsIds.get(6), 100,
-                new DateTime(today.year().get(), today.monthOfYear().get(), today.getDayOfMonth(), 10, 0).toDate());
+        addFoodstuffToDate(timeProvider.now(),
+                foodstuffsIds.get(0),
+                foodstuffsIds.get(5),
+                foodstuffsIds.get(6));
+    }
+
+    private void addFoodstuffToDate(DateTime date, long... foodstuffsIds) {
+        NewHistoryEntry[] newEntries = new NewHistoryEntry[foodstuffsIds.length];
+        for (int index = 0; index < foodstuffsIds.length; ++index) {
+            int weight = 100;
+            newEntries[index] =
+                    new NewHistoryEntry(foodstuffsIds[index], weight, date.toDate());
+            date = date.plusMinutes(1);
+        }
         historyWorker.saveGroupOfFoodstuffsToHistory(newEntries);
     }
 
     private List<Foodstuff> extractFoodstuffsTopFromDB() {
-        List<Foodstuff> listedFoodstuffs = new ArrayList<>();
-        historyWorker.requestListedFoodstuffsFromHistoryForPeriod(0, Long.MAX_VALUE, listedFoodstuffs::addAll);
-
-        List<PopularProductsUtils.FoodstuffFrequency> foodstuffFrequencies = PopularProductsUtils.getTop(listedFoodstuffs);
         List<Foodstuff> top = new ArrayList<>();
-        for (PopularProductsUtils.FoodstuffFrequency frequency : foodstuffFrequencies) {
-            top.add(frequency.getFoodstuff());
-        }
+        topList.getTopList(top::addAll);
         return top;
     }
 

@@ -96,9 +96,9 @@ public class MainActivityTestsBase {
                                 databaseHolder, mainThreadExecutor, databaseThreadExecutor);
                         foodstuffsList = new FoodstuffsList(
                                 databaseWorker, mainThreadExecutor, computationThreadsExecutor);
-                        topList = new FoodstuffsTopList(historyWorker);
-                        userNameProvider = new UserNameProvider(context);
                         timeProvider = new TestingTimeProvider();
+                        topList = new FoodstuffsTopList(historyWorker, timeProvider);
+                        userNameProvider = new UserNameProvider(context);
                         currentActivityProvider = new CurrentActivityProvider();
                         sessionController = new SessionController(context, timeProvider, currentActivityProvider);
                         return Arrays.asList(databaseWorker, historyWorker, userParametersWorker,
@@ -190,19 +190,19 @@ public class MainActivityTestsBase {
 
         NewHistoryEntry[] newEntries = new NewHistoryEntry[10];
         // 1 day: apple, bread, banana
-        newEntries[0] = new NewHistoryEntry(foodstuffsIds.get(0), 100, new Date(118, 0, 1));
-        newEntries[1] = new NewHistoryEntry(foodstuffsIds.get(5), 100, new Date(118, 0, 1));
-        newEntries[2] = new NewHistoryEntry(foodstuffsIds.get(6), 100, new Date(118, 0, 1));
+        newEntries[0] = new NewHistoryEntry(foodstuffsIds.get(0), 100, timeProvider.now().minusYears(10).toDate());
+        newEntries[1] = new NewHistoryEntry(foodstuffsIds.get(5), 100, timeProvider.now().minusYears(10).toDate());
+        newEntries[2] = new NewHistoryEntry(foodstuffsIds.get(6), 100, timeProvider.now().minusYears(10).toDate());
         // 2 day: apple, water
-        newEntries[3] = new NewHistoryEntry(foodstuffsIds.get(0), 100, new Date(118, 0, 2));
-        newEntries[4] = new NewHistoryEntry(foodstuffsIds.get(3), 100, new Date(118, 0, 2));
+        newEntries[3] = new NewHistoryEntry(foodstuffsIds.get(0), 100, timeProvider.now().minusYears(9).toDate());
+        newEntries[4] = new NewHistoryEntry(foodstuffsIds.get(3), 100, timeProvider.now().minusYears(9).toDate());
         // 3 day: bread, soup
-        newEntries[5] = new NewHistoryEntry(foodstuffsIds.get(5), 100, new Date(118, 0, 3));
-        newEntries[6] = new NewHistoryEntry(foodstuffsIds.get(4), 100, new Date(118, 0, 3));
+        newEntries[5] = new NewHistoryEntry(foodstuffsIds.get(5), 100, timeProvider.now().minusYears(8).toDate());
+        newEntries[6] = new NewHistoryEntry(foodstuffsIds.get(4), 100, timeProvider.now().minusYears(8).toDate());
         // 4 day: apple, pineapple, water
-        newEntries[7] = new NewHistoryEntry(foodstuffsIds.get(0), 100, new Date(118, 0, 1));
-        newEntries[8] = new NewHistoryEntry(foodstuffsIds.get(1), 100, new Date(118, 0, 1));
-        newEntries[9] = new NewHistoryEntry(foodstuffsIds.get(3), 100, new Date(118, 0, 1));
+        newEntries[7] = new NewHistoryEntry(foodstuffsIds.get(0), 100, timeProvider.now().minusDays(7).toDate());
+        newEntries[8] = new NewHistoryEntry(foodstuffsIds.get(1), 100, timeProvider.now().minusDays(7).toDate());
+        newEntries[9] = new NewHistoryEntry(foodstuffsIds.get(3), 100, timeProvider.now().minusDays(7).toDate());
         historyWorker.saveGroupOfFoodstuffsToHistory(newEntries);
 
         // сохраняем userParameters в БД
