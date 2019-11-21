@@ -3,7 +3,6 @@ package korablique.recipecalculator.ui.mainactivity.mainscreen;
 
 import android.animation.Animator;
 import android.animation.ValueAnimator;
-import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -14,27 +13,26 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import com.google.android.material.behavior.SwipeDismissBehavior;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.base.FragmentCallbacks;
 import korablique.recipecalculator.model.WeightedFoodstuff;
-
-import static korablique.recipecalculator.util.FloatUtils.areFloatsEquals;
+import korablique.recipecalculator.ui.bucketlist.BucketList;
 
 public class SelectedFoodstuffsSnackbar {
     private static final long DURATION = 250L;
-    private static final String IS_SNACKBAR_SHOWN = "IS_SNACKBAR_SHOWN";
-    private static final String SELECTED_FOODSTUFFS = "SELECTED_FOODSTUFFS";
     private boolean isShown;
-    private ViewGroup snackbarLayout;
-    private TextView selectedFoodstuffsCounter;
+    private final ViewGroup snackbarLayout;
+    private final TextView selectedFoodstuffsCounter;
     private List<WeightedFoodstuff> selectedFoodstuffs = new ArrayList<>();
 
     @Nullable
     private Runnable onDismissListener;
 
-    public SelectedFoodstuffsSnackbar(View fragmentView) {
+    public SelectedFoodstuffsSnackbar(View fragmentView,
+                                      FragmentCallbacks fragmentCallbacks,
+                                      BucketList bucketList) {
         snackbarLayout = fragmentView.findViewById(R.id.snackbar);
         selectedFoodstuffsCounter = fragmentView.findViewById(R.id.selected_foodstuffs_counter);
 
@@ -69,6 +67,25 @@ public class SelectedFoodstuffsSnackbar {
                 }
             }
         });
+
+        BucketList.Observer bucketListObserver = new BucketList.Observer() {
+            @Override
+            public void onFoodstuffAdded(WeightedFoodstuff wf) {
+                update(bucketList.getList());
+            }
+            @Override
+            public void onFoodstuffRemoved(WeightedFoodstuff wf) {
+                update(bucketList.getList());
+            }
+        };
+        bucketList.addObserver(bucketListObserver);
+        fragmentCallbacks.addObserver(new FragmentCallbacks.Observer() {
+            @Override
+            public void onFragmentDestroy() {
+                bucketList.removeObserver(bucketListObserver);
+            }
+        });
+        update(bucketList.getList());
     }
 
     public void show() {
@@ -81,7 +98,7 @@ public class SelectedFoodstuffsSnackbar {
         isShown = true;
     }
 
-    public void hide() {
+    private void hide() {
         float startValue = snackbarLayout.getTranslationY();
         float endValue = getParentHeight();
         animateSnackbar(startValue, endValue, () -> snackbarLayout.setVisibility(View.INVISIBLE));
@@ -111,24 +128,15 @@ public class SelectedFoodstuffsSnackbar {
         animator.start();
     }
 
-    public void update(List<WeightedFoodstuff> newSelectedFoodstuffs) {
+    private void update(List<WeightedFoodstuff> newSelectedFoodstuffs) {
         selectedFoodstuffs.clear();
         if (newSelectedFoodstuffs.isEmpty()) {
             hide();
         } else {
-            addFoodstuffs(newSelectedFoodstuffs);
-            isShown = true; // чтобы не анимировался
+            selectedFoodstuffs.addAll(newSelectedFoodstuffs);
+            updateSelectedFoodstuffsCounter();
             show();
         }
-    }
-
-    public void addFoodstuff(WeightedFoodstuff foodstuff) {
-        addFoodstuffs(Collections.singletonList(foodstuff));
-    }
-
-    public void addFoodstuffs(List<WeightedFoodstuff> foodstuffs) {
-        selectedFoodstuffs.addAll(foodstuffs);
-        updateSelectedFoodstuffsCounter();
     }
 
     private void updateSelectedFoodstuffsCounter() {
@@ -150,30 +158,5 @@ public class SelectedFoodstuffsSnackbar {
 
     public void setOnDismissListener(Runnable dismissListener) {
         this.onDismissListener = dismissListener;
-    }
-
-    public List<WeightedFoodstuff> getSelectedFoodstuffs() {
-        return selectedFoodstuffs;
-    }
-
-    private void setSelectedFoodstuffs(List<WeightedFoodstuff> selectedFoodstuffs) {
-        this.selectedFoodstuffs = selectedFoodstuffs;
-        updateSelectedFoodstuffsCounter();
-    }
-
-    public boolean isShown() {
-        return isShown;
-    }
-
-    public void onSaveInstanceState(Bundle out) {
-        out.putBoolean(IS_SNACKBAR_SHOWN, isShown);
-        out.putParcelableArrayList(SELECTED_FOODSTUFFS, new ArrayList<>(selectedFoodstuffs));
-    }
-
-    public void onRestoreInstanceState(Bundle savedInstanceState) {
-        if (savedInstanceState.getBoolean(IS_SNACKBAR_SHOWN)) {
-            setSelectedFoodstuffs(savedInstanceState.getParcelableArrayList(SELECTED_FOODSTUFFS));
-            show();
-        }
     }
 }

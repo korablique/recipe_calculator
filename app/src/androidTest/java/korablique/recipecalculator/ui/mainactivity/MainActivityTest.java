@@ -281,16 +281,20 @@ public class MainActivityTest extends MainActivityTestsBase {
         }
 
         // Проверяем, что была попытка стартовать активити по интенту от BucketListActivity,
-        // также что этот интент содержит информацию о кликнутых продуктах.
+        // также что BucketList содержит все необходимые продукты.
         Intent expectedIntent =
-                BucketListActivity.createStartIntentFor(
-                        mActivityRule.getActivity(),
-                        clickedWeightedFoodstuffs,
-                        timeProvider.now().toLocalDate());
+                BucketListActivity.createIntent(mActivityRule.getActivity());
         intended(allOf(
                 hasAction(expectedIntent.getAction()),
-                hasComponent(expectedIntent.getComponent()),
-                hasExtras(hasValue(clickedWeightedFoodstuffs))));
+                hasComponent(expectedIntent.getComponent())));
+
+        ArrayList<WeightedFoodstuff> weightedFoodstuffs = new ArrayList<>();
+        weightedFoodstuffs.add(clickedFoodstuffs.get(0).withWeight(123));
+        weightedFoodstuffs.add(clickedFoodstuffs.get(1).withWeight(123));
+        weightedFoodstuffs.add(clickedFoodstuffs.get(2).withWeight(123));
+        mainThreadExecutor.execute(() -> {
+            Assert.assertEquals(weightedFoodstuffs, bucketList.getList());
+        });
     }
 
     @Test
@@ -413,97 +417,6 @@ public class MainActivityTest extends MainActivityTestsBase {
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
         instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
         onView(withText(deletingFoodstuff.getName())).check(matches(isDisplayed()));
-    }
-
-    @Test
-    public void snackbarUpdatesAfterChangingBucketList() {
-        // добавляем в bucket list продукты, запускаем активити, в снекбаре должно быть 3 фудстаффа
-        WeightedFoodstuff wf0 = foodstuffs[0].withWeight(100);
-        WeightedFoodstuff wf1 = foodstuffs[1].withWeight(100);
-        WeightedFoodstuff wf2 = foodstuffs[2].withWeight(100);
-
-        mainThreadExecutor.execute(() -> {
-            bucketList.add(wf0);
-            bucketList.add(wf1);
-            bucketList.add(wf2);
-        });
-
-        mActivityRule.launchActivity(null);
-        onView(withId(R.id.selected_foodstuffs_counter)).check(matches(withText("3")));
-
-        // убираем один продукт, перезапускаем активити, в снекбаре должно быть 2 фудстаффа
-        mainThreadExecutor.execute(() -> {
-            bucketList.remove(foodstuffs[0].withWeight(100));
-        });
-
-        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
-        instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
-        instrumentation.waitForIdleSync();
-        onView(withId(R.id.selected_foodstuffs_counter)).check(matches(isDisplayed()));
-        onView(withId(R.id.selected_foodstuffs_counter)).check(matches(withText("2")));
-        Assert.assertTrue(bucketList.getList().contains(wf1));
-        Assert.assertTrue(bucketList.getList().contains(wf2));
-
-        // убираем все продукты, перезапускаем активити, снекбара быть не должно
-        mainThreadExecutor.execute(() -> {
-            bucketList.clear();
-        });
-        instrumentation.runOnMainSync(() -> mActivityRule.getActivity().recreate());
-        instrumentation.waitForIdleSync();
-        onView(withId(R.id.selected_foodstuffs_counter)).check(matches(not(isDisplayed())));
-    }
-
-    @Test
-    public void swipedOutSnackbar_cleansBuckerList() throws InterruptedException {
-        // добавляем в bucket list продукты, запускаем активити
-        WeightedFoodstuff wf0 = foodstuffs[0].withWeight(100);
-        WeightedFoodstuff wf1 = foodstuffs[1].withWeight(100);
-
-        mainThreadExecutor.execute(() -> {
-            bucketList.add(wf0);
-            bucketList.add(wf1);
-            assertEquals(2, bucketList.getList().size());
-        });
-
-        mActivityRule.launchActivity(null);
-
-        // "Высвайпываем" снекбар
-        onView(withId(R.id.snackbar)).perform(swipeRight());
-        Thread.sleep(500); // Ждем 0.5с, потому что SwipeDismissBehaviour криво уведомляет о высвайпывании
-
-        // Убеждаемся, что в бакетлисте пусто и снекбар не показан
-        onView(withId(R.id.snackbar)).check(matches(not(isDisplayed())));
-        mainThreadExecutor.execute(() -> {
-            assertTrue(bucketList.getList().isEmpty());
-        });
-    }
-
-    @Test
-    public void swipedOutSnackbar_canBeCanceled() throws InterruptedException {
-        // добавляем в bucket list продукты, запускаем активити
-        WeightedFoodstuff wf0 = foodstuffs[0].withWeight(100);
-        WeightedFoodstuff wf1 = foodstuffs[1].withWeight(100);
-
-        mainThreadExecutor.execute(() -> {
-            bucketList.add(wf0);
-            bucketList.add(wf1);
-            assertEquals(2, bucketList.getList().size());
-        });
-
-        mActivityRule.launchActivity(null);
-
-        // "Высвайпываем" снекбар
-        onView(withId(R.id.snackbar)).perform(swipeRight());
-        Thread.sleep(500); // Ждем 0.5с, потому что SwipeDismissBehaviour криво уведомляет о высвайпывании
-
-        // Тут же отменяем "высвайпывание"
-        onView(withText(R.string.undo)).perform(click());
-
-        // Убеждаемся, что в бакетлисте по-прежнему есть продукты и снекбар показан
-        onView(withId(R.id.snackbar)).check(matches(isDisplayed()));
-        mainThreadExecutor.execute(() -> {
-            assertEquals(2, bucketList.getList().size());
-        });
     }
 
     @Test

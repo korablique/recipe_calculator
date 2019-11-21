@@ -47,8 +47,6 @@ public class BucketListActivity extends BaseActivity {
     private static final String DISPLAYED_IN_CARD_FOODSTUFF_POSITION = "DISPLAYED_IN_CARD_FOODSTUFF_POSITION";
     @StringRes
     private static final int CARD_BUTTON_TEXT_RES = R.string.save;
-    private static final String EXTRA_DATE = "EXTRA_DATE";
-    private static final String EXTRA_FOODSTUFFS_LIST = "EXTRA_FOODSTUFFS_LIST";
     private PluralProgressBar pluralProgressBar;
     private NutritionValuesWrapper nutritionValuesWrapper;
     @Inject
@@ -56,7 +54,8 @@ public class BucketListActivity extends BaseActivity {
     private BucketListAdapter adapter;
     private EditText totalWeightEditText;
     private Button saveAsSingleFoodstuffButton;
-    private BucketList bucketList;
+    @Inject
+    BucketList bucketList;
     private int displayedInCardFoodstuffPosition;
     private Card.OnMainButtonClickListener onAddFoodstuffButtonClickListener;
     @Inject
@@ -75,11 +74,7 @@ public class BucketListActivity extends BaseActivity {
         pluralProgressBar = findViewById(R.id.new_nutrition_progress_bar);
         nutritionValuesWrapper = new NutritionValuesWrapper(this, nutritionLayout);
 
-        List<WeightedFoodstuff> foodstuffs =
-                getIntent().getParcelableArrayListExtra(EXTRA_FOODSTUFFS_LIST);
-        if (foodstuffs == null) {
-            throw new IllegalArgumentException("Can't start without " + EXTRA_FOODSTUFFS_LIST);
-        }
+        List<WeightedFoodstuff> foodstuffs = bucketList.getList();
         double totalWeight = countTotalWeight(foodstuffs);
         updateNutritionWrappers(foodstuffs, totalWeight);
 
@@ -102,8 +97,12 @@ public class BucketListActivity extends BaseActivity {
         onAddFoodstuffButtonClickListener = new Card.OnMainButtonClickListener() {
             @Override
             public void onClick(WeightedFoodstuff newFoodstuff) {
+                WeightedFoodstuff oldFoodstuff = adapter.getItem(displayedInCardFoodstuffPosition);
                 adapter.replaceItem(newFoodstuff, displayedInCardFoodstuffPosition);
                 CardDialog.hideCard(BucketListActivity.this);
+
+                bucketList.remove(oldFoodstuff);
+                bucketList.add(newFoodstuff);
 
                 double newTotalWeight = countTotalWeight(adapter.getItems());
                 totalWeightEditText.setText(toDecimalString(newTotalWeight));
@@ -131,8 +130,6 @@ public class BucketListActivity extends BaseActivity {
 
         RecyclerView foodstuffsListRecyclerView = findViewById(R.id.foodstuffs_list);
         foodstuffsListRecyclerView.setAdapter(adapter);
-
-        bucketList = BucketList.getInstance();
 
         OnSwipeItemCallback onSwipeItemCallback = new OnSwipeItemCallback(
                 0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
@@ -260,21 +257,13 @@ public class BucketListActivity extends BaseActivity {
         }
     }
 
-    /**
-     * @param selectedDate the date on which to save foodstuffs to history
-     */
     public static void start(
             Activity context,
-            int requestCode,
-            ArrayList<WeightedFoodstuff> foodstuffs,
-            LocalDate selectedDate) {
-        context.startActivityForResult(createStartIntentFor(context, foodstuffs, selectedDate), requestCode);
+            int requestCode) {
+        context.startActivityForResult(createIntent(context), requestCode);
     }
 
-    public static Intent createStartIntentFor(Context context, List<WeightedFoodstuff> foodstuffs, LocalDate date) {
-        Intent intent = new Intent(context, BucketListActivity.class);
-        intent.putParcelableArrayListExtra(EXTRA_FOODSTUFFS_LIST, new ArrayList<>(foodstuffs));
-        intent.putExtra(EXTRA_DATE, date);
-        return intent;
+    public static Intent createIntent(Context context) {
+        return new Intent(context, BucketListActivity.class);
     }
 }

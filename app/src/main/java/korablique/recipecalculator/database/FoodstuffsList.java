@@ -2,17 +2,23 @@ package korablique.recipecalculator.database;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import io.reactivex.Observable;
 import io.reactivex.Single;
+import io.reactivex.subjects.PublishSubject;
+import io.reactivex.subjects.SingleSubject;
 import korablique.recipecalculator.base.Callback;
 import korablique.recipecalculator.base.executors.ComputationThreadsExecutor;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.model.Foodstuff;
-import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.util.FuzzySearcher;
 
@@ -115,6 +121,27 @@ public class FoodstuffsList {
         });
     }
 
+    /**
+     * @see #saveFoodstuff(Foodstuff, SaveFoodstuffCallback)
+     * @return сохраненный продукт с ID
+     */
+    public Single<Foodstuff> saveFoodstuff(Foodstuff foodstuff) {
+        SingleSubject<Foodstuff> publishSubject = SingleSubject.create();
+        saveFoodstuff(foodstuff, new SaveFoodstuffCallback() {
+            @Override
+            public void onResult(Foodstuff addedFoodstuff) {
+                publishSubject.onSuccess(addedFoodstuff);
+            }
+
+            @Override
+            public void onDuplication() {
+                publishSubject.onError(new IllegalArgumentException(
+                        String.format("Foodstuff with data '%s' already exists", foodstuff)));
+            }
+        });
+        return publishSubject;
+    }
+
     public void deleteFoodstuff(Foodstuff foodstuff) {
         // вызов нужен для гарантии правильного состояния кеша,
         // чтобы не удалить продукт во время формирования кеша
@@ -197,5 +224,45 @@ public class FoodstuffsList {
         }
         all.add(newFoodstuff);
         return (all.size() - 1);
+    }
+
+    /**
+     * Отдаёт продукты с запрошенными ID. Порядок продуктов такой же, что порядок ID.
+     */
+    public Observable<Foodstuff> getFoodstuffsWithIds(List<Long> ids) {
+        // Создадим PublishSubject, через который будет отдавать результат
+        PublishSubject<Foodstuff> publishSubject = PublishSubject.create();
+        // Создадим Observable кеширующий данные PublishSubject'а, сразу подпишем его
+        // чтобы кеширование началось
+        Observable<Foodstuff> cachedResults = publishSubject.cache();
+        cachedResults.subscribe();
+
+        // Получим все продукты
+        getAllFoodstuffs((unused)->{}, (allFoodstuffs) -> {
+            // Запихнём айдишники в set для удобства
+            Set<Long> idsSet = new HashSet<>(ids);
+
+            // Пройдёмся по всем продуктам, закинем их в foundFoodstuffs,
+            // если нам интересен ID
+            Map<Long, Foodstuff> foundFoodstuffs = new HashMap<>();
+            for (Foodstuff foodstuff : allFoodstuffs) {
+                if (idsSet.contains(foodstuff.getId())) {
+                    foundFoodstuffs.put(foodstuff.getId(), foodstuff);
+                }
+            }
+
+            // foundFoodstuffs - неупорядоченная map, но нам нужно отдавать результат в
+            // том порядке, в котором поступили ids - поэтому пройдёмся по всем id, для каждого
+            // возьмём найденный продукт и отправим его через publishSubject
+            for (Long id : ids) {
+                Foodstuff foodstuff = foundFoodstuffs.get(id);
+                if (foodstuff != null) {
+                    publishSubject.onNext(foodstuff);
+                }
+            }
+            publishSubject.onComplete();
+        });
+
+        return cachedResults;
     }
 }

@@ -137,6 +137,10 @@ public class Foodstuff implements Parcelable, Comparable<Foodstuff> {
         return new WeightedFoodstuff(this, weight);
     }
 
+    public Foodstuff recreateWithId(long id) {
+        return Foodstuff.withId(id).withName(name).withNutrition(protein, fats, carbs, calories);
+    }
+
     @Override
     public String toString() {
         return "Foodstuff{" +
