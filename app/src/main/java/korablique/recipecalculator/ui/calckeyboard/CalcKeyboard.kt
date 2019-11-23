@@ -124,7 +124,7 @@ class CalcKeyboard : LinearLayout {
             return
         }
         // Бэкспейс держат в течение INTERVAL_BETWEEN_BACKSPACE_HOLD_DELETIONS, удалим символ
-        performTextDeletion(inputConnection)
+        onButtonClick(findViewById<View>(R.id.button_backspace))
 
         // Если бекспейс ещё нажат, через несколько мс снова удалим символ!
         if (isBackspaseBeingHeld) {
