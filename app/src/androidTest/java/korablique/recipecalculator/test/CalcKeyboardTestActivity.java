@@ -24,7 +24,9 @@ public class CalcKeyboardTestActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         CalcEditText calcEditText = findViewById(R.id.calc_edit_text);
         EditProgressText editProgressText = findViewById(R.id.edit_progress_text);
+        CalcEditText calcEditTextWith1DigitAfterDot = findViewById(R.id.calc_edit_text_with_1_digit_after_dot);
         calcKeyboardController.useCalcKeyboardWith(calcEditText, this);
         calcKeyboardController.useCalcKeyboardWith(editProgressText, this);
+        calcKeyboardController.useCalcKeyboardWith(calcEditTextWith1DigitAfterDot, this);
     }
 }

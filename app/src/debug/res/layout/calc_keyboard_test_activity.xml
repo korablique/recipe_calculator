@@ -44,4 +44,18 @@
         custom:color_underline_filled="@android:color/holo_red_dark"
         custom:progress_max_value="100"/>
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="calc edit text with 1 digit after dot allowed"/>
+    <korablique.recipecalculator.ui.calckeyboard.CalcEditText
+        android:id="@+id/calc_edit_text_with_1_digit_after_dot"
+        style="@style/RobotoMonoText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/row_fake_top"
+        android:maxLength="15"
+        custom:min_value="0"
+        custom:max_value="99999"
+        custom:digits_after_decimal_dot="1"/>
 </LinearLayout>

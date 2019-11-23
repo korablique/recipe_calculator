@@ -17,7 +17,6 @@ import korablique.recipecalculator.test.CalcKeyboardTestActivity
 import korablique.recipecalculator.util.FloatUtils
 import korablique.recipecalculator.util.InjectableActivityTestRule
 import korablique.recipecalculator.util.SyncMainThreadExecutor
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -223,6 +222,22 @@ class CalcKeyboardTest {
         // Проверим вычисляемое значение
         val value = getValueOf(R.id.edit_progress_text)
         assertTrue(FloatUtils.areFloatsEquals(50f, value))
+    }
+
+    @Test
+    fun limitationOfDigitsAfterDot_works() {
+        // Открываем клавиатуру
+        onView(withId(R.id.calc_edit_text_with_1_digit_after_dot)).perform(click())
+
+        // Кликаем на кнопочки на клавиатуре
+        onView(withId(R.id.button_1)).perform(click())
+        onView(withId(R.id.button_point)).perform(click())
+        onView(withId(R.id.button_1)).perform(click())
+        onView(withId(R.id.button_1)).perform(click())
+        onView(withId(R.id.button_1)).perform(click())
+
+        // Проверяем, что текст "1.1", а не "1.111"
+        onView(withId(R.id.calc_edit_text_with_1_digit_after_dot)).check(matches(withText("1.1")))
     }
 
     private fun getTextOf(viewId: Int): String {

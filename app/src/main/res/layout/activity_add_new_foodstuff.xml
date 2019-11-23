@@ -102,6 +102,8 @@
             android:nextFocusDown="@+id/fats_value"
             custom:color_underline_filled="@color/colorProtein"
             custom:progress_max_value="100"
+            custom:digits_after_decimal_dot="1"
+            android:maxLength="30"
             tools:text="17" />
 
         <!--fats-->
@@ -143,6 +145,8 @@
             android:nextFocusDown="@+id/carbs_value"
             custom:color_underline_filled="@color/colorFats"
             custom:progress_max_value="100"
+            custom:digits_after_decimal_dot="1"
+            android:maxLength="30"
             tools:text="2" />
 
         <View
@@ -192,6 +196,8 @@
             android:nextFocusDown="@+id/calories_value"
             custom:color_underline_filled="#FF5768E9"
             custom:progress_max_value="100"
+            custom:digits_after_decimal_dot="1"
+            android:maxLength="30"
             tools:text="68" />
 
         <!--calories-->
@@ -215,7 +221,9 @@
             app:layout_constraintTop_toBottomOf="@id/row_fake_top_3"
             app:layout_constraintWidth_percent="0.5"
             android:imeOptions="actionDone"
-            android:maxLength="5"
+            android:maxLength="30"
+            custom:max_value="99999"
+            custom:digits_after_decimal_dot="1"
             tools:text="17" />
 
         <TextView

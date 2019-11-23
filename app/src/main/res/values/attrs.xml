@@ -31,5 +31,6 @@
     <declare-styleable name="CalcEditText">
         <attr name="min_value" format="float"/>
         <attr name="max_value" format="float"/>
+        <attr name="digits_after_decimal_dot" format="integer"/>
     </declare-styleable>
 </resources>
