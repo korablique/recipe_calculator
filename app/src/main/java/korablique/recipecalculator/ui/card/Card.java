@@ -24,6 +24,7 @@ import korablique.recipecalculator.ui.NutritionValuesWrapper;
 import korablique.recipecalculator.ui.calckeyboard.CalcEditText;
 import korablique.recipecalculator.ui.calckeyboard.CalcKeyboardController;
 import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
+import korablique.recipecalculator.util.FloatUtils;
 
 import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
 
@@ -81,7 +82,8 @@ public class Card {
 
     private void updateMainButtonsEnability() {
         Float currentVal = weightEditText.calcCurrentValue();
-        if (currentVal == null) {
+        if (currentVal == null
+                || FloatUtils.areFloatsEquals(0, currentVal)) {
             button1.setEnabled(false);
             button2.setEnabled(false);
         } else {
