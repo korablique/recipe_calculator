@@ -43,7 +43,7 @@ import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
 import static korablique.recipecalculator.util.SpinnerTuner.startTuningSpinner;
 
 @FragmentScope
-public class ProfileController extends FragmentCallbacks.Observer {
+public class ProfileController implements FragmentCallbacks.Observer {
     private BaseFragment fragment;
     private UserParametersWorker userParametersWorker;
     private RxFragmentSubscriptions subscriptions;

@@ -23,6 +23,8 @@ public class MainScreenFragment extends BaseFragment {
     @Inject
     UpFABController upFABController;
     @Inject
+    MainScreenSearchController mainScreenSearchController;
+    @Inject
     MainScreenCardController mainScreenCardController;
 
     public static Bundle createArguments(

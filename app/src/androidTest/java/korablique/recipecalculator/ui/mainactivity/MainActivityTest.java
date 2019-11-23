@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.DatePicker;
 import android.widget.ProgressBar;
 
+import androidx.fragment.app.Fragment;
 import androidx.test.espresso.Espresso;
 import androidx.test.espresso.action.ViewActions;
 import androidx.test.espresso.contrib.PickerActions;
@@ -194,15 +195,16 @@ public class MainActivityTest extends MainActivityTestsBase {
         // Проверяем, что сперва карточка не показана
         onView(withId(R.id.foodstuff_card_layout)).check(doesNotExist());
 
-        // Создаём продукт и сообщаем Activity, что его создал бакетлист
+        // Создаём продукт и сообщаем фрагментам, что его создал бакетлист
         Foodstuff foodstuff = Foodstuff
                 .withName("new_foodstuff_with_new_name")
                 .withNutrition(1, 2, 3, 4);
-        mActivityRule.getActivity().onActivityResult(
-                RequestCodes.MAIN_SCREEN_BUCKET_LIST_CREATE_FOODSTUFF,
-                Activity.RESULT_OK,
-                BucketListActivity.createFoodstuffResultIntent(foodstuff));
-
+        List<Fragment> fragments = mActivityRule.getActivity().getSupportFragmentManager().getFragments();
+        for (Fragment f : fragments) {
+            f.onActivityResult(RequestCodes.MAIN_SCREEN_BUCKET_LIST_CREATE_FOODSTUFF,
+                    Activity.RESULT_OK,
+                    BucketListActivity.createFoodstuffResultIntent(foodstuff));
+        }
         // Убеждаемся, что показана карточка с новым продуктом
         onView(withId(R.id.foodstuff_card_layout)).check(matches(isDisplayed()));
         onView(allOf(

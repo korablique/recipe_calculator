@@ -7,6 +7,7 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.rule.ActivityTestRule;
 
 import org.joda.time.LocalDate;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 
@@ -48,6 +49,8 @@ import korablique.recipecalculator.ui.mainactivity.history.HistoryFragment;
 import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenCardController;
 import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenController;
 import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenFragment;
+import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenReadinessDispatcher;
+import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenSearchController;
 import korablique.recipecalculator.ui.mainactivity.mainscreen.SearchResultsFragment;
 import korablique.recipecalculator.ui.mainactivity.mainscreen.UpFABController;
 import korablique.recipecalculator.ui.mainactivity.profile.NewMeasurementsDialog;
@@ -81,6 +84,7 @@ public class MainActivityTestsBase {
     protected MainActivitySelectedDateStorage mainActivitySelectedDateStorage;
     protected CurrentActivityProvider currentActivityProvider;
     protected SessionController sessionController;
+    private MainScreenCardController mainScreenCardController;
 
     @Rule
     public ActivityTestRule<MainActivity> mActivityRule =
@@ -131,20 +135,29 @@ public class MainActivityTestsBase {
                         RxFragmentSubscriptions subscriptions = new RxFragmentSubscriptions(fragmentCallbacks);
                         BaseActivity activity = (BaseActivity) fragment.getActivity();
                         Lifecycle lifecycle = activity.getLifecycle();
-                        MainScreenCardController cardController = new MainScreenCardController(
-                                activity, fragment, fragmentCallbacks, lifecycle,
-                                historyWorker, timeProvider);
 
                         if (fragment instanceof MainScreenFragment) {
+                            MainScreenReadinessDispatcher readinessDispatcher =
+                                    new MainScreenReadinessDispatcher();
+
+                            mainScreenCardController = new MainScreenCardController(
+                                    activity, fragment, fragmentCallbacks, lifecycle,
+                                    historyWorker, timeProvider);
+
+                            MainScreenSearchController searchController = new MainScreenSearchController(
+                                    mainThreadExecutor, foodstuffsList, fragment, activity.getActivityCallbacks(),
+                                    fragmentCallbacks, mainScreenCardController, readinessDispatcher);
+
+                            UpFABController upFABController = new UpFABController(
+                                    fragmentCallbacks, readinessDispatcher);
+
                             MainScreenController mainScreenController = new MainScreenController(
-                                    mainThreadExecutor,
                                     activity, fragment, fragmentCallbacks,
                                     activity.getActivityCallbacks(), topList,
                                     foodstuffsList, mainActivitySelectedDateStorage,
-                                    cardController);
-                            UpFABController upFABController = new UpFABController(fragmentCallbacks);
+                                    mainScreenCardController, readinessDispatcher);
                             return Arrays.asList(subscriptions, mainScreenController,
-                                    upFABController, cardController);
+                                    upFABController, mainScreenCardController, searchController);
 
                         } else if (fragment instanceof ProfileFragment) {
                             ProfileController profileController = new ProfileController(
@@ -160,7 +173,7 @@ public class MainActivityTestsBase {
                             return Arrays.asList(subscriptions, historyController);
                         } else if (fragment instanceof SearchResultsFragment) {
                             return Arrays.asList(databaseWorker, lifecycle, activity,
-                                    foodstuffsList, subscriptions, cardController);
+                                    foodstuffsList, subscriptions, mainScreenCardController);
                         } else {
                             throw new IllegalStateException("There is no such fragment class");
                         }
