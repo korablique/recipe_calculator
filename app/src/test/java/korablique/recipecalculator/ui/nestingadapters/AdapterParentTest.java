@@ -2,8 +2,7 @@ package korablique.recipecalculator.ui.nestingadapters;
 
 import android.view.ViewGroup;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -99,5 +98,14 @@ public class AdapterParentTest {
         Assert.assertEquals(1, viewType);
         viewType = adapterParent.getItemViewType(3);
         Assert.assertEquals(3, viewType);
+    }
+
+    @Test
+    public void childrenRemovalWorks() {
+        when(child1.getItemCount()).thenReturn(2);
+        Assert.assertEquals(2, adapterParent.getItemCount());
+
+        adapterParent.removeChild(child1);
+        Assert.assertEquals(0, adapterParent.getItemCount());
     }
 }

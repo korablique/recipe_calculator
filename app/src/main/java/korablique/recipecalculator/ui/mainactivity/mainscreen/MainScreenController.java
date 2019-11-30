@@ -3,7 +3,6 @@ package korablique.recipecalculator.ui.mainactivity.mainscreen;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.view.View;
 
 import androidx.fragment.app.Fragment;
@@ -28,6 +27,7 @@ import korablique.recipecalculator.RequestCodes;
 import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.BaseFragment;
+import korablique.recipecalculator.base.Callback;
 import korablique.recipecalculator.base.FragmentCallbacks;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.dagger.FragmentScope;
@@ -61,6 +61,7 @@ public class MainScreenController
     private final MainScreenCardController cardController;
     private final MainScreenReadinessDispatcher readinessDispatcher;
     private SectionedAdapterParent adapterParent;
+    private SingleItemAdapterChild topTitleAdapterChild;
     private FoodstuffsAdapterChild topAdapterChild;
     private SectionedFoodstuffsAdapterChild foodstuffAdapterChild;
     private SelectedFoodstuffsSnackbar snackbar;
@@ -193,11 +194,12 @@ public class MainScreenController
             fillTop(foodstuffs);
             isTopFilledFromArguments = false;
 
+            createAllFoodstuffsAdapter();
             foodstuffsList.getAllFoodstuffs(batch -> {
-                if (isAllFoodstuffsListFilledFromArguments && foodstuffAdapterChild != null) {
+                if (isAllFoodstuffsListFilledFromArguments) {
                     foodstuffAdapterChild.clear();
                 }
-                fillAllFoodstuffsList(batch);
+                foodstuffAdapterChild.addItems(batch);
                 isAllFoodstuffsListFilledFromArguments = false;
             }, unused -> {
                 readinessDispatcher.onMainScreenReady();
@@ -216,7 +218,8 @@ public class MainScreenController
             }
             List<Foodstuff> allFoodstuffsFirstBatch = args.getParcelableArrayList(EXTRA_ALL_FOODSTUFFS_FIRST_BATCH);
             if (allFoodstuffsFirstBatch != null) {
-                fillAllFoodstuffsList(allFoodstuffsFirstBatch);
+                createAllFoodstuffsAdapter();
+                foodstuffAdapterChild.addItems(allFoodstuffsFirstBatch);
                 isAllFoodstuffsListFilledFromArguments = true;
             }
         }
@@ -231,7 +234,7 @@ public class MainScreenController
         activityCallbacks.removeObserver(this);
     }
 
-    private void fillAllFoodstuffsList(List<Foodstuff> batch) {
+    private void createAllFoodstuffsAdapter() {
         if (foodstuffAdapterChild == null) {
             SingleItemAdapterChild.Observer observer = v -> {
                 View addNewFoodstuffButton = v.findViewById(R.id.add_new_foodstuff);
@@ -247,7 +250,6 @@ public class MainScreenController
             adapterParent.addChild(foodstuffsTitle);
             adapterParent.addChild(foodstuffAdapterChild);
         }
-        foodstuffAdapterChild.addItems(batch);
     }
 
     private void fillTop(List<Foodstuff> foodstuffs) {
@@ -255,11 +257,18 @@ public class MainScreenController
             if (topAdapterChild == null) {
                 topAdapterChild = new FoodstuffsAdapterChild(
                         context, (foodstuff, pos) -> cardController.showCard(foodstuff));
-                SingleItemAdapterChild topTitle = new SingleItemAdapterChild(R.layout.top_foodstuffs_header);
-                adapterParent.addChildToPosition(topTitle, 0);
+                topTitleAdapterChild = new SingleItemAdapterChild(R.layout.top_foodstuffs_header);
+                adapterParent.addChildToPosition(topTitleAdapterChild, 0);
                 adapterParent.addChildToPosition(topAdapterChild, 1);
             }
             topAdapterChild.addItems(foodstuffs);
+        } else {
+            if (topAdapterChild != null && topTitleAdapterChild != null) {
+                adapterParent.removeChild(topTitleAdapterChild);
+                adapterParent.removeChild(topAdapterChild);
+                topAdapterChild = null;
+                topTitleAdapterChild = null;
+            }
         }
     }
 
