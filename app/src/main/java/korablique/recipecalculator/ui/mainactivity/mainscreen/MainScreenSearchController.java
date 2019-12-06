@@ -23,6 +23,7 @@ import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.base.FragmentCallbacks;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
+import korablique.recipecalculator.base.SoftKeyboardStateWatcher;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.dagger.FragmentScope;
 import korablique.recipecalculator.database.FoodstuffsList;
@@ -42,6 +43,7 @@ public class MainScreenSearchController
     private final MainScreenCardController cardController;
     private final MainScreenReadinessDispatcher mainScreenReadinessDispatcher;
     private final RxActivitySubscriptions activitySubscriptions;
+    private final SoftKeyboardStateWatcher softKeyboardStateWatcher;
     private FloatingSearchView searchView;
 
     private BucketList.Observer bucketListObserver = new BucketList.Observer() {
@@ -93,7 +95,8 @@ public class MainScreenSearchController
             FragmentCallbacks fragmentCallbacks,
             MainScreenCardController cardController,
             MainScreenReadinessDispatcher mainScreenReadinessDispatcher,
-            RxActivitySubscriptions activitySubscriptions) {
+            RxActivitySubscriptions activitySubscriptions,
+            SoftKeyboardStateWatcher softKeyboardStateWatcher) {
         this.mainThreadExecutor = mainThreadExecutor;
         this.bucketList = bucketList;
         this.foodstuffsList = foodstuffsList;
@@ -102,6 +105,7 @@ public class MainScreenSearchController
         this.cardController = cardController;
         this.mainScreenReadinessDispatcher = mainScreenReadinessDispatcher;
         this.activitySubscriptions = activitySubscriptions;
+        this.softKeyboardStateWatcher = softKeyboardStateWatcher;
         fragmentCallbacks.addObserver(this);
 
         cardController.addObserver(new MainScreenCardController.Observer() {
@@ -159,7 +163,10 @@ public class MainScreenSearchController
             @Override
             public void onSuggestionClicked(SearchSuggestion searchSuggestion) {
                 FoodstuffSearchSuggestion suggestion = (FoodstuffSearchSuggestion) searchSuggestion;
-                cardController.showCard(suggestion.getFoodstuff());
+                long keyboardWaitingTimeout = 500;
+                softKeyboardStateWatcher.hideKeyboardWithoutClearingFocusAndCall(keyboardWaitingTimeout, () -> {
+                    cardController.showCard(suggestion.getFoodstuff());
+                });
             }
             // когда пользователь нажал на клавиатуре enter
             @Override

@@ -24,6 +24,7 @@ import korablique.recipecalculator.base.CurrentActivityProvider;
 import korablique.recipecalculator.base.FragmentCallbacks;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.base.RxFragmentSubscriptions;
+import korablique.recipecalculator.base.SoftKeyboardStateWatcher;
 import korablique.recipecalculator.base.executors.ComputationThreadsExecutor;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.base.prefs.PrefsCleaningHelper;
@@ -90,6 +91,7 @@ public class MainActivityTestsBase {
     protected SessionController sessionController;
     protected MainScreenCardController mainScreenCardController;
     protected SharedPrefsManager prefsManager;
+    protected SoftKeyboardStateWatcher softKeyboardStateWatcher;
 
     @Rule
     public ActivityTestRule<MainActivity> mActivityRule =
@@ -128,6 +130,7 @@ public class MainActivityTestsBase {
                                 activity, activityCallbacks, sessionController, timeProvider);
                         fragmentsController = new MainActivityFragmentsController(
                                 activity, sessionController, activityCallbacks);
+                        softKeyboardStateWatcher = new SoftKeyboardStateWatcher(activity, mainThreadExecutor);
                         MainActivityController controller = new MainActivityController(
                                 activity, activityCallbacks, fragmentsController);
                         activitySubscriptions = new RxActivitySubscriptions(activityCallbacks);
@@ -155,7 +158,7 @@ public class MainActivityTestsBase {
                             MainScreenSearchController searchController = new MainScreenSearchController(
                                     mainThreadExecutor, bucketList, foodstuffsList, fragment, activity.getActivityCallbacks(),
                                     fragmentCallbacks, mainScreenCardController, readinessDispatcher,
-                                    activitySubscriptions);
+                                    activitySubscriptions, softKeyboardStateWatcher);
 
                             UpFABController upFABController = new UpFABController(
                                     fragmentCallbacks, readinessDispatcher);
