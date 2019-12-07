@@ -238,7 +238,7 @@ public class EditFoodstuffActivity extends BaseActivity {
     }
 
     private double parseNutrient(CalcEditText editText) {
-        Float value = ((CalcEditText) editText).calcCurrentValue();
+        Float value = ((CalcEditText) editText).getCurrentCalculatedValue();
         if (value != null) {
             return value;
         } else {

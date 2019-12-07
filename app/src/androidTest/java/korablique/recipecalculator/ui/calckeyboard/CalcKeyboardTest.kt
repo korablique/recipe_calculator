@@ -253,7 +253,7 @@ class CalcKeyboardTest {
         var value: Float? = null
         mainThreadExecutor.execute {
             val calcEditText = activityRule.activity.findViewById<CalcEditText>(viewId)
-            value = calcEditText.calcCurrentValue()
+            value = calcEditText.getCurrentCalculatedValue()
         }
         return value!!
     }
