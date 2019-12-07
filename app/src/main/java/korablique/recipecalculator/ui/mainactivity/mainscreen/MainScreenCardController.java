@@ -7,6 +7,9 @@ import android.view.View;
 import androidx.annotation.StringRes;
 import androidx.lifecycle.Lifecycle;
 
+import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
+
 import javax.inject.Inject;
 
 import korablique.recipecalculator.R;
@@ -20,10 +23,12 @@ import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.KeyboardHandler;
+import korablique.recipecalculator.ui.TwoOptionsDialog;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.card.Card;
 import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
+import korablique.recipecalculator.ui.mainactivity.MainActivitySelectedDateStorage;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -34,6 +39,8 @@ public class MainScreenCardController implements FragmentCallbacks.Observer {
         DEFAULT, // Режим по-умолчанию, в карточке обе кнопки
         DISH_CREATION // Режим создания блюда, в карточке только кнопка добавления блюда
     }
+    private static final String ADD_FOODSTUFF_TO_ANOTHER_DATE_DIALOG_TAG =
+            "ADD_FOODSTUFF_TO_ANOTHER_DATE_DIALOG_TAG";
     @StringRes
     private static final int ADD_FOODSTUFF_TO_RECIPE_CARD_TEXT = R.string.add_foodstuff_to_recipe;
     @StringRes
@@ -44,6 +51,7 @@ public class MainScreenCardController implements FragmentCallbacks.Observer {
     private final BucketList bucketList;
     private final HistoryWorker historyWorker;
     private final TimeProvider timeProvider;
+    private final MainActivitySelectedDateStorage selectedDateStorage;
     private final BucketList.Observer bucketListObserver = new BucketList.Observer() {
         @Override
         public void onFoodstuffAdded(WeightedFoodstuff wf) {
@@ -86,28 +94,68 @@ public class MainScreenCardController implements FragmentCallbacks.Observer {
             FragmentCallbacks fragmentCallbacks,
             Lifecycle lifecycle,
             HistoryWorker historyWorker,
-            TimeProvider timeProvider) {
+            TimeProvider timeProvider,
+            MainActivitySelectedDateStorage selectedDateStorage) {
         this.context = context;
         this.fragment = fragment;
         this.lifecycle = lifecycle;
         this.bucketList = BucketList.getInstance();
         this.historyWorker = historyWorker;
         this.timeProvider = timeProvider;
+        this.selectedDateStorage = selectedDateStorage;
         fragmentCallbacks.addObserver(this);
     }
 
     @Override
     public void onFragmentViewCreated(View fragmentView, Bundle savedInstanceState) {
+        TwoOptionsDialog existingAnotherDateDialog =
+                TwoOptionsDialog.findDialog(context.getSupportFragmentManager(), ADD_FOODSTUFF_TO_ANOTHER_DATE_DIALOG_TAG);
+        if (existingAnotherDateDialog != null) {
+            // Малозначительный диалог, не будем хранить его стейт и восстанавливать при смене
+            // сессии.
+            existingAnotherDateDialog.dismiss();
+        }
+
         onAddFoodstuffToRecipeListener = foodstuff -> {
             hideCard();
             new KeyboardHandler(context).hideKeyBoard();
             bucketList.add(foodstuff);
         };
         onAddFoodstuffToHistoryListener = foodstuff -> {
-            hideCard();
             new KeyboardHandler(context).hideKeyBoard();
-            historyWorker.saveFoodstuffToHistory(
-                    timeProvider.now().toDate(), foodstuff.getId(), foodstuff.getWeight());
+
+            LocalDate selectedDate = selectedDateStorage.getSelectedDate();
+            DateTime now = timeProvider.now();
+            String selectedDateStr = selectedDate.toString("dd.MM.yy");
+            String nowStr = now.toLocalDate().toString("dd.MM.yy");
+            if (nowStr.equals(selectedDateStr)) {
+                hideCard();
+                historyWorker.saveFoodstuffToHistory(
+                        timeProvider.now().toDate(), foodstuff.getId(), foodstuff.getWeight());
+            } else {
+                TwoOptionsDialog dialog = TwoOptionsDialog.showDialog(
+                        context.getSupportFragmentManager(),
+                        ADD_FOODSTUFF_TO_ANOTHER_DATE_DIALOG_TAG,
+                        context.getString(R.string.add_foodstuff_to_other_date_dialog_title, selectedDateStr),
+                        context.getString(R.string.add_foodstuff_to_other_date_dialog_other_date_response, selectedDateStr),
+                        context.getString(R.string.add_foodstuff_to_other_date_dialog_current_day_response));
+                dialog.setOnButtonsClickListener(buttonName -> {
+                    if (buttonName == TwoOptionsDialog.ButtonName.POSITIVE) {
+                        hideCard();
+                        historyWorker.saveFoodstuffToHistory(
+                                selectedDate.toDate(), foodstuff.getId(), foodstuff.getWeight());
+                    } else if (buttonName == TwoOptionsDialog.ButtonName.NEGATIVE) {
+                        hideCard();
+                        historyWorker.saveFoodstuffToHistory(
+                                now.toDate(), foodstuff.getId(), foodstuff.getWeight());
+                        selectedDateStorage.setSelectedDate(now.toLocalDate());
+                    } else {
+                        throw new IllegalStateException("Unknown button: " + buttonName);
+                    }
+                    dialog.dismiss();
+                });
+
+            }
         };
         onEditButtonClickListener = foodstuff -> {
             EditFoodstuffActivity.startForEditing(fragment, foodstuff, RequestCodes.MAIN_SCREEN_CARD_EDIT_FOODSTUFF);

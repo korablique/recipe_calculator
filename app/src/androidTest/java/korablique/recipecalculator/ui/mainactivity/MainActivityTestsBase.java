@@ -135,14 +135,13 @@ public class MainActivityTestsBase {
                         RxFragmentSubscriptions subscriptions = new RxFragmentSubscriptions(fragmentCallbacks);
                         BaseActivity activity = (BaseActivity) fragment.getActivity();
                         Lifecycle lifecycle = activity.getLifecycle();
+                        mainScreenCardController = new MainScreenCardController(
+                                activity, fragment, fragmentCallbacks, lifecycle,
+                                historyWorker, timeProvider, mainActivitySelectedDateStorage);
 
                         if (fragment instanceof MainScreenFragment) {
                             MainScreenReadinessDispatcher readinessDispatcher =
                                     new MainScreenReadinessDispatcher();
-
-                            mainScreenCardController = new MainScreenCardController(
-                                    activity, fragment, fragmentCallbacks, lifecycle,
-                                    historyWorker, timeProvider);
 
                             MainScreenSearchController searchController = new MainScreenSearchController(
                                     mainThreadExecutor, foodstuffsList, fragment, activity.getActivityCallbacks(),

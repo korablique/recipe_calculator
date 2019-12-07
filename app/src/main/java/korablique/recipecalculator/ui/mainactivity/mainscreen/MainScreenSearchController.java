@@ -158,9 +158,11 @@ public class MainScreenSearchController
 
     private void clearSearchQueryIfSearchResultsNotShown() {
         FragmentManager fragmentManager = fragment.getFragmentManager();
-        for (Fragment f : fragmentManager.getFragments()) {
-            if (f instanceof SearchResultsFragment) {
-                return;
+        if (fragmentManager != null) {
+            for (Fragment f : fragmentManager.getFragments()) {
+                if (f instanceof SearchResultsFragment) {
+                    return;
+                }
             }
         }
         searchView.clearQuery();
