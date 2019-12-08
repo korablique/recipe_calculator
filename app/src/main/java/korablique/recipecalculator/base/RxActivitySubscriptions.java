@@ -9,6 +9,7 @@ import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
+import io.reactivex.subjects.Subject;
 import korablique.recipecalculator.dagger.ActivityScope;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.model.HistoryEntry;
@@ -53,6 +54,11 @@ public class RxActivitySubscriptions implements ActivityCallbacks.Observer {
     }
 
     public <T> void subscribe(Single<T> obs, Consumer<T> consumer) {
+        Disposable disposable = obs.subscribe(consumer);
+        compositeDisposable.add(disposable);
+    }
+
+    public <T> void subscribe(Subject<T> obs, Consumer<T> consumer) {
         Disposable disposable = obs.subscribe(consumer);
         compositeDisposable.add(disposable);
     }

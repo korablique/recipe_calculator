@@ -11,33 +11,31 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Lifecycle;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
 
-import io.reactivex.Single;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.RequestCodes;
 import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.base.RxFragmentSubscriptions;
 import korablique.recipecalculator.database.DatabaseWorker;
-import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
-import korablique.recipecalculator.ui.bucketlist.BucketList;
-import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
 import korablique.recipecalculator.ui.mainactivity.MainActivity;
 
 public class SearchResultsFragment extends BaseFragment implements ActivityCallbacks.Observer {
-    public static final String SEARCH_RESULTS_FRAGMENT_TAG = "SEARCH_RESULTS_FRAGMENT_TAG";
-    public static final String REQUEST = "REQUEST";
+    private static final String SEARCH_RESULTS_FRAGMENT_TAG = "SEARCH_RESULTS_FRAGMENT_TAG";
+    private static final String INITIAL_QUERY = "INITIAL_QUERY";
     @Inject
     DatabaseWorker databaseWorker;
     @Inject
@@ -45,11 +43,15 @@ public class SearchResultsFragment extends BaseFragment implements ActivityCallb
     @Inject
     MainActivity mainActivity;
     @Inject
-    FoodstuffsList foodstuffsList;
-    @Inject
     RxFragmentSubscriptions fragmentSubscriptions;
     @Inject
     MainScreenCardController cardController;
+
+    private SearchResultsAdapter adapter;
+    @Nullable
+    private String query;
+    @Nullable
+    private List<Foodstuff> searchResults;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -66,57 +68,28 @@ public class SearchResultsFragment extends BaseFragment implements ActivityCallb
     @Override
     protected View createView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View fragmentView = inflater.inflate(R.layout.search_results_layout, container, false);
-        String query = getArguments().getString(REQUEST);
 
-        TextView searchRequestTextView = fragmentView.findViewById(R.id.search_results_text_view);
-        searchRequestTextView.setText(getResources().getString(R.string.search_results, query));
+        // Возможно нам успели сменить query и задать searchResults, пока фрагмент создавал вьюшку
+        if (query != null) {
+            displayQuery(fragmentView, query);
+        } else {
+            displayQuery(fragmentView, getArguments().getString(INITIAL_QUERY));
+        }
+        if (searchResults != null) {
+            displaySearchResults(fragmentView, searchResults);
+        }
 
         RecyclerView searchResultsRecyclerView = fragmentView.findViewById(R.id.search_results_recycler_view);
-        SearchResultsAdapter adapter = new SearchResultsAdapter(getActivity(), (foodstuff, position) -> {
+        adapter = new SearchResultsAdapter(getActivity(), (foodstuff, position) -> {
             cardController.showCard(foodstuff);
         });
         searchResultsRecyclerView.setAdapter(adapter);
-
-        performSearch(query, adapter, fragmentView);
 
         Button addNewFoodstuffButton = fragmentView.findViewById(R.id.add_new_foodstuff_button);
         addNewFoodstuffButton.setOnClickListener(v -> {
             EditFoodstuffActivity.startForCreation(this, RequestCodes.MAIN_SCREEN_SEARCH_RESULTS_CREATE_FOODSTUFF);
         });
-        // подписываемся на FoodstuffsList, чтобы после добавления нового продукта
-        // он отображался в результатах поиска
-        FoodstuffsList.Observer foodstuffsListObserver = new FoodstuffsList.Observer() {
-            @Override
-            public void onFoodstuffSaved(Foodstuff savedFoodstuff, int index) {
-                // старые результаты поиска удалить, заново осуществить поиск
-                adapter.clear();
-                performSearch(query, adapter, fragmentView);
-            }
-
-            @Override
-            public void onFoodstuffDeleted(Foodstuff deleted) {
-                adapter.removeItem(deleted);
-            }
-        };
-        foodstuffsList.addObserver(foodstuffsListObserver);
         return fragmentView;
-    }
-
-    private void performSearch(String query, SearchResultsAdapter adapter, View fragmentView) {
-        Single<List<Foodstuff>> searchResultSingle = foodstuffsList.requestFoodstuffsLike(query);
-        fragmentSubscriptions.subscribe(searchResultSingle, (searchResult) -> {
-            adapter.addItems(searchResult);
-
-            if (adapter.getItemCount() == 0) {
-                fragmentView.findViewById(R.id.nothing_found_view).setVisibility(View.VISIBLE);
-            } else {
-                fragmentView.findViewById(R.id.nothing_found_view).setVisibility(View.GONE);
-            }
-        });
-    }
-
-    private void closeThisFragment() {
-        getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
     }
 
     @Override
@@ -128,13 +101,62 @@ public class SearchResultsFragment extends BaseFragment implements ActivityCallb
         }
     }
 
-    public static void show(String request, FragmentActivity context) {
-        Fragment searchResultsFragment = new SearchResultsFragment();
+    public void setDisplayedQuery(String query) {
+        this.query = query;
+        View fragmentView = getView();
+        if (fragmentView != null) {
+            displayQuery(getView(), query);
+        }
+    }
+
+    private void displayQuery(View fragmentView, String query) {
+        TextView searchRequestTextView = fragmentView.findViewById(R.id.search_results_text_view);
+        searchRequestTextView.setText(getResources().getString(R.string.search_results, query));
+    }
+
+    public void setDisplayedSearchResults(List<Foodstuff> searchResults) {
+        this.searchResults = new ArrayList<>(searchResults);
+        View fragmentView = getView();
+        if (fragmentView != null) {
+            displaySearchResults(fragmentView, searchResults);
+        }
+    }
+
+    private void displaySearchResults(View fragmentView, List<Foodstuff> searchResults) {
+        adapter.clear();
+        adapter.addItems(searchResults);
+        if (adapter.getItemCount() == 0) {
+            fragmentView.findViewById(R.id.nothing_found_view).setVisibility(View.VISIBLE);
+        } else {
+            fragmentView.findViewById(R.id.nothing_found_view).setVisibility(View.GONE);
+        }
+    }
+
+    public static SearchResultsFragment show(String request, FragmentActivity context) {
+        SearchResultsFragment searchResultsFragment = findFragment(context);
+        if (searchResultsFragment != null) {
+            return searchResultsFragment;
+        }
+        searchResultsFragment = new SearchResultsFragment();
         Bundle args = new Bundle();
-        args.putString(REQUEST, request);
+        args.putString(INITIAL_QUERY, request);
         searchResultsFragment.setArguments(args);
         FragmentTransaction transaction = context.getSupportFragmentManager().beginTransaction();
         transaction.add(R.id.fragment_container, searchResultsFragment, SEARCH_RESULTS_FRAGMENT_TAG);
-        transaction.commit();
+        transaction.commitAllowingStateLoss();
+        return searchResultsFragment;
+    }
+
+    @Nullable
+    public static SearchResultsFragment findFragment(FragmentActivity context) {
+        Fragment fragment = context.getSupportFragmentManager().findFragmentByTag(SEARCH_RESULTS_FRAGMENT_TAG);
+        return (SearchResultsFragment) fragment;
+    }
+
+    public static void closeFragment(FragmentActivity context, SearchResultsFragment fragment) {
+        context.getSupportFragmentManager()
+                .beginTransaction()
+                .remove(fragment)
+                .commitAllowingStateLoss();
     }
 }
