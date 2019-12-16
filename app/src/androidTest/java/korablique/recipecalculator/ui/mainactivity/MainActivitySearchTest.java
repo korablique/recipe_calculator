@@ -2,7 +2,6 @@ package korablique.recipecalculator.ui.mainactivity;
 
 import androidx.test.espresso.Espresso;
 
-import org.junit.After;
 import org.junit.Test;
 
 import korablique.recipecalculator.R;
@@ -24,8 +23,34 @@ import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 
 public class MainActivitySearchTest extends MainActivityTestsBase {
+    @Test
+    public void switchingFragmentClosesSearchResults() {
+        mActivityRule.launchActivity(null);
+
+        // В начале результатов поиска быть не должно
+        onView(withId(R.id.search_results_layout)).check(doesNotExist());
+
+        // Поиск
+        onView(withHint(R.string.search)).perform(click());
+        onView(withHint(R.string.search)).perform(replaceText("banana"));
+        onView(withHint(R.string.search)).perform(pressImeActionButton()); // enter
+
+        // Результаты поиска должны появиться
+        onView(withId(R.id.search_results_layout)).check(matches(isDisplayed()));
+
+        // Меняем фрагмент на Историю, возвращаемся обратно
+        onView(withId(R.id.menu_item_history)).perform(click());
+        onView(withId(R.id.menu_item_foodstuffs)).perform(click());
+
+        // Результаты поиска должны пропасть
+        onView(withId(R.id.search_results_layout)).check(doesNotExist());
+        // Введённый текст "banana" тоже
+        onView(withHint(R.string.search)).check(matches(not(withText("banana"))));
+    }
+
     @Test
     public void transliteratedQueriesSearch() {
         Foodstuff foodstuff = Foodstuff.withName("шоколад Ritter Sport").withNutrition(1, 2, 3, 4);

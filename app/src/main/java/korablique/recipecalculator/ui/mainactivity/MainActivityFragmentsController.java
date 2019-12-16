@@ -46,7 +46,7 @@ public class MainActivityFragmentsController implements
     private MainScreenFragment mainScreenFragment;
 
     public interface Observer {
-        void onFragmentSwitch(Fragment oldShownFragment, Fragment newShownFragment);
+        void onMainActivityFragmentSwitch(Fragment oldShownFragment, Fragment newShownFragment);
     }
 
     @Inject
@@ -62,6 +62,10 @@ public class MainActivityFragmentsController implements
 
     public void addObserver(Observer observer) {
         observers.add(observer);
+    }
+
+    public void removeObserver(Observer observer) {
+        observers.remove(observer);
     }
 
     @Override
@@ -139,7 +143,7 @@ public class MainActivityFragmentsController implements
                     .beginTransaction().hide(oldShownFragment).show(newShownFragment).commit();
             currentFragment = newShownFragment;
             for (Observer observer : observers) {
-                observer.onFragmentSwitch(oldShownFragment, newShownFragment);
+                observer.onMainActivityFragmentSwitch(oldShownFragment, newShownFragment);
             }
         }
     }

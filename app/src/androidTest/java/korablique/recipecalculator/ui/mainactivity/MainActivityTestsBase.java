@@ -163,7 +163,7 @@ public class MainActivityTestsBase {
                             MainScreenSearchController searchController = new MainScreenSearchController(
                                     mainThreadExecutor, bucketList, foodstuffsList, (MainScreenFragment) fragment, activity.getActivityCallbacks(),
                                     fragmentCallbacks, mainScreenCardController, readinessDispatcher,
-                                    activitySubscriptions, softKeyboardStateWatcher);
+                                    activitySubscriptions, softKeyboardStateWatcher, fragmentsController);
 
                             UpFABController upFABController = new UpFABController(
                                     fragmentCallbacks, readinessDispatcher);

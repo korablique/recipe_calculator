@@ -34,10 +34,11 @@ import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
+import korablique.recipecalculator.ui.mainactivity.MainActivityFragmentsController;
 
 @FragmentScope
 public class MainScreenSearchController
-        implements ActivityCallbacks.Observer, FragmentCallbacks.Observer {
+        implements ActivityCallbacks.Observer, FragmentCallbacks.Observer, MainActivityFragmentsController.Observer {
     private static final int SEARCH_SUGGESTIONS_NUMBER = 3;
     private final MainThreadExecutor mainThreadExecutor;
     private final BucketList bucketList;
@@ -49,6 +50,7 @@ public class MainScreenSearchController
     private final MainScreenReadinessDispatcher mainScreenReadinessDispatcher;
     private final RxActivitySubscriptions activitySubscriptions;
     private final SoftKeyboardStateWatcher softKeyboardStateWatcher;
+    private final MainActivityFragmentsController mainActivityFragmentsController;
     private FloatingSearchView searchView;
 
     private BucketList.Observer bucketListObserver = new BucketList.Observer() {
@@ -101,7 +103,8 @@ public class MainScreenSearchController
             MainScreenCardController cardController,
             MainScreenReadinessDispatcher mainScreenReadinessDispatcher,
             RxActivitySubscriptions activitySubscriptions,
-            SoftKeyboardStateWatcher softKeyboardStateWatcher) {
+            SoftKeyboardStateWatcher softKeyboardStateWatcher,
+            MainActivityFragmentsController mainActivityFragmentsController) {
         this.mainThreadExecutor = mainThreadExecutor;
         this.bucketList = bucketList;
         this.foodstuffsList = foodstuffsList;
@@ -112,6 +115,7 @@ public class MainScreenSearchController
         this.mainScreenReadinessDispatcher = mainScreenReadinessDispatcher;
         this.activitySubscriptions = activitySubscriptions;
         this.softKeyboardStateWatcher = softKeyboardStateWatcher;
+        this.mainActivityFragmentsController = mainActivityFragmentsController;
         fragmentCallbacks.addObserver(this);
 
         cardController.addObserver(new MainScreenCardController.Observer() {
@@ -131,6 +135,7 @@ public class MainScreenSearchController
         bucketList.removeObserver(bucketListObserver);
         foodstuffsList.removeObserver(foodstuffsListObserver);
         activityCallbacks.removeObserver(this);
+        mainActivityFragmentsController.removeObserver(this);
     }
 
     @Override
@@ -142,6 +147,8 @@ public class MainScreenSearchController
             bucketList.addObserver(bucketListObserver);
             foodstuffsList.addObserver(foodstuffsListObserver);
             activityCallbacks.addObserver(this);
+            mainActivityFragmentsController.addObserver(this);
+
             // Отключаем затемнение экрана при появлении фрагмента с результатами поиска,
             // включаем затемнение обратно при его уходе.
             mainFragment.getChildFragmentManager().registerFragmentLifecycleCallbacks(new FragmentLifecycleCallbacks() {
@@ -265,6 +272,16 @@ public class MainScreenSearchController
         }
 
         return false;
+    }
+
+    @Override
+    public void onMainActivityFragmentSwitch(Fragment oldShownFragment, Fragment newShownFragment) {
+        // При смене фрагментов главного экрана, закроем фрагмент с результатами поиска, если он показан.
+        if (SearchResultsFragment.findFragment(mainFragment) != null) {
+            // Для закрытия фргмента сэмулируем нажатие на back - оно обрабатывается закрытием
+            // результатов поиска.
+            onActivityBackPressed();
+        }
     }
 
     private static class SearchResult {
