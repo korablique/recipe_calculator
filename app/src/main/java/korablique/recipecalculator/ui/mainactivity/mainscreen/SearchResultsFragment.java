@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Lifecycle;
 import androidx.recyclerview.widget.RecyclerView;
@@ -28,6 +29,7 @@ import korablique.recipecalculator.RequestCodes;
 import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.base.RxFragmentSubscriptions;
+import korablique.recipecalculator.dagger.InjectorHolder;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
@@ -42,8 +44,6 @@ public class SearchResultsFragment extends BaseFragment implements ActivityCallb
     Lifecycle lifecycle;
     @Inject
     MainActivity mainActivity;
-    @Inject
-    RxFragmentSubscriptions fragmentSubscriptions;
     @Inject
     MainScreenCardController cardController;
 
@@ -132,29 +132,35 @@ public class SearchResultsFragment extends BaseFragment implements ActivityCallb
         }
     }
 
-    public static SearchResultsFragment show(String request, FragmentActivity context) {
+    public static SearchResultsFragment show(String request, MainScreenFragment context) {
         SearchResultsFragment searchResultsFragment = findFragment(context);
         if (searchResultsFragment != null) {
             return searchResultsFragment;
         }
+        FragmentManager fragmentManager = context.getChildFragmentManager();
         searchResultsFragment = new SearchResultsFragment();
         Bundle args = new Bundle();
         args.putString(INITIAL_QUERY, request);
         searchResultsFragment.setArguments(args);
-        FragmentTransaction transaction = context.getSupportFragmentManager().beginTransaction();
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.add(R.id.fragment_container, searchResultsFragment, SEARCH_RESULTS_FRAGMENT_TAG);
         transaction.commitAllowingStateLoss();
         return searchResultsFragment;
     }
 
     @Nullable
-    public static SearchResultsFragment findFragment(FragmentActivity context) {
-        Fragment fragment = context.getSupportFragmentManager().findFragmentByTag(SEARCH_RESULTS_FRAGMENT_TAG);
+    public static SearchResultsFragment findFragment(MainScreenFragment context) {
+        if (!context.isAdded()) {
+            return null;
+        }
+        FragmentManager fragmentManager = context.getChildFragmentManager();
+        Fragment fragment = fragmentManager.findFragmentByTag(SEARCH_RESULTS_FRAGMENT_TAG);
         return (SearchResultsFragment) fragment;
     }
 
-    public static void closeFragment(FragmentActivity context, SearchResultsFragment fragment) {
-        context.getSupportFragmentManager()
+    public static void closeFragment(MainScreenFragment context, SearchResultsFragment fragment) {
+        FragmentManager fragmentManager = context.getChildFragmentManager();
+        fragmentManager
                 .beginTransaction()
                 .remove(fragment)
                 .commitAllowingStateLoss();

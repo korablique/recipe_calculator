@@ -15,8 +15,8 @@ public abstract class BaseFragment extends Fragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
         InjectorHolder.getInjector().inject(this);
+        super.onCreate(savedInstanceState);
         fragmentCallbacks.dispatchFragmentCreate(savedInstanceState);
     }
 
