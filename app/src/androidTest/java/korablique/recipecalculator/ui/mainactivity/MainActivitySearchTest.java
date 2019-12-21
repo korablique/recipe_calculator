@@ -231,4 +231,142 @@ public class MainActivitySearchTest extends MainActivityTestsBase {
                 isDescendantOfA(withId(R.id.search_results_recycler_view))))
                 .check(doesNotExist());
     }
+
+    @Test
+    public void searchHintsAndQueryDisappear_whenFoodstuffCardClosedWithResult() {
+        mActivityRule.launchActivity(null);
+
+        String name = foodstuffs[0].getName();
+        // Query - не всё имя целиком, а то если они будут эквивалентны,
+        // будет сложно разбираться check'ами на экране, где запрос, а где подсказка.
+        String query = name.substring(0, name.length()-1);
+        onView(withHint(R.string.search)).perform(click());
+        onView(withHint(R.string.search)).perform(replaceText(query));
+
+        // Клик на подсказку
+        onView(allOf(
+                withText(name),
+                isDescendantOfA(withId(R.id.search_layout))))
+                .perform(click());
+
+        // Добавляем продукт в Историю
+        onView(withId(R.id.foodstuff_card_layout)).check(matches(isDisplayed()));
+        onView(withId(R.id.weight_edit_text)).perform(replaceText("123"));
+        onView(withId(R.id.button1)).perform(click());
+
+        // Подсказки не должно больше быть
+        onView(allOf(
+                withText(name),
+                isDescendantOfA(withId(R.id.search_layout))))
+                .check(doesNotExist());
+        // Запрос должен очиститься
+        onView(allOf(
+                withText(query),
+                isDescendantOfA(withId(R.id.search_layout))))
+                .check(doesNotExist());
+    }
+
+    @Test
+    public void searchHintsAndQueryDoNotDisappear_whenFoodstuffCardDismissed() {
+        mActivityRule.launchActivity(null);
+
+        String name = foodstuffs[0].getName();
+        // Query - не всё имя целиком, а то если они будут эквивалентны,
+        // будет сложно разбираться check'ами на экране, где запрос, а где подсказка.
+        String query = name.substring(0, name.length()-1);
+        onView(withHint(R.string.search)).perform(click());
+        onView(withHint(R.string.search)).perform(replaceText(query));
+
+        // Клик на подсказку
+        onView(allOf(
+                withText(name),
+                isDescendantOfA(withId(R.id.search_layout))))
+                .perform(click());
+
+        // Закроем карточку без какого-либо полезного действия в ней
+        onView(withId(R.id.foodstuff_card_layout)).check(matches(isDisplayed()));
+        onView(withId(R.id.button_close)).perform(click());
+
+        // Подсказка должна остаться на месте
+        onView(allOf(
+                withText(name),
+                isDescendantOfA(withId(R.id.search_layout))))
+                .check(matches(isDisplayed()));
+        // Запрос тоже должен остаться на месте
+        onView(allOf(
+                withText(query),
+                isDescendantOfA(withId(R.id.search_layout))))
+                .check(matches(isDisplayed()));
+    }
+
+    @Test
+    public void searchResultsAndQueryDisappear_whenFoodstuffCardClosedWithResult() {
+        mActivityRule.launchActivity(null);
+
+        String name = foodstuffs[0].getName();
+        // Query - не всё имя целиком, а то если они будут эквивалентны,
+        // будет сложно разбираться check'ами на экране, где запрос, а где подсказка.
+        String query = name.substring(0, name.length()-1);
+        onView(withHint(R.string.search)).perform(click());
+        onView(withHint(R.string.search)).perform(replaceText(query));
+
+        // enter
+        onView(withHint(R.string.search)).perform(pressImeActionButton());
+        // Должны появиться результаты
+        onView(withId(R.id.search_results_layout)).check(matches(isDisplayed()));
+
+        // Клик на результат
+        onView(allOf(
+                withText(name),
+                isDescendantOfA(withId(R.id.search_results_layout))))
+                .perform(click());
+
+        // Добавляем продукт в Историю
+        onView(withId(R.id.foodstuff_card_layout)).check(matches(isDisplayed()));
+        onView(withId(R.id.weight_edit_text)).perform(replaceText("123"));
+        onView(withId(R.id.button1)).perform(click());
+
+        // Результатов не должно больше быть
+        onView(withId(R.id.search_results_layout)).check(doesNotExist());
+        // Запрос должен очиститься
+        onView(allOf(
+                withText(query),
+                isDescendantOfA(withId(R.id.search_layout))))
+                .check(doesNotExist());
+    }
+
+    @Test
+    public void searchResultsAndQueryDoNotDisappear_whenFoodstuffCardDismissed() {
+        mActivityRule.launchActivity(null);
+
+        String name = foodstuffs[0].getName();
+        // Query - не всё имя целиком, а то если они будут эквивалентны,
+        // будет сложно разбираться check'ами на экране, где запрос, а где подсказка.
+        String query = name.substring(0, name.length()-1);
+        onView(withHint(R.string.search)).perform(click());
+        onView(withHint(R.string.search)).perform(replaceText(query));
+
+        // enter
+        onView(withHint(R.string.search)).perform(pressImeActionButton());
+        // Должны появиться результаты
+        onView(withId(R.id.search_results_layout)).check(matches(isDisplayed()));
+
+        // Клик на результат
+        onView(allOf(
+                withText(name),
+                isDescendantOfA(withId(R.id.search_results_layout))))
+                .perform(click());
+
+        // Закроем карточку без какого-либо полезного действия в ней
+        onView(withId(R.id.foodstuff_card_layout)).check(matches(isDisplayed()));
+        onView(withId(R.id.button_close)).perform(click());
+
+        // Результаты должны остаться на месте
+        onView(withId(R.id.search_results_layout)).check(matches(isDisplayed()));
+        // Запрос тоже должен остаться на месте
+        onView(allOf(
+                withText(query),
+                isDescendantOfA(withId(R.id.search_layout))))
+                .check(matches(isDisplayed()));
+    }
 }

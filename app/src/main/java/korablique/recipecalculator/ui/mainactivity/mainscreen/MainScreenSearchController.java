@@ -102,6 +102,17 @@ public class MainScreenSearchController
         this.mainScreenReadinessDispatcher = mainScreenReadinessDispatcher;
         this.activitySubscriptions = activitySubscriptions;
         fragmentCallbacks.addObserver(this);
+
+        cardController.addObserver(new MainScreenCardController.Observer() {
+            @Override
+            public void onCardClosedByPerformedAction() {
+                SearchResultsFragment fragment = SearchResultsFragment.findFragment(mainFragment);
+                if (fragment != null) {
+                    SearchResultsFragment.closeFragment(context, fragment);
+                }
+                clearSearchQuery();
+            }
+        });
     }
 
     @Override
@@ -196,7 +207,12 @@ public class MainScreenSearchController
         if (SearchResultsFragment.findFragment(context) != null) {
             return;
         }
+        clearSearchQuery();
+    }
+
+    private void clearSearchQuery() {
         searchView.clearQuery();
+        searchView.clearFocus();
     }
 
     @Override

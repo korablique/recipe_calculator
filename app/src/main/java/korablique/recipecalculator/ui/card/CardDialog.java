@@ -1,5 +1,6 @@
 package korablique.recipecalculator.ui.card;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,6 +39,7 @@ public class CardDialog extends BaseBottomDialog {
     private Card.OnEditButtonClickListener onEditButtonClickListener;
     private Card.OnCloseButtonClickListener onCloseButtonClickListener = this::dismiss;
     private Card.OnDeleteButtonClickListener onDeleteButtonClickListener;
+    private Runnable onDismissListener;
     private boolean prohibitEditingFlag;
     private boolean prohibitDeletingFlag;
 
@@ -179,6 +181,18 @@ public class CardDialog extends BaseBottomDialog {
         if (card != null) {
             card.prohibitDeleting(flag);
         }
+    }
+
+    @Override
+    public void onDismiss(@NonNull DialogInterface dialog) {
+        super.onDismiss(dialog);
+        if (onDismissListener != null) {
+            onDismissListener.run();
+        }
+    }
+
+    public void setOnDismissListener(@Nullable Runnable onDismissListener) {
+        this.onDismissListener = onDismissListener;
     }
 
     public static void hideCard(FragmentActivity activity) {

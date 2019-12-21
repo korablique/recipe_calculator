@@ -10,6 +10,9 @@ import androidx.lifecycle.Lifecycle;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 import javax.inject.Inject;
 
 import korablique.recipecalculator.R;
@@ -73,6 +76,9 @@ public class MainScreenCardController implements FragmentCallbacks.Observer {
     private Card.OnEditButtonClickListener onEditButtonClickListener;
     private CardMode currentCardMode = CardMode.NONE;
 
+    private final List<Observer> observers = new CopyOnWriteArrayList<>();
+    private boolean lastCardClosingReportedToObservers;
+
     // Действие, которое нужно выполнить с диалогом после savedInstanceState (показ или скрытие диалога)
     // Поле нужно, чтобы приложение не крешило при показе диалога, когда тот показывается в момент,
     // когда активити в фоне (запаузена).
@@ -86,6 +92,20 @@ public class MainScreenCardController implements FragmentCallbacks.Observer {
     // Активти требует от всех своих компонентов, в т.ч. от fm,
     // а fm требует сохранение стейта от всех своих компонентов, и т.д.)
     private Runnable dialogAction;
+
+    public interface Observer {
+        /**
+         * Пользователь нажал на одну из кнопок, выполняющую действия.
+         * Например, на "Добавить в журнал".
+         */
+        default void onCardClosedByPerformedAction() {}
+
+        /**
+         * Карточка закрыта без какого-либо влияния на что-либо.
+         * Например, нажатием на крестик.
+         */
+        default void onCardDismissed() {}
+    }
 
     @Inject
     public MainScreenCardController(
@@ -106,6 +126,14 @@ public class MainScreenCardController implements FragmentCallbacks.Observer {
         fragmentCallbacks.addObserver(this);
     }
 
+    public void addObserver(Observer observer) {
+        observers.add(observer);
+    }
+
+    public void removeObserver(Observer observer) {
+        observers.remove(observer);
+    }
+
     @Override
     public void onFragmentViewCreated(View fragmentView, Bundle savedInstanceState) {
         TwoOptionsDialog existingAnotherDateDialog =
@@ -117,7 +145,7 @@ public class MainScreenCardController implements FragmentCallbacks.Observer {
         }
 
         onAddFoodstuffToRecipeListener = foodstuff -> {
-            hideCard();
+            hideCardAfterUserAction();
             new KeyboardHandler(context).hideKeyBoard();
             bucketList.add(foodstuff);
         };
@@ -129,7 +157,7 @@ public class MainScreenCardController implements FragmentCallbacks.Observer {
             String selectedDateStr = selectedDate.toString("dd.MM.yy");
             String nowStr = now.toLocalDate().toString("dd.MM.yy");
             if (nowStr.equals(selectedDateStr)) {
-                hideCard();
+                hideCardAfterUserAction();
                 historyWorker.saveFoodstuffToHistory(
                         timeProvider.now().toDate(), foodstuff.getId(), foodstuff.getWeight());
             } else {
@@ -141,11 +169,11 @@ public class MainScreenCardController implements FragmentCallbacks.Observer {
                         context.getString(R.string.add_foodstuff_to_other_date_dialog_current_day_response));
                 dialog.setOnButtonsClickListener(buttonName -> {
                     if (buttonName == TwoOptionsDialog.ButtonName.POSITIVE) {
-                        hideCard();
+                        hideCardAfterUserAction();
                         historyWorker.saveFoodstuffToHistory(
                                 selectedDate.toDate(), foodstuff.getId(), foodstuff.getWeight());
                     } else if (buttonName == TwoOptionsDialog.ButtonName.NEGATIVE) {
-                        hideCard();
+                        hideCardAfterUserAction();
                         historyWorker.saveFoodstuffToHistory(
                                 now.toDate(), foodstuff.getId(), foodstuff.getWeight());
                         selectedDateStorage.setSelectedDate(now.toLocalDate());
@@ -187,7 +215,7 @@ public class MainScreenCardController implements FragmentCallbacks.Observer {
                 && resultCode == RESULT_OK) {
             Foodstuff editedFoodstuff = data.getParcelableExtra(EditFoodstuffActivity.EXTRA_RESULT_FOODSTUFF);
             if (editedFoodstuff == null) {
-                hideCard();
+                hideCardAfterUserAction();
             } else {
                 showCard(editedFoodstuff);
             }
@@ -205,8 +233,18 @@ public class MainScreenCardController implements FragmentCallbacks.Observer {
         }
     }
 
-    public void hideCard() {
+    public void hideCardAfterUserAction() {
         dialogAction = () -> {
+            if (!lastCardClosingReportedToObservers) {
+                // NOTE: мы сперва репортим слушателям о закрытой карточке,
+                // и только затем её закрываем. Это нужно из-за того, что закрытие карточки
+                // приведёт к вызову у неё onDismissed, а по событию onDismissed мы репортим
+                // событие закрытия карточки без полезных действий (Observer.onCardDismissed).
+                lastCardClosingReportedToObservers = true;
+                for (Observer observer : observers) {
+                    observer.onCardClosedByPerformedAction();
+                }
+            }
             CardDialog.hideCard(context);
             dialogAction = null;
         };
@@ -227,8 +265,17 @@ public class MainScreenCardController implements FragmentCallbacks.Observer {
     }
 
     private void setUpCard(CardDialog card) {
+        lastCardClosingReportedToObservers = false;
         card.setOnEditButtonClickListener(onEditButtonClickListener);
         card.prohibitDeleting(true);
+        card.setOnDismissListener(() -> {
+            if (!lastCardClosingReportedToObservers) {
+                lastCardClosingReportedToObservers = true;
+                for (Observer observer : observers) {
+                    observer.onCardDismissed();
+                }
+            }
+        });
         switch (currentCardMode) {
             case NONE:
                 card.deinitButton1();
