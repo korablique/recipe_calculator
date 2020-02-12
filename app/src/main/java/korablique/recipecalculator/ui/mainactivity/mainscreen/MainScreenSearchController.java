@@ -1,10 +1,15 @@
 package korablique.recipecalculator.ui.mainactivity.mainscreen;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentManager.FragmentLifecycleCallbacks;
 
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
@@ -137,6 +142,23 @@ public class MainScreenSearchController
             bucketList.addObserver(bucketListObserver);
             foodstuffsList.addObserver(foodstuffsListObserver);
             activityCallbacks.addObserver(this);
+            // Отключаем затемнение экрана при появлении фрагмента с результатами поиска,
+            // включаем затемнение обратно при его уходе.
+            mainFragment.getChildFragmentManager().registerFragmentLifecycleCallbacks(new FragmentLifecycleCallbacks() {
+                @Override
+                public void onFragmentAttached(
+                        @NonNull FragmentManager fm, @NonNull Fragment fragment, @NonNull Context context) {
+                    if (fragment instanceof SearchResultsFragment) {
+                        searchView.setDimBackground(false);
+                    }
+                }
+                @Override
+                public void onFragmentDetached(@NonNull FragmentManager fm, @NonNull Fragment fragment) {
+                    if (fragment instanceof SearchResultsFragment) {
+                        searchView.setDimBackground(true);
+                    }
+                }
+            }, false /*recursive*/);
         });
     }
 
