@@ -12,18 +12,12 @@ import korablique.recipecalculator.ui.mainactivity.history.HistoryFragment;
 import korablique.recipecalculator.ui.mainactivity.history.HistoryFragmentModule;
 import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenFragment;
 import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenFragmentModule;
-import korablique.recipecalculator.ui.mainactivity.mainscreen.SearchResultsFragment;
-import korablique.recipecalculator.ui.mainactivity.mainscreen.SearchResultsFragmentModule;
 import korablique.recipecalculator.ui.mainactivity.profile.NewMeasurementsDialog;
 import korablique.recipecalculator.ui.mainactivity.profile.ProfileFragment;
 import korablique.recipecalculator.ui.mainactivity.profile.ProfileFragmentModule;
 
 @Module
 public abstract class MainScreenActivityModule {
-    @FragmentScope
-    @ContributesAndroidInjector(modules = { BaseFragmentModule.class, SearchResultsFragmentModule.class })
-    abstract SearchResultsFragment searchResultsFragmentInjector();
-
     @FragmentScope
     @ContributesAndroidInjector(modules = { BaseFragmentModule.class, MainScreenFragmentModule.class })
     abstract MainScreenFragment mainScreenFragmentInjector();

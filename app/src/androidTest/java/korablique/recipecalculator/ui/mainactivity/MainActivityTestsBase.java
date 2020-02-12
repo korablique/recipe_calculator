@@ -155,8 +155,13 @@ public class MainActivityTestsBase {
                             MainScreenReadinessDispatcher readinessDispatcher =
                                     new MainScreenReadinessDispatcher();
 
+                            mainScreenCardController = new MainScreenCardController(
+                                    activity, fragment, fragmentCallbacks, lifecycle,
+                                    bucketList, historyWorker, timeProvider,
+                                    mainActivitySelectedDateStorage);
+
                             MainScreenSearchController searchController = new MainScreenSearchController(
-                                    mainThreadExecutor, bucketList, foodstuffsList, fragment, activity.getActivityCallbacks(),
+                                    mainThreadExecutor, bucketList, foodstuffsList, (MainScreenFragment) fragment, activity.getActivityCallbacks(),
                                     fragmentCallbacks, mainScreenCardController, readinessDispatcher,
                                     activitySubscriptions, softKeyboardStateWatcher);
 

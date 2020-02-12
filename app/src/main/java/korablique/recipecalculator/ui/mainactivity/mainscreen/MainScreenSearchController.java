@@ -20,7 +20,6 @@ import io.reactivex.disposables.Disposables;
 import io.reactivex.subjects.PublishSubject;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.ActivityCallbacks;
-import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.base.FragmentCallbacks;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.base.SoftKeyboardStateWatcher;
@@ -38,6 +37,7 @@ public class MainScreenSearchController
     private final MainThreadExecutor mainThreadExecutor;
     private final BucketList bucketList;
     private final FoodstuffsList foodstuffsList;
+    private final MainScreenFragment mainFragment;
     private final FragmentActivity context;
     private final ActivityCallbacks activityCallbacks;
     private final MainScreenCardController cardController;
@@ -59,13 +59,13 @@ public class MainScreenSearchController
         @Override
         public void onFoodstuffSaved(Foodstuff savedFoodstuff, int index) {
             // Поиск заново
-            SearchResultsFragment.show(searchView.getQuery(), context);
+            SearchResultsFragment.show(searchView.getQuery(), mainFragment);
             performSearch(searchView.getQuery());
         }
         @Override
         public void onFoodstuffDeleted(Foodstuff deleted) {
             // Поиск заново
-            SearchResultsFragment.show(searchView.getQuery(), context);
+            SearchResultsFragment.show(searchView.getQuery(), mainFragment);
             performSearch(searchView.getQuery());
         }
     };
@@ -90,7 +90,7 @@ public class MainScreenSearchController
             MainThreadExecutor mainThreadExecutor,
             BucketList bucketList,
             FoodstuffsList foodstuffsList,
-            BaseFragment fragment,
+            MainScreenFragment mainFragment,
             ActivityCallbacks activityCallbacks,
             FragmentCallbacks fragmentCallbacks,
             MainScreenCardController cardController,
@@ -100,7 +100,8 @@ public class MainScreenSearchController
         this.mainThreadExecutor = mainThreadExecutor;
         this.bucketList = bucketList;
         this.foodstuffsList = foodstuffsList;
-        this.context = fragment.getActivity();
+        this.mainFragment = mainFragment;
+        this.context = mainFragment.getActivity();
         this.activityCallbacks = activityCallbacks;
         this.cardController = cardController;
         this.mainScreenReadinessDispatcher = mainScreenReadinessDispatcher;
@@ -113,7 +114,7 @@ public class MainScreenSearchController
             public void onCardClosedByPerformedAction() {
                 SearchResultsFragment fragment = SearchResultsFragment.findFragment(mainFragment);
                 if (fragment != null) {
-                    SearchResultsFragment.closeFragment(context, fragment);
+                    SearchResultsFragment.closeFragment(mainFragment, fragment);
                 }
                 clearSearchQuery();
             }
@@ -171,14 +172,14 @@ public class MainScreenSearchController
             // когда пользователь нажал на клавиатуре enter
             @Override
             public void onSearchAction(String currentQuery) {
-                SearchResultsFragment.show(currentQuery, context);
+                SearchResultsFragment.show(currentQuery, mainFragment);
                 performSearch(currentQuery);
             }
         });
 
         // когда пользователь нажал кнопку лупы в searchView
         searchView.setOnMenuItemClickListener(item -> {
-            SearchResultsFragment.show(searchView.getQuery(), context);
+            SearchResultsFragment.show(searchView.getQuery(), mainFragment);
             performSearch(searchView.getQuery());
         });
 
@@ -186,7 +187,7 @@ public class MainScreenSearchController
         activitySubscriptions.subscribe(searchResultsPublisher, (searchResult) -> {
             // Если показан фрагмент с результатами поисков - покажем результаты в нём,
             // иначе в подсказках.
-            SearchResultsFragment fragment = SearchResultsFragment.findFragment(context);
+            SearchResultsFragment fragment = SearchResultsFragment.findFragment(mainFragment);
             if (fragment != null) {
                 fragment.setDisplayedSearchResults(searchResult.foodstuffs);
                 fragment.setDisplayedQuery(searchResult.query);
@@ -212,7 +213,7 @@ public class MainScreenSearchController
     }
 
     private void clearSearchQueryIfSearchResultsNotShown() {
-        if (SearchResultsFragment.findFragment(context) != null) {
+        if (SearchResultsFragment.findFragment(mainFragment) != null) {
             return;
         }
         clearSearchQuery();
@@ -225,9 +226,9 @@ public class MainScreenSearchController
 
     @Override
     public boolean onActivityBackPressed() {
-        SearchResultsFragment fragment = SearchResultsFragment.findFragment(context);
+        SearchResultsFragment fragment = SearchResultsFragment.findFragment(mainFragment);
         if (fragment != null) {
-            SearchResultsFragment.closeFragment(context, fragment);
+            SearchResultsFragment.closeFragment(mainFragment, fragment);
             // В следующей итерации основного UI-цикла очистим строку поиска, если
             // фрагментов с результатами поиска больше нет
             mainThreadExecutor.execute(this::clearSearchQueryIfSearchResultsNotShown);
