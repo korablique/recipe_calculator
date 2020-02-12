@@ -147,9 +147,6 @@ public class MainActivityTestsBase {
                         RxFragmentSubscriptions subscriptions = new RxFragmentSubscriptions(fragmentCallbacks);
                         BaseActivity activity = (BaseActivity) fragment.getActivity();
                         Lifecycle lifecycle = activity.getLifecycle();
-                        mainScreenCardController = new MainScreenCardController(
-                                activity, fragment, fragmentCallbacks, lifecycle, bucketList,
-                                historyWorker, timeProvider, mainActivitySelectedDateStorage);
 
                         if (fragment instanceof MainScreenFragment) {
                             MainScreenReadinessDispatcher readinessDispatcher =
