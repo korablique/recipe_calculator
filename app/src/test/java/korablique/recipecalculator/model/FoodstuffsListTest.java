@@ -12,6 +12,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import korablique.recipecalculator.BuildConfig;
@@ -246,5 +247,38 @@ public class FoodstuffsListTest {
             finishCallback.onFinish();
         }
         Assert.assertEquals(dbFoodstuffs, gettingFoodstuffs);
+    }
+
+    @Test
+    public void testGetFoodstuffsWithId() {
+        dbFoodstuffs.add(Foodstuff.withId(1L).withName("pen").withNutrition(1, 2, 3, 4));
+        dbFoodstuffs.add(Foodstuff.withId(2L).withName("apple").withNutrition(1, 2, 3, 4));
+        dbFoodstuffs.add(Foodstuff.withId(3L).withName("applepen").withNutrition(1, 2, 3, 4));
+
+        List<Foodstuff> foundFoodstuffs =
+                foodstuffsList.getFoodstuffsWithIds(Arrays.asList(1L, 3L)).toList().blockingGet();
+        Assert.assertEquals(2, foundFoodstuffs.size());
+        Assert.assertEquals(foundFoodstuffs.get(0), dbFoodstuffs.get(0));
+        Assert.assertEquals(foundFoodstuffs.get(1), dbFoodstuffs.get(2));
+    }
+
+    @Test
+    public void testGetsFoodstuffsWithIdInRequestedOreder() {
+        dbFoodstuffs.add(Foodstuff.withId(1L).withName("applepen").withNutrition(1, 2, 3, 4));
+        dbFoodstuffs.add(Foodstuff.withId(2L).withName("pinapplepen").withNutrition(1, 2, 3, 4));
+
+        // Прямой порядок
+        List<Foodstuff> foundFoodstuffs =
+                foodstuffsList.getFoodstuffsWithIds(Arrays.asList(1L, 2L)).toList().blockingGet();
+        Assert.assertEquals(2, foundFoodstuffs.size());
+        Assert.assertEquals(foundFoodstuffs.get(0), dbFoodstuffs.get(0));
+        Assert.assertEquals(foundFoodstuffs.get(1), dbFoodstuffs.get(1));
+
+        // Обратный порядок
+        foundFoodstuffs =
+                foodstuffsList.getFoodstuffsWithIds(Arrays.asList(2L, 1L)).toList().blockingGet();
+        Assert.assertEquals(2, foundFoodstuffs.size());
+        Assert.assertEquals(foundFoodstuffs.get(0), dbFoodstuffs.get(1));
+        Assert.assertEquals(foundFoodstuffs.get(1), dbFoodstuffs.get(0));
     }
 }

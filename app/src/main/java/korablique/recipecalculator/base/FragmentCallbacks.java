@@ -4,11 +4,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class FragmentCallbacks {
-    private final List<Observer> observers = new ArrayList<>();
+    private final List<Observer> observers = new CopyOnWriteArrayList<>();
 
     public interface Observer {
         default void onFragmentCreate(Bundle savedInstanceState) {}

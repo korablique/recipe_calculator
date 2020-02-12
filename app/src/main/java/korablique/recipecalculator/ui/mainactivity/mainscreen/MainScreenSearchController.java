@@ -86,6 +86,7 @@ public class MainScreenSearchController
     @Inject
     public MainScreenSearchController(
             MainThreadExecutor mainThreadExecutor,
+            BucketList bucketList,
             FoodstuffsList foodstuffsList,
             BaseFragment fragment,
             ActivityCallbacks activityCallbacks,
@@ -94,7 +95,7 @@ public class MainScreenSearchController
             MainScreenReadinessDispatcher mainScreenReadinessDispatcher,
             RxActivitySubscriptions activitySubscriptions) {
         this.mainThreadExecutor = mainThreadExecutor;
-        this.bucketList = BucketList.getInstance();
+        this.bucketList = bucketList;
         this.foodstuffsList = foodstuffsList;
         this.context = fragment.getActivity();
         this.activityCallbacks = activityCallbacks;

@@ -5,23 +5,16 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.arlib.floatingsearchview.FloatingSearchView;
-import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Stack;
 
 import javax.inject.Inject;
 
-import io.reactivex.Single;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.disposables.Disposables;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.RequestCodes;
 import korablique.recipecalculator.base.ActivityCallbacks;
@@ -29,7 +22,6 @@ import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.base.Callback;
 import korablique.recipecalculator.base.FragmentCallbacks;
-import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.dagger.FragmentScope;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
@@ -52,7 +44,9 @@ public class MainScreenController
     private static final String EXTRA_ALL_FOODSTUFFS_FIRST_BATCH = "EXTRA_ALL_FOODSTUFFS_FIRST_BATCH";
     private final BaseActivity context;
     private final BaseFragment fragment;
+    private final FragmentCallbacks fragmentCallbacks;
     private final ActivityCallbacks activityCallbacks;
+    private final BucketList bucketList;
     private final FoodstuffsList foodstuffsList;
     private final FoodstuffsTopList topList;
     private final MainActivitySelectedDateStorage selectedDateStorage;
@@ -64,17 +58,6 @@ public class MainScreenController
     private SectionedFoodstuffsAdapterChild foodstuffAdapterChild;
     private SelectedFoodstuffsSnackbar snackbar;
 
-    private BucketList.Observer bucketListObserver = new BucketList.Observer() {
-        @Override
-        public void onFoodstuffAdded(WeightedFoodstuff weightedFoodstuff) {
-            snackbar.addFoodstuff(weightedFoodstuff);
-            snackbar.show();
-        }
-        @Override
-        public void onFoodstuffRemoved(WeightedFoodstuff weightedFoodstuff) {
-            snackbar.update(BucketList.getInstance().getList());
-        }
-    };
     private FoodstuffsTopList.Observer topListObserver = new FoodstuffsTopList.Observer() {
         @Override
         public void onFoodstuffsTopPossiblyChanged() {
@@ -95,6 +78,7 @@ public class MainScreenController
             BaseFragment fragment,
             FragmentCallbacks fragmentCallbacks,
             ActivityCallbacks activityCallbacks,
+            BucketList bucketList,
             FoodstuffsTopList topList,
             FoodstuffsList foodstuffsList,
             MainActivitySelectedDateStorage selectedDateStorage,
@@ -102,7 +86,9 @@ public class MainScreenController
             MainScreenReadinessDispatcher readinessDispatcher) {
         this.context = context;
         this.fragment = fragment;
+        this.fragmentCallbacks = fragmentCallbacks;
         this.activityCallbacks = activityCallbacks;
+        this.bucketList = bucketList;
         this.topList = topList;
         this.foodstuffsList = foodstuffsList;
         this.selectedDateStorage = selectedDateStorage;
@@ -129,15 +115,11 @@ public class MainScreenController
         topAdapterChild = null;
         foodstuffAdapterChild = null;
 
-        snackbar = new SelectedFoodstuffsSnackbar(fragmentView);
+        snackbar = new SelectedFoodstuffsSnackbar(fragmentView, fragmentCallbacks, bucketList);
 
         RecyclerView recyclerView = fragmentView.findViewById(R.id.main_screen_recycler_view);
         LinearLayoutManager layoutManager = new LinearLayoutManager(context);
         recyclerView.setLayoutManager(layoutManager);
-
-        BucketList bucketList = BucketList.getInstance();
-        bucketList.addObserver(bucketListObserver);
-        snackbar.update(bucketList.getList());
 
         foodstuffsList.addObserver(new FoodstuffsList.Observer() {
             @Override
@@ -165,12 +147,10 @@ public class MainScreenController
         snackbar.setOnBasketClickRunnable(() -> {
             BucketListActivity.start(
                     context,
-                    RequestCodes.MAIN_SCREEN_BUCKET_LIST_CREATE_FOODSTUFF,
-                    new ArrayList<>(snackbar.getSelectedFoodstuffs()),
-                    selectedDateStorage.getSelectedDate());
+                    RequestCodes.MAIN_SCREEN_BUCKET_LIST_CREATE_FOODSTUFF);
         });
         snackbar.setOnDismissListener(() -> {
-            List<WeightedFoodstuff> dismissedFoodstuffs = new ArrayList<>(snackbar.getSelectedFoodstuffs());
+            List<WeightedFoodstuff> dismissedFoodstuffs = new ArrayList<>(bucketList.getList());
             bucketList.clear();
 
             Snackbar snackbar = Snackbar.make(fragmentView, R.string.foodstuffs_deleted, Snackbar.LENGTH_LONG);
@@ -225,10 +205,7 @@ public class MainScreenController
 
     @Override
     public void onFragmentDestroy() {
-        BucketList bucketList = BucketList.getInstance();
-        bucketList.removeObserver(bucketListObserver);
         topList.removeObserver(topListObserver);
-
         activityCallbacks.removeObserver(this);
     }
 
@@ -268,24 +245,6 @@ public class MainScreenController
                 topTitleAdapterChild = null;
             }
         }
-    }
-
-    @Override
-    public void onFragmentSaveInstanceState(Bundle outState) {
-        snackbar.onSaveInstanceState(outState);
-    }
-
-    @Override
-    public void onFragmentRestoreInstanceState(Bundle savedInstanceState) {
-        if (savedInstanceState != null) {
-            snackbar.onRestoreInstanceState(savedInstanceState);
-        }
-    }
-
-    @Override
-    public void onFragmentResume() {
-        BucketList bucketList = BucketList.getInstance();
-        snackbar.update(bucketList.getList());
     }
 
     @Override

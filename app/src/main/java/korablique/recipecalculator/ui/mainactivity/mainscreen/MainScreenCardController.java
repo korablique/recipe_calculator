@@ -113,13 +113,14 @@ public class MainScreenCardController implements FragmentCallbacks.Observer {
             BaseFragment fragment,
             FragmentCallbacks fragmentCallbacks,
             Lifecycle lifecycle,
+            BucketList bucketList,
             HistoryWorker historyWorker,
             TimeProvider timeProvider,
             MainActivitySelectedDateStorage selectedDateStorage) {
         this.context = context;
         this.fragment = fragment;
         this.lifecycle = lifecycle;
-        this.bucketList = BucketList.getInstance();
+        this.bucketList = bucketList;
         this.historyWorker = historyWorker;
         this.timeProvider = timeProvider;
         this.selectedDateStorage = selectedDateStorage;

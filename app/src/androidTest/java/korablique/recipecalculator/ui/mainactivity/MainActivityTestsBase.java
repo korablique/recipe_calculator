@@ -26,6 +26,8 @@ import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.base.RxFragmentSubscriptions;
 import korablique.recipecalculator.base.executors.ComputationThreadsExecutor;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
+import korablique.recipecalculator.base.prefs.PrefsCleaningHelper;
+import korablique.recipecalculator.base.prefs.SharedPrefsManager;
 import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.FoodstuffsList;
@@ -77,7 +79,7 @@ public class MainActivityTestsBase {
     protected Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
     protected Foodstuff[] foodstuffs;
     protected List<Long> foodstuffsIds = new ArrayList<>();
-    protected BucketList bucketList = BucketList.getInstance();
+    protected BucketList bucketList;
     protected UserParameters userParameters;
     protected UserNameProvider userNameProvider;
     protected TestingTimeProvider timeProvider;
@@ -86,13 +88,16 @@ public class MainActivityTestsBase {
     protected RxActivitySubscriptions activitySubscriptions;
     protected CurrentActivityProvider currentActivityProvider;
     protected SessionController sessionController;
-    private MainScreenCardController mainScreenCardController;
+    protected MainScreenCardController mainScreenCardController;
+    protected SharedPrefsManager prefsManager;
 
     @Rule
     public ActivityTestRule<MainActivity> mActivityRule =
             InjectableActivityTestRule.forActivity(MainActivity.class)
                     .withManualStart()
                     .withSingletones(() -> {
+                        PrefsCleaningHelper.INSTANCE.cleanAllPrefs(context);
+                        prefsManager = new SharedPrefsManager(context);
                         databaseHolder = new DatabaseHolder(context, databaseThreadExecutor);
                         databaseWorker = new DatabaseWorker(
                                 databaseHolder, mainThreadExecutor, databaseThreadExecutor);
@@ -107,10 +112,11 @@ public class MainActivityTestsBase {
                         userNameProvider = new UserNameProvider(context);
                         currentActivityProvider = new CurrentActivityProvider();
                         sessionController = new SessionController(context, timeProvider, currentActivityProvider);
+                        bucketList = new BucketList(prefsManager, foodstuffsList);
                         return Arrays.asList(databaseWorker, historyWorker, userParametersWorker,
                                 foodstuffsList, databaseHolder, userNameProvider,
                                 timeProvider, currentActivityProvider, sessionController,
-                                new CalcKeyboardController());
+                                new CalcKeyboardController(), bucketList);
                     })
                     .withActivityScoped((injectionTarget) -> {
                         if (!(injectionTarget instanceof MainActivity)) {
@@ -139,7 +145,7 @@ public class MainActivityTestsBase {
                         BaseActivity activity = (BaseActivity) fragment.getActivity();
                         Lifecycle lifecycle = activity.getLifecycle();
                         mainScreenCardController = new MainScreenCardController(
-                                activity, fragment, fragmentCallbacks, lifecycle,
+                                activity, fragment, fragmentCallbacks, lifecycle, bucketList,
                                 historyWorker, timeProvider, mainActivitySelectedDateStorage);
 
                         if (fragment instanceof MainScreenFragment) {
@@ -147,7 +153,7 @@ public class MainActivityTestsBase {
                                     new MainScreenReadinessDispatcher();
 
                             MainScreenSearchController searchController = new MainScreenSearchController(
-                                    mainThreadExecutor, foodstuffsList, fragment, activity.getActivityCallbacks(),
+                                    mainThreadExecutor, bucketList, foodstuffsList, fragment, activity.getActivityCallbacks(),
                                     fragmentCallbacks, mainScreenCardController, readinessDispatcher,
                                     activitySubscriptions);
 
@@ -156,7 +162,7 @@ public class MainActivityTestsBase {
 
                             MainScreenController mainScreenController = new MainScreenController(
                                     activity, fragment, fragmentCallbacks,
-                                    activity.getActivityCallbacks(), topList,
+                                    activity.getActivityCallbacks(), bucketList, topList,
                                     foodstuffsList, mainActivitySelectedDateStorage,
                                     mainScreenCardController, readinessDispatcher);
                             return Arrays.asList(subscriptions, mainScreenController,
@@ -202,6 +208,13 @@ public class MainActivityTestsBase {
 
         databaseWorker.saveGroupOfFoodstuffs(foodstuffs, (ids) -> {
             foodstuffsIds.addAll(ids);
+            foodstuffs[0] = foodstuffs[0].recreateWithId(foodstuffsIds.get(0));
+            foodstuffs[1] = foodstuffs[1].recreateWithId(foodstuffsIds.get(1));
+            foodstuffs[2] = foodstuffs[2].recreateWithId(foodstuffsIds.get(2));
+            foodstuffs[3] = foodstuffs[3].recreateWithId(foodstuffsIds.get(3));
+            foodstuffs[4] = foodstuffs[4].recreateWithId(foodstuffsIds.get(4));
+            foodstuffs[5] = foodstuffs[5].recreateWithId(foodstuffsIds.get(5));
+            foodstuffs[6] = foodstuffs[6].recreateWithId(foodstuffsIds.get(6));
         });
 
         NewHistoryEntry[] newEntries = new NewHistoryEntry[10];
