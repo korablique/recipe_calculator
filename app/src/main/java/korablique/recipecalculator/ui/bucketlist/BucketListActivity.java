@@ -12,6 +12,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.StringRes;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -25,6 +26,9 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import dagger.android.AndroidInjector;
+import dagger.android.DispatchingAndroidInjector;
+import dagger.android.support.HasSupportFragmentInjector;
 import korablique.recipecalculator.DishNutritionCalculator;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
@@ -42,7 +46,7 @@ import korablique.recipecalculator.util.FloatUtils;
 
 import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
 
-public class BucketListActivity extends BaseActivity {
+public class BucketListActivity extends BaseActivity implements HasSupportFragmentInjector {
     public static final String EXTRA_CREATED_FOODSTUFF = "EXTRA_CREATED_FOODSTUFF";
     private static final String DISPLAYED_IN_CARD_FOODSTUFF_POSITION = "DISPLAYED_IN_CARD_FOODSTUFF_POSITION";
     @StringRes
@@ -60,6 +64,14 @@ public class BucketListActivity extends BaseActivity {
     private Card.OnMainButtonClickListener onAddFoodstuffButtonClickListener;
     @Inject
     TimeProvider timeProvider;
+
+    @Inject
+    DispatchingAndroidInjector<Fragment> fragmentInjector;
+
+    @Override
+    public AndroidInjector<Fragment> supportFragmentInjector() {
+        return fragmentInjector;
+    }
 
     @Override
     protected Integer getLayoutId() {
