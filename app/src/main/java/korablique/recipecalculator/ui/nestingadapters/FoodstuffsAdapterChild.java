@@ -1,19 +1,18 @@
 package korablique.recipecalculator.ui.nestingadapters;
 
 
-import android.content.Context;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.Foodstuff;
-import korablique.recipecalculator.ui.DecimalUtils;
 import korablique.recipecalculator.ui.MyViewHolder;
 
 import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
@@ -23,12 +22,10 @@ public class FoodstuffsAdapterChild extends AdapterChild {
         void onItemClicked(Foodstuff foodstuff, int displayedPosition);
     }
     protected List<Foodstuff> foodstuffs = new ArrayList<>();
-    private Context context;
     private ClickObserver clickObserver;
 
-    public FoodstuffsAdapterChild(Context context, ClickObserver clickObserver) {
+    public FoodstuffsAdapterChild(ClickObserver clickObserver) {
         super(1);
-        this.context = context;
         this.clickObserver = clickObserver;
     }
 
@@ -99,8 +96,8 @@ public class FoodstuffsAdapterChild extends AdapterChild {
     }
 
     private void setCalories(View foodstuffView, double calories) {
-        setTextViewText(foodstuffView, R.id.extra_info_block,
-                context.getString(R.string.n_calories, toDecimalString(calories)));
+        String text = foodstuffView.getContext().getString(R.string.n_calories, toDecimalString(calories));
+        setTextViewText(foodstuffView, R.id.extra_info_block, text);
     }
 
     public List<Foodstuff> getItems() {

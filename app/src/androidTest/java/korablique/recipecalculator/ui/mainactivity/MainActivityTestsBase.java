@@ -20,6 +20,7 @@ import java.util.List;
 import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.BaseFragment;
+import korablique.recipecalculator.base.Callback;
 import korablique.recipecalculator.base.CurrentActivityProvider;
 import korablique.recipecalculator.base.FragmentCallbacks;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
@@ -40,10 +41,12 @@ import korablique.recipecalculator.model.FoodstuffsTopList;
 import korablique.recipecalculator.model.Formula;
 import korablique.recipecalculator.model.FullName;
 import korablique.recipecalculator.model.Gender;
+import korablique.recipecalculator.model.HistoryEntry;
 import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
+import korablique.recipecalculator.search.FoodstuffsSearchEngine;
 import korablique.recipecalculator.session.SessionController;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.calckeyboard.CalcKeyboardController;
@@ -92,6 +95,7 @@ public class MainActivityTestsBase {
     protected MainScreenCardController mainScreenCardController;
     protected SharedPrefsManager prefsManager;
     protected SoftKeyboardStateWatcher softKeyboardStateWatcher;
+    protected FoodstuffsSearchEngine foodstuffsSearchEngine;
 
     @Rule
     public ActivityTestRule<MainActivity> mActivityRule =
@@ -110,15 +114,18 @@ public class MainActivityTestsBase {
                         foodstuffsList = new FoodstuffsList(
                                 databaseWorker, mainThreadExecutor, computationThreadsExecutor);
                         timeProvider = new TestingTimeProvider();
-                        topList = new FoodstuffsTopList(historyWorker, timeProvider);
+                        topList = new FoodstuffsTopList(historyWorker, foodstuffsList, timeProvider);
                         userNameProvider = new UserNameProvider(context);
                         currentActivityProvider = new CurrentActivityProvider();
                         sessionController = new SessionController(context, timeProvider, currentActivityProvider);
                         bucketList = new BucketList(prefsManager, foodstuffsList);
+                        foodstuffsSearchEngine = new FoodstuffsSearchEngine(
+                                foodstuffsList, topList, computationThreadsExecutor,
+                                mainThreadExecutor);
                         return Arrays.asList(databaseWorker, historyWorker, userParametersWorker,
                                 foodstuffsList, databaseHolder, userNameProvider,
                                 timeProvider, currentActivityProvider, sessionController,
-                                new CalcKeyboardController(), bucketList);
+                                new CalcKeyboardController(), bucketList, foodstuffsSearchEngine);
                     })
                     .withActivityScoped((injectionTarget) -> {
                         if (!(injectionTarget instanceof MainActivity)) {
@@ -158,9 +165,10 @@ public class MainActivityTestsBase {
                                     mainActivitySelectedDateStorage);
 
                             MainScreenSearchController searchController = new MainScreenSearchController(
-                                    mainThreadExecutor, bucketList, foodstuffsList, (MainScreenFragment) fragment, activity.getActivityCallbacks(),
+                                    mainThreadExecutor, bucketList, foodstuffsList, foodstuffsSearchEngine,
+                                    (MainScreenFragment) fragment, activity.getActivityCallbacks(),
                                     fragmentCallbacks, mainScreenCardController, readinessDispatcher,
-                                    activitySubscriptions, softKeyboardStateWatcher, fragmentsController);
+                                    subscriptions, softKeyboardStateWatcher, fragmentsController);
 
                             UpFABController upFABController = new UpFABController(
                                     fragmentCallbacks, readinessDispatcher);
@@ -169,7 +177,8 @@ public class MainActivityTestsBase {
                                     activity, fragment, fragmentCallbacks,
                                     activity.getActivityCallbacks(), bucketList, topList,
                                     foodstuffsList, mainActivitySelectedDateStorage,
-                                    mainScreenCardController, readinessDispatcher);
+                                    mainScreenCardController, readinessDispatcher,
+                                    subscriptions);
                             return Arrays.asList(subscriptions, mainScreenController,
                                     upFABController, mainScreenCardController, searchController);
 
@@ -196,7 +205,7 @@ public class MainActivityTestsBase {
 
     @Before
     public void setUp() {
-        databaseHolder.getDatabase().clearAllTables();
+        clearAllData();
 
         mainThreadExecutor.execute(() -> {
             bucketList.clear();
@@ -211,33 +220,33 @@ public class MainActivityTestsBase {
         foodstuffs[5] = Foodstuff.withName("bread").withNutrition(1, 1, 1, 1);
         foodstuffs[6] = Foodstuff.withName("banana").withNutrition(1, 1, 1, 1);
 
-        databaseWorker.saveGroupOfFoodstuffs(foodstuffs, (ids) -> {
-            foodstuffsIds.addAll(ids);
-            foodstuffs[0] = foodstuffs[0].recreateWithId(foodstuffsIds.get(0));
-            foodstuffs[1] = foodstuffs[1].recreateWithId(foodstuffsIds.get(1));
-            foodstuffs[2] = foodstuffs[2].recreateWithId(foodstuffsIds.get(2));
-            foodstuffs[3] = foodstuffs[3].recreateWithId(foodstuffsIds.get(3));
-            foodstuffs[4] = foodstuffs[4].recreateWithId(foodstuffsIds.get(4));
-            foodstuffs[5] = foodstuffs[5].recreateWithId(foodstuffsIds.get(5));
-            foodstuffs[6] = foodstuffs[6].recreateWithId(foodstuffsIds.get(6));
-        });
+        for (int index = 0; index < foodstuffs.length; ++index) {
+            final int finalIndex = index;
+            foodstuffsList.saveFoodstuff(foodstuffs[index], new FoodstuffsList.SaveFoodstuffCallback() {
+                @Override
+                public void onResult(Foodstuff addedFoodstuff) {
+                    foodstuffsIds.add(addedFoodstuff.getId());
+                    foodstuffs[finalIndex] = addedFoodstuff;
+                }
+                @Override public void onDuplication() {}
+            });
+        }
 
-        NewHistoryEntry[] newEntries = new NewHistoryEntry[10];
+
         // 1 day: apple, bread, banana
-        newEntries[0] = new NewHistoryEntry(foodstuffsIds.get(0), 100, timeProvider.now().minusYears(10).toDate());
-        newEntries[1] = new NewHistoryEntry(foodstuffsIds.get(5), 100, timeProvider.now().minusYears(10).toDate());
-        newEntries[2] = new NewHistoryEntry(foodstuffsIds.get(6), 100, timeProvider.now().minusYears(10).toDate());
+        historyWorker.saveFoodstuffToHistory(timeProvider.now().minusYears(10).toDate(), foodstuffsIds.get(0), 100);
+        historyWorker.saveFoodstuffToHistory(timeProvider.now().minusYears(10).toDate(), foodstuffsIds.get(5), 100);
+        historyWorker.saveFoodstuffToHistory(timeProvider.now().minusYears(10).toDate(), foodstuffsIds.get(6), 100);
         // 2 day: apple, water
-        newEntries[3] = new NewHistoryEntry(foodstuffsIds.get(0), 100, timeProvider.now().minusYears(9).toDate());
-        newEntries[4] = new NewHistoryEntry(foodstuffsIds.get(3), 100, timeProvider.now().minusYears(9).toDate());
+        historyWorker.saveFoodstuffToHistory(timeProvider.now().minusYears(9).toDate(), foodstuffsIds.get(0), 100);
+        historyWorker.saveFoodstuffToHistory(timeProvider.now().minusYears(9).toDate(), foodstuffsIds.get(3), 100);
         // 3 day: bread, soup
-        newEntries[5] = new NewHistoryEntry(foodstuffsIds.get(5), 100, timeProvider.now().minusYears(8).toDate());
-        newEntries[6] = new NewHistoryEntry(foodstuffsIds.get(4), 100, timeProvider.now().minusYears(8).toDate());
+        historyWorker.saveFoodstuffToHistory(timeProvider.now().minusYears(8).toDate(), foodstuffsIds.get(5), 100);
+        historyWorker.saveFoodstuffToHistory(timeProvider.now().minusYears(8).toDate(), foodstuffsIds.get(4), 100);
         // 4 day: apple, pineapple, water
-        newEntries[7] = new NewHistoryEntry(foodstuffsIds.get(0), 100, timeProvider.now().minusDays(7).toDate());
-        newEntries[8] = new NewHistoryEntry(foodstuffsIds.get(1), 100, timeProvider.now().minusDays(7).toDate());
-        newEntries[9] = new NewHistoryEntry(foodstuffsIds.get(3), 100, timeProvider.now().minusDays(7).toDate());
-        historyWorker.saveGroupOfFoodstuffsToHistory(newEntries);
+        historyWorker.saveFoodstuffToHistory(timeProvider.now().minusDays(7).toDate(), foodstuffsIds.get(0), 100);
+        historyWorker.saveFoodstuffToHistory(timeProvider.now().minusDays(7).toDate(), foodstuffsIds.get(1), 100);
+        historyWorker.saveFoodstuffToHistory(timeProvider.now().minusDays(7).toDate(), foodstuffsIds.get(3), 100);
 
         // сохраняем userParameters в БД
         userParameters = new UserParameters(45, Gender.FEMALE, new LocalDate(1993, 9, 27),
@@ -248,5 +257,21 @@ public class MainActivityTestsBase {
         userNameProvider.saveUserName(fullName);
 
         // каждый тест должен сам сделать launchActivity()
+    }
+
+    protected void clearAllData() {
+        historyWorker.requestAllHistoryFromDb(historyEntries -> {
+            historyEntries = new ArrayList<>(historyEntries);
+            for (HistoryEntry entry : historyEntries) {
+                historyWorker.deleteEntryFromHistory(entry);
+            }
+        });
+        foodstuffsList.getAllFoodstuffs(foodstuffs -> {}, foodstuffs -> {
+            foodstuffs = new ArrayList<>(foodstuffs);
+            for (Foodstuff foodstuff : foodstuffs) {
+                foodstuffsList.deleteFoodstuff(foodstuff);
+            }
+        });
+        databaseHolder.getDatabase().clearAllTables();
     }
 }

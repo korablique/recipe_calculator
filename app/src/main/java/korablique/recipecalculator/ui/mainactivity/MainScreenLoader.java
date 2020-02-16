@@ -34,9 +34,7 @@ public class MainScreenLoader {
     }
 
     public Completable loadMainScreenActivity(Activity parent) {
-        Single<List<Foodstuff>> topSingle = Single.create((emitter -> {
-            topList.getTopList(emitter::onSuccess);
-        }));
+        Single<List<Foodstuff>> topSingle = topList.getWeekTop();
         Single<List<Foodstuff>> allFoodstuffsFirstBatch = Single.create((emitter -> {
             // Let's get only a small number of foodstuffs and immediately finish
             List<Foodstuff> result = new ArrayList<>(LOADED_FOODSTUFFS_COUNT);

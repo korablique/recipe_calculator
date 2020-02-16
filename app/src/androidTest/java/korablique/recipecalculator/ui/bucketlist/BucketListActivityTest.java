@@ -113,6 +113,9 @@ public class BucketListActivityTest {
                         timeProvider = new TestingTimeProvider();
                         currentActivityProvider = new CurrentActivityProvider();
                         bucketList = new BucketList(prefsManager, foodstuffsList);
+
+                        databaseHolder.getDatabase().clearAllTables();
+
                         return Arrays.asList(mainThreadExecutor, databaseThreadExecutor, databaseWorker,
                                 historyWorker, userParametersWorker, foodstuffsList, userNameProvider,
                                 timeProvider, currentActivityProvider, bucketList,
@@ -148,11 +151,6 @@ public class BucketListActivityTest {
                         return Collections.emptyList();
                     })
                     .build();
-
-    @Before
-    public void setUp() {
-        databaseHolder.getDatabase().clearAllTables();
-    }
 
     @Test
     public void containsFoodstuffsFromBucketList() {
@@ -193,11 +191,13 @@ public class BucketListActivityTest {
         onView(withId(R.id.dish_name_edit_text)).perform(typeText(dishName), closeSoftKeyboard());
         onView(withId(R.id.save_button)).perform(click());
 
-        Single<List<Foodstuff>> foodstuffs = foodstuffsList.requestFoodstuffsLike(
-                dishName,
-                DatabaseWorker.NO_LIMIT);
+        List<Foodstuff> foodstuffs = foodstuffsList
+                .getAllFoodstuffs()
+                .filter(foodstuff -> foodstuff.getName().equals(dishName))
+                .toList()
+                .blockingGet();
 
-        Assert.assertEquals(1, foodstuffs.blockingGet().size());
+        Assert.assertEquals(1, foodstuffs.size());
     }
 
     @Test

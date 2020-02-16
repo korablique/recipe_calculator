@@ -20,8 +20,8 @@ import korablique.recipecalculator.RequestCodes;
 import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.BaseFragment;
-import korablique.recipecalculator.base.Callback;
 import korablique.recipecalculator.base.FragmentCallbacks;
+import korablique.recipecalculator.base.RxFragmentSubscriptions;
 import korablique.recipecalculator.dagger.FragmentScope;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
@@ -52,6 +52,7 @@ public class MainScreenController
     private final MainActivitySelectedDateStorage selectedDateStorage;
     private final MainScreenCardController cardController;
     private final MainScreenReadinessDispatcher readinessDispatcher;
+    private final RxFragmentSubscriptions subscriptions;
     private SectionedAdapterParent adapterParent;
     private SingleItemAdapterChild topTitleAdapterChild;
     private FoodstuffsAdapterChild topAdapterChild;
@@ -61,12 +62,12 @@ public class MainScreenController
     private FoodstuffsTopList.Observer topListObserver = new FoodstuffsTopList.Observer() {
         @Override
         public void onFoodstuffsTopPossiblyChanged() {
-            topList.getTopList(foodstuffs -> {
+            subscriptions.subscribe(topList.getWeekTop(), (foodstuffs -> {
                 if (topAdapterChild != null) {
                     topAdapterChild.clear();
                 }
                 fillTop(foodstuffs);
-            });
+            }));
         }
     };
     private boolean isTopFilledFromArguments;
@@ -83,7 +84,8 @@ public class MainScreenController
             FoodstuffsList foodstuffsList,
             MainActivitySelectedDateStorage selectedDateStorage,
             MainScreenCardController cardController,
-            MainScreenReadinessDispatcher readinessDispatcher) {
+            MainScreenReadinessDispatcher readinessDispatcher,
+            RxFragmentSubscriptions subscriptions) {
         this.context = context;
         this.fragment = fragment;
         this.fragmentCallbacks = fragmentCallbacks;
@@ -94,6 +96,7 @@ public class MainScreenController
         this.selectedDateStorage = selectedDateStorage;
         this.cardController = cardController;
         this.readinessDispatcher = readinessDispatcher;
+        this.subscriptions = subscriptions;
         fragmentCallbacks.addObserver(this);
         activityCallbacks.addObserver(this);
     }
@@ -165,7 +168,7 @@ public class MainScreenController
 
         fillListsFromArguments();
 
-        topList.getTopList(foodstuffs -> {
+        subscriptions.subscribe(topList.getMonthTop(), (foodstuffs -> {
             if (isTopFilledFromArguments && topAdapterChild != null) {
                 topAdapterChild.clear();
             }
@@ -182,7 +185,7 @@ public class MainScreenController
             }, unused -> {
                 readinessDispatcher.onMainScreenReady();
             });
-        });
+        }));
         topList.addObserver(topListObserver);
     }
 
@@ -221,7 +224,7 @@ public class MainScreenController
             SingleItemAdapterChild foodstuffsTitle = new SingleItemAdapterChild(
                     R.layout.all_foodstuffs_header, observer);
             foodstuffAdapterChild = new SectionedFoodstuffsAdapterChild(
-                    context, (foodstuff, pos) -> cardController.showCard(foodstuff));
+                    (foodstuff, pos) -> cardController.showCard(foodstuff));
             adapterParent.addChild(foodstuffsTitle);
             adapterParent.addChild(foodstuffAdapterChild);
         }
@@ -231,7 +234,7 @@ public class MainScreenController
         if (!foodstuffs.isEmpty()) {
             if (topAdapterChild == null) {
                 topAdapterChild = new FoodstuffsAdapterChild(
-                        context, (foodstuff, pos) -> cardController.showCard(foodstuff));
+                        (foodstuff, pos) -> cardController.showCard(foodstuff));
                 topTitleAdapterChild = new SingleItemAdapterChild(R.layout.top_foodstuffs_header);
                 adapterParent.addChildToPosition(topTitleAdapterChild, 0);
                 adapterParent.addChildToPosition(topAdapterChild, 1);

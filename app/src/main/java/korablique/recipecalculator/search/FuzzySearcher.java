@@ -1,4 +1,4 @@
-package korablique.recipecalculator.util;
+package korablique.recipecalculator.search;
 
 import android.util.Pair;
 
@@ -9,6 +9,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import korablique.recipecalculator.base.Function1arg;
+import korablique.recipecalculator.util.RussianEnglishTransliteratorKt;
 import me.xdrop.fuzzywuzzy.FuzzySearch;
 
 /**
@@ -30,17 +31,13 @@ public class FuzzySearcher {
     /**
      * Performs fuzzy search, returns items which it considered to be similar to the search
      * query. Returned items are ordered from the most similar to the least similar.
-     * @param inputQuery search query
+     * @param <T> the type of items - can be any type
      * @param items items among which search will be done
      * @param toStringFunction a functional object to turn items into strings
-     * @param limit limit of items in result
-     * @param <T> the type of items - can be any type
+     * @param inputQuery search query
      * @return similar to the search query items, ordered from the most similar to the least
      */
-    public static <T> List<T> search(String inputQuery,
-                                     Collection<T> items,
-                                     Function1arg<String, T> toStringFunction,
-                                     int limit) {
+    public static <T> List<T> search(Collection<T> items, Function1arg<String, T> toStringFunction, String inputQuery) {
         String transliteratedQuery = RussianEnglishTransliteratorKt.transliterateRussian(inputQuery);
         String[] queries;
         if (transliteratedQuery.equals(inputQuery)) {
@@ -79,9 +76,6 @@ public class FuzzySearcher {
         List<T> result = new ArrayList<>(resultWithRatio.size());
         for (Pair<Integer, T> itemWithRatio : resultWithRatio) {
             result.add(itemWithRatio.second);
-            if (result.size() >= limit) {
-                break;
-            }
         }
         return result;
     }

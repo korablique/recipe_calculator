@@ -3,16 +3,11 @@ package korablique.recipecalculator.ui.mainactivity;
 import android.app.Activity;
 import android.app.Instrumentation;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.view.View;
-import android.widget.DatePicker;
-import android.widget.ProgressBar;
 
 import androidx.fragment.app.Fragment;
 import androidx.test.espresso.Espresso;
 import androidx.test.espresso.action.ViewActions;
-import androidx.test.espresso.contrib.PickerActions;
-import androidx.test.espresso.matcher.BoundedMatcher;
 import androidx.test.filters.LargeTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
@@ -21,7 +16,6 @@ import com.github.mikephil.charting.charts.LineChart;
 
 import junit.framework.Assert;
 
-import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -45,32 +39,28 @@ import korablique.recipecalculator.model.HistoryEntry;
 import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.Nutrition;
-import korablique.recipecalculator.model.PopularProductsUtils;
 import korablique.recipecalculator.model.RateCalculator;
 import korablique.recipecalculator.model.Rates;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
+import korablique.recipecalculator.util.EspressoUtils;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.pressImeActionButton;
 import static androidx.test.espresso.action.ViewActions.replaceText;
-import static androidx.test.espresso.action.ViewActions.swipeRight;
 import static androidx.test.espresso.assertion.PositionAssertions.isCompletelyAbove;
 import static androidx.test.espresso.assertion.PositionAssertions.isCompletelyBelow;
 import static androidx.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.intent.Intents.intended;
-import static androidx.test.espresso.intent.matcher.BundleMatchers.hasValue;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasAction;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
-import static androidx.test.espresso.intent.matcher.IntentMatchers.hasExtras;
 import static androidx.test.espresso.matcher.ViewMatchers.Visibility.VISIBLE;
 import static androidx.test.espresso.matcher.ViewMatchers.isDescendantOfA;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.isRoot;
-import static androidx.test.espresso.matcher.ViewMatchers.withClassName;
 import static androidx.test.espresso.matcher.ViewMatchers.withEffectiveVisibility;
 import static androidx.test.espresso.matcher.ViewMatchers.withHint;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
@@ -82,10 +72,7 @@ import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
 import static korablique.recipecalculator.util.EspressoUtils.matches;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(AndroidJUnit4.class)
@@ -93,7 +80,11 @@ import static org.junit.Assert.assertTrue;
 public class MainActivityTest extends MainActivityTestsBase {
     @Test
     public void topHeaderDoNotDisplayedIfHistoryIsEmpty() {
-        databaseHolder.getDatabase().clearAllTables();
+        historyWorker.requestAllHistoryFromDb(historyEntries -> {
+            for (HistoryEntry entry : historyEntries) {
+                historyWorker.deleteEntryFromHistory(entry);
+            }
+        });
         mActivityRule.launchActivity(null);
         assertNotContains(mActivityRule.getActivity().getString(R.string.top_header));
     }
@@ -186,7 +177,7 @@ public class MainActivityTest extends MainActivityTestsBase {
 
     @Test
     public void addedToHistoryFoodstuffs_appearInTop() {
-        databaseHolder.getDatabase().clearAllTables();
+        clearAllData();
         mActivityRule.launchActivity(null);
         onView(withText(R.string.top_header)).check(doesNotExist());
 
@@ -468,7 +459,7 @@ public class MainActivityTest extends MainActivityTestsBase {
 
     @Test
     public void measurementsCardDisplaysPreviousDate() {
-        databaseHolder.getDatabase().clearAllTables();
+        clearAllData();
         // сохраняем параметры на дату в прошлом 12.8+1.2019 12:00
         DateTime lastDate = new DateTime(2019, 8, 12, 12, 12, 0, DateTimeZone.UTC);
         UserParameters lastParams = new UserParameters(45, Gender.FEMALE, new LocalDate(1993, 9, 27),
@@ -503,7 +494,7 @@ public class MainActivityTest extends MainActivityTestsBase {
     @Test
     public void canChangeMeasurementsPeriodsInProfileChart() {
         // Clear DB again (remove existing user parameters added in setUp).
-        databaseHolder.getDatabase().clearAllTables();
+        clearAllData();
         mainThreadExecutor.execute(() -> {
             bucketList.clear();
         });
@@ -758,11 +749,64 @@ public class MainActivityTest extends MainActivityTestsBase {
                 withText(name))).check(matches(isDisplayed()));
     }
 
-    private void addFoodstuffsToday() {
-        addFoodstuffToDate(timeProvider.now(),
-                foodstuffsIds.get(0),
-                foodstuffsIds.get(5),
-                foodstuffsIds.get(6));
+    @Test
+    public void topProducts_takenFromWeeklyTop() {
+        clearAllData();
+        mActivityRule.launchActivity(null);
+
+        Foodstuff foodstuff1 = Foodstuff.withName("apple1").withNutrition(1, 2, 3, 4);
+        Foodstuff foodstuff2 = Foodstuff.withName("apple2").withNutrition(1, 2, 3, 4);
+        Foodstuff foodstuff3 = Foodstuff.withName("apple3").withNutrition(1, 2, 3, 4);
+        Foodstuff foodstuff4 = Foodstuff.withName("apple4").withNutrition(1, 2, 3, 4);
+        foodstuff1 = foodstuffsList.saveFoodstuff(foodstuff1).blockingGet();
+        foodstuff2 = foodstuffsList.saveFoodstuff(foodstuff2).blockingGet();
+        foodstuffsList.saveFoodstuff(foodstuff3);
+        foodstuffsList.saveFoodstuff(foodstuff4);
+
+        historyWorker.saveFoodstuffToHistory(
+                timeProvider.now().minusDays(3).toDate(),
+                foodstuff1.getId(),
+                123);
+        historyWorker.saveFoodstuffToHistory(
+                timeProvider.now().minusWeeks(2).toDate(),
+                foodstuff2.getId(),
+                123);
+
+        Matcher<View> topHeaderMatcher = withText(R.string.top_header);
+        Matcher<View> allHeaderMatcher = withText(R.string.all_foodstuffs_header);
+        onView(topHeaderMatcher).check(matches(isDisplayed()));
+        onView(allHeaderMatcher).check(matches(isDisplayed()));
+
+        // foodstuff1 в истории менее недели в прошлом
+        onView(allOf(
+                withText(foodstuff1.getName()),
+                EspressoUtils.matches(isCompletelyBelow(topHeaderMatcher)),
+                EspressoUtils.matches(isCompletelyAbove(allHeaderMatcher))
+        )).check(matches(isDisplayed()));
+
+        // foodstuff2 в истории более недели в прошлом
+        onView(allOf(
+                withText(foodstuff2.getName()),
+                isDescendantOfA(withId(R.id.search_results_layout)),
+                EspressoUtils.matches(isCompletelyBelow(topHeaderMatcher)),
+                EspressoUtils.matches(isCompletelyAbove(allHeaderMatcher))
+        )).check(doesNotExist());
+
+        // foodstuff3 не в истории
+        onView(allOf(
+                withText(foodstuff3.getName()),
+                isDescendantOfA(withId(R.id.search_results_layout)),
+                EspressoUtils.matches(isCompletelyBelow(topHeaderMatcher)),
+                EspressoUtils.matches(isCompletelyAbove(allHeaderMatcher))
+        )).check(doesNotExist());
+
+        // foodstuff4 не в истории
+        onView(allOf(
+                withText(foodstuff4.getName()),
+                isDescendantOfA(withId(R.id.search_results_layout)),
+                EspressoUtils.matches(isCompletelyBelow(topHeaderMatcher)),
+                EspressoUtils.matches(isCompletelyAbove(allHeaderMatcher))
+        )).check(doesNotExist());
     }
 
     private void addFoodstuffToDate(DateTime date, long... foodstuffsIds) {
@@ -777,8 +821,6 @@ public class MainActivityTest extends MainActivityTestsBase {
     }
 
     private List<Foodstuff> extractFoodstuffsTopFromDB() {
-        List<Foodstuff> top = new ArrayList<>();
-        topList.getTopList(top::addAll);
-        return top;
+        return topList.getMonthTop().blockingGet();
     }
 }
