@@ -41,11 +41,11 @@ public class HistoryWorker {
     private DatabaseHolder databaseHolder;
     private DatabaseThreadExecutor databaseThreadExecutor;
     private MainThreadExecutor mainThreadExecutor;
-    private List<Observer> observers = new ArrayList<>();
+    private List<HistoryChangeObserver> observers = new ArrayList<>();
 
     private List<HistoryEntry> cachedFirstBatch = new ArrayList<>();
 
-    public interface Observer {
+    public interface HistoryChangeObserver {
         void onHistoryChange();
     }
 
@@ -59,17 +59,17 @@ public class HistoryWorker {
         this.databaseThreadExecutor = databaseThreadExecutor;
     }
 
-    public void addObserver(Observer observer) {
+    public void addHistoryChangeObserver(HistoryChangeObserver observer) {
         observers.add(observer);
     }
 
-    public void removeObserver(Observer observer) {
+    public void removeObserver(HistoryChangeObserver observer) {
         observers.remove(observer);
     }
 
     private void notifyObserversAboutHistoryChange() {
         mainThreadExecutor.execute(() -> {
-            for (Observer observer : observers) {
+            for (HistoryChangeObserver observer : observers) {
                 observer.onHistoryChange();
             }
         });
@@ -277,14 +277,12 @@ public class HistoryWorker {
         });
     }
 
-    public void requestListedFoodstuffsFromHistoryForPeriod(
+    public Observable<Foodstuff> requestListedFoodstuffsFromHistoryForPeriod(
             final long from,
-            final long to,
-            @NonNull Callback<List<Foodstuff>> callback) {
-        databaseThreadExecutor.execute(() -> {
+            final long to) {
+        Observable<Foodstuff> result = Observable.create((subscriber) -> {
             AppDatabase database = databaseHolder.getDatabase();
             HistoryDao historyDao = database.historyDao();
-            List<Foodstuff> listedFoodstuffs = new ArrayList<>();
             Cursor cursor = historyDao.loadListedFoodstuffsFromHistoryForPeriod(from, to);
             while (cursor.moveToNext()) {
                 long id = cursor.getLong(
@@ -295,10 +293,13 @@ public class HistoryWorker {
                 double carbs = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CARBS));
                 double calories = cursor.getDouble(cursor.getColumnIndex(COLUMN_NAME_CALORIES));
                 Foodstuff foodstuff = Foodstuff.withId(id).withName(name).withNutrition(protein, fats, carbs, calories);
-                listedFoodstuffs.add(foodstuff);
+                subscriber.onNext(foodstuff);
             }
-            mainThreadExecutor.execute(() -> callback.onResult(listedFoodstuffs));
+            subscriber.onComplete();
         });
+        result = result.subscribeOn(databaseThreadExecutor.asScheduler())
+                .observeOn(mainThreadExecutor.asScheduler());
+        return result;
     }
 
     public Observable<HistoryEntry> requestHistoryForPeriod(final long from, final long to) {

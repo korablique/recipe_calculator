@@ -1,18 +1,26 @@
 package korablique.recipecalculator.ui.mainactivity;
 
+import android.view.View;
+
 import androidx.test.espresso.Espresso;
 
+import org.hamcrest.Matcher;
+import org.junit.Before;
 import org.junit.Test;
+
+import java.util.ArrayList;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.HistoryEntry;
 import korablique.recipecalculator.util.EspressoUtils;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.pressImeActionButton;
 import static androidx.test.espresso.action.ViewActions.replaceText;
+import static androidx.test.espresso.assertion.PositionAssertions.isCompletelyAbove;
 import static androidx.test.espresso.assertion.PositionAssertions.isCompletelyBelow;
 import static androidx.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
@@ -26,6 +34,19 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 
 public class MainActivitySearchTest extends MainActivityTestsBase {
+    @Before
+    public void setUp() {
+        super.setUp();
+
+        // Чтоб топ в результатах поиска не мешал
+        historyWorker.requestAllHistoryFromDb(historyEntries -> {
+            historyEntries = new ArrayList<>(historyEntries);
+            for (HistoryEntry entry : historyEntries) {
+                historyWorker.deleteEntryFromHistory(entry);
+            }
+        });
+    }
+
     @Test
     public void switchingFragmentClosesSearchResults() {
         mActivityRule.launchActivity(null);
@@ -258,7 +279,7 @@ public class MainActivitySearchTest extends MainActivityTestsBase {
     }
 
     @Test
-    public void searchHintsAndQueryDisappear_whenFoodstuffCardClosedWithResult() {
+    public void searchSuggestionsAndQueryDisappear_whenFoodstuffCardClosedWithResult() {
         mActivityRule.launchActivity(null);
 
         String name = foodstuffs[0].getName();
@@ -292,7 +313,7 @@ public class MainActivitySearchTest extends MainActivityTestsBase {
     }
 
     @Test
-    public void searchHintsAndQueryDoNotDisappear_whenFoodstuffCardDismissed() {
+    public void searchSuggestionsAndQueryDoNotDisappear_whenFoodstuffCardDismissed() {
         mActivityRule.launchActivity(null);
 
         String name = foodstuffs[0].getName();
@@ -393,5 +414,157 @@ public class MainActivitySearchTest extends MainActivityTestsBase {
                 withText(query),
                 isDescendantOfA(withId(R.id.search_layout))))
                 .check(matches(isDisplayed()));
+    }
+
+    @Test
+    public void monthlyTop_usedInSearchSuggestions() {
+        clearAllData();
+        mActivityRule.launchActivity(null);
+
+        // add 4 similarly named products to DB
+        Foodstuff foodstuff1 = Foodstuff.withName("apple1").withNutrition(1, 2, 3, 4);
+        Foodstuff foodstuff2 = Foodstuff.withName("apple2").withNutrition(1, 2, 3, 4);
+        Foodstuff foodstuff3 = Foodstuff.withName("apple3").withNutrition(1, 2, 3, 4);
+        Foodstuff foodstuff4 = Foodstuff.withName("apple4").withNutrition(1, 2, 3, 4);
+        foodstuffsList.saveFoodstuff(foodstuff1);
+        foodstuffsList.saveFoodstuff(foodstuff2);
+        foodstuffsList.saveFoodstuff(foodstuff3);
+        foodstuffsList.saveFoodstuff(foodstuff4);
+
+        // add 5th, which is somewhat similar, but wouldn't be the best match
+        Foodstuff foodstuff5 = Foodstuff.withName("apdle5").withNutrition(1, 2, 3, 4);
+        foodstuff5 = foodstuffsList.saveFoodstuff(foodstuff5).blockingGet();
+
+        // verify that when similarly named products searched, 5th is not shown in suggestions
+        String query = "apple";
+        onView(withHint(R.string.search)).perform(click());
+        onView(withHint(R.string.search)).perform(replaceText(query));
+        onView(allOf(
+                withText(foodstuff5.getName()),
+                isDescendantOfA(withId(R.id.search_layout))))
+                .check(doesNotExist());
+        Espresso.pressBack();
+
+        // add 5th to history
+        historyWorker.saveFoodstuffToHistory(
+                timeProvider.now().minusWeeks(3).toDate(),
+                foodstuff5.getId(),
+                123);
+
+        // verify that now when similarly named products searched, 5th is shown in suggestions
+        onView(withHint(R.string.search)).perform(click());
+        onView(withHint(R.string.search)).perform(replaceText(query));
+        onView(allOf(
+                withText(foodstuff5.getName()),
+                isDescendantOfA(withId(R.id.search_layout))))
+                .check(matches(isDisplayed()));
+    }
+
+    @Test
+    public void monthlyTop_usedInSearchResultsFragments() {
+        clearAllData();
+        mActivityRule.launchActivity(null);
+
+        Foodstuff foodstuff1 = Foodstuff.withName("apple1").withNutrition(1, 2, 3, 4);
+        Foodstuff foodstuff2 = Foodstuff.withName("apple2").withNutrition(1, 2, 3, 4);
+        Foodstuff foodstuff3 = Foodstuff.withName("apple3").withNutrition(1, 2, 3, 4);
+        Foodstuff foodstuff4 = Foodstuff.withName("apple4").withNutrition(1, 2, 3, 4);
+        foodstuff1 = foodstuffsList.saveFoodstuff(foodstuff1).blockingGet();
+        foodstuff2 = foodstuffsList.saveFoodstuff(foodstuff2).blockingGet();
+        foodstuffsList.saveFoodstuff(foodstuff3);
+        foodstuffsList.saveFoodstuff(foodstuff4);
+
+        historyWorker.saveFoodstuffToHistory(
+                timeProvider.now().minusWeeks(3).toDate(),
+                foodstuff1.getId(),
+                123);
+        historyWorker.saveFoodstuffToHistory(
+                timeProvider.now().minusMonths(2).toDate(),
+                foodstuff2.getId(),
+                123);
+
+        onView(withHint(R.string.search)).perform(click());
+        onView(withHint(R.string.search)).perform(replaceText("apple"));
+        onView(withHint(R.string.search)).perform(pressImeActionButton()); // enter
+
+        Matcher<View> topHeaderMatcher = allOf(
+                withText(R.string.top_header),
+                isDescendantOfA(withId(R.id.search_results_layout)));
+        Matcher<View> allHeaderMatcher = allOf(
+                withText(R.string.all_foodstuffs_header),
+                isDescendantOfA(withId(R.id.search_results_layout)));
+        onView(topHeaderMatcher).check(matches(isDisplayed()));
+        onView(allHeaderMatcher).check(matches(isDisplayed()));
+
+        // foodstuff1 в истории менее месяца в прошлом
+        onView(allOf(
+                withText(foodstuff1.getName()),
+                isDescendantOfA(withId(R.id.search_results_layout)),
+                EspressoUtils.matches(isCompletelyBelow(topHeaderMatcher)),
+                EspressoUtils.matches(isCompletelyAbove(allHeaderMatcher))
+        )).check(matches(isDisplayed()));
+
+        // foodstuff2 в истории более месяца в прошлом
+        onView(allOf(
+                withText(foodstuff2.getName()),
+                isDescendantOfA(withId(R.id.search_results_layout)),
+                EspressoUtils.matches(isCompletelyBelow(topHeaderMatcher)),
+                EspressoUtils.matches(isCompletelyAbove(allHeaderMatcher))
+        )).check(doesNotExist());
+
+        // foodstuff3 не в истории
+        onView(allOf(
+                withText(foodstuff3.getName()),
+                isDescendantOfA(withId(R.id.search_results_layout)),
+                EspressoUtils.matches(isCompletelyBelow(topHeaderMatcher)),
+                EspressoUtils.matches(isCompletelyAbove(allHeaderMatcher))
+        )).check(doesNotExist());
+
+        // foodstuff4 не в истории
+        onView(allOf(
+                withText(foodstuff4.getName()),
+                isDescendantOfA(withId(R.id.search_results_layout)),
+                EspressoUtils.matches(isCompletelyBelow(topHeaderMatcher)),
+                EspressoUtils.matches(isCompletelyAbove(allHeaderMatcher))
+        )).check(doesNotExist());
+    }
+
+    @Test
+    public void noHeaders_displayedInSearchResultsFragment_whenFoodstuffsNotFoundInTop() {
+        clearAllData();
+        mActivityRule.launchActivity(null);
+
+        Foodstuff foodstuff1 = Foodstuff.withName("apple1").withNutrition(1, 2, 3, 4);
+        Foodstuff foodstuff2 = Foodstuff.withName("apple2").withNutrition(1, 2, 3, 4);
+        Foodstuff foodstuff3 = Foodstuff.withName("apple3").withNutrition(1, 2, 3, 4);
+        Foodstuff foodstuff4 = Foodstuff.withName("apple4").withNutrition(1, 2, 3, 4);
+        foodstuff1 = foodstuffsList.saveFoodstuff(foodstuff1).blockingGet();
+        foodstuff2 = foodstuffsList.saveFoodstuff(foodstuff2).blockingGet();
+        foodstuffsList.saveFoodstuff(foodstuff3);
+        foodstuffsList.saveFoodstuff(foodstuff4);
+
+        historyWorker.saveFoodstuffToHistory(
+                timeProvider.now().minusMonths(2).toDate(),
+                foodstuff1.getId(),
+                123);
+        historyWorker.saveFoodstuffToHistory(
+                timeProvider.now().minusMonths(3).toDate(),
+                foodstuff2.getId(),
+                123);
+
+        onView(withHint(R.string.search)).perform(click());
+        onView(withHint(R.string.search)).perform(replaceText("apple"));
+        onView(withHint(R.string.search)).perform(pressImeActionButton()); // enter
+
+        // В истории нет продукта, добавленного в течение месяца - заголовки "Найдено в топе"
+        // и "Найдено во всём" должны отсутствовать.
+        Matcher<View> topHeaderMatcher = allOf(
+                withText(R.string.top_header),
+                isDescendantOfA(withId(R.id.search_results_layout)));
+        Matcher<View> allHeaderMatcher = allOf(
+                withText(R.string.all_foodstuffs_header),
+                isDescendantOfA(withId(R.id.search_results_layout)));
+        onView(topHeaderMatcher).check(doesNotExist());
+        onView(allHeaderMatcher).check(doesNotExist());
     }
 }
