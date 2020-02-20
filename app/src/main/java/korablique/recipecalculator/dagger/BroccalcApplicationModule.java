@@ -13,6 +13,8 @@ import korablique.recipecalculator.base.TimeProvider;
 import korablique.recipecalculator.base.TimeProviderImpl;
 import korablique.recipecalculator.base.executors.ComputationThreadsExecutor;
 import korablique.recipecalculator.base.executors.ComputationThreadsExecutorImpl;
+import korablique.recipecalculator.base.executors.IOExecutor;
+import korablique.recipecalculator.base.executors.IOExecutorImpl;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.base.executors.MainThreadExecutorImpl;
 import korablique.recipecalculator.database.room.DatabaseHolder;
@@ -49,6 +51,12 @@ public abstract class BroccalcApplicationModule {
     @Provides
     @Singleton static ComputationThreadsExecutor provideComputationThreadsExecutor() {
         return new ComputationThreadsExecutorImpl();
+    }
+
+    @Provides
+    @Singleton
+    public static IOExecutor provideIOExecutor() {
+        return new IOExecutorImpl();
     }
 
     @Provides

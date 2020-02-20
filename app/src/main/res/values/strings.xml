@@ -142,6 +142,7 @@
     <string name="add_foodstuff_to_other_date_dialog_title">Добавить продукт на %s?</string>
     <string name="add_foodstuff_to_other_date_dialog_other_date_response">На %s</string>
     <string name="add_foodstuff_to_other_date_dialog_current_day_response">На сегодня</string>
+    <string name="partners_list">Партнёры</string>
 
     <string-array name="gender_array">
         <item name="not_selected">—</item>

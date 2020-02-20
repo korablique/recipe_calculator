@@ -17,8 +17,7 @@
             android:id="@+id/main_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_above="@id/navigation">
-        </FrameLayout>
+            android:layout_above="@id/navigation"/>
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/navigation"
@@ -32,5 +31,10 @@
             app:itemIconTint="@drawable/navigation_item_selector"
             app:itemTextColor="@drawable/navigation_item_selector" />
     </RelativeLayout>
+
+    <FrameLayout
+        android:id="@+id/main_fullscreen_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
 
 </FrameLayout>

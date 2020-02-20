@@ -12,6 +12,8 @@ import korablique.recipecalculator.ui.mainactivity.history.HistoryFragment;
 import korablique.recipecalculator.ui.mainactivity.history.HistoryFragmentModule;
 import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenFragment;
 import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenFragmentModule;
+import korablique.recipecalculator.ui.mainactivity.partners.PartnersListFragment;
+import korablique.recipecalculator.ui.mainactivity.partners.PartnersListFragmentModule;
 import korablique.recipecalculator.ui.mainactivity.profile.NewMeasurementsDialog;
 import korablique.recipecalculator.ui.mainactivity.profile.ProfileFragment;
 import korablique.recipecalculator.ui.mainactivity.profile.ProfileFragmentModule;
@@ -37,6 +39,10 @@ public abstract class MainScreenActivityModule {
     @FragmentScope
     @ContributesAndroidInjector
     abstract CardDialog newCardDialogInjector();
+
+    @FragmentScope
+    @ContributesAndroidInjector(modules = { BaseFragmentModule.class, PartnersListFragmentModule.class })
+    abstract PartnersListFragment partnersListFragment();
 
     @ActivityScope
     @Provides

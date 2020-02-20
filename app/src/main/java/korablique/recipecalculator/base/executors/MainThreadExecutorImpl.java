@@ -1,14 +1,17 @@
 package korablique.recipecalculator.base.executors;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import kotlin.coroutines.CoroutineContext;
 
 /**
  * Выполняет переданные в него задачи на главном потоке.
  */
-public class MainThreadExecutorImpl implements MainThreadExecutor {
+public class MainThreadExecutorImpl extends MainThreadExecutor {
     private Scheduler scheduler = AndroidSchedulers.mainThread();
 
     @Override
@@ -19,5 +22,10 @@ public class MainThreadExecutorImpl implements MainThreadExecutor {
     @Override
     public Scheduler asScheduler() {
         return scheduler;
+    }
+
+    @Override
+    public void dispatch(@NotNull CoroutineContext coroutineContext, @NotNull Runnable runnable) {
+        execute(runnable);
     }
 }
