@@ -1,4 +1,4 @@
-package korablique.recipecalculator.partners
+package korablique.recipecalculator.outside.partners
 
 /**
  * Партнёр пользователя, пользующийся нашим приложением на другом устройстве.

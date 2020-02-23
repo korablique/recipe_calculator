@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import korablique.recipecalculator.R
-import korablique.recipecalculator.partners.Partner
+import korablique.recipecalculator.outside.partners.Partner
 import korablique.recipecalculator.ui.MyViewHolder
 
 class PartnersListAdapter : RecyclerView.Adapter<MyViewHolder>() {

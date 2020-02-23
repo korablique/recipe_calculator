@@ -1,4 +1,4 @@
-package korablique.recipecalculator.partners
+package korablique.recipecalculator.outside.partners
 
 import korablique.recipecalculator.base.executors.IOExecutor
 import korablique.recipecalculator.base.executors.MainThreadExecutor
@@ -10,7 +10,6 @@ import javax.inject.Singleton
 /**
  * "Хранилище" партнёров пользователя.
  * Пока представляет представляет собой очень плохо написанную непротестированную хрень.
- * TODO: refactor, test
  */
 @Singleton
 class PartnersRegistry @Inject constructor(

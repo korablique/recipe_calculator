@@ -99,6 +99,7 @@ dependencies {
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0-alpha'
     implementation 'com.simplecityapps:recyclerview-fastscroll:2.0.0'
     implementation 'com.udojava:EvalEx:2.1'
+    implementation 'com.google.android.gms:play-services-auth:17.0.0'
 
     implementation 'com.google.dagger:dagger:2.18'
     annotationProcessor 'com.google.dagger:dagger-compiler:2.18'
@@ -113,6 +114,9 @@ dependencies {
     annotationProcessor "androidx.room:room-compiler:2.1.0"
     implementation "androidx.room:room-rxjava2:2.1.0"
     androidTestImplementation "androidx.room:room-testing:2.1.0"
+
+    implementation("com.squareup.okhttp3:okhttp:4.4.0")
+    implementation("com.squareup.moshi:moshi-kotlin:1.9.2")
 
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.mockito:mockito-android:2.19.0'

@@ -1,5 +1,6 @@
 package korablique.recipecalculator.ui;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,6 +35,8 @@ public class TwoOptionsDialog extends BaseBottomDialog {
 
     @Nullable
     private ButtonsClickListener buttonsClickListener;
+    @Nullable
+    private Runnable dismissListener;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -68,8 +71,20 @@ public class TwoOptionsDialog extends BaseBottomDialog {
         return dialogLayout;
     }
 
+    @Override
+    public void onDismiss(@NonNull DialogInterface dialog) {
+        super.onDismiss(dialog);
+        if (dismissListener != null) {
+            dismissListener.run();
+        }
+    }
+
     public void setOnButtonsClickListener(ButtonsClickListener listener) {
         this.buttonsClickListener = listener;
+    }
+
+    public void setOnDismissListener(Runnable listener) {
+        this.dismissListener = listener;
     }
 
     public static TwoOptionsDialog showDialog(

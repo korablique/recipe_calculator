@@ -20,4 +20,15 @@
         app:layout_constraintTop_toBottomOf="@+id/title_layout"
         app:layout_constraintBottom_toBottomOf="parent"/>
 
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/add_fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_add"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_margin="16dp"
+        app:tint="@android:color/white"
+        app:backgroundTint="@color/colorAccent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
