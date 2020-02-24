@@ -1,5 +1,7 @@
 package korablique.recipecalculator.dagger;
 
+import android.app.Service;
+
 import androidx.fragment.app.Fragment;
 
 import korablique.recipecalculator.BroccalcApplication;
@@ -13,4 +15,5 @@ public interface Injector {
     void inject(BroccalcApplication application);
     void inject(BaseActivity activity);
     void inject(Fragment fragment);
+    void inject(Service service);
 }

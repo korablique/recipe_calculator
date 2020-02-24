@@ -1,5 +1,7 @@
 package korablique.recipecalculator.dagger;
 
+import android.app.Service;
+
 import androidx.fragment.app.Fragment;
 
 import dagger.android.AndroidInjection;
@@ -25,5 +27,10 @@ class DefaultInjector implements Injector {
     @Override
     public void inject(Fragment fragment) {
         AndroidSupportInjection.inject(fragment);
+    }
+
+    @Override
+    public void inject(Service service) {
+        AndroidInjection.inject(service);
     }
 }

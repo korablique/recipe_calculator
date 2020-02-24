@@ -15,7 +15,7 @@ import kotlin.coroutines.suspendCoroutine
 import kotlin.reflect.KClass
 
 @Singleton
-class HttpClient @Inject constructor() {
+open class HttpClient @Inject constructor() {
     private val impl: OkHttpClient = OkHttpClient()
     private val moshi: Moshi
 
@@ -26,7 +26,7 @@ class HttpClient @Inject constructor() {
                 .build()
     }
 
-    suspend fun request(url: String): RequestResult = suspendCoroutine { continuation ->
+    open suspend fun request(url: String): RequestResult = suspendCoroutine { continuation ->
         val request = Request.Builder().url(url).build()
 
         impl.newCall(request).enqueue(object : Callback {
@@ -42,7 +42,7 @@ class HttpClient @Inject constructor() {
         })
     }
 
-    suspend fun <T:Any> requestWithTypedResponse(url: String, type: KClass<T>): TypedRequestResult<T> {
+    open suspend fun <T:Any> requestWithTypedResponse(url: String, type: KClass<T>): TypedRequestResult<T> {
         val requestResult = request(url)
         when (requestResult) {
             is RequestResult.Failure -> {

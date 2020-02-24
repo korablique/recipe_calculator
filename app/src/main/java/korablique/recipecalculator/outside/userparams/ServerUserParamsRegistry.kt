@@ -2,6 +2,7 @@ package korablique.recipecalculator.outside.userparams
 
 import korablique.recipecalculator.base.BaseActivity
 import korablique.recipecalculator.base.executors.IOExecutor
+import korablique.recipecalculator.base.executors.MainThreadExecutor
 import korablique.recipecalculator.outside.thirdparty.GPAuthResult
 import korablique.recipecalculator.outside.thirdparty.GPAuthorizer
 import kotlinx.coroutines.withContext
@@ -31,13 +32,25 @@ sealed class GetWithAccountMoveRequestResult {
 
 @Singleton
 class ServerUserParamsRegistry @Inject constructor(
+        private val mainThreadExecutor: MainThreadExecutor,
         private val ioExecutor: IOExecutor,
         private val gpAuthorizer: GPAuthorizer,
         private val userNameProvider: UserNameProvider,
         private val httpClient: HttpClient
 ) {
+    private val observers = mutableListOf<Observer>()
     @Volatile
     private var cachedUserParams: ServerUserParams? = null
+        set(value) {
+            field = value
+            mainThreadExecutor.execute {
+                observers.forEach { it.onUserParamsChange(cachedUserParams) }
+            }
+        }
+
+    interface Observer {
+        fun onUserParamsChange(userParams: ServerUserParams?)
+    }
 
     suspend fun getUserParamsMaybeRegister(context: BaseActivity) = withContext(ioExecutor) {
         val cachedUserParams = cachedUserParams
@@ -144,4 +157,13 @@ class ServerUserParamsRegistry @Inject constructor(
         }
     }
 
+    fun getUserParams() = cachedUserParams
+
+    fun addObserver(observer: Observer) {
+        observers += observer
+    }
+
+    fun removeObserver(observer: Observer) {
+        observers -= observer
+    }
 }

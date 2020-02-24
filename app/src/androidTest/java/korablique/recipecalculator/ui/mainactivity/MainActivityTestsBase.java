@@ -27,6 +27,7 @@ import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.base.RxFragmentSubscriptions;
 import korablique.recipecalculator.base.SoftKeyboardStateWatcher;
 import korablique.recipecalculator.base.executors.ComputationThreadsExecutor;
+import korablique.recipecalculator.base.executors.IOExecutor;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.base.prefs.PrefsCleaningHelper;
 import korablique.recipecalculator.base.prefs.SharedPrefsManager;
@@ -46,6 +47,8 @@ import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
+import korablique.recipecalculator.outside.userparams.InteractiveServerUserParamsObtainer;
+import korablique.recipecalculator.outside.userparams.ServerUserParamsRegistry;
 import korablique.recipecalculator.search.FoodstuffsSearchEngine;
 import korablique.recipecalculator.session.SessionController;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
@@ -66,11 +69,15 @@ import korablique.recipecalculator.ui.mainactivity.profile.ProfileFragment;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.InstantComputationsThreadsExecutor;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
+import korablique.recipecalculator.util.InstantIOExecutor;
 import korablique.recipecalculator.util.SyncMainThreadExecutor;
+import korablique.recipecalculator.util.TestingGPAuthorizer;
+import korablique.recipecalculator.util.TestingHttpClient;
 import korablique.recipecalculator.util.TestingTimeProvider;
 
 public class MainActivityTestsBase {
     protected DatabaseThreadExecutor databaseThreadExecutor = new InstantDatabaseThreadExecutor();
+    protected IOExecutor ioExecutor = new InstantIOExecutor();
     protected ComputationThreadsExecutor computationThreadsExecutor =
             new InstantComputationsThreadsExecutor();
     protected MainThreadExecutor mainThreadExecutor = new SyncMainThreadExecutor();
@@ -96,6 +103,8 @@ public class MainActivityTestsBase {
     protected SharedPrefsManager prefsManager;
     protected SoftKeyboardStateWatcher softKeyboardStateWatcher;
     protected FoodstuffsSearchEngine foodstuffsSearchEngine;
+    protected InteractiveServerUserParamsObtainer serverUserParamsObtainer;
+    protected ServerUserParamsRegistry serverUserParamsRegistry;
 
     @Rule
     public ActivityTestRule<MainActivity> mActivityRule =
@@ -141,7 +150,16 @@ public class MainActivityTestsBase {
                         MainActivityController controller = new MainActivityController(
                                 activity, activityCallbacks, fragmentsController);
                         activitySubscriptions = new RxActivitySubscriptions(activityCallbacks);
-                        return Collections.singletonList(controller);
+
+                        serverUserParamsRegistry =
+                                new ServerUserParamsRegistry(
+                                        mainThreadExecutor, ioExecutor, new TestingGPAuthorizer(),
+                                        userNameProvider, new TestingHttpClient());
+                        serverUserParamsObtainer =
+                                new InteractiveServerUserParamsObtainer(
+                                        activity, activityCallbacks, serverUserParamsRegistry);
+
+                        return Arrays.asList(controller, serverUserParamsObtainer);
                     })
                     .withFragmentScoped((injectionTarget -> {
                         if (injectionTarget instanceof NewMeasurementsDialog
@@ -184,9 +202,8 @@ public class MainActivityTestsBase {
 
                         } else if (fragment instanceof ProfileFragment) {
                             ProfileController profileController = new ProfileController(
-                                    fragment, fragmentCallbacks, userParametersWorker, subscriptions,
-                                    userNameProvider,
-                                    timeProvider);
+                                    activity, fragment, fragmentCallbacks, userParametersWorker, subscriptions,
+                                    userNameProvider, timeProvider);
                             return Arrays.asList(subscriptions, profileController);
                         } else if (fragment instanceof HistoryFragment) {
                             HistoryController historyController = new HistoryController(

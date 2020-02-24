@@ -26,8 +26,8 @@ private sealed class SilentGPAuthResult {
 }
 
 @Singleton
-class GPAuthorizer @Inject constructor() {
-    suspend fun auth(context: BaseActivity): GPAuthResult {
+open class GPAuthorizer @Inject constructor() {
+    open suspend fun auth(context: BaseActivity): GPAuthResult {
         val googleSignInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(GP_APP_TOKEN)
                 .build()

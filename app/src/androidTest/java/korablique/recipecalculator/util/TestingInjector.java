@@ -1,5 +1,7 @@
 package korablique.recipecalculator.util;
 
+import android.app.Service;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -89,6 +91,11 @@ public class TestingInjector implements Injector {
     public void inject(Fragment fragment) {
         ensureCacheExistence(fragment);
         injectImpl(fragment, cachedFragmentInjections.get(fragment));
+    }
+
+    @Override
+    public void inject(Service service) {
+        // Not supported yet
     }
 
     private void ensureCacheExistence(Fragment fragment) {

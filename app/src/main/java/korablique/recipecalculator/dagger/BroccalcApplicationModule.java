@@ -22,6 +22,8 @@ import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseThreadExecutorImpl;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
+import korablique.recipecalculator.outside.fcm.FCMService;
+import korablique.recipecalculator.outside.fcm.FCMServiceModule;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivityModule;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
@@ -79,12 +81,6 @@ public abstract class BroccalcApplicationModule {
 
     @Provides
     @Singleton
-    public static FoodReminder provideFoodReminder(Context context, TimeProvider timeProvider) {
-        return new FoodReminder(context, timeProvider);
-    }
-
-    @Provides
-    @Singleton
     public static TimeProvider provideTimeProvider() {
         return new TimeProviderImpl();
     }
@@ -112,4 +108,8 @@ public abstract class BroccalcApplicationModule {
     @ActivityScope
     @ContributesAndroidInjector(modules = { BaseActivityModule.class, SplashScreenActivityModule.class })
     abstract SplashScreenActivity contributeSplashScreenActivityInjector();
+
+    @ServiceScope
+    @ContributesAndroidInjector(modules = FCMServiceModule.class)
+    abstract FCMService contributeFCMService();
 }

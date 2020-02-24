@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,6 +32,7 @@ import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.FoodstuffsTopList;
 import korablique.recipecalculator.model.Nutrition;
+import korablique.recipecalculator.outside.userparams.InteractiveServerUserParamsObtainer;
 import korablique.recipecalculator.test.FakeTestActivity;
 import korablique.recipecalculator.util.TestingInjector;
 
@@ -66,7 +68,9 @@ public class MainScreenLoaderTest {
         context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         injector = new TestingInjector(
                 () -> Collections.singletonList(new CurrentActivityProvider()),
-                (activity) -> Collections.singletonList(mock(MainActivityController.class)),
+                (activity) -> Arrays.asList(
+                        mock(MainActivityController.class),
+                        mock(InteractiveServerUserParamsObtainer.class)),
                 null);
 
         // Init all @Mocks

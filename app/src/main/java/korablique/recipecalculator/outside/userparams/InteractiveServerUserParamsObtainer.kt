@@ -24,7 +24,7 @@ sealed class ObtainResult {
  * Интерактивно (взаимодействуя с пользователем) получает ServerUserParams.
  */
 @ActivityScope
-class InteractiveServerUserParamsObtainer @Inject constructor(
+open class InteractiveServerUserParamsObtainer @Inject constructor(
         private val activity: BaseActivity,
         private val activityCallbacks: ActivityCallbacks,
         private val serverUserParamsRegistry: ServerUserParamsRegistry
