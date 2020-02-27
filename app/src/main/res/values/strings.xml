@@ -146,6 +146,9 @@
     <string name="gp_account_move_request">Аккаунт Google привязан к другому устройству, перепривязать к этому?</string>
     <string name="gp_account_move_request_confirmation">Да</string>
     <string name="gp_account_move_request_cancellation">Отмена</string>
+    <string name="you_do_not_have_partners">Нет партнёров</string>
+    <string name="your_pairing_code">Ваш код:</string>
+    <string name="your_partner_pairing_code">Код партнёра:</string>
 
     <string-array name="gender_array">
         <item name="not_selected">—</item>

@@ -32,19 +32,27 @@ class SharedPrefsManager @Inject constructor(val context: Context) {
     }
 
     private fun putStringList(owner: PrefsOwner, key: String, strList: List<String>) {
-        context.getSharedPreferences(owner.fileName, Context.MODE_PRIVATE)
-                .edit()
-                .putString(key, strList.joinToString(separator = VALS_DELIMETER))
-                .apply()
+        putString(owner, key, strList.joinToString(separator = VALS_DELIMETER))
     }
 
     private fun getStringList(owner: PrefsOwner, key: String): List<String>? {
-        val str = context
-                .getSharedPreferences(owner.fileName, Context.MODE_PRIVATE)
-                .getString(key, null)
+        val str = getString(owner, key)
         if (str == null || str.isEmpty()) {
             return null
         }
         return str.split(VALS_DELIMETER)
+    }
+
+    fun putString(owner: PrefsOwner, key: String, value: String?) {
+        context.getSharedPreferences(owner.fileName, Context.MODE_PRIVATE)
+                .edit()
+                .putString(key, value)
+                .apply()
+    }
+
+    fun getString(owner: PrefsOwner, key: String): String? {
+        return context
+                .getSharedPreferences(owner.fileName, Context.MODE_PRIVATE)
+                .getString(key, null)
     }
 }

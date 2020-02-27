@@ -154,12 +154,12 @@ public class MainActivityTestsBase {
                         serverUserParamsRegistry =
                                 new ServerUserParamsRegistry(
                                         mainThreadExecutor, ioExecutor, new TestingGPAuthorizer(),
-                                        userNameProvider, new TestingHttpClient());
+                                        userNameProvider, new TestingHttpClient(), prefsManager);
                         serverUserParamsObtainer =
                                 new InteractiveServerUserParamsObtainer(
                                         activity, activityCallbacks, serverUserParamsRegistry);
 
-                        return Arrays.asList(controller, serverUserParamsObtainer);
+                        return Arrays.asList(activity, controller, serverUserParamsObtainer);
                     })
                     .withFragmentScoped((injectionTarget -> {
                         if (injectionTarget instanceof NewMeasurementsDialog

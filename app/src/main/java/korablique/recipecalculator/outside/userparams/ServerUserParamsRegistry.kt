@@ -3,6 +3,8 @@ package korablique.recipecalculator.outside.userparams
 import korablique.recipecalculator.base.BaseActivity
 import korablique.recipecalculator.base.executors.IOExecutor
 import korablique.recipecalculator.base.executors.MainThreadExecutor
+import korablique.recipecalculator.base.prefs.PrefsOwner
+import korablique.recipecalculator.base.prefs.SharedPrefsManager
 import korablique.recipecalculator.outside.thirdparty.GPAuthResult
 import korablique.recipecalculator.outside.thirdparty.GPAuthorizer
 import kotlinx.coroutines.withContext
@@ -36,13 +38,19 @@ class ServerUserParamsRegistry @Inject constructor(
         private val ioExecutor: IOExecutor,
         private val gpAuthorizer: GPAuthorizer,
         private val userNameProvider: UserNameProvider,
-        private val httpClient: HttpClient
+        private val httpClient: HttpClient,
+        private val prefsManager: SharedPrefsManager
 ) {
     private val observers = mutableListOf<Observer>()
     @Volatile
     private var cachedUserParams: ServerUserParams? = null
         set(value) {
             field = value
+            if (value != null) {
+                // TODO: keep the vals in DB instead of preferences
+                prefsManager.putString(PrefsOwner.USER_PARAMS_REGISTRY, "uid", value.uid)
+                prefsManager.putString(PrefsOwner.USER_PARAMS_REGISTRY, "token", value.token)
+            }
             mainThreadExecutor.execute {
                 observers.forEach { it.onUserParamsChange(cachedUserParams) }
             }
@@ -52,10 +60,20 @@ class ServerUserParamsRegistry @Inject constructor(
         fun onUserParamsChange(userParams: ServerUserParams?)
     }
 
+    init {
+        // TODO: keep the vals in DB instead of preferences
+        val uid = prefsManager.getString(PrefsOwner.USER_PARAMS_REGISTRY, "uid")
+        val token = prefsManager.getString(PrefsOwner.USER_PARAMS_REGISTRY, "token")
+        if (token != null && uid != null) {
+            val userParams = ServerUserParams(uid, token)
+            cachedUserParams = userParams
+        }
+    }
+
     suspend fun getUserParamsMaybeRegister(context: BaseActivity) = withContext(ioExecutor) {
-        val cachedUserParams = cachedUserParams
-        if (cachedUserParams != null) {
-            return@withContext GetWithRegistrationRequestResult.Success(cachedUserParams)
+        val userParams = cachedUserParams
+        if (userParams != null) {
+            return@withContext GetWithRegistrationRequestResult.Success(userParams)
         }
 
         val gpAuthResult = gpAuthorizer.auth(context)

@@ -26,7 +26,7 @@ class FCMManager @Inject constructor(
     private val messageReceivers = mutableMapOf<String, MessageReceiver>()
 
     interface MessageReceiver {
-        fun onNewMessage(msg: String)
+        fun onNewFcmMessage(msg: String)
     }
 
     init {
@@ -94,7 +94,7 @@ class FCMManager @Inject constructor(
         val dataAsJson = data.map {
             "\"${it.key}\": \"${it.value}\""
         }.joinToString(separator = ",", prefix = "{", postfix = "}")
-        messageReceivers[msgType]?.onNewMessage(dataAsJson)
+        messageReceivers[msgType]?.onNewFcmMessage(dataAsJson)
     }
 
     fun registerMessageReceiver(msgType: String, messageReceiver: MessageReceiver) {

@@ -9,16 +9,15 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.crashlytics.android.Crashlytics
 import korablique.recipecalculator.R
-import korablique.recipecalculator.base.ActivityCallbacks
 import korablique.recipecalculator.base.BaseActivity
 import korablique.recipecalculator.base.FragmentCallbacks
 import korablique.recipecalculator.dagger.FragmentScope
+import korablique.recipecalculator.outside.partners.GetPartnersResult
+import korablique.recipecalculator.outside.partners.Partner
 import korablique.recipecalculator.outside.partners.PartnersRegistry
-import korablique.recipecalculator.outside.userparams.GetWithRegistrationRequestResult
 import korablique.recipecalculator.outside.userparams.InteractiveServerUserParamsObtainer
 import korablique.recipecalculator.outside.userparams.ObtainResult
-import korablique.recipecalculator.outside.userparams.ServerUserParamsRegistry
-import korablique.recipecalculator.ui.TwoOptionsDialog
+import korablique.recipecalculator.ui.mainactivity.partners.pairing.PairingFragment
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -27,27 +26,43 @@ class PartnersListFragmentController @Inject constructor(
         private val activity: BaseActivity,
         private val fragment: PartnersListFragment,
         private val fragmentCallbacks: FragmentCallbacks,
-        private val activityCallbacks: ActivityCallbacks,
         private val partnersRegistry: PartnersRegistry,
         private val serverUserParamsObtainer: InteractiveServerUserParamsObtainer)
-    : FragmentCallbacks.Observer, ActivityCallbacks.Observer {
+    : FragmentCallbacks.Observer, PartnersRegistry.Observer {
+
+    private val partnersAdapter: PartnersListAdapter = PartnersListAdapter()
 
     init {
         fragmentCallbacks.addObserver(this)
-        activityCallbacks.addObserver(this)
+        partnersRegistry.addObserver(this)
+    }
+
+    override fun onFragmentDestroy() {
+        partnersRegistry.removeObserver(this)
     }
 
     override fun onFragmentViewCreated(fragmentView: View, savedInstanceState: Bundle?) {
         val recyclerView: RecyclerView =
                 fragmentView.findViewById(R.id.partners_list_recycler_view)
-        val adapter = PartnersListAdapter()
         val layoutManager = LinearLayoutManager(fragment.context)
         recyclerView.layoutManager = layoutManager
-        recyclerView.adapter = adapter
+        recyclerView.adapter = partnersAdapter
 
         fragment.lifecycleScope.launch {
-            val partners = partnersRegistry.getPartners()
-            adapter.setPartners(partners)
+            val partnersResult = partnersRegistry.getPartners()
+            when (partnersResult) {
+                is GetPartnersResult.Ok -> {
+                    updateDisplayedPartners(partnersResult.partners, fragmentView)
+                }
+                is GetPartnersResult.Failure -> {
+                    Toast.makeText(activity, "Unexpected failure: ${partnersResult.exception}", Toast.LENGTH_LONG).show()
+                    Crashlytics.logException(partnersResult.exception)
+                }
+                is GetPartnersResult.NotLoggedIn -> {
+                    // TODO: ask user if they want to login or to cancel
+                    serverUserParamsObtainer.obtainUserParams()
+                }
+            }
         }
         
         fragmentView.findViewById<TextView>(R.id.title_text).setText(R.string.partners_list)
@@ -60,7 +75,7 @@ class PartnersListFragmentController @Inject constructor(
                 val paramsResult = serverUserParamsObtainer.obtainUserParams()
                 when (paramsResult) {
                     is ObtainResult.Success -> {
-                        Toast.makeText(activity, "User: ${paramsResult.params}", Toast.LENGTH_LONG).show()
+                        PairingFragment.start(activity)
                     }
                     is ObtainResult.CanceledByUser -> {
                         Toast.makeText(activity, "Login canceled", Toast.LENGTH_LONG).show()
@@ -74,11 +89,16 @@ class PartnersListFragmentController @Inject constructor(
         }
     }
 
-    override fun onFragmentDestroy() {
-        activityCallbacks.removeObserver(this)
+    private fun updateDisplayedPartners(partners: List<Partner>, view: View) {
+        partnersAdapter.setPartners(partners)
+        if (partners.isEmpty()) {
+            view.findViewById<View>(R.id.no_partners_layout).visibility = View.VISIBLE
+        } else {
+            view.findViewById<View>(R.id.no_partners_layout).visibility = View.GONE
+        }
     }
 
-    override fun onActivityBackPressed(): Boolean {
-        return fragment.close()
+    override fun onPartnersChanged(partners: List<Partner>) {
+        updateDisplayedPartners(partners, fragment.requireView())
     }
 }

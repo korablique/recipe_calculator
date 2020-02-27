@@ -168,7 +168,9 @@ public class TestingInjector implements Injector {
                 builder.append(injectedObject.getClass().getName()).append(" ");
             }
             throw new IllegalStateException(String.format(
-                    "Couldn't find object to inject into field! Field: %s, type: %s, objects: %s",
+                    "Couldn't find object to inject into field! "
+                    + "Target type: %s, field: %s, injected type: %s, objects: %s",
+                    target.getClass().getName(),
                     field.getName(),
                     field.getType().getName(),
                     builder.toString()));

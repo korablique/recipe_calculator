@@ -1,4 +1,4 @@
-package korablique.recipecalculator.ui.mainactivity.partners
+package korablique.recipecalculator.ui.mainactivity.partners.pairing
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,18 +7,17 @@ import android.view.ViewGroup
 import korablique.recipecalculator.R
 import korablique.recipecalculator.base.BaseActivity
 import korablique.recipecalculator.base.BaseFragment
-import korablique.recipecalculator.ui.mainactivity.mainscreen.SearchResultsFragment
 import javax.inject.Inject
 
-private const val TAG = "PartnersListFragment"
+private const val TAG = "PairingFragment"
 
-class PartnersListFragment : BaseFragment() {
+class PairingFragment : BaseFragment() {
     @Inject
-    lateinit var controller: PartnersListFragmentController
+    lateinit var controller: PairingFragmentController
 
     companion object {
         fun start(activity: BaseActivity) {
-            val fragment = PartnersListFragment()
+            val fragment = PairingFragment()
             activity.supportFragmentManager
                     .beginTransaction()
                     .add(R.id.main_fullscreen_container, fragment, TAG)
@@ -39,7 +38,8 @@ class PartnersListFragment : BaseFragment() {
     }
 
     override fun createView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        return inflater.inflate(R.layout.fragment_partners_list, container, false)
+        val fragmentView = inflater.inflate(R.layout.pairing_fragment, container, false)
+        return fragmentView
     }
 
     override fun shouldCloseOnBack() = true
