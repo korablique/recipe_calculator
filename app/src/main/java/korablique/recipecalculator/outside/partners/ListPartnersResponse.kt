@@ -33,7 +33,7 @@ fun ListPartnersResponseFull.simplify(): ListPartnersResponse {
                 return ListPartnersResponse.ParseError(
                         IllegalStateException("Lacking some of the ok fields: $this"))
             }
-            return ListPartnersResponse.Ok(partners.map { Partner(it.partner_name) })
+            return ListPartnersResponse.Ok(partners.map { Partner(it.partner_user_id, it.partner_name) })
         }
         else -> {
             val descr = error_description ?: ""

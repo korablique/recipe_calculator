@@ -12,14 +12,19 @@ import korablique.recipecalculator.R
 import korablique.recipecalculator.base.BaseActivity
 import korablique.recipecalculator.base.FragmentCallbacks
 import korablique.recipecalculator.dagger.FragmentScope
+import korablique.recipecalculator.model.Foodstuff
 import korablique.recipecalculator.outside.partners.GetPartnersResult
 import korablique.recipecalculator.outside.partners.Partner
 import korablique.recipecalculator.outside.partners.PartnersRegistry
+import korablique.recipecalculator.outside.partners.direct.DirectMsgSendResult
+import korablique.recipecalculator.outside.partners.direct.FoodstuffsCorrespondenceManager
 import korablique.recipecalculator.outside.userparams.InteractiveServerUserParamsObtainer
 import korablique.recipecalculator.outside.userparams.ObtainResult
 import korablique.recipecalculator.ui.mainactivity.partners.pairing.PairingFragment
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+private const val FOODSTUFF_PARCEL_TO_PARTNER = "FOODSTUFF_PARCEL_TO_PARTNER"
 
 @FragmentScope
 class PartnersListFragmentController @Inject constructor(
@@ -27,10 +32,19 @@ class PartnersListFragmentController @Inject constructor(
         private val fragment: PartnersListFragment,
         private val fragmentCallbacks: FragmentCallbacks,
         private val partnersRegistry: PartnersRegistry,
-        private val serverUserParamsObtainer: InteractiveServerUserParamsObtainer)
+        private val serverUserParamsObtainer: InteractiveServerUserParamsObtainer,
+        private val foodstuffsCorrespondenceManager: FoodstuffsCorrespondenceManager)
     : FragmentCallbacks.Observer, PartnersRegistry.Observer {
 
-    private val partnersAdapter: PartnersListAdapter = PartnersListAdapter()
+    private val partnersAdapter: PartnersListAdapter = PartnersListAdapter(this::onPartnerClick)
+
+    companion object {
+        internal fun startToSendFoodstuff(activity: BaseActivity, foodstuff: Foodstuff) {
+            val args = Bundle()
+            args.putParcelable(FOODSTUFF_PARCEL_TO_PARTNER, foodstuff)
+            PartnersListFragment.start(activity, args)
+        }
+    }
 
     init {
         fragmentCallbacks.addObserver(this)
@@ -100,5 +114,29 @@ class PartnersListFragmentController @Inject constructor(
 
     override fun onPartnersChanged(partners: List<Partner>) {
         updateDisplayedPartners(partners, fragment.requireView())
+    }
+
+    private fun onPartnerClick(partner: Partner) {
+        val foodstuff = fragment.arguments?.getParcelable<Foodstuff>(FOODSTUFF_PARCEL_TO_PARTNER)
+        if (foodstuff != null) {
+            fragment.lifecycleScope.launch {
+                val sendResult = foodstuffsCorrespondenceManager.sendFooodstuffToPartner(foodstuff, partner)
+                when (sendResult) {
+                    is DirectMsgSendResult.Ok -> {
+                        Toast.makeText(fragment.context, "Sent!", Toast.LENGTH_LONG).show()
+                        fragment.close()
+                    }
+                    is DirectMsgSendResult.NotLoggedIn -> {
+                        Toast.makeText(fragment.context, "Not logged in", Toast.LENGTH_LONG).show()
+                        fragment.close()
+                    }
+                    is DirectMsgSendResult.Failure -> {
+                        Toast.makeText(activity, "Unexpected failure: ${sendResult.exception}", Toast.LENGTH_LONG).show()
+                        Crashlytics.logException(sendResult.exception)
+                        fragment.close()
+                    }
+                }
+            }
+        }
     }
 }

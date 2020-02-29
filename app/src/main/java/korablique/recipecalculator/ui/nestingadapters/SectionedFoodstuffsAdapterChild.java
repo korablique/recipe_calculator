@@ -9,6 +9,11 @@ public class SectionedFoodstuffsAdapterChild extends FoodstuffsAdapterChild impl
         super(clickObserver);
     }
 
+    public SectionedFoodstuffsAdapterChild(ClickObserver clickObserver,
+                                           LongClickObserver longClickObserver) {
+        super(clickObserver, longClickObserver);
+    }
+
     @NotNull
     @Override
     public String getSectionName(int position) {

@@ -20,6 +20,7 @@ import korablique.recipecalculator.dagger.InjectorHolder;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.outside.fcm.FCMManager;
+import korablique.recipecalculator.outside.partners.direct.FoodstuffsCorrespondenceManager;
 import korablique.recipecalculator.ui.notifications.FoodReminder;
 
 public class BroccalcApplication extends Application
@@ -38,6 +39,8 @@ public class BroccalcApplication extends Application
     FoodReminder foodReminder;
     @Inject
     FCMManager fcmManager;
+    @Inject
+    FoodstuffsCorrespondenceManager foodstuffsCorrespondenceManager;
 
     @Override
     public void onCreate() {

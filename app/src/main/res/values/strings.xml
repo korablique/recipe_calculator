@@ -149,6 +149,7 @@
     <string name="you_do_not_have_partners">Нет партнёров</string>
     <string name="your_pairing_code">Ваш код:</string>
     <string name="your_partner_pairing_code">Код партнёра:</string>
+    <string name="send_to_partner">Отправить партнёру</string>
 
     <string-array name="gender_array">
         <item name="not_selected">—</item>

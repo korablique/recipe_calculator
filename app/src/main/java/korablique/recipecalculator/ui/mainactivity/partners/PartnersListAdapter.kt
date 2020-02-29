@@ -8,11 +8,16 @@ import korablique.recipecalculator.R
 import korablique.recipecalculator.outside.partners.Partner
 import korablique.recipecalculator.ui.MyViewHolder
 
-class PartnersListAdapter : RecyclerView.Adapter<MyViewHolder>() {
+class PartnersListAdapter(
+        private val onClickFn: (Partner)->Unit)
+    : RecyclerView.Adapter<MyViewHolder>() {
     private val partners = mutableListOf<Partner>()
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
         holder.item.findViewById<TextView>(R.id.partner_name).text = partners[position].name
+        holder.item.setOnClickListener {
+            onClickFn.invoke(partners[position])
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {

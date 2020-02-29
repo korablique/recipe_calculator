@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import korablique.recipecalculator.R
 import korablique.recipecalculator.base.BaseActivity
 import korablique.recipecalculator.base.BaseFragment
+import korablique.recipecalculator.model.Foodstuff
 import korablique.recipecalculator.ui.mainactivity.mainscreen.SearchResultsFragment
 import javax.inject.Inject
 
@@ -17,12 +18,18 @@ class PartnersListFragment : BaseFragment() {
     lateinit var controller: PartnersListFragmentController
 
     companion object {
-        fun start(activity: BaseActivity) {
+        @JvmOverloads
+        fun start(activity: BaseActivity, args: Bundle = Bundle()) {
             val fragment = PartnersListFragment()
+            fragment.arguments = args
             activity.supportFragmentManager
                     .beginTransaction()
                     .add(R.id.main_fullscreen_container, fragment, TAG)
                     .commit()
+        }
+
+        fun startToSendFoodstuff(activity: BaseActivity, foodstuff: Foodstuff) {
+            PartnersListFragmentController.startToSendFoodstuff(activity, foodstuff)
         }
     }
 

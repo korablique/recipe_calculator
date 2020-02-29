@@ -41,6 +41,9 @@ class PartnersRegistry @Inject constructor(
 
     init {
         fcmManager.registerMessageReceiver(SERV_MSG_PAIRED_WITH_PARTNER, this)
+        suspend {
+            updateAndGetPartners()
+        }
     }
 
     suspend fun getPartners(): GetPartnersResult {
@@ -96,9 +99,7 @@ class PartnersRegistry @Inject constructor(
     override fun onNewFcmMessage(msg: String) {
         // We subscribed only to SERV_MSG_PAIRED_WITH_PARTNER
         suspend {
-            withContext(mainThreadExecutor) {
-                updateAndGetPartners()
-            }
+            updateAndGetPartners()
         }
     }
 }

@@ -91,10 +91,7 @@ class FCMManager @Inject constructor(
             Crashlytics.logException(RuntimeException("Server FCM message without msg type: $data"))
             return
         }
-        val dataAsJson = data.map {
-            "\"${it.key}\": \"${it.value}\""
-        }.joinToString(separator = ",", prefix = "{", postfix = "}")
-        messageReceivers[msgType]?.onNewFcmMessage(dataAsJson)
+        messageReceivers[msgType]?.onNewFcmMessage(data["msg"]!!) // TODO: remove !!
     }
 
     fun registerMessageReceiver(msgType: String, messageReceiver: MessageReceiver) {
