@@ -1,0 +1,69 @@
+{
+  "project_info": {
+    "project_number": "818864099682",
+    "firebase_url": "https://broccalc-dev.firebaseio.com",
+    "project_id": "broccalc-dev",
+    "storage_bucket": "broccalc-dev.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:818864099682:android:5cc7127405710a0a7f9c3b",
+        "android_client_info": {
+          "package_name": "korablique.recipecalculator"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "818864099682-fmbehtg6dflt1lfmihv9te8kt7s1arq7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBXh8xm8GGBLG0k324zB_DJslQGSWPSiPA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "818864099682-fmbehtg6dflt1lfmihv9te8kt7s1arq7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:818864099682:android:d80de0f388fc5f8c7f9c3b",
+        "android_client_info": {
+          "package_name": "korablique.recipecalculator.debug"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "818864099682-fmbehtg6dflt1lfmihv9te8kt7s1arq7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBXh8xm8GGBLG0k324zB_DJslQGSWPSiPA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "818864099682-fmbehtg6dflt1lfmihv9te8kt7s1arq7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

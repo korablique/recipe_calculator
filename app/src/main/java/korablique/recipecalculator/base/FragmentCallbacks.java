@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
+import androidx.annotation.Nullable;
+
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -12,7 +14,7 @@ public class FragmentCallbacks {
 
     public interface Observer {
         default void onFragmentCreate(Bundle savedInstanceState) {}
-        default void onFragmentViewCreated(View fragmentView, Bundle savedInstanceState) {}
+        default void onFragmentViewCreated(View fragmentView, @Nullable Bundle savedInstanceState) {}
         default void onFragmentStart() {}
         default void onFragmentResume() {}
         default void onFragmentActivityResult(int requestCode, int resultCode, Intent data) {}

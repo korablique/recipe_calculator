@@ -1,5 +1,7 @@
 package korablique.recipecalculator.base.executors;
 
-public interface MainThreadExecutor extends Executor {
-    void executeDelayed(long delayMillis, Runnable runnable);
+import kotlinx.coroutines.CoroutineDispatcher;
+
+public abstract class MainThreadExecutor extends CoroutineDispatcher implements Executor {
+    public abstract void executeDelayed(long delayMillis, Runnable runnable);
 }

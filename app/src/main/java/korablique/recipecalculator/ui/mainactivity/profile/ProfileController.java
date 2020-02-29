@@ -20,6 +20,7 @@ import javax.inject.Inject;
 import io.reactivex.Single;
 import io.reactivex.functions.Consumer;
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.base.FragmentCallbacks;
 import korablique.recipecalculator.base.Optional;
@@ -36,6 +37,7 @@ import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.ui.NutritionValuesWrapper;
 import korablique.recipecalculator.ui.chart.ChartWrapper;
+import korablique.recipecalculator.ui.mainactivity.partners.PartnersListFragment;
 import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
 import korablique.recipecalculator.ui.userparameters.UserParametersActivity;
 
@@ -44,6 +46,7 @@ import static korablique.recipecalculator.util.SpinnerTuner.startTuningSpinner;
 
 @FragmentScope
 public class ProfileController implements FragmentCallbacks.Observer {
+    private BaseActivity activity;
     private BaseFragment fragment;
     private UserParametersWorker userParametersWorker;
     private RxFragmentSubscriptions subscriptions;
@@ -53,12 +56,14 @@ public class ProfileController implements FragmentCallbacks.Observer {
 
     @Inject
     public ProfileController(
+            BaseActivity activity,
             BaseFragment fragment,
             FragmentCallbacks fragmentCallbacks,
             UserParametersWorker userParametersWorker,
             RxFragmentSubscriptions subscriptions,
             UserNameProvider userNameProvider,
             TimeProvider timeProvider) {
+        this.activity = activity;
         this.fragment = fragment;
         fragmentCallbacks.addObserver(this);
         this.userParametersWorker = userParametersWorker;
@@ -91,10 +96,14 @@ public class ProfileController implements FragmentCallbacks.Observer {
             }
         });
 
-        // редактирование профиля
         View editProfileButton = fragmentView.findViewById(R.id.layout_button_edit);
         editProfileButton.setOnClickListener(view -> {
             UserParametersActivity.start(fragment.getContext());
+        });
+
+        View partnersButton = fragmentView.findViewById(R.id.layout_button_partners);
+        partnersButton.setOnClickListener(view -> {
+            PartnersListFragment.Companion.start(activity);
         });
 
         fillChart(fragmentView);

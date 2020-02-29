@@ -1,5 +1,7 @@
 package korablique.recipecalculator.util;
 
+import android.app.Service;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -91,6 +93,11 @@ public class TestingInjector implements Injector {
         injectImpl(fragment, cachedFragmentInjections.get(fragment));
     }
 
+    @Override
+    public void inject(Service service) {
+        // Not supported yet
+    }
+
     private void ensureCacheExistence(Fragment fragment) {
         BaseActivity activity = (BaseActivity) fragment.getActivity();
         ensureCacheExistence(activity);
@@ -161,7 +168,9 @@ public class TestingInjector implements Injector {
                 builder.append(injectedObject.getClass().getName()).append(" ");
             }
             throw new IllegalStateException(String.format(
-                    "Couldn't find object to inject into field! Field: %s, type: %s, objects: %s",
+                    "Couldn't find object to inject into field! "
+                    + "Target type: %s, field: %s, injected type: %s, objects: %s",
+                    target.getClass().getName(),
                     field.getName(),
                     field.getType().getName(),
                     builder.toString()));

@@ -13,6 +13,8 @@ import korablique.recipecalculator.base.TimeProvider;
 import korablique.recipecalculator.base.TimeProviderImpl;
 import korablique.recipecalculator.base.executors.ComputationThreadsExecutor;
 import korablique.recipecalculator.base.executors.ComputationThreadsExecutorImpl;
+import korablique.recipecalculator.base.executors.IOExecutor;
+import korablique.recipecalculator.base.executors.IOExecutorImpl;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.base.executors.MainThreadExecutorImpl;
 import korablique.recipecalculator.database.room.DatabaseHolder;
@@ -20,6 +22,8 @@ import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseThreadExecutorImpl;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
+import korablique.recipecalculator.outside.fcm.FCMService;
+import korablique.recipecalculator.outside.fcm.FCMServiceModule;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivityModule;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
@@ -53,6 +57,12 @@ public abstract class BroccalcApplicationModule {
 
     @Provides
     @Singleton
+    public static IOExecutor provideIOExecutor() {
+        return new IOExecutorImpl();
+    }
+
+    @Provides
+    @Singleton
     public static DatabaseWorker provideDatabaseWorker(
             DatabaseHolder databaseHolder,
             MainThreadExecutor mainThreadExecutor,
@@ -67,12 +77,6 @@ public abstract class BroccalcApplicationModule {
             MainThreadExecutor mainThreadExecutor,
             DatabaseThreadExecutor databaseThreadExecutor) {
         return new UserParametersWorker(databaseHolder, mainThreadExecutor, databaseThreadExecutor);
-    }
-
-    @Provides
-    @Singleton
-    public static FoodReminder provideFoodReminder(Context context, TimeProvider timeProvider) {
-        return new FoodReminder(context, timeProvider);
     }
 
     @Provides
@@ -104,4 +108,8 @@ public abstract class BroccalcApplicationModule {
     @ActivityScope
     @ContributesAndroidInjector(modules = { BaseActivityModule.class, SplashScreenActivityModule.class })
     abstract SplashScreenActivity contributeSplashScreenActivityInjector();
+
+    @ServiceScope
+    @ContributesAndroidInjector(modules = FCMServiceModule.class)
+    abstract FCMService contributeFCMService();
 }

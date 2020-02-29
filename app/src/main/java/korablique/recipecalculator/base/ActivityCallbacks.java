@@ -3,6 +3,8 @@ package korablique.recipecalculator.base;
 import android.content.Intent;
 import android.os.Bundle;
 
+import androidx.annotation.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
@@ -12,7 +14,7 @@ public class ActivityCallbacks {
     private final List<Observer> observers = new CopyOnWriteArrayList<>();
 
     public interface Observer {
-        default void onActivityCreate(Bundle savedInstanceState) {}
+        default void onActivityCreate(@Nullable Bundle savedInstanceState) {}
         default void onActivityNewIntent(Intent intent) {}
         default void onActivityStart() {}
         default void onActivityResume() {}

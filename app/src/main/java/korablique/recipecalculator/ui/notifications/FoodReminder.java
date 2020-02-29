@@ -15,11 +15,15 @@ import androidx.core.app.NotificationManagerCompat;
 
 import java.util.Calendar;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.TimeProvider;
 
 import static android.content.Context.NOTIFICATION_SERVICE;
 
+@Singleton
 public class FoodReminder {
     public static final String ANDROID_CHANNEL_ID = "korablique.recipecalculator.ANDROID";
     public static final int BREAKFAST_NOTIFICATION_ID = 1;
@@ -44,6 +48,7 @@ public class FoodReminder {
         }
     }
 
+    @Inject
     public FoodReminder(Context context, TimeProvider timeProvider) {
         this.context = context;
         this.timeProvider = timeProvider;

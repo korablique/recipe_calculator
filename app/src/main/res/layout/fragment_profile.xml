@@ -65,6 +65,24 @@
                 app:layout_constraintTop_toTopOf="@id/user_params_header"/>
 
             <FrameLayout
+                android:id="@+id/layout_button_partners"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/rectangular_button_click_selector"
+                app:layout_constraintEnd_toStartOf="@+id/layout_button_edit"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <ImageView
+                    android:id="@+id/button_partners"
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_partners" />
+            </FrameLayout>
+
+            <FrameLayout
                 android:id="@+id/layout_button_edit"
                 android:layout_width="32dp"
                 android:layout_height="32dp"

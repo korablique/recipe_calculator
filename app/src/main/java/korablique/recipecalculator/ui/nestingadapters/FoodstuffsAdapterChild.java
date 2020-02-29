@@ -21,12 +21,27 @@ public class FoodstuffsAdapterChild extends AdapterChild {
     public interface ClickObserver {
         void onItemClicked(Foodstuff foodstuff, int displayedPosition);
     }
+    public interface LongClickObserver {
+        boolean onItemClicked(Foodstuff foodstuff, int displayedPosition, View view);
+        LongClickObserver EMPTY = new LongClickObserver() {
+            @Override
+            public boolean onItemClicked(Foodstuff foodstuff, int displayedPosition, View view) {
+                return false;
+            }
+        };
+    }
     protected List<Foodstuff> foodstuffs = new ArrayList<>();
     private ClickObserver clickObserver;
+    private LongClickObserver longClickObserver;
 
-    public FoodstuffsAdapterChild(ClickObserver clickObserver) {
+    public FoodstuffsAdapterChild(ClickObserver clickObserver, LongClickObserver longClickObserver) {
         super(1);
         this.clickObserver = clickObserver;
+        this.longClickObserver = longClickObserver;
+    }
+
+    public FoodstuffsAdapterChild(ClickObserver clickObserver) {
+        this(clickObserver, LongClickObserver.EMPTY);
     }
 
     @Override
@@ -46,6 +61,9 @@ public class FoodstuffsAdapterChild extends AdapterChild {
 
         item.setOnClickListener((v) -> {
             clickObserver.onItemClicked(foodstuff, holder.getAdapterPosition());
+        });
+        item.setOnLongClickListener((v) -> {
+            return longClickObserver.onItemClicked(foodstuff, holder.getAdapterPosition(), item);
         });
     }
 
