@@ -76,7 +76,7 @@ class FCMManager @Inject constructor(
             val response = httpClient.requestWithTypedResponse(url, UpdateFCMTokenResponse::class)
             when (response) {
                 is TypedRequestResult.Failure -> {
-                    Crashlytics.logException(response.exception)
+                    // Not nice
                 }
                 is TypedRequestResult.Success -> {
                     // Nice!

@@ -3,6 +3,7 @@ package korablique.recipecalculator.outside.thirdparty
 import android.content.Intent
 import com.google.android.gms.auth.api.signin.*
 import com.google.android.gms.common.api.ApiException
+import korablique.recipecalculator.R
 import korablique.recipecalculator.RequestCodes
 import korablique.recipecalculator.base.ActivityCallbacks
 import korablique.recipecalculator.base.BaseActivity
@@ -10,8 +11,6 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
-
-private const val GP_APP_TOKEN = "560504820389-e0pvlp32fn3kn10ud6md0fp533f0170f.apps.googleusercontent.com"
 
 sealed class GPAuthResult {
     data class Success(val token: String) : GPAuthResult()
@@ -29,7 +28,7 @@ private sealed class SilentGPAuthResult {
 open class GPAuthorizer @Inject constructor() {
     open suspend fun auth(context: BaseActivity): GPAuthResult {
         val googleSignInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(GP_APP_TOKEN)
+                .requestIdToken(context.getString(R.string.gp_app_token))
                 .build()
         val googleSignInClient = GoogleSignIn.getClient(context, googleSignInOptions)
         val silentResult = silentSignIn(googleSignInClient)
@@ -72,13 +71,13 @@ open class GPAuthorizer @Inject constructor() {
                     } else {
                         continuation.resume(GPAuthResult.Success(token))
                     }
-                } catch (api: ApiException) {
+                } catch (apiException: ApiException) {
                     // The ApiException status code indicates the detailed failure reason.
                     // Please refer to the GoogleSignInStatusCodes class reference for more information.
-                    if (api.statusCode == GoogleSignInStatusCodes.SIGN_IN_CANCELLED) {
+                    if (apiException.statusCode == GoogleSignInStatusCodes.SIGN_IN_CANCELLED) {
                         continuation.resume(GPAuthResult.CanceledByUser)
                     } else {
-                        continuation.resume(GPAuthResult.Failure(api))
+                        continuation.resume(GPAuthResult.Failure(apiException))
                     }
                 }
             }

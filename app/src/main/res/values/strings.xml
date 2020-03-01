@@ -1,4 +1,5 @@
 <resources>
+    <string name="gp_app_token">818864099682-45o7guahod4e27offl7pugq0tqf6augr.apps.googleusercontent.com</string>
     <string name="app_name">Broccalc</string>
     <string name="count">Рассчитать</string>
     <string name="product_weight">Масса</string>

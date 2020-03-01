@@ -70,7 +70,7 @@ class PartnersListFragmentController @Inject constructor(
                 }
                 is GetPartnersResult.Failure -> {
                     Toast.makeText(activity, "Unexpected failure: ${partnersResult.exception}", Toast.LENGTH_LONG).show()
-                    Crashlytics.logException(partnersResult.exception)
+                    // Crashlytics.logException(partnersResult.exception)
                 }
                 is GetPartnersResult.NotLoggedIn -> {
                     // TODO: ask user if they want to login or to cancel
@@ -96,7 +96,7 @@ class PartnersListFragmentController @Inject constructor(
                     }
                     is ObtainResult.Failure -> {
                         Toast.makeText(activity, "Unexpected failure: ${paramsResult.exception}", Toast.LENGTH_LONG).show()
-                        Crashlytics.logException(paramsResult.exception)
+                        // Crashlytics.logException(paramsResult.exception)
                     }
                 }
             }
@@ -132,7 +132,7 @@ class PartnersListFragmentController @Inject constructor(
                     }
                     is DirectMsgSendResult.Failure -> {
                         Toast.makeText(activity, "Unexpected failure: ${sendResult.exception}", Toast.LENGTH_LONG).show()
-                        Crashlytics.logException(sendResult.exception)
+                        // Crashlytics.logException(sendResult.exception)
                         fragment.close()
                     }
                 }
