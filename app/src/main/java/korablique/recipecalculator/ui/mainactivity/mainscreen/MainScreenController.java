@@ -16,6 +16,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import io.reactivex.Observable;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.RequestCodes;
 import korablique.recipecalculator.base.ActivityCallbacks;
@@ -41,6 +42,7 @@ import korablique.recipecalculator.ui.nestingadapters.SingleItemAdapterChild;
 public class MainScreenController
         implements FragmentCallbacks.Observer,
         ActivityCallbacks.Observer {
+    public static final int TOP_ITEMS_MAX_COUNT = 5;
     private static final String EXTRA_INITIAL_TOP = "EXTRA_INITIAL_TOP";
     private static final String EXTRA_ALL_FOODSTUFFS_FIRST_BATCH = "EXTRA_ALL_FOODSTUFFS_FIRST_BATCH";
     private final BaseActivity context;
@@ -247,6 +249,10 @@ public class MainScreenController
                 adapterParent.addChildToPosition(topTitleAdapterChild, 0);
                 adapterParent.addChildToPosition(topAdapterChild, 1);
             }
+            foodstuffs = Observable
+                    .fromIterable(foodstuffs)
+                    .take(TOP_ITEMS_MAX_COUNT)
+                    .toList().blockingGet();
             topAdapterChild.addItems(foodstuffs);
         } else {
             if (topAdapterChild != null && topTitleAdapterChild != null) {

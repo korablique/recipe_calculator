@@ -111,8 +111,9 @@ public class HistoryAdapter extends RecyclerView.Adapter<MyViewHolder> {
     }
 
     public void addItem(HistoryEntry historyEntry) {
-        historyEntries.add(0, historyEntry);
-        notifyItemInserted(1); // First item is empty space
+        historyEntries.add(historyEntry);
+        // size() instead of size()-1 - first item is empty space
+        notifyItemInserted(historyEntries.size());
     }
 
     public void addItems(List<HistoryEntry> historyEntries) {

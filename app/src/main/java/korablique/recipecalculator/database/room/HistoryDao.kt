@@ -26,7 +26,7 @@ interface HistoryDao {
 
     @Query("SELECT $COLUMN_NAME_FOODSTUFF_ID FROM $HISTORY_TABLE_NAME" +
             " WHERE $COLUMN_NAME_DATE >= :from AND $COLUMN_NAME_DATE <= :to" +
-            " ORDER BY $COLUMN_NAME_DATE ASC")
+            " ORDER BY $COLUMN_NAME_DATE DESC")
     fun loadFoodstuffsIdsForPeriod(from: Long, to: Long): List<Long>
 
     @Query("SELECT $FOODSTUFFS_TABLE_NAME.$FOODSTUFF_ID, $COLUMN_NAME_FOODSTUFF_NAME," +
@@ -36,14 +36,14 @@ interface HistoryDao {
             "=$FOODSTUFFS_TABLE_NAME.$FOODSTUFF_ID" +
             " WHERE $COLUMN_NAME_DATE >= :from AND $COLUMN_NAME_DATE <= :to" +
             " AND $COLUMN_NAME_IS_LISTED = 1" +
-            " ORDER BY $COLUMN_NAME_DATE ASC")
+            " ORDER BY $COLUMN_NAME_DATE DESC")
     fun loadListedFoodstuffsFromHistoryForPeriod(from: Long, to: Long): Cursor
 
     @Query("SELECT * FROM $HISTORY_TABLE_NAME LEFT OUTER JOIN $FOODSTUFFS_TABLE_NAME" +
             " ON $HISTORY_TABLE_NAME.$COLUMN_NAME_FOODSTUFF_ID" +
             "=$FOODSTUFFS_TABLE_NAME.$FOODSTUFF_ID" +
             " WHERE $COLUMN_NAME_DATE >= :from AND $COLUMN_NAME_DATE <= :to" +
-            " ORDER BY $COLUMN_NAME_DATE ASC")
+            " ORDER BY $COLUMN_NAME_DATE DESC")
     fun loadHistoryForPeriod(from: Long, to: Long): Cursor
 
     @Query("SELECT * FROM $HISTORY_TABLE_NAME LEFT OUTER JOIN $FOODSTUFFS_TABLE_NAME" +

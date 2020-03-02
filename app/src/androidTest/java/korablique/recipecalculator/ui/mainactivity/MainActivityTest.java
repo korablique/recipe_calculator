@@ -44,6 +44,7 @@ import korablique.recipecalculator.model.Rates;
 import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
+import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenController;
 import korablique.recipecalculator.util.EspressoUtils;
 
 import static androidx.test.espresso.Espresso.onView;
@@ -319,14 +320,14 @@ public class MainActivityTest extends MainActivityTestsBase {
         List<Foodstuff> topFoodstuffs = extractFoodstuffsTopFromDB();
 
         Matcher<View> topMatcher = allOf(
-                withText(topFoodstuffs.get(2).getName()),
+                withText(topFoodstuffs.get(1).getName()),
                 matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header))),
                 matches(isCompletelyBelow(withText(R.string.top_header))));
         onView(topMatcher).perform(click());
         onView(withId(R.id.button_edit)).perform(click());
 
         // Редактируем
-        String newName = topFoodstuffs.get(2).getName() + "1";
+        String newName = topFoodstuffs.get(1).getName() + "1";
         onView(withId(R.id.foodstuff_name)).perform(replaceText(newName));
         onView(withId(R.id.save_button)).perform(click());
 
@@ -807,6 +808,73 @@ public class MainActivityTest extends MainActivityTestsBase {
                 EspressoUtils.matches(isCompletelyBelow(topHeaderMatcher)),
                 EspressoUtils.matches(isCompletelyAbove(allHeaderMatcher))
         )).check(doesNotExist());
+    }
+
+    @Test
+    public void topProducts_orderAndLimit() {
+        clearAllData();
+        mActivityRule.launchActivity(null);
+
+        List<Foodstuff> foodstuffs = new ArrayList<>();
+        int eatenTwiceFoodstuffIndex = 2;
+
+        // TOP_ITEMS_MAX_COUNT x2 products to history
+        for (int index = 0; index < MainScreenController.TOP_ITEMS_MAX_COUNT + 2; ++index) {
+            Foodstuff foodstuff = Foodstuff.withName("apple" + index).withNutrition(1, 2, 3, 4);
+            foodstuff = foodstuffsList.saveFoodstuff(foodstuff).blockingGet();
+            foodstuffs.add(foodstuff);
+
+            historyWorker.saveFoodstuffToHistory(
+                    timeProvider.now().minusSeconds(index).toDate(),
+                    foodstuff.getId(),
+                    123);
+            // One of the foodstuffs is eaten twice
+            if (index == eatenTwiceFoodstuffIndex) {
+                historyWorker.saveFoodstuffToHistory(
+                        timeProvider.now().minusSeconds(index).toDate(),
+                        foodstuff.getId(),
+                        123);
+            }
+        }
+
+        // eatenTwiceFoodstuffIndex is first
+        onView(allOf(
+                withText(foodstuffs.get(eatenTwiceFoodstuffIndex).getName()),
+                EspressoUtils.matches(isCompletelyBelow(withText(R.string.top_header))),
+                EspressoUtils.matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header)))
+        )).check(matches(isDisplayed()));
+
+        // Other foodstuffs are below one by one
+        for (int index = 0; index < MainScreenController.TOP_ITEMS_MAX_COUNT; ++index) {
+            if (index == eatenTwiceFoodstuffIndex) {
+                continue;
+            }
+            int foodstuffAboveIndex;
+            if (index == 0) {
+                foodstuffAboveIndex = eatenTwiceFoodstuffIndex;
+            } else {
+                foodstuffAboveIndex = index - 1;
+            }
+            Matcher<View> foodstuffAbove = allOf(
+                    withText(foodstuffs.get(foodstuffAboveIndex).getName()),
+                    EspressoUtils.matches(isCompletelyBelow(withText(R.string.top_header))),
+                    EspressoUtils.matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header))));
+
+            onView(allOf(
+                    withText(foodstuffs.get(index).getName()),
+                    EspressoUtils.matches(isCompletelyBelow(foodstuffAbove)),
+                    EspressoUtils.matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header)))
+            )).check(matches(isDisplayed()));
+        }
+
+        // Only TOP_ITEMS_MAX_COUNT foodstuffs should exist, others - shouldn't
+        for (int index = MainScreenController.TOP_ITEMS_MAX_COUNT; index < foodstuffs.size(); ++index) {
+            onView(allOf(
+                    withText(foodstuffs.get(index).getName()),
+                    EspressoUtils.matches(isCompletelyBelow(withText(R.string.top_header))),
+                    EspressoUtils.matches(isCompletelyAbove(withText(R.string.all_foodstuffs_header)))
+            )).check(doesNotExist());
+        }
     }
 
     private void addFoodstuffToDate(DateTime date, long... foodstuffsIds) {
