@@ -62,6 +62,7 @@ import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenFragment
 import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenReadinessDispatcher;
 import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenSearchController;
 import korablique.recipecalculator.ui.mainactivity.mainscreen.SearchResultsFragment;
+import korablique.recipecalculator.ui.mainactivity.mainscreen.TempLongClickedFoodstuffsHandler;
 import korablique.recipecalculator.ui.mainactivity.mainscreen.UpFABController;
 import korablique.recipecalculator.ui.mainactivity.profile.NewMeasurementsDialog;
 import korablique.recipecalculator.ui.mainactivity.profile.ProfileController;
@@ -105,6 +106,7 @@ public class MainActivityTestsBase {
     protected FoodstuffsSearchEngine foodstuffsSearchEngine;
     protected InteractiveServerUserParamsObtainer serverUserParamsObtainer;
     protected ServerUserParamsRegistry serverUserParamsRegistry;
+    protected TempLongClickedFoodstuffsHandler longClickedFoodstuffsHandler;
 
     @Rule
     public ActivityTestRule<MainActivity> mActivityRule =
@@ -159,7 +161,11 @@ public class MainActivityTestsBase {
                                 new InteractiveServerUserParamsObtainer(
                                         activity, activityCallbacks, serverUserParamsRegistry);
 
-                        return Arrays.asList(activity, controller, serverUserParamsObtainer);
+                        longClickedFoodstuffsHandler =
+                                new TempLongClickedFoodstuffsHandler(activity, serverUserParamsRegistry);
+
+                        return Arrays.asList(activity, controller, serverUserParamsObtainer,
+                                longClickedFoodstuffsHandler);
                     })
                     .withFragmentScoped((injectionTarget -> {
                         if (injectionTarget instanceof NewMeasurementsDialog
@@ -196,7 +202,7 @@ public class MainActivityTestsBase {
                                     activity.getActivityCallbacks(), bucketList, topList,
                                     foodstuffsList, mainActivitySelectedDateStorage,
                                     mainScreenCardController, readinessDispatcher,
-                                    subscriptions);
+                                    subscriptions, longClickedFoodstuffsHandler);
                             return Arrays.asList(subscriptions, mainScreenController,
                                     upFABController, mainScreenCardController, searchController);
 

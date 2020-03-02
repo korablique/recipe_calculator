@@ -7,13 +7,15 @@ import java.io.IOException
 import kotlin.reflect.KClass
 
 class TestingHttpClient : HttpClient() {
-    override suspend fun request(url: String): RequestResult {
+    override suspend fun request(url: String, body: String): RequestResult {
         return RequestResult.Failure(IOException("Not supported yet"))
     }
 
 
     override suspend fun <T:Any> requestWithTypedResponse(
-            url: String, type: KClass<T>): TypedRequestResult<T> {
+            url: String,
+            type: KClass<T>,
+            body: String): TypedRequestResult<T> {
         return TypedRequestResult.Failure(IOException("Not supported yet"))
     }
 }
