@@ -5,6 +5,7 @@ import android.util.Pair;
 
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.Lifecycle;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -57,7 +58,9 @@ public class MainActivityFragmentsController implements
         this.mainActivity = mainActivity;
         this.sessionController = sessionController;
         activityCallbacks.addObserver(this);
-        sessionController.addObserver(this);
+        if (mainActivity.getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.CREATED)) {
+            onActivityCreate(mainActivity.getSavedInstanceState());
+        }
     }
 
     public void addObserver(Observer observer) {
@@ -186,7 +189,18 @@ public class MainActivityFragmentsController implements
     }
 
     @Override
-    public void onActivityDestroy() {
+    public void onActivityStart() {
+        sessionController.addObserver(this);
+        if (sessionController.shouldStartNewSessionFor(SessionClient.MAIN_ACTIVITY_FRAGMENT)) {
+            onNewSession();
+        }
+    }
+
+    @Override
+    public void onActivityStop() {
+        // We don't want to receive new-session events while we're in background -
+        // it's possible that another MainActivity will be created and we don't want to steal
+        // a new session from it.
         sessionController.removeObserver(this);
     }
 }
