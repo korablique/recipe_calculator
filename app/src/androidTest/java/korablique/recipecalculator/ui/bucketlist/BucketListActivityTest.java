@@ -142,8 +142,7 @@ public class BucketListActivityTest {
                         RxFragmentSubscriptions subscriptions = new RxFragmentSubscriptions(fragmentCallbacks);
                         if (fragment instanceof HistoryFragment) {
                             historyController = new HistoryController((BaseActivity) fragment.getActivity(),
-                                    fragment, fragmentCallbacks, historyWorker, userParametersWorker,
-                                    subscriptions, timeProvider,
+                                    fragment, fragmentCallbacks, historyWorker, timeProvider,
                                     mock(MainActivityFragmentsController.class),
                                     mock(MainActivitySelectedDateStorage.class));
                             return Arrays.asList(subscriptions, historyController);

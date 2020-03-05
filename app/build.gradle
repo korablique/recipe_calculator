@@ -91,7 +91,8 @@ dependencies {
     implementation 'com.google.android.material:material:1.1.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.0-beta4'
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0"
-    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.2.0-alpha01"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.2.0"
+    implementation "androidx.viewpager2:viewpager2:1.0.0"
     implementation 'com.tapadoo.android:alerter:2.0.1'
     implementation project(':libs:floatingsearchview:library')
     implementation 'com.mikhaellopez:circularprogressbar:2.0.0'

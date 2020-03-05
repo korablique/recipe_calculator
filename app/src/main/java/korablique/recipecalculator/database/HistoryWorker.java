@@ -63,7 +63,7 @@ public class HistoryWorker {
         observers.add(observer);
     }
 
-    public void removeObserver(HistoryChangeObserver observer) {
+    public void removeHistoryChangeObserver(HistoryChangeObserver observer) {
         observers.remove(observer);
     }
 

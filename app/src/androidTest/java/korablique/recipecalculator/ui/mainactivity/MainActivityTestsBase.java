@@ -56,6 +56,8 @@ import korablique.recipecalculator.ui.calckeyboard.CalcKeyboardController;
 import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.mainactivity.history.HistoryController;
 import korablique.recipecalculator.ui.mainactivity.history.HistoryFragment;
+import korablique.recipecalculator.ui.mainactivity.history.pages.HistoryPageController;
+import korablique.recipecalculator.ui.mainactivity.history.pages.HistoryPageFragment;
 import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenCardController;
 import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenController;
 import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenFragment;
@@ -214,12 +216,17 @@ public class MainActivityTestsBase {
                         } else if (fragment instanceof HistoryFragment) {
                             HistoryController historyController = new HistoryController(
                                     activity, fragment, fragmentCallbacks, historyWorker,
-                                    userParametersWorker, subscriptions, timeProvider,
-                                    fragmentsController, mainActivitySelectedDateStorage);
+                                    timeProvider, fragmentsController, mainActivitySelectedDateStorage);
                             return Arrays.asList(subscriptions, historyController);
                         } else if (fragment instanceof SearchResultsFragment) {
                             return Arrays.asList(databaseWorker, lifecycle, activity,
                                     foodstuffsList, subscriptions, mainScreenCardController);
+                        } else if (fragment instanceof HistoryPageFragment) {
+                            HistoryPageController pageController =
+                                    new HistoryPageController(
+                                            (HistoryPageFragment) fragment, historyWorker,
+                                            userParametersWorker, fragmentCallbacks, subscriptions);
+                            return Arrays.asList(pageController);
                         } else {
                             throw new IllegalStateException("There is no such fragment class");
                         }
