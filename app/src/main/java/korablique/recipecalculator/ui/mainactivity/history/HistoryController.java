@@ -78,7 +78,7 @@ public class HistoryController implements
     @Override
     public void onFragmentViewCreated(View fragmentView, Bundle savedInstanceState) {
         this.fragmentView = fragmentView;
-        this.historyViewPager = fragmentView.findViewById(R.id.history_view_pager);
+        historyViewPager = fragmentView.findViewById(R.id.history_view_pager);
 
         FloatingActionButton fab = fragmentView.findViewById(R.id.history_fab);
         fab.setOnClickListener(v -> {

@@ -69,6 +69,7 @@ import korablique.recipecalculator.ui.mainactivity.mainscreen.UpFABController;
 import korablique.recipecalculator.ui.mainactivity.profile.NewMeasurementsDialog;
 import korablique.recipecalculator.ui.mainactivity.profile.ProfileController;
 import korablique.recipecalculator.ui.mainactivity.profile.ProfileFragment;
+import korablique.recipecalculator.util.DBTestingUtils;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.InstantComputationsThreadsExecutor;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
@@ -120,13 +121,14 @@ public class MainActivityTestsBase {
                         databaseHolder = new DatabaseHolder(context, databaseThreadExecutor);
                         databaseWorker = new DatabaseWorker(
                                 databaseHolder, mainThreadExecutor, databaseThreadExecutor);
+                        timeProvider = new TestingTimeProvider();
                         historyWorker = new HistoryWorker(
-                                databaseHolder, mainThreadExecutor, databaseThreadExecutor);
+                                databaseHolder, mainThreadExecutor, databaseThreadExecutor,
+                                timeProvider);
                         userParametersWorker = new UserParametersWorker(
                                 databaseHolder, mainThreadExecutor, databaseThreadExecutor);
                         foodstuffsList = new FoodstuffsList(
                                 databaseWorker, mainThreadExecutor, computationThreadsExecutor);
-                        timeProvider = new TestingTimeProvider();
                         topList = new FoodstuffsTopList(historyWorker, foodstuffsList, timeProvider);
                         userNameProvider = new UserNameProvider(context);
                         currentActivityProvider = new CurrentActivityProvider();
@@ -290,18 +292,6 @@ public class MainActivityTestsBase {
     }
 
     protected void clearAllData() {
-        historyWorker.requestAllHistoryFromDb(historyEntries -> {
-            historyEntries = new ArrayList<>(historyEntries);
-            for (HistoryEntry entry : historyEntries) {
-                historyWorker.deleteEntryFromHistory(entry);
-            }
-        });
-        foodstuffsList.getAllFoodstuffs(foodstuffs -> {}, foodstuffs -> {
-            foodstuffs = new ArrayList<>(foodstuffs);
-            for (Foodstuff foodstuff : foodstuffs) {
-                foodstuffsList.deleteFoodstuff(foodstuff);
-            }
-        });
-        databaseHolder.getDatabase().clearAllTables();
+        DBTestingUtils.clearAllData(foodstuffsList, historyWorker, databaseHolder);
     }
 }

@@ -2,6 +2,7 @@ package korablique.recipecalculator.database;
 
 import android.database.Cursor;
 
+import androidx.annotation.AnyThread;
 import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
@@ -13,6 +14,7 @@ import javax.inject.Singleton;
 
 import io.reactivex.Observable;
 import korablique.recipecalculator.base.Callback;
+import korablique.recipecalculator.base.TimeProvider;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.database.room.AppDatabase;
 import korablique.recipecalculator.database.room.DatabaseHolder;
@@ -41,9 +43,13 @@ public class HistoryWorker {
     private DatabaseHolder databaseHolder;
     private DatabaseThreadExecutor databaseThreadExecutor;
     private MainThreadExecutor mainThreadExecutor;
+    private TimeProvider timeProvider;
+
     private List<HistoryChangeObserver> observers = new ArrayList<>();
 
-    private List<HistoryEntry> cachedFirstBatch = new ArrayList<>();
+    private volatile Observable<HistoryEntry> cachedHistory;
+    private volatile long cachedHistoryStart = -1;
+    private volatile long cachedHistoryEnd = -1;
 
     public interface HistoryChangeObserver {
         void onHistoryChange();
@@ -53,10 +59,12 @@ public class HistoryWorker {
     public HistoryWorker(
             DatabaseHolder databaseHolder,
             MainThreadExecutor mainThreadExecutor,
-            DatabaseThreadExecutor databaseThreadExecutor) {
+            DatabaseThreadExecutor databaseThreadExecutor,
+            TimeProvider timeProvider) {
         this.databaseHolder = databaseHolder;
         this.mainThreadExecutor = mainThreadExecutor;
         this.databaseThreadExecutor = databaseThreadExecutor;
+        this.timeProvider = timeProvider;
     }
 
     public void addHistoryChangeObserver(HistoryChangeObserver observer) {
@@ -75,19 +83,21 @@ public class HistoryWorker {
         });
     }
 
-    public void initCache() {
-        databaseThreadExecutor.execute(() -> updateCache());
-    }
-
-    /**
-     * Обновляет кеш первого батча.
-     * Выполняется на том же потоке, на котором вызван.
-     */
-    private void updateCache() {
-        requestHistoryFromDbImpl(BATCH_SIZE, (historyEntries) -> {
-            cachedFirstBatch.clear();
-            cachedFirstBatch.addAll(historyEntries);
-        });
+    @AnyThread
+    public void updateCache() {
+        // Синхронизируем, чтобы значения полей не разъехались
+        // (если cachedHistoryStart будет иметь сегодняшний день в качестве значения,
+        // но cachedHistory не будет внутри себя иметь продукты за севодняшний день, то
+        // это баг).
+        synchronized (this) {
+            long from = timeProvider.now().withTimeAtStartOfDay().getMillis();
+            long to = Long.MAX_VALUE;
+            cachedHistory = requestHistoryForPeriod(from, to, true);
+            cachedHistory = cachedHistory.cache();
+            cachedHistory.subscribe();
+            cachedHistoryStart = from;
+            cachedHistoryEnd = to;
+        }
     }
 
     public void requestAllHistoryFromDb(
@@ -116,12 +126,6 @@ public class HistoryWorker {
     private void requestHistoryFromDbImpl(
             final int limit,
             @NonNull final Callback<List<HistoryEntry>> historyBatchesCallback) {
-        boolean cacheWasUsed = false;
-        if (!cachedFirstBatch.isEmpty()) {
-            historyBatchesCallback.onResult(cachedFirstBatch);
-            cacheWasUsed = true;
-        }
-
         AppDatabase database = databaseHolder.getDatabase();
         HistoryDao historyDao = database.historyDao();
         Cursor cursor;
@@ -130,10 +134,6 @@ public class HistoryWorker {
         } else {
             cursor = historyDao.loadHistoryWithLimit(limit);
         }
-
-        // Если кэш уже отправлен, первый батч будет такой же, как кэш
-        // - первый батч отправлять не нужно.
-        boolean shouldIgnoreNextBatch = cacheWasUsed;
 
         List<HistoryEntry> historyBatch = new ArrayList<>();
         int index = 0;
@@ -159,15 +159,12 @@ public class HistoryWorker {
             historyBatch.add(historyEntry);
             ++index;
             if (index >= BATCH_SIZE) {
-                if (!shouldIgnoreNextBatch) {
-                    historyBatchesCallback.onResult(historyBatch);
-                }
+                historyBatchesCallback.onResult(historyBatch);
                 historyBatch.clear();
                 index = 0;
-                shouldIgnoreNextBatch = false;
             }
         }
-        if (historyBatch.size() > 0 && !shouldIgnoreNextBatch) {
+        if (historyBatch.size() > 0) {
             historyBatchesCallback.onResult(historyBatch);
         }
         cursor.close();
@@ -303,6 +300,17 @@ public class HistoryWorker {
     }
 
     public Observable<HistoryEntry> requestHistoryForPeriod(final long from, final long to) {
+        return requestHistoryForPeriod(from, to, false);
+    }
+
+    private Observable<HistoryEntry> requestHistoryForPeriod(
+            final long from, final long to, final boolean ignoreCache) {
+        if (!ignoreCache && cachedHistoryStart <= from && to <= cachedHistoryEnd) {
+            return cachedHistory.filter(entry -> {
+                long entryTime = entry.getTime().getTime();
+                return from <= entryTime && entryTime <= to;
+            });
+        }
         Observable<HistoryEntry> result = Observable.create((subscriber) -> {
             AppDatabase database = databaseHolder.getDatabase();
             HistoryDao historyDao = database.historyDao();

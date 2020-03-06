@@ -26,9 +26,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.Nutrition;
@@ -40,6 +42,8 @@ import korablique.recipecalculator.util.EspressoUtils;
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.replaceText;
+import static androidx.test.espresso.action.ViewActions.swipeLeft;
+import static androidx.test.espresso.action.ViewActions.swipeRight;
 import static androidx.test.espresso.assertion.PositionAssertions.isCompletelyAbove;
 import static androidx.test.espresso.assertion.PositionAssertions.isCompletelyBelow;
 import static androidx.test.espresso.assertion.ViewAssertions.doesNotExist;
@@ -566,6 +570,80 @@ public class MainActivityHistoryTest extends MainActivityTestsBase {
         onView(allOf(
                 isDescendantOfA(withId(R.id.fragment_history)),
                 withText(containsString(foodstuffs[0].getName()))))
+                .check(matches(isDisplayed()));
+    }
+
+    @Test
+    public void canSwitchDates_byViewPager() throws InterruptedException {
+        clearAllData();
+        Foodstuff[] foodstuffs = new Foodstuff[] {
+                Foodstuff.withName("f1").withNutrition(1, 2, 3, 4),
+                Foodstuff.withName("f2").withNutrition(1, 2, 3, 4),
+                Foodstuff.withName("f3").withNutrition(1, 2, 3, 4)
+        };
+        foodstuffs[0] = foodstuffsList.saveFoodstuff(foodstuffs[0]).blockingGet();
+        foodstuffs[1] = foodstuffsList.saveFoodstuff(foodstuffs[1]).blockingGet();
+        foodstuffs[2] = foodstuffsList.saveFoodstuff(foodstuffs[2]).blockingGet();
+
+        Date today = timeProvider.now().toDate();
+        Date yesterday = timeProvider.now().minusDays(1).toDate();
+        Date tomorrow = timeProvider.now().plusDays(1).toDate();
+
+        historyWorker.saveGroupOfFoodstuffsToHistory(new NewHistoryEntry[]{
+                new NewHistoryEntry(foodstuffs[0].getId(), 123, today),
+                new NewHistoryEntry(foodstuffs[1].getId(), 123, yesterday),
+                new NewHistoryEntry(foodstuffs[2].getId(), 123, tomorrow),
+        });
+
+        mActivityRule.launchActivity(null);
+        onView(withId(R.id.menu_item_history)).perform(click());
+
+        // Today
+        onView(allOf(
+                isDescendantOfA(withId(R.id.fragment_history)),
+                withText(containsString(foodstuffs[0].getName()))))
+                .check(matches(isDisplayed()));
+        onView(allOf(
+                isDescendantOfA(withId(R.id.fragment_history)),
+                withText(containsString(foodstuffs[1].getName()))))
+                .check(matches(not(isDisplayed())));
+        onView(allOf(
+                isDescendantOfA(withId(R.id.fragment_history)),
+                withText(containsString(foodstuffs[2].getName()))))
+                .check(matches(not(isDisplayed())));
+
+        // Yesterday
+        onView(withId(R.id.history_view_pager)).perform(swipeRight());
+        Thread.sleep(500);
+        onView(allOf(
+                isDescendantOfA(withId(R.id.fragment_history)),
+                withText(containsString(foodstuffs[0].getName()))))
+                .check(matches(not(isDisplayed())));
+        onView(allOf(
+                isDescendantOfA(withId(R.id.fragment_history)),
+                withText(containsString(foodstuffs[1].getName()))))
+                .check(matches(isDisplayed()));
+        onView(allOf(
+                isDescendantOfA(withId(R.id.fragment_history)),
+                withText(containsString(foodstuffs[2].getName()))))
+                .check(matches(not(isDisplayed())));
+
+        // Tomorrow
+        onView(withId(R.id.history_view_pager)).perform(swipeLeft());
+        Thread.sleep(500);
+        onView(withId(R.id.history_view_pager)).perform(swipeLeft());
+        Thread.sleep(500);
+        onView(allOf(
+                isDescendantOfA(withId(R.id.fragment_history)),
+                withText(containsString(foodstuffs[0].getName()))))
+                .check(matches(not(isDisplayed())));
+        onView(allOf(
+                isDescendantOfA(withId(R.id.fragment_history)),
+                withText(containsString(foodstuffs[1].getName()))))
+                .check(matches(not(isDisplayed())));
+        onView(allOf(
+                isDescendantOfA(withId(R.id.fragment_history)),
+                withText(containsString(foodstuffs[2].getName()))))
                 .check(matches(isDisplayed()));
     }
 

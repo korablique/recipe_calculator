@@ -48,7 +48,7 @@ public class BroccalcApplication extends Application
         Fabric.with(this, new Crashlytics());
         if (!TestEnvironmentDetector.isInTests()) {
             InjectorHolder.getInjector().inject(this);
-            historyWorker.initCache();
+            historyWorker.updateCache();
             userParametersWorker.initCache();
             // TODO: Вернуть шедулинг нотификаций после доработки логики их показа
 //            foodReminder.scheduleNotification();
