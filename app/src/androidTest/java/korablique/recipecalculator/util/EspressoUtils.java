@@ -2,6 +2,7 @@ package korablique.recipecalculator.util;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ProgressBar;
 
 import junit.framework.AssertionFailedError;
 
@@ -10,6 +11,7 @@ import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 
+import androidx.test.espresso.NoMatchingViewException;
 import androidx.test.espresso.ViewAssertion;
 
 import java.util.Objects;
@@ -90,5 +92,41 @@ public class EspressoUtils {
         } else {
             return lhs.equals(rhs);
         }
+    }
+
+    public static ViewAssertion hasProgress(int value) {
+        return (view, noViewFoundException) -> {
+            if (noViewFoundException != null) {
+                throw new AssertionError("View not found", noViewFoundException);
+            }
+            if (!(view instanceof ProgressBar)) {
+                throw new AssertionError(
+                        "Provided view is not ProgressBar: " + view.getClass().getName());
+            }
+            ProgressBar progressBar = (ProgressBar) view;
+            if (progressBar.getProgress() != value) {
+                throw new AssertionError(
+                        "ProgressBar's value differs from expected: "
+                                + progressBar.getProgress() + " vs " + value);
+            }
+        };
+    }
+
+    public static ViewAssertion hasMaxProgress(int value) {
+        return (view, noViewFoundException) -> {
+            if (noViewFoundException != null) {
+                throw new AssertionError("View not found", noViewFoundException);
+            }
+            if (!(view instanceof ProgressBar)) {
+                throw new AssertionError(
+                        "Provided view is not ProgressBar: " + view.getClass().getName());
+            }
+            ProgressBar progressBar = (ProgressBar) view;
+            if (progressBar.getMax() != value) {
+                throw new AssertionError(
+                        "ProgressBar's max value differs from expected: "
+                                + progressBar.getMax() + " vs " + value);
+            }
+        };
     }
 }

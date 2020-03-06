@@ -56,6 +56,8 @@ import korablique.recipecalculator.ui.calckeyboard.CalcKeyboardController;
 import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.mainactivity.history.HistoryController;
 import korablique.recipecalculator.ui.mainactivity.history.HistoryFragment;
+import korablique.recipecalculator.ui.mainactivity.history.pages.HistoryPageController;
+import korablique.recipecalculator.ui.mainactivity.history.pages.HistoryPageFragment;
 import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenCardController;
 import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenController;
 import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenFragment;
@@ -67,6 +69,7 @@ import korablique.recipecalculator.ui.mainactivity.mainscreen.UpFABController;
 import korablique.recipecalculator.ui.mainactivity.profile.NewMeasurementsDialog;
 import korablique.recipecalculator.ui.mainactivity.profile.ProfileController;
 import korablique.recipecalculator.ui.mainactivity.profile.ProfileFragment;
+import korablique.recipecalculator.util.DBTestingUtils;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.InstantComputationsThreadsExecutor;
 import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
@@ -118,13 +121,14 @@ public class MainActivityTestsBase {
                         databaseHolder = new DatabaseHolder(context, databaseThreadExecutor);
                         databaseWorker = new DatabaseWorker(
                                 databaseHolder, mainThreadExecutor, databaseThreadExecutor);
+                        timeProvider = new TestingTimeProvider();
                         historyWorker = new HistoryWorker(
-                                databaseHolder, mainThreadExecutor, databaseThreadExecutor);
+                                databaseHolder, mainThreadExecutor, databaseThreadExecutor,
+                                timeProvider);
                         userParametersWorker = new UserParametersWorker(
                                 databaseHolder, mainThreadExecutor, databaseThreadExecutor);
                         foodstuffsList = new FoodstuffsList(
                                 databaseWorker, mainThreadExecutor, computationThreadsExecutor);
-                        timeProvider = new TestingTimeProvider();
                         topList = new FoodstuffsTopList(historyWorker, foodstuffsList, timeProvider);
                         userNameProvider = new UserNameProvider(context);
                         currentActivityProvider = new CurrentActivityProvider();
@@ -214,12 +218,17 @@ public class MainActivityTestsBase {
                         } else if (fragment instanceof HistoryFragment) {
                             HistoryController historyController = new HistoryController(
                                     activity, fragment, fragmentCallbacks, historyWorker,
-                                    userParametersWorker, subscriptions, timeProvider,
-                                    fragmentsController, mainActivitySelectedDateStorage);
+                                    timeProvider, fragmentsController, mainActivitySelectedDateStorage);
                             return Arrays.asList(subscriptions, historyController);
                         } else if (fragment instanceof SearchResultsFragment) {
                             return Arrays.asList(databaseWorker, lifecycle, activity,
                                     foodstuffsList, subscriptions, mainScreenCardController);
+                        } else if (fragment instanceof HistoryPageFragment) {
+                            HistoryPageController pageController =
+                                    new HistoryPageController(
+                                            (HistoryPageFragment) fragment, historyWorker,
+                                            userParametersWorker, fragmentCallbacks, subscriptions);
+                            return Arrays.asList(pageController);
                         } else {
                             throw new IllegalStateException("There is no such fragment class");
                         }
@@ -283,18 +292,6 @@ public class MainActivityTestsBase {
     }
 
     protected void clearAllData() {
-        historyWorker.requestAllHistoryFromDb(historyEntries -> {
-            historyEntries = new ArrayList<>(historyEntries);
-            for (HistoryEntry entry : historyEntries) {
-                historyWorker.deleteEntryFromHistory(entry);
-            }
-        });
-        foodstuffsList.getAllFoodstuffs(foodstuffs -> {}, foodstuffs -> {
-            foodstuffs = new ArrayList<>(foodstuffs);
-            for (Foodstuff foodstuff : foodstuffs) {
-                foodstuffsList.deleteFoodstuff(foodstuff);
-            }
-        });
-        databaseHolder.getDatabase().clearAllTables();
+        DBTestingUtils.clearAllData(foodstuffsList, historyWorker, databaseHolder);
     }
 }

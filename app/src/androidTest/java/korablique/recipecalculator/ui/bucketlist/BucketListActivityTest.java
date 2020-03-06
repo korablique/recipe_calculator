@@ -103,14 +103,15 @@ public class BucketListActivityTest {
                         databaseHolder = new DatabaseHolder(context, databaseThreadExecutor);
                         databaseWorker = new DatabaseWorker(
                                 databaseHolder, mainThreadExecutor, databaseThreadExecutor);
+                        timeProvider = new TestingTimeProvider();
                         historyWorker = new HistoryWorker(
-                                databaseHolder, mainThreadExecutor, databaseThreadExecutor);
+                                databaseHolder, mainThreadExecutor, databaseThreadExecutor,
+                                timeProvider);
                         userParametersWorker = new UserParametersWorker(
                                 databaseHolder, mainThreadExecutor, databaseThreadExecutor);
                         foodstuffsList = new FoodstuffsList(databaseWorker, mainThreadExecutor,
                                 new InstantComputationsThreadsExecutor());
                         userNameProvider = new UserNameProvider(context);
-                        timeProvider = new TestingTimeProvider();
                         currentActivityProvider = new CurrentActivityProvider();
                         bucketList = new BucketList(prefsManager, foodstuffsList);
 
@@ -142,8 +143,7 @@ public class BucketListActivityTest {
                         RxFragmentSubscriptions subscriptions = new RxFragmentSubscriptions(fragmentCallbacks);
                         if (fragment instanceof HistoryFragment) {
                             historyController = new HistoryController((BaseActivity) fragment.getActivity(),
-                                    fragment, fragmentCallbacks, historyWorker, userParametersWorker,
-                                    subscriptions, timeProvider,
+                                    fragment, fragmentCallbacks, historyWorker, timeProvider,
                                     mock(MainActivityFragmentsController.class),
                                     mock(MainActivitySelectedDateStorage.class));
                             return Arrays.asList(subscriptions, historyController);
