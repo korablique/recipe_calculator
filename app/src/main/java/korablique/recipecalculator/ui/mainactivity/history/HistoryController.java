@@ -116,7 +116,7 @@ public class HistoryController implements
             }
         });
         historyViewPager.setCurrentItem(historyPagesAdapter.dateToPosition(now), false);
-        historyViewPager.setOffscreenPageLimit(5);
+        historyViewPager.setOffscreenPageLimit(1);
     }
 
     @Override
