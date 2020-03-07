@@ -73,7 +73,7 @@ public abstract class BaseFragment extends Fragment {
     @Override
     public void onViewStateRestored(Bundle savedInstanceState) {
         super.onViewStateRestored(savedInstanceState);
-        fragmentCallbacks.dispatchFragmentRestoreInstanceState(savedInstanceState);
+        fragmentCallbacks.dispatchFragmentViewStateRestored(savedInstanceState);
     }
 
     @Override

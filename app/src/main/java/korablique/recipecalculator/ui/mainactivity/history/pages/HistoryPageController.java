@@ -123,7 +123,13 @@ public class HistoryPageController implements
     @Override
     public void onFragmentViewCreated(View fragmentView, Bundle savedInstanceState) {
         this.fragmentView = fragmentView;
+    }
 
+    // Наш фрагмент переиспользуется внутри ViewPager (ресайклится), поэтому зададим значения в
+    // в onFragmentViewStateRestored, а не в onFragmentViewCreated, иначе
+    // onFragmentViewStateRestored перетрёт всё, что мы зададим в onFragmentViewCreated.
+    @Override
+    public void onFragmentViewStateRestored(Bundle savedInstanceState) {
         // обёртки заголовка с БЖУК (значений и прогрессов БЖУК)
         ViewGroup nutritionHeaderParentLayout = fragmentView.findViewById(R.id.nutrition_parent_layout);
         nutritionValuesWrapper = new HistoryNutritionValuesWrapper(

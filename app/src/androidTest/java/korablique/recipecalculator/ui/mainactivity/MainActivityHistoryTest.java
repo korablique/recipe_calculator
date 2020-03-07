@@ -60,6 +60,7 @@ import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
 import static korablique.recipecalculator.util.EspressoUtils.hasMaxProgress;
 import static korablique.recipecalculator.util.EspressoUtils.hasProgress;
+import static korablique.recipecalculator.util.EspressoUtils.isNotDisplayed;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
@@ -606,11 +607,11 @@ public class MainActivityHistoryTest extends MainActivityTestsBase {
         onView(allOf(
                 isDescendantOfA(withId(R.id.fragment_history)),
                 withText(containsString(foodstuffs[1].getName()))))
-                .check(matches(not(isDisplayed())));
+                .check(isNotDisplayed());
         onView(allOf(
                 isDescendantOfA(withId(R.id.fragment_history)),
                 withText(containsString(foodstuffs[2].getName()))))
-                .check(matches(not(isDisplayed())));
+                .check(isNotDisplayed());
 
         // Yesterday
         onView(withId(R.id.history_view_pager)).perform(swipeRight());
@@ -618,7 +619,7 @@ public class MainActivityHistoryTest extends MainActivityTestsBase {
         onView(allOf(
                 isDescendantOfA(withId(R.id.fragment_history)),
                 withText(containsString(foodstuffs[0].getName()))))
-                .check(matches(not(isDisplayed())));
+                .check(isNotDisplayed());
         onView(allOf(
                 isDescendantOfA(withId(R.id.fragment_history)),
                 withText(containsString(foodstuffs[1].getName()))))
@@ -626,7 +627,7 @@ public class MainActivityHistoryTest extends MainActivityTestsBase {
         onView(allOf(
                 isDescendantOfA(withId(R.id.fragment_history)),
                 withText(containsString(foodstuffs[2].getName()))))
-                .check(matches(not(isDisplayed())));
+                .check(isNotDisplayed());
 
         // Tomorrow
         onView(withId(R.id.history_view_pager)).perform(swipeLeft());
@@ -636,11 +637,11 @@ public class MainActivityHistoryTest extends MainActivityTestsBase {
         onView(allOf(
                 isDescendantOfA(withId(R.id.fragment_history)),
                 withText(containsString(foodstuffs[0].getName()))))
-                .check(matches(not(isDisplayed())));
+                .check(isNotDisplayed());
         onView(allOf(
                 isDescendantOfA(withId(R.id.fragment_history)),
                 withText(containsString(foodstuffs[1].getName()))))
-                .check(matches(not(isDisplayed())));
+                .check(isNotDisplayed());
         onView(allOf(
                 isDescendantOfA(withId(R.id.fragment_history)),
                 withText(containsString(foodstuffs[2].getName()))))

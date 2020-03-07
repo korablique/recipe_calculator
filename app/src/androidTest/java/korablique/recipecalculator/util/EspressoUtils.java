@@ -13,8 +13,11 @@ import org.hamcrest.TypeSafeMatcher;
 
 import androidx.test.espresso.NoMatchingViewException;
 import androidx.test.espresso.ViewAssertion;
+import androidx.test.espresso.util.HumanReadables;
 
 import java.util.Objects;
+
+import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 
 public class EspressoUtils {
     private EspressoUtils() {
@@ -126,6 +129,18 @@ public class EspressoUtils {
                 throw new AssertionError(
                         "ProgressBar's max value differs from expected: "
                                 + progressBar.getMax() + " vs " + value);
+            }
+        };
+    }
+
+    public static ViewAssertion isNotDisplayed() {
+        return new ViewAssertion() {
+            @Override
+            public void check(View view, NoMatchingViewException noView) {
+                if (view != null && isDisplayed().matches(view)) {
+                    throw new AssertionError("View is present in the hierarchy and Displayed: "
+                            + HumanReadables.describe(view));
+                }
             }
         };
     }

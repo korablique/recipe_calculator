@@ -19,7 +19,7 @@ public class FragmentCallbacks {
         default void onFragmentResume() {}
         default void onFragmentActivityResult(int requestCode, int resultCode, Intent data) {}
         default void onFragmentSaveInstanceState(Bundle outState) {}
-        default void onFragmentRestoreInstanceState(Bundle savedInstanceState) {}
+        default void onFragmentViewStateRestored(Bundle savedInstanceState) {}
         default void onFragmentDestroy() {}
     }
 
@@ -67,9 +67,9 @@ public class FragmentCallbacks {
         }
     }
 
-    void dispatchFragmentRestoreInstanceState(Bundle savedInstanceState) {
+    void dispatchFragmentViewStateRestored(Bundle savedInstanceState) {
         for (Observer observer : observers) {
-            observer.onFragmentRestoreInstanceState(savedInstanceState);
+            observer.onFragmentViewStateRestored(savedInstanceState);
         }
     }
 
