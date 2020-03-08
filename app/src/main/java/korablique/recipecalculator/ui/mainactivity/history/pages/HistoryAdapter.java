@@ -1,4 +1,4 @@
-package korablique.recipecalculator.ui.mainactivity.history;
+package korablique.recipecalculator.ui.mainactivity.history.pages;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -9,6 +9,8 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.WeakHashMap;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -30,38 +32,50 @@ public class HistoryAdapter extends RecyclerView.Adapter<MyViewHolder> {
     }
     private List<HistoryEntry> historyEntries = new ArrayList<>();
     private Context context;
+    private HistoryViewHoldersPool viewHoldersPool;
     @Nullable
     private Observer onItemClickObserver;
 
-    public HistoryAdapter(Context context) {
+    private boolean destroyed;
+    private Set<MyViewHolder> aliveHistoryViewHolders = Collections.newSetFromMap(new WeakHashMap<>());
+
+    public HistoryAdapter(Context context, HistoryViewHoldersPool viewHoldersPool) {
         this.context = context;
+        this.viewHoldersPool = viewHoldersPool;
     }
 
     @NonNull
     @Override
     public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        checkNotDestroyed();
         ViewGroup view;
         switch (viewType) {
             case VIEW_TYPE_EMPTY_TOP:
                 view = (ViewGroup) LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.history_recycler_view_empty_top, parent, false);
-                break;
+                return new MyViewHolder(view);
             case VIEW_TYPE_FOODSTUFF:
-                view = (ViewGroup) LayoutInflater.from(parent.getContext())
-                        .inflate(R.layout.history_item_layout, parent, false);
-                break;
+                MyViewHolder viewHolder = viewHoldersPool.take();
+                aliveHistoryViewHolders.add(viewHolder);
+                return viewHolder;
             case VIEW_TYPE_EMPTY_BOTTOM:
                 view = (ViewGroup) LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.history_recycler_view_empty_bottom, parent, false);
-                break;
+                return new MyViewHolder(view);
             default:
                 throw new IllegalStateException("Unknown view type: " + viewType);
         }
-        return new MyViewHolder(view);
+    }
+
+    private void checkNotDestroyed() {
+        if (destroyed) {
+            throw new IllegalStateException("The adapter is already destroyed");
+        }
     }
 
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
+        checkNotDestroyed();
         if (position == 0 || position == getItemCount()-1) {
             // Empty item is not bound to any data
             return;
@@ -169,5 +183,11 @@ public class HistoryAdapter extends RecyclerView.Adapter<MyViewHolder> {
 
     public void setOnItemClickObserver(@Nullable Observer observer) {
         onItemClickObserver = observer;
+    }
+
+    public void destroy() {
+        destroyed = true;
+        viewHoldersPool.put(aliveHistoryViewHolders);
+        aliveHistoryViewHolders.clear();
     }
 }

@@ -58,6 +58,7 @@ import korablique.recipecalculator.ui.mainactivity.history.HistoryController;
 import korablique.recipecalculator.ui.mainactivity.history.HistoryFragment;
 import korablique.recipecalculator.ui.mainactivity.history.pages.HistoryPageController;
 import korablique.recipecalculator.ui.mainactivity.history.pages.HistoryPageFragment;
+import korablique.recipecalculator.ui.mainactivity.history.pages.HistoryViewHoldersPool;
 import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenCardController;
 import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenController;
 import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenFragment;
@@ -110,6 +111,7 @@ public class MainActivityTestsBase {
     protected InteractiveServerUserParamsObtainer serverUserParamsObtainer;
     protected ServerUserParamsRegistry serverUserParamsRegistry;
     protected TempLongClickedFoodstuffsHandler longClickedFoodstuffsHandler;
+    protected HistoryViewHoldersPool historyViewHoldersPool;
 
     @Rule
     public ActivityTestRule<MainActivity> mActivityRule =
@@ -167,6 +169,8 @@ public class MainActivityTestsBase {
 
                         longClickedFoodstuffsHandler =
                                 new TempLongClickedFoodstuffsHandler(activity, serverUserParamsRegistry);
+                        historyViewHoldersPool = new HistoryViewHoldersPool(
+                                computationThreadsExecutor, mainThreadExecutor, activity);
 
                         return Arrays.asList(activity, controller, serverUserParamsObtainer,
                                 longClickedFoodstuffsHandler);
@@ -227,7 +231,11 @@ public class MainActivityTestsBase {
                             HistoryPageController pageController =
                                     new HistoryPageController(
                                             (HistoryPageFragment) fragment, historyWorker,
-                                            userParametersWorker, fragmentCallbacks, subscriptions);
+                                            userParametersWorker, mainActivitySelectedDateStorage,
+                                            fragment.getFragmentCallbacks(),
+                                            new RxFragmentSubscriptions(fragment.getFragmentCallbacks()),
+                                            historyViewHoldersPool, computationThreadsExecutor,
+                                            mainThreadExecutor);
                             return Arrays.asList(pageController);
                         } else {
                             throw new IllegalStateException("There is no such fragment class");
