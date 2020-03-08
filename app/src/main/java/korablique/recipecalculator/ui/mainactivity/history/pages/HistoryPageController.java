@@ -161,7 +161,7 @@ public class HistoryPageController implements
                     fragmentViewPlaceholder.addView(fragmentView);
                     fragmentView.setAlpha(0);
                     ValueAnimator animator = ValueAnimator.ofFloat(0, 1);
-                    animator.setDuration(1000);
+                    animator.setDuration(500);
                     animator.addUpdateListener(animation -> {
                         fragmentView.setAlpha((Float) animation.getAnimatedValue());
                     });
