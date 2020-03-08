@@ -1,4 +1,4 @@
-package korablique.recipecalculator.ui.mainactivity.history;
+package korablique.recipecalculator.ui.mainactivity.history.pages;
 
 import android.content.Context;
 import android.graphics.Rect;

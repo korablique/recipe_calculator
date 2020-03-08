@@ -1,7 +1,9 @@
 package korablique.recipecalculator.ui.mainactivity.history.pages;
 
+import android.animation.ValueAnimator;
 import android.os.Bundle;
 import android.util.Pair;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -23,6 +25,8 @@ import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.FragmentCallbacks;
 import korablique.recipecalculator.base.Optional;
 import korablique.recipecalculator.base.RxFragmentSubscriptions;
+import korablique.recipecalculator.base.executors.ComputationThreadsExecutor;
+import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.dagger.FragmentScope;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
@@ -34,10 +38,7 @@ import korablique.recipecalculator.model.UserParameters;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.card.Card;
 import korablique.recipecalculator.ui.card.CardDialog;
-import korablique.recipecalculator.ui.mainactivity.history.DividerItemDecorationWithoutDividerAfterLastItem;
-import korablique.recipecalculator.ui.mainactivity.history.HistoryAdapter;
-import korablique.recipecalculator.ui.mainactivity.history.HistoryNutritionValuesWrapper;
-import korablique.recipecalculator.ui.mainactivity.history.NutritionProgressWrapper;
+import korablique.recipecalculator.ui.mainactivity.MainActivitySelectedDateStorage;
 
 @FragmentScope
 public class HistoryPageController implements
@@ -46,10 +47,18 @@ public class HistoryPageController implements
     private static final int CARD_BUTTON_TEXT_RES = R.string.save;
     private LocalDate date;
     private BaseActivity context;
+    private ViewGroup fragmentViewPlaceholder;
     private View fragmentView;
     private HistoryWorker historyWorker;
+    private MainActivitySelectedDateStorage selectedDateStorage;
     private UserParametersWorker userParametersWorker;
     private RxFragmentSubscriptions subscriptions;
+
+    // Optimizations
+    private HistoryViewHoldersPool historyViewHoldersPool;
+    private ComputationThreadsExecutor computationThreadsExecutor;
+    private MainThreadExecutor mainThreadExecutor;
+
     private HistoryAdapter adapter;
     private HistoryNutritionValuesWrapper nutritionValuesWrapper;
     private NutritionProgressWrapper nutritionProgressWrapper;
@@ -107,13 +116,21 @@ public class HistoryPageController implements
             HistoryPageFragment fragment,
             HistoryWorker historyWorker,
             UserParametersWorker userParametersWorker,
+            MainActivitySelectedDateStorage selectedDateStorage,
             FragmentCallbacks fragmentCallbacks,
-            RxFragmentSubscriptions subscriptions) {
+            RxFragmentSubscriptions subscriptions,
+            HistoryViewHoldersPool historyViewHoldersPool,
+            ComputationThreadsExecutor computationThreadsExecutor,
+            MainThreadExecutor mainThreadExecutor) {
         fragmentCallbacks.addObserver(this);
         this.context = (BaseActivity) fragment.getActivity();
         this.historyWorker = historyWorker;
         this.userParametersWorker = userParametersWorker;
+        this.selectedDateStorage = selectedDateStorage;
         this.subscriptions = subscriptions;
+        this.historyViewHoldersPool = historyViewHoldersPool;
+        this.computationThreadsExecutor = computationThreadsExecutor;
+        this.mainThreadExecutor = mainThreadExecutor;
     }
 
     public void setDate(LocalDate date) {
@@ -122,7 +139,8 @@ public class HistoryPageController implements
 
     @Override
     public void onFragmentViewCreated(View fragmentView, Bundle savedInstanceState) {
-        this.fragmentView = fragmentView;
+        this.fragmentViewPlaceholder = (ViewGroup) fragmentView;
+        adapter = new HistoryAdapter(context, historyViewHoldersPool);
     }
 
     // Наш фрагмент переиспользуется внутри ViewPager (ресайклится), поэтому зададим значения в
@@ -130,16 +148,43 @@ public class HistoryPageController implements
     // onFragmentViewStateRestored перетрёт всё, что мы зададим в onFragmentViewCreated.
     @Override
     public void onFragmentViewStateRestored(Bundle savedInstanceState) {
+        // Если мы показываем выбранную дату, создадим и заполним вьюху синхронно.
+        // Иначе, создадим вьюху на фоне.
+        if (selectedDateStorage.getSelectedDate().equals(date)) {
+            fragmentView = inflateRealView();
+            fragmentViewPlaceholder.addView(fragmentView);
+            initializeView();
+        } else {
+            computationThreadsExecutor.execute(() -> {
+                fragmentView = inflateRealView();
+                mainThreadExecutor.execute(() -> {
+                    fragmentViewPlaceholder.addView(fragmentView);
+                    fragmentView.setAlpha(0);
+                    ValueAnimator animator = ValueAnimator.ofFloat(0, 1);
+                    animator.setDuration(1000);
+                    animator.addUpdateListener(animation -> {
+                        fragmentView.setAlpha((Float) animation.getAnimatedValue());
+                    });
+                    animator.start();
+                    initializeView();
+                });
+            });
+        }
+    }
+
+    private View inflateRealView() {
+        return LayoutInflater.from(context).inflate(
+                R.layout.fragment_history_page_real,
+                fragmentViewPlaceholder,
+                false);
+    }
+
+    private void initializeView() {
         // обёртки заголовка с БЖУК (значений и прогрессов БЖУК)
         ViewGroup nutritionHeaderParentLayout = fragmentView.findViewById(R.id.nutrition_parent_layout);
         nutritionValuesWrapper = new HistoryNutritionValuesWrapper(
                 context, nutritionHeaderParentLayout);
         nutritionProgressWrapper = new NutritionProgressWrapper(nutritionHeaderParentLayout);
-
-        RecyclerView recyclerView = fragmentView.findViewById(R.id.history_list);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(fragmentView.getContext());
-        recyclerView.setLayoutManager(layoutManager);
-        adapter = new HistoryAdapter(fragmentView.getContext());
 
         initHistoryList(fragmentView);
         initCard();
@@ -151,6 +196,7 @@ public class HistoryPageController implements
     @Override
     public void onFragmentDestroy() {
         historyWorker.removeHistoryChangeObserver(this);
+        adapter.destroy();
     }
 
     private void initCard() {
@@ -165,7 +211,6 @@ public class HistoryPageController implements
         RecyclerView recyclerView = fragmentView.findViewById(R.id.history_list);
         LinearLayoutManager layoutManager = new LinearLayoutManager(fragmentView.getContext());
         recyclerView.setLayoutManager(layoutManager);
-        adapter = new HistoryAdapter(fragmentView.getContext());
         recyclerView.setAdapter(adapter);
         DividerItemDecorationWithoutDividerAfterLastItem dividerItemDecoration =
                 new DividerItemDecorationWithoutDividerAfterLastItem(
@@ -218,7 +263,7 @@ public class HistoryPageController implements
         // Если История поменялась, но фрагмент Истории не показан - История была изменена
         // не через экран Истории - обновимся, чтобы при заходе на экран Истории были отображены
         // правильные продукты.
-        if (!fragmentView.isShown()) {
+        if (fragmentView != null && !fragmentView.isShown()) {
             updateWrappers();
         }
     }

@@ -58,6 +58,6 @@ public class HistoryPageFragment extends BaseFragment {
 
     @Override
     protected View createView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_history_page, container, false);
+        return inflater.inflate(R.layout.fragment_history_page_placeholder, container, false);
     }
 }
