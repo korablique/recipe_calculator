@@ -8,11 +8,12 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.arlib.floatingsearchview.util.adapter.TextWatcherAdapter
+import com.squareup.moshi.JsonClass
 import korablique.recipecalculator.R
 import korablique.recipecalculator.base.FragmentCallbacks
 import korablique.recipecalculator.dagger.FragmentScope
-import korablique.recipecalculator.outside.http.HttpClient
-import korablique.recipecalculator.outside.http.TypedRequestResult
+import korablique.recipecalculator.outside.STATUS_ALREADY_REGISTERED
+import korablique.recipecalculator.outside.http.*
 import korablique.recipecalculator.outside.userparams.ServerUserParams
 import korablique.recipecalculator.outside.userparams.ServerUserParamsRegistry
 import kotlinx.coroutines.launch
@@ -22,7 +23,7 @@ import javax.inject.Inject
 class PairingFragmentController @Inject constructor(
         fragmentCallbacks: FragmentCallbacks,
         private val fragment: PairingFragment,
-        private val httpClient: HttpClient,
+        private val httpContext: BroccalcHttpContext,
         private val userParamsRegistry: ServerUserParamsRegistry) : FragmentCallbacks.Observer {
     init {
         fragmentCallbacks.addObserver(this)
@@ -44,80 +45,60 @@ class PairingFragmentController @Inject constructor(
         }
         val url = ("https://blazern.me/broccalc/v1/user/start_pairing?"
                 + "client_token=${userParams.token}&user_id=${userParams.uid}")
-        val responseFull = httpClient.requestWithTypedResponse(url, StartPairingResponseFull::class)
-        val response = when (responseFull) {
-            is TypedRequestResult.Failure -> {
-                Toast.makeText(fragment.context, "Something went wrong: $responseFull", Toast.LENGTH_LONG).show()
-                fragment.close()
-                return
-            }
-            is TypedRequestResult.Success -> {
-                responseFull.result.simplify()
-            }
-        }
+        val response = httpContext.execute {
+            val response = httpRequestUnwrapped(url, StartPairingResponse::class)
 
-        when (response) {
-            is StartPairingResponse.ServerError -> {
-                Toast.makeText(fragment.context, "Something went wrong: $response", Toast.LENGTH_LONG).show()
-                fragment.close()
-                return
-            }
-            is StartPairingResponse.ParseError -> {
-                Toast.makeText(fragment.context, "Something went wrong: $response", Toast.LENGTH_LONG).show()
-                fragment.close()
-                return
-            }
-            is StartPairingResponse.Ok -> {
-                view.findViewById<TextView>(
-                        R.id.your_pairing_code_text).text = response.pairing_code.toString()
-                view.findViewById<View>(
-                        R.id.progress_bar_layout).visibility = View.GONE
-            }
-        }
+            view.findViewById<TextView>(
+                    R.id.your_pairing_code_text).text = response.pairing_code.toString()
+            view.findViewById<View>(
+                    R.id.progress_bar_layout).visibility = View.GONE
 
-        val partnerPairingCodeView = view.findViewById<EditText>(R.id.partner_pairing_code_edittext)
-        partnerPairingCodeView.addTextChangedListener(object : TextWatcherAdapter() {
-            override fun afterTextChanged(view: Editable) {
-                if (view.toString().length == 4) {
-                    fragment.lifecycleScope.launch {
-                        sendPairingRequest(to = view.toString(), from = userParams)
+            val partnerPairingCodeView = view.findViewById<EditText>(R.id.partner_pairing_code_edittext)
+            partnerPairingCodeView.addTextChangedListener(object : TextWatcherAdapter() {
+                override fun afterTextChanged(view: Editable) {
+                    if (view.toString().length == 4) {
+                        fragment.lifecycleScope.launch {
+                            sendPairingRequest(to = view.toString(), from = userParams)
+                        }
                     }
                 }
-            }
-        })
+            })
+
+            BroccalcNetJobResult.Ok(Unit)
+        }
+
+        if (response is BroccalcNetJobResult.Error) {
+            Toast.makeText(fragment.context, "Something went wrong: ${response.unwrapException()}", Toast.LENGTH_LONG).show()
+            fragment.close()
+        }
     }
 
     private suspend fun sendPairingRequest(to: String, from: ServerUserParams) {
         val url = ("https://blazern.me/broccalc/v1/user/pairing_request?"
                 + "client_token=${from.token}&user_id=${from.uid}&partner_pairing_code=$to")
-        val responseFull = httpClient.requestWithTypedResponse(url, PairingRequestResponseFull::class)
-        val response = when (responseFull) {
-            is TypedRequestResult.Failure -> {
-                Toast.makeText(fragment.context, "Something went wrong: $responseFull", Toast.LENGTH_LONG).show()
-                fragment.close()
-                return
-            }
-            is TypedRequestResult.Success -> {
-                responseFull.result.simplify()
-            }
-        }
 
+        val response = httpContext.execute {
+            httpRequest(url, PairingRequestResponse::class)
+        }
         when (response) {
-            is PairingRequestResponse.ServerError -> {
-                if (response.err.status != "partner_user_not_found") {
+            is BroccalcNetJobResult.Error -> {
+                if (STATUS_ALREADY_REGISTERED != response.tryGetServerErrorStatus()) {
                     Toast.makeText(fragment.context, "Something went wrong: $response", Toast.LENGTH_LONG).show()
                     fragment.close()
-                } else {
-                    Toast.makeText(fragment.context, "Pairing request is sent, nice!", Toast.LENGTH_LONG).show()
                 }
             }
-            is PairingRequestResponse.ParseError -> {
-                Toast.makeText(fragment.context, "Something went wrong: $response", Toast.LENGTH_LONG).show()
-                fragment.close()
-            }
-            is PairingRequestResponse.Ok -> {
-                Toast.makeText(fragment.context, "Pairing request is sent, nice!", Toast.LENGTH_LONG).show()
-            }
         }
+        Toast.makeText(fragment.context, "Pairing request is sent, nice!", Toast.LENGTH_LONG).show()
     }
 }
+
+@JsonClass(generateAdapter = true)
+private data class StartPairingResponse(
+        val pairing_code: Int,
+        val pairing_code_expiration_date: Long
+)
+
+@JsonClass(generateAdapter = true)
+private data class PairingRequestResponse(
+        val status: String
+)

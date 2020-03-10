@@ -2,8 +2,8 @@ package korablique.recipecalculator.outside.fcm
 
 import com.crashlytics.android.Crashlytics
 import com.google.firebase.iid.FirebaseInstanceId
-import korablique.recipecalculator.outside.http.HttpClient
-import korablique.recipecalculator.outside.http.TypedRequestResult
+import com.squareup.moshi.JsonClass
+import korablique.recipecalculator.outside.http.BroccalcHttpContext
 import korablique.recipecalculator.outside.network.NetworkStateDispatcher
 import korablique.recipecalculator.outside.userparams.ServerUserParams
 import korablique.recipecalculator.outside.userparams.ServerUserParamsRegistry
@@ -11,15 +11,13 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
-import java.lang.IllegalArgumentException
-import java.lang.RuntimeException
 
 private const val SERV_FIELD_MSG_TYPE = "msg_type"
 
 @Singleton
 class FCMManager @Inject constructor(
         private val networkStateDispatcher: NetworkStateDispatcher,
-        private val httpClient: HttpClient,
+        private val httpContext: BroccalcHttpContext,
         private val userParamsRegistry: ServerUserParamsRegistry)
     : NetworkStateDispatcher.Observer, ServerUserParamsRegistry.Observer {
 
@@ -73,14 +71,9 @@ class FCMManager @Inject constructor(
                 + "client_token=${userParams.token}&user_id=${userParams.uid}&"
                 + "fcm_token=$fcmToken")
         GlobalScope.launch {
-            val response = httpClient.requestWithTypedResponse(url, UpdateFCMTokenResponse::class)
-            when (response) {
-                is TypedRequestResult.Failure -> {
-                    // Not nice
-                }
-                is TypedRequestResult.Success -> {
-                    // Nice!
-                }
+            httpContext.execute {
+                // Won't handle response, because
+                httpRequest(url, UpdateFCMTokenResponse::class)
             }
         }
     }
@@ -102,3 +95,8 @@ class FCMManager @Inject constructor(
         }
     }
 }
+
+@JsonClass(generateAdapter = true)
+private data class UpdateFCMTokenResponse(
+        val status: String
+)

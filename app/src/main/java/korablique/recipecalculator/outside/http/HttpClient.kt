@@ -4,13 +4,13 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.*
 import java.io.IOException
-import java.lang.IllegalStateException
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.reflect.KClass
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.lang.Exception
 
 @Singleton
 open class HttpClient @Inject constructor() {
@@ -40,6 +40,12 @@ open class HttpClient @Inject constructor() {
         })
     }
 
+    /**
+     * Returned TypedRequestResult.Failure will have types:
+     * - IOException in case of a network error
+     * - NoBodyException when response has no body
+     * - ResponseParseException when response could not pe parsed
+     */
     open suspend fun <T:Any> requestWithTypedResponse(
             url: String,
             type: KClass<T>,
@@ -52,19 +58,33 @@ open class HttpClient @Inject constructor() {
             is RequestResult.Success -> {
                 val responseStr = requestResult.response.body
                 if (responseStr == null) {
-                    return TypedRequestResult.Failure(
-                            NullPointerException("RequestResult has no body: $requestResult"))
+                    return TypedRequestResult.Failure(NoBodyException(url, body))
                 }
 
-                val typedResponse = moshi
-                        .adapter<T>(type.java)
-                        .fromJson(responseStr)
+                val typedResponse = try {
+                    moshi.adapter<T>(type.java).fromJson(responseStr)
+                } catch (e: Throwable) {
+                    return TypedRequestResult.Failure(
+                            ResponseParseException(url, body, responseStr, type, e))
+                }
                 if (typedResponse == null) {
                     return TypedRequestResult.Failure(
-                            IllegalStateException("RequestResult was not parsed: $responseStr"))
+                            ResponseParseException(url, body, responseStr, type, null))
                 }
                 return TypedRequestResult.Success(typedResponse, responseStr)
             }
         }
     }
+
+    data class NoBodyException(val url: String, val body: String)
+        : Exception("Response has no body. Request URL: $url, body: '$body'")
+
+    data class ResponseParseException(
+            val url: String,
+            val body: String,
+            val response: String,
+            val targetType: KClass<*>,
+            val parentException: Throwable?)
+        : Exception("Error parsing response ('$response') as $targetType."
+            + "Request URL: $url, body: '$body'", parentException)
 }
