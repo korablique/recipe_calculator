@@ -1,5 +1,6 @@
 package korablique.recipecalculator.outside.partners.direct
 
+import android.content.Context
 import android.util.Base64
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
@@ -8,6 +9,7 @@ import korablique.recipecalculator.outside.fcm.FCMManager
 import korablique.recipecalculator.outside.http.BroccalcHttpContext
 import korablique.recipecalculator.outside.http.BroccalcNetJobResult
 import korablique.recipecalculator.outside.partners.Partner
+import korablique.recipecalculator.outside.serverAddr
 import korablique.recipecalculator.outside.userparams.ServerUserParamsRegistry
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -16,6 +18,7 @@ private const val SERV_MSG_DIRECT_MSG_FROM_PARTNER = "direct_msg_from_partner"
 
 @Singleton
 class DirectMsgsManager @Inject constructor(
+        private val context: Context,
         private val fcmManager: FCMManager,
         private val userParamsRegistry: ServerUserParamsRegistry,
         private val httpContext: BroccalcHttpContext)
@@ -61,7 +64,7 @@ class DirectMsgsManager @Inject constructor(
                 .adapter<DirectMsg>(DirectMsg::class.java)
                 .toJson(directMsg)
 
-        val url = ("https://blazern.me/broccalc/v1/user/direct_partner_msg?"
+        val url = ("${serverAddr(context)}/v1/user/direct_partner_msg?"
                 + "client_token=${userParams.token}&user_id=${userParams.uid}&"
                 + "partner_user_id=${partner.uid}")
 

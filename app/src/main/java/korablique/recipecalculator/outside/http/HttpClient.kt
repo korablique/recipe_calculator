@@ -62,7 +62,7 @@ open class HttpClient @Inject constructor() {
 
                 val typedResponse = try {
                     moshi.adapter<T>(type.java).fromJson(responseStr)
-                } catch (e: Throwable) {
+                } catch (e: Exception) {
                     return TypedRequestResult.Failure(
                             ResponseParseException(url, body, responseStr, type, e))
                 }

@@ -1,5 +1,6 @@
 package korablique.recipecalculator.outside.userparams
 
+import android.content.Context
 import com.squareup.moshi.JsonClass
 import korablique.recipecalculator.base.BaseActivity
 import korablique.recipecalculator.base.executors.IOExecutor
@@ -12,6 +13,7 @@ import korablique.recipecalculator.outside.http.BroccalcHttpContext
 import korablique.recipecalculator.outside.http.BroccalcNetJobResult
 import korablique.recipecalculator.outside.http.tryGetServerErrorStatus
 import korablique.recipecalculator.outside.http.unwrapException
+import korablique.recipecalculator.outside.serverAddr
 import korablique.recipecalculator.outside.thirdparty.GPAuthResult
 import korablique.recipecalculator.outside.thirdparty.GPAuthorizer
 import kotlinx.coroutines.withContext
@@ -33,6 +35,7 @@ sealed class GetWithAccountMoveRequestResult {
 
 @Singleton
 class ServerUserParamsRegistry @Inject constructor(
+        private val context: Context,
         private val mainThreadExecutor: MainThreadExecutor,
         private val ioExecutor: IOExecutor,
         private val gpAuthorizer: GPAuthorizer,
@@ -91,7 +94,7 @@ class ServerUserParamsRegistry @Inject constructor(
 
     private suspend fun registerWithGpToken(token: String): GetWithRegistrationRequestResult {
         val name = userNameProvider.userName.toString()
-        val url = ("https://blazern.me/broccalc/v1/user/register?"
+        val url = ("${serverAddr(context)}/v1/user/register?"
                 + "name=$name&social_network_type=gp&social_network_token=$token")
 
         val response = httpContext.run {
@@ -136,7 +139,7 @@ class ServerUserParamsRegistry @Inject constructor(
     }
 
     private suspend fun moveAccountWithGpToken(token: String): GetWithAccountMoveRequestResult {
-        val url = ("https://blazern.me/broccalc/v1/user/move_device_account?"
+        val url = ("${serverAddr(context)}/v1/user/move_device_account?"
                 + "social_network_type=gp&social_network_token=$token")
         val response = httpContext.run {
             val response = httpRequestUnwrapped(url, MoveDeviceAccountResponse::class)

@@ -14,6 +14,7 @@ import korablique.recipecalculator.base.FragmentCallbacks
 import korablique.recipecalculator.dagger.FragmentScope
 import korablique.recipecalculator.outside.STATUS_ALREADY_REGISTERED
 import korablique.recipecalculator.outside.http.*
+import korablique.recipecalculator.outside.serverAddr
 import korablique.recipecalculator.outside.userparams.ServerUserParams
 import korablique.recipecalculator.outside.userparams.ServerUserParamsRegistry
 import kotlinx.coroutines.launch
@@ -43,7 +44,8 @@ class PairingFragmentController @Inject constructor(
             fragment.close()
             return
         }
-        val url = ("https://blazern.me/broccalc/v1/user/start_pairing?"
+        val context = fragment.requireContext()
+        val url = ("${serverAddr(context)}/v1/user/start_pairing?"
                 + "client_token=${userParams.token}&user_id=${userParams.uid}")
         val response = httpContext.run {
             val response = httpRequestUnwrapped(url, StartPairingResponse::class)
@@ -74,7 +76,8 @@ class PairingFragmentController @Inject constructor(
     }
 
     private suspend fun sendPairingRequest(to: String, from: ServerUserParams) {
-        val url = ("https://blazern.me/broccalc/v1/user/pairing_request?"
+        val context = fragment.requireContext()
+        val url = ("${serverAddr(context)}/v1/user/pairing_request?"
                 + "client_token=${from.token}&user_id=${from.uid}&partner_pairing_code=$to")
 
         val response = httpContext.run {

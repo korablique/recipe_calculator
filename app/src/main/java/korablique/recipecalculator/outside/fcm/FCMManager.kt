@@ -1,10 +1,12 @@
 package korablique.recipecalculator.outside.fcm
 
+import android.content.Context
 import com.crashlytics.android.Crashlytics
 import com.google.firebase.iid.FirebaseInstanceId
 import com.squareup.moshi.JsonClass
 import korablique.recipecalculator.outside.http.BroccalcHttpContext
 import korablique.recipecalculator.outside.network.NetworkStateDispatcher
+import korablique.recipecalculator.outside.serverAddr
 import korablique.recipecalculator.outside.userparams.ServerUserParams
 import korablique.recipecalculator.outside.userparams.ServerUserParamsRegistry
 import kotlinx.coroutines.GlobalScope
@@ -16,6 +18,7 @@ private const val SERV_FIELD_MSG_TYPE = "msg_type"
 
 @Singleton
 class FCMManager @Inject constructor(
+        private val context: Context,
         private val networkStateDispatcher: NetworkStateDispatcher,
         private val httpContext: BroccalcHttpContext,
         private val userParamsRegistry: ServerUserParamsRegistry)
@@ -67,7 +70,7 @@ class FCMManager @Inject constructor(
     }
 
     private fun sendTokenToServer(fcmToken: String, userParams: ServerUserParams) {
-        val url = ("https://blazern.me/broccalc/v1/user/update_fcm_token?"
+        val url = ("${serverAddr(context)}/v1/user/update_fcm_token?"
                 + "client_token=${userParams.token}&user_id=${userParams.uid}&"
                 + "fcm_token=$fcmToken")
         GlobalScope.launch {

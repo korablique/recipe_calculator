@@ -1,10 +1,13 @@
 package korablique.recipecalculator.outside.partners
 
+import android.content.Context
 import com.squareup.moshi.JsonClass
+import korablique.recipecalculator.R
 import korablique.recipecalculator.base.executors.MainThreadExecutor
 import korablique.recipecalculator.outside.fcm.FCMManager
 import korablique.recipecalculator.outside.http.BroccalcHttpContext
 import korablique.recipecalculator.outside.http.BroccalcNetJobResult
+import korablique.recipecalculator.outside.serverAddr
 import korablique.recipecalculator.outside.userparams.ServerUserParamsRegistry
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -16,6 +19,7 @@ private const val SERV_MSG_PAIRED_WITH_PARTNER = "paired_with_partner"
  */
 @Singleton
 class PartnersRegistry @Inject constructor(
+        private val context: Context,
         private val mainThreadExecutor: MainThreadExecutor,
         private val userParamsRegistry: ServerUserParamsRegistry,
         private val broccalcHttpContext: BroccalcHttpContext,
@@ -50,7 +54,7 @@ class PartnersRegistry @Inject constructor(
             return BroccalcNetJobResult.Error.ServerError.NotLoggedIn(null)
         }
 
-        val url = ("https://blazern.me/broccalc/v1/user/list_partners?"
+        val url = ("${serverAddr(context)}/v1/user/list_partners?"
                 + "client_token=${userParams.token}&user_id=${userParams.uid}")
         return broccalcHttpContext.run {
             val response = unwrap(httpRequest(url, ListPartnersResponse::class))
