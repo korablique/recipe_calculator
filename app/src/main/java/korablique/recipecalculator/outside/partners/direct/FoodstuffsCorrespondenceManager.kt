@@ -8,6 +8,7 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import korablique.recipecalculator.base.CurrentActivityProvider
 import korablique.recipecalculator.database.FoodstuffsList
 import korablique.recipecalculator.model.Foodstuff
+import korablique.recipecalculator.outside.http.BroccalcNetJobResult
 import korablique.recipecalculator.outside.partners.Partner
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -26,7 +27,7 @@ class FoodstuffsCorrespondenceManager @Inject constructor(
         directMsgsManager.registerReceiver(DIRECT_MSG_TYPE_FOODSTUFF, this)
     }
 
-    suspend fun sendFooodstuffToPartner(foodstuff: Foodstuff, partner: Partner): DirectMsgSendResult {
+    suspend fun sendFooodstuffToPartner(foodstuff: Foodstuff, partner: Partner): BroccalcNetJobResult<Unit> {
         val foodstuffMsg = FoodstuffMsg(
                 foodstuff.name,
                 (foodstuff.protein * 1000).toInt(),

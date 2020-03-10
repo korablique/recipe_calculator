@@ -1,24 +1,15 @@
 package korablique.recipecalculator.outside.partners
 
-import korablique.recipecalculator.base.CurrentActivityProvider
-import korablique.recipecalculator.base.executors.IOExecutor
+import com.squareup.moshi.JsonClass
 import korablique.recipecalculator.base.executors.MainThreadExecutor
-import korablique.recipecalculator.outside.ServerErrorException
 import korablique.recipecalculator.outside.fcm.FCMManager
-import korablique.recipecalculator.outside.http.HttpClient
-import korablique.recipecalculator.outside.http.TypedRequestResult
+import korablique.recipecalculator.outside.http.BroccalcHttpContext
+import korablique.recipecalculator.outside.http.BroccalcNetJobResult
 import korablique.recipecalculator.outside.userparams.ServerUserParamsRegistry
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 private const val SERV_MSG_PAIRED_WITH_PARTNER = "paired_with_partner"
-
-sealed class GetPartnersResult {
-    data class Ok(val partners: List<Partner>) : GetPartnersResult()
-    data class Failure(val exception: Exception) : GetPartnersResult()
-    object NotLoggedIn : GetPartnersResult()
-}
 
 /**
  * "Хранилище" партнёров пользователя.
@@ -27,7 +18,7 @@ sealed class GetPartnersResult {
 class PartnersRegistry @Inject constructor(
         private val mainThreadExecutor: MainThreadExecutor,
         private val userParamsRegistry: ServerUserParamsRegistry,
-        private val httpClient: HttpClient,
+        private val broccalcHttpContext: BroccalcHttpContext,
         private val fcmManager: FCMManager
 ) : FCMManager.MessageReceiver {
     private val cachedPartners = mutableListOf<Partner>()
@@ -46,45 +37,29 @@ class PartnersRegistry @Inject constructor(
         }
     }
 
-    suspend fun getPartners(): GetPartnersResult {
+    suspend fun getPartners(): BroccalcNetJobResult<List<Partner>> {
         if (partnersCached) {
-            return GetPartnersResult.Ok(cachedPartners)
+            return BroccalcNetJobResult.Ok(cachedPartners)
         }
         return updateAndGetPartners()
     }
 
-    private suspend fun updateAndGetPartners(): GetPartnersResult {
+    private suspend fun updateAndGetPartners(): BroccalcNetJobResult<List<Partner>> {
         val userParams = userParamsRegistry.getUserParams()
         if (userParams == null) {
-            return GetPartnersResult.NotLoggedIn
+            return BroccalcNetJobResult.Error.ServerError.NotLoggedIn(null)
         }
 
         val url = ("https://blazern.me/broccalc/v1/user/list_partners?"
                 + "client_token=${userParams.token}&user_id=${userParams.uid}")
-        val responseFull = httpClient.requestWithTypedResponse(url, ListPartnersResponseFull::class)
-        val response = when (responseFull) {
-            is TypedRequestResult.Failure -> {
-                return GetPartnersResult.Failure(responseFull.exception)
-            }
-            is TypedRequestResult.Success -> {
-                responseFull.result.simplify()
-            }
-        }
+        return broccalcHttpContext.run {
+            val response = unwrap(httpRequest(url, ListPartnersResponse::class))
 
-        when (response) {
-            is ListPartnersResponse.ServerError -> {
-                return GetPartnersResult.Failure(ServerErrorException(response.err))
-            }
-            is ListPartnersResponse.ParseError -> {
-                return GetPartnersResult.Failure(response.exception)
-            }
-            is ListPartnersResponse.Ok -> {
-                cachedPartners.clear()
-                cachedPartners += response.partners
-                partnersCached = true
-                observers.forEach { it.onPartnersChanged(cachedPartners) }
-                return GetPartnersResult.Ok(cachedPartners)
-            }
+            cachedPartners.clear()
+            cachedPartners.addAll(response.partners.map { it.into() })
+            partnersCached = true
+            observers.forEach { it.onPartnersChanged(cachedPartners) }
+            BroccalcNetJobResult.Ok(cachedPartners as List<Partner>)
         }
     }
 
@@ -102,4 +77,19 @@ class PartnersRegistry @Inject constructor(
             updateAndGetPartners()
         }
     }
+}
+
+@JsonClass(generateAdapter = true)
+private data class ReceivedPartner(
+        val partner_user_id: String,
+        val partner_name: String
+)
+
+@JsonClass(generateAdapter = true)
+private data class ListPartnersResponse(
+        val partners: List<ReceivedPartner>
+)
+
+private fun ReceivedPartner.into(): Partner {
+    return Partner(partner_user_id, partner_name)
 }

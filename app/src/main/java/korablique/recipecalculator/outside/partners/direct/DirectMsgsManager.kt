@@ -4,30 +4,21 @@ import android.util.Base64
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import korablique.recipecalculator.outside.ServerErrorException
 import korablique.recipecalculator.outside.fcm.FCMManager
-import korablique.recipecalculator.outside.http.HttpClient
-import korablique.recipecalculator.outside.http.TypedRequestResult
+import korablique.recipecalculator.outside.http.BroccalcHttpContext
+import korablique.recipecalculator.outside.http.BroccalcNetJobResult
 import korablique.recipecalculator.outside.partners.Partner
 import korablique.recipecalculator.outside.userparams.ServerUserParamsRegistry
-import java.lang.Exception
-import java.lang.IllegalArgumentException
 import javax.inject.Inject
 import javax.inject.Singleton
 
 private const val SERV_MSG_DIRECT_MSG_FROM_PARTNER = "direct_msg_from_partner"
 
-sealed class DirectMsgSendResult {
-    object Ok : DirectMsgSendResult()
-    object NotLoggedIn : DirectMsgSendResult()
-    data class Failure(val exception: Exception) : DirectMsgSendResult()
-}
-
 @Singleton
 class DirectMsgsManager @Inject constructor(
         private val fcmManager: FCMManager,
         private val userParamsRegistry: ServerUserParamsRegistry,
-        private val httpClient: HttpClient)
+        private val httpContext: BroccalcHttpContext)
     : FCMManager.MessageReceiver {
 
     private val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
@@ -59,10 +50,10 @@ class DirectMsgsManager @Inject constructor(
         receiver.onNewDirectMessage(directMsg.msg)
     }
 
-    suspend fun sendDirectMSGToPartner(msgType: String, msg: String, partner: Partner): DirectMsgSendResult {
+    suspend fun sendDirectMSGToPartner(msgType: String, msg: String, partner: Partner): BroccalcNetJobResult<Unit> {
         val userParams = userParamsRegistry.getUserParams()
         if (userParams == null) {
-            return DirectMsgSendResult.NotLoggedIn
+            return BroccalcNetJobResult.Error.ServerError.NotLoggedIn(null)
         }
 
         val directMsg = DirectMsg(msgType, msg)
@@ -73,29 +64,13 @@ class DirectMsgsManager @Inject constructor(
         val url = ("https://blazern.me/broccalc/v1/user/direct_partner_msg?"
                 + "client_token=${userParams.token}&user_id=${userParams.uid}&"
                 + "partner_user_id=${partner.uid}")
-        val responseFull = httpClient.requestWithTypedResponse(
-                url,
-                DirectPartnerMsgResponseFull::class,
-                Base64.encodeToString(directMsgJson.toByteArray(), Base64.DEFAULT))
-        val response = when (responseFull) {
-            is TypedRequestResult.Failure -> {
-                return DirectMsgSendResult.Failure(responseFull.exception)
-            }
-            is TypedRequestResult.Success -> {
-                responseFull.result.simplify()
-            }
-        }
 
-        when (response) {
-            is DirectPartnerMsgResponse.ServerError -> {
-                return DirectMsgSendResult.Failure(ServerErrorException(response.err))
-            }
-            is DirectPartnerMsgResponse.ParseError -> {
-                return DirectMsgSendResult.Failure(response.exception)
-            }
-            is DirectPartnerMsgResponse.Ok -> {
-                return DirectMsgSendResult.Ok
-            }
+        return httpContext.run {
+            httpRequestUnwrapped(
+                    url,
+                    DirectPartnerMsgResponse::class,
+                    Base64.encodeToString(directMsgJson.toByteArray(), Base64.DEFAULT))
+            BroccalcNetJobResult.Ok(Unit)
         }
     }
 }
@@ -104,4 +79,9 @@ class DirectMsgsManager @Inject constructor(
 private data class DirectMsg(
         val msg_type: String,
         val msg: String
+)
+
+@JsonClass(generateAdapter = true)
+private data class DirectPartnerMsgResponse(
+        val status: String
 )

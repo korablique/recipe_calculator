@@ -7,16 +7,15 @@ import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.crashlytics.android.Crashlytics
 import korablique.recipecalculator.R
 import korablique.recipecalculator.base.BaseActivity
 import korablique.recipecalculator.base.FragmentCallbacks
 import korablique.recipecalculator.dagger.FragmentScope
 import korablique.recipecalculator.model.Foodstuff
-import korablique.recipecalculator.outside.partners.GetPartnersResult
+import korablique.recipecalculator.outside.http.BroccalcNetJobResult
+import korablique.recipecalculator.outside.http.unwrapException
 import korablique.recipecalculator.outside.partners.Partner
 import korablique.recipecalculator.outside.partners.PartnersRegistry
-import korablique.recipecalculator.outside.partners.direct.DirectMsgSendResult
 import korablique.recipecalculator.outside.partners.direct.FoodstuffsCorrespondenceManager
 import korablique.recipecalculator.outside.userparams.InteractiveServerUserParamsObtainer
 import korablique.recipecalculator.outside.userparams.ObtainResult
@@ -65,16 +64,16 @@ class PartnersListFragmentController @Inject constructor(
         fragment.lifecycleScope.launch {
             val partnersResult = partnersRegistry.getPartners()
             when (partnersResult) {
-                is GetPartnersResult.Ok -> {
-                    updateDisplayedPartners(partnersResult.partners, fragmentView)
+                is BroccalcNetJobResult.Ok -> {
+                    updateDisplayedPartners(partnersResult.item, fragmentView)
                 }
-                is GetPartnersResult.Failure -> {
-                    Toast.makeText(activity, "Unexpected failure: ${partnersResult.exception}", Toast.LENGTH_LONG).show()
-                    // Crashlytics.logException(partnersResult.exception)
-                }
-                is GetPartnersResult.NotLoggedIn -> {
+                is BroccalcNetJobResult.Error.ServerError.NotLoggedIn -> {
                     // TODO: ask user if they want to login or to cancel
                     serverUserParamsObtainer.obtainUserParams()
+                }
+                else -> {
+                    Toast.makeText(activity, "Unexpected failure: partnersResult", Toast.LENGTH_LONG).show()
+                    // Crashlytics.logException(partnersResult.exception)
                 }
             }
         }
@@ -122,16 +121,16 @@ class PartnersListFragmentController @Inject constructor(
             fragment.lifecycleScope.launch {
                 val sendResult = foodstuffsCorrespondenceManager.sendFooodstuffToPartner(foodstuff, partner)
                 when (sendResult) {
-                    is DirectMsgSendResult.Ok -> {
+                    is BroccalcNetJobResult.Ok -> {
                         Toast.makeText(fragment.context, "Sent!", Toast.LENGTH_LONG).show()
                         fragment.close()
                     }
-                    is DirectMsgSendResult.NotLoggedIn -> {
+                    is BroccalcNetJobResult.Error.ServerError.NotLoggedIn -> {
                         Toast.makeText(fragment.context, "Not logged in", Toast.LENGTH_LONG).show()
                         fragment.close()
                     }
-                    is DirectMsgSendResult.Failure -> {
-                        Toast.makeText(activity, "Unexpected failure: ${sendResult.exception}", Toast.LENGTH_LONG).show()
+                    is BroccalcNetJobResult.Error -> {
+                        Toast.makeText(activity, "Unexpected failure: ${sendResult.unwrapException()}", Toast.LENGTH_LONG).show()
                         // Crashlytics.logException(sendResult.exception)
                         fragment.close()
                     }
