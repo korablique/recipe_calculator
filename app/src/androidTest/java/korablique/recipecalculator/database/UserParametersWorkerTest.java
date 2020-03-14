@@ -25,8 +25,8 @@ import korablique.recipecalculator.model.Formula;
 import korablique.recipecalculator.model.Gender;
 import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.UserParameters;
-import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
-import korablique.recipecalculator.util.InstantMainThreadExecutor;
+import korablique.recipecalculator.InstantDatabaseThreadExecutor;
+import korablique.recipecalculator.InstantMainThreadExecutor;
 import korablique.recipecalculator.util.TestingTimeProvider;
 
 import static org.mockito.Matchers.any;

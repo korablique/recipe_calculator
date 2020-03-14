@@ -23,8 +23,8 @@ import korablique.recipecalculator.database.room.AppDatabase;
 import korablique.recipecalculator.database.room.DatabaseHolder;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
-import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
-import korablique.recipecalculator.util.InstantMainThreadExecutor;
+import korablique.recipecalculator.InstantDatabaseThreadExecutor;
+import korablique.recipecalculator.InstantMainThreadExecutor;
 
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_IS_LISTED;
 import static korablique.recipecalculator.database.FoodstuffsContract.FOODSTUFFS_TABLE_NAME;

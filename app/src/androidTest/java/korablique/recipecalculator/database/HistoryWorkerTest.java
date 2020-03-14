@@ -20,8 +20,6 @@ import androidx.test.filters.LargeTest;
 import androidx.test.runner.AndroidJUnit4;
 
 import io.reactivex.Observable;
-import io.reactivex.internal.operators.observable.ObservableCache;
-import korablique.recipecalculator.base.Callback;
 import korablique.recipecalculator.base.TimeProvider;
 import korablique.recipecalculator.database.room.AppDatabase;
 import korablique.recipecalculator.database.room.DatabaseHolder;
@@ -29,9 +27,9 @@ import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.HistoryEntry;
 import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.util.DBTestingUtils;
-import korablique.recipecalculator.util.InstantComputationsThreadsExecutor;
-import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
-import korablique.recipecalculator.util.InstantMainThreadExecutor;
+import korablique.recipecalculator.InstantComputationsThreadsExecutor;
+import korablique.recipecalculator.InstantDatabaseThreadExecutor;
+import korablique.recipecalculator.InstantMainThreadExecutor;
 import korablique.recipecalculator.util.TestingTimeProvider;
 
 import static korablique.recipecalculator.database.HistoryContract.COLUMN_NAME_DATE;

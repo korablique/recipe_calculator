@@ -13,7 +13,7 @@ import java.util.List;
 import korablique.recipecalculator.BuildConfig;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class)
+@Config(manifest=Config.NONE)
 public class PopularProductsUtilsTest {
     @Test
     public void checkTop() {

@@ -1,10 +1,13 @@
 package korablique.recipecalculator.outside.fcm
 
 import android.content.Context
-import com.crashlytics.android.Crashlytics
-import com.google.firebase.iid.FirebaseInstanceId
+import androidx.annotation.VisibleForTesting
 import com.squareup.moshi.JsonClass
+import korablique.recipecalculator.base.executors.MainThreadExecutor
+import korablique.recipecalculator.base.prefs.PrefsOwner.FCM_MANAGER
+import korablique.recipecalculator.base.prefs.SharedPrefsManager
 import korablique.recipecalculator.outside.http.BroccalcHttpContext
+import korablique.recipecalculator.outside.http.BroccalcNetJobResult
 import korablique.recipecalculator.outside.network.NetworkStateDispatcher
 import korablique.recipecalculator.outside.serverAddr
 import korablique.recipecalculator.outside.userparams.ServerUserParams
@@ -14,14 +17,21 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
-private const val SERV_FIELD_MSG_TYPE = "msg_type"
+@VisibleForTesting
+const val SERV_FIELD_MSG_TYPE = "msg_type"
+@VisibleForTesting
+const val SERV_FIELD_MSG = "msg"
+private const val PREF_TOKEN = "token"
 
 @Singleton
 class FCMManager @Inject constructor(
         private val context: Context,
+        private val mainThreadExecutor: MainThreadExecutor,
+        private val prefsManager: SharedPrefsManager,
         private val networkStateDispatcher: NetworkStateDispatcher,
         private val httpContext: BroccalcHttpContext,
-        private val userParamsRegistry: ServerUserParamsRegistry)
+        private val userParamsRegistry: ServerUserParamsRegistry,
+        private val fcmTokenObtainer: FCMTokenObtainer)
     : NetworkStateDispatcher.Observer, ServerUserParamsRegistry.Observer {
 
     private val messageReceivers = mutableMapOf<String, MessageReceiver>()
@@ -34,6 +44,11 @@ class FCMManager @Inject constructor(
         networkStateDispatcher.addObserver(this)
         userParamsRegistry.addObserver(this)
         maybeAcquireTokenAndSendToServer()
+    }
+
+    fun destroy() {
+        networkStateDispatcher.removeObserver(this)
+        userParamsRegistry.removeObserver(this)
     }
 
     override fun onNetworkAvailabilityChange(available: Boolean) {
@@ -49,46 +64,49 @@ class FCMManager @Inject constructor(
     }
 
     private fun maybeAcquireTokenAndSendToServer() {
-        val userParams = userParamsRegistry.getUserParams()
-        if (!networkStateDispatcher.isNetworkAvailable || userParams == null) {
-            return
-        }
-
-        FirebaseInstanceId.getInstance().instanceId
-            .addOnCompleteListener { task ->
-                if (!task.isSuccessful) {
-                    return@addOnCompleteListener
-                }
-
-                val result = task.result
-                if (result == null) {
-                    throw NullPointerException("Not expecting successful task to have no result")
-                }
-
-                sendTokenToServer(result.token, userParams)
+        GlobalScope.launch(mainThreadExecutor) {
+            val userParams = userParamsRegistry.getUserParams()
+            if (userParams == null) {
+                return@launch
             }
+
+            val token = fcmTokenObtainer.requestToken()
+            if (token == null) {
+                return@launch
+            }
+
+            val lastToken = prefsManager.getString(FCM_MANAGER, PREF_TOKEN)
+            if (!networkStateDispatcher.isNetworkAvailable || token == lastToken) {
+                return@launch
+            }
+
+            sendTokenToServer(token, userParams)
+        }
     }
 
-    private fun sendTokenToServer(fcmToken: String, userParams: ServerUserParams) {
+    private suspend fun sendTokenToServer(fcmToken: String, userParams: ServerUserParams) {
         val url = ("${serverAddr(context)}/v1/user/update_fcm_token?"
                 + "client_token=${userParams.token}&user_id=${userParams.uid}&"
                 + "fcm_token=$fcmToken")
-        GlobalScope.launch {
-            httpContext.run {
-                // Won't handle response,
-                // because there's nothing to do with both success and failure
-                httpRequest(url, UpdateFCMTokenResponse::class)
-            }
+        val response = httpContext.run {
+            httpRequest(url, UpdateFCMTokenResponse::class)
+        }
+        if (response is BroccalcNetJobResult.Ok) {
+            prefsManager.putString(FCM_MANAGER, PREF_TOKEN, fcmToken)
         }
     }
 
     internal fun onMessageReceived(data: Map<String, String>) {
         val msgType = data[SERV_FIELD_MSG_TYPE]
         if (msgType == null) {
-            Crashlytics.logException(RuntimeException("Server FCM message without msg type: $data"))
+//            Crashlytics.logException(RuntimeException("Server FCM message without msg type: $data"))
             return
         }
-        messageReceivers[msgType]?.onNewFcmMessage(data["msg"]!!) // TODO: remove !!
+        val msg = data[SERV_FIELD_MSG]
+        if (msg == null) {
+            return
+        }
+        messageReceivers[msgType]?.onNewFcmMessage(msg)
     }
 
     fun registerMessageReceiver(msgType: String, messageReceiver: MessageReceiver) {

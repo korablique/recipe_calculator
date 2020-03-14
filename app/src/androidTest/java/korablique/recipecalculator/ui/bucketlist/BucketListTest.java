@@ -12,7 +12,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Collections;
-import java.util.concurrent.atomic.AtomicReference;
 
 import korablique.recipecalculator.base.executors.ComputationThreadsExecutor;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
@@ -24,8 +23,8 @@ import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.database.room.DatabaseHolder;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.WeightedFoodstuff;
-import korablique.recipecalculator.util.InstantComputationsThreadsExecutor;
-import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
+import korablique.recipecalculator.InstantComputationsThreadsExecutor;
+import korablique.recipecalculator.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.SyncMainThreadExecutor;
 
 @RunWith(AndroidJUnit4.class)

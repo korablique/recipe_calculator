@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,7 +17,7 @@ import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.LargeTest;
 import androidx.test.rule.ActivityTestRule;
 import androidx.test.runner.AndroidJUnit4;
-import io.reactivex.Single;
+
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.base.BaseActivity;
@@ -50,8 +49,8 @@ import korablique.recipecalculator.ui.mainactivity.MainActivityFragmentsControll
 import korablique.recipecalculator.ui.mainactivity.MainActivitySelectedDateStorage;
 import korablique.recipecalculator.util.FloatUtils;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
-import korablique.recipecalculator.util.InstantComputationsThreadsExecutor;
-import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
+import korablique.recipecalculator.InstantComputationsThreadsExecutor;
+import korablique.recipecalculator.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.SyncMainThreadExecutor;
 import korablique.recipecalculator.util.TestingTimeProvider;
 
@@ -65,7 +64,6 @@ import static androidx.test.espresso.intent.Intents.intended;
 import static androidx.test.espresso.intent.matcher.BundleMatchers.hasValue;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasAction;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
-import static androidx.test.espresso.intent.matcher.IntentMatchers.hasExtras;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;

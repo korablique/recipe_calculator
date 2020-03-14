@@ -7,20 +7,17 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.rule.ActivityTestRule;
 
 import org.joda.time.LocalDate;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.BaseFragment;
-import korablique.recipecalculator.base.Callback;
 import korablique.recipecalculator.base.CurrentActivityProvider;
 import korablique.recipecalculator.base.FragmentCallbacks;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
@@ -42,11 +39,10 @@ import korablique.recipecalculator.model.FoodstuffsTopList;
 import korablique.recipecalculator.model.Formula;
 import korablique.recipecalculator.model.FullName;
 import korablique.recipecalculator.model.Gender;
-import korablique.recipecalculator.model.HistoryEntry;
 import korablique.recipecalculator.model.Lifestyle;
-import korablique.recipecalculator.model.NewHistoryEntry;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
+import korablique.recipecalculator.outside.http.BroccalcHttpContext;
 import korablique.recipecalculator.outside.userparams.InteractiveServerUserParamsObtainer;
 import korablique.recipecalculator.outside.userparams.ServerUserParamsRegistry;
 import korablique.recipecalculator.search.FoodstuffsSearchEngine;
@@ -72,9 +68,9 @@ import korablique.recipecalculator.ui.mainactivity.profile.ProfileController;
 import korablique.recipecalculator.ui.mainactivity.profile.ProfileFragment;
 import korablique.recipecalculator.util.DBTestingUtils;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
-import korablique.recipecalculator.util.InstantComputationsThreadsExecutor;
-import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
-import korablique.recipecalculator.util.InstantIOExecutor;
+import korablique.recipecalculator.InstantComputationsThreadsExecutor;
+import korablique.recipecalculator.InstantDatabaseThreadExecutor;
+import korablique.recipecalculator.InstantIOExecutor;
 import korablique.recipecalculator.util.SyncMainThreadExecutor;
 import korablique.recipecalculator.util.TestingGPAuthorizer;
 import korablique.recipecalculator.util.TestingHttpClient;
@@ -159,10 +155,12 @@ public class MainActivityTestsBase {
                                 activity, activityCallbacks, fragmentsController);
                         activitySubscriptions = new RxActivitySubscriptions(activityCallbacks);
 
+                        BroccalcHttpContext httpContext = new BroccalcHttpContext(new TestingHttpClient());
                         serverUserParamsRegistry =
                                 new ServerUserParamsRegistry(
+                                        context,
                                         mainThreadExecutor, ioExecutor, new TestingGPAuthorizer(),
-                                        userNameProvider, new TestingHttpClient(), prefsManager);
+                                        userNameProvider, httpContext, prefsManager);
                         serverUserParamsObtainer =
                                 new InteractiveServerUserParamsObtainer(
                                         activity, activityCallbacks, serverUserParamsRegistry);

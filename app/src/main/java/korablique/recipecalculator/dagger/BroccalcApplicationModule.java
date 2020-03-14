@@ -24,6 +24,8 @@ import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.outside.fcm.FCMService;
 import korablique.recipecalculator.outside.fcm.FCMServiceModule;
+import korablique.recipecalculator.outside.http.HttpClient;
+import korablique.recipecalculator.outside.http.HttpClientImpl;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivityModule;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
@@ -77,6 +79,12 @@ public abstract class BroccalcApplicationModule {
             MainThreadExecutor mainThreadExecutor,
             DatabaseThreadExecutor databaseThreadExecutor) {
         return new UserParametersWorker(databaseHolder, mainThreadExecutor, databaseThreadExecutor);
+    }
+
+    @Provides
+    @Singleton
+    public static HttpClient provideHttpClient() {
+        return new HttpClientImpl();
     }
 
     @Provides

@@ -1,15 +1,15 @@
 package korablique.recipecalculator.ui
 
-import org.junit.Test
-import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 import korablique.recipecalculator.BuildConfig
 import org.junit.Assert.assertEquals
+import org.junit.Test
+import org.junit.runner.RunWith
 
 @RunWith(RobolectricTestRunner::class)
-@Config(constants = BuildConfig::class)
+@Config(manifest=Config.NONE)
 class DecimalUtilsTest {
     @Test
     fun `by default to decimal str with 1 digit after dot`() {

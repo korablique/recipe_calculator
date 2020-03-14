@@ -31,7 +31,7 @@ import korablique.recipecalculator.model.Formula;
 import korablique.recipecalculator.model.Gender;
 import korablique.recipecalculator.model.Goal;
 import korablique.recipecalculator.model.Lifestyle;
-import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
+import korablique.recipecalculator.InstantDatabaseThreadExecutor;
 
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_CALORIES;
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_CARBS;
@@ -56,7 +56,6 @@ import static korablique.recipecalculator.database.UserParametersContract.COLUMN
 import static korablique.recipecalculator.database.UserParametersContract.USER_PARAMETERS_TABLE_NAME;
 import static korablique.recipecalculator.database.room.LegacyDatabaseUpdater.COLUMN_NAME_VERSION;
 import static korablique.recipecalculator.database.room.LegacyDatabaseUpdater.TABLE_DATABASE_VERSION;
-import static korablique.recipecalculator.database.room.MigrationTest.TEST_DB;
 import static korablique.recipecalculator.database.room.Migrations.MIGRATION_1_2;
 
 @RunWith(AndroidJUnit4.class)

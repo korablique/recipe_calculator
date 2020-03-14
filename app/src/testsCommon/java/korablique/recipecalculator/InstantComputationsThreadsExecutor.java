@@ -1,4 +1,4 @@
-package korablique.recipecalculator.util;
+package korablique.recipecalculator;
 
 import io.reactivex.Scheduler;
 import io.reactivex.schedulers.Schedulers;

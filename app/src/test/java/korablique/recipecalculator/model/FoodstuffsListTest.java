@@ -34,7 +34,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class)
+@Config(manifest=Config.NONE)
 public class FoodstuffsListTest {
     // используется, когда нужно несколько батчей (здесь 2)
     private static final int FOODSTUFFS_NUMBER = 2 * BATCH_SIZE;

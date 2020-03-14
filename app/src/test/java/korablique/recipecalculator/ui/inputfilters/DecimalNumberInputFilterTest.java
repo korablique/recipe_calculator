@@ -12,7 +12,7 @@ import androidx.annotation.Nullable;
 import korablique.recipecalculator.BuildConfig;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class)
+@Config(manifest=Config.NONE)
 public class DecimalNumberInputFilterTest {
     @Test
     public void numbersWithoutFractionAllowed() {

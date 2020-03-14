@@ -55,4 +55,17 @@ class SharedPrefsManager @Inject constructor(val context: Context) {
                 .getSharedPreferences(owner.fileName, Context.MODE_PRIVATE)
                 .getString(key, null)
     }
+
+    fun putBool(owner: PrefsOwner, key: String, value: Boolean) {
+        context.getSharedPreferences(owner.fileName, Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean(key, value)
+                .apply()
+    }
+
+    fun getBool(owner: PrefsOwner, key: String, default: Boolean = false): Boolean {
+        return context
+                .getSharedPreferences(owner.fileName, Context.MODE_PRIVATE)
+                .getBoolean(key, default)
+    }
 }
