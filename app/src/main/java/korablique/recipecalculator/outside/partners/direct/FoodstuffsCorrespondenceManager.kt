@@ -6,6 +6,7 @@ import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import korablique.recipecalculator.base.CurrentActivityProvider
+import korablique.recipecalculator.base.RxGlobalSubscriptions
 import korablique.recipecalculator.database.FoodstuffsList
 import korablique.recipecalculator.model.Foodstuff
 import korablique.recipecalculator.outside.http.BroccalcNetJobResult
@@ -19,7 +20,8 @@ private const val DIRECT_MSG_TYPE_FOODSTUFF = "foodstuff"
 class FoodstuffsCorrespondenceManager @Inject constructor(
         private val directMsgsManager: DirectMsgsManager,
         private val foodstuffsList: FoodstuffsList,
-        private val currentActivityProvider: CurrentActivityProvider
+        private val currentActivityProvider: CurrentActivityProvider,
+        private val globalSubscriptions: RxGlobalSubscriptions
 ) : DirectMsgsManager.DirectMessageReceiver {
     private val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
 
@@ -69,6 +71,7 @@ class FoodstuffsCorrespondenceManager @Inject constructor(
                         {
                             // Couldn't save foodstuff, nothing to do
                         })
+        globalSubscriptions.add(d)
     }
 }
 
