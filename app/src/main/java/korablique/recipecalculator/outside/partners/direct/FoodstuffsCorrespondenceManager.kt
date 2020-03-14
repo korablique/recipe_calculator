@@ -20,7 +20,7 @@ class FoodstuffsCorrespondenceManager @Inject constructor(
         private val directMsgsManager: DirectMsgsManager,
         private val foodstuffsList: FoodstuffsList,
         private val currentActivityProvider: CurrentActivityProvider
-) : DirectMsgsManager.DirrectMessageReceiver {
+) : DirectMsgsManager.DirectMessageReceiver {
     private val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
 
     init {

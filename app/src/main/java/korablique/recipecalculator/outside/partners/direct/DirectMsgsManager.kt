@@ -25,9 +25,9 @@ class DirectMsgsManager @Inject constructor(
     : FCMManager.MessageReceiver {
 
     private val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
-    private val messageReceivers = mutableMapOf<String, DirrectMessageReceiver>()
+    private val messageReceivers = mutableMapOf<String, DirectMessageReceiver>()
 
-    interface DirrectMessageReceiver {
+    interface DirectMessageReceiver {
         fun onNewDirectMessage(msg: String)
     }
 
@@ -35,7 +35,7 @@ class DirectMsgsManager @Inject constructor(
         fcmManager.registerMessageReceiver(SERV_MSG_DIRECT_MSG_FROM_PARTNER, this)
     }
 
-    fun registerReceiver(msgType: String, msgReceiver: DirrectMessageReceiver) {
+    fun registerReceiver(msgType: String, msgReceiver: DirectMessageReceiver) {
         val existingReceiver = messageReceivers.put(msgType, msgReceiver)
         if (existingReceiver != null) {
             throw IllegalArgumentException("Multiple receivers for single msg type not supported")
