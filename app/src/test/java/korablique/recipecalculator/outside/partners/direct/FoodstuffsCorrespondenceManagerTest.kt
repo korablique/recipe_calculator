@@ -18,7 +18,7 @@ class FoodstuffsCorrespondenceManagerTest {
     fun `2 managers can communicate`() = runBlocking {
         val directMsgsManager = mock<DirectMsgsManager>()
 
-        val manager1 = FoodstuffsCorrespondenceManager(directMsgsManager, mock(), mock())
+        val manager1 = FoodstuffsCorrespondenceManager(directMsgsManager, mock(), mock(), mock())
         val foodstuff = Foodstuff.withName("carrot").withNutrition(1f, 2f, 3f, 4f)
         manager1.sendFooodstuffToPartner(foodstuff, Partner("uid", "name"))
 
@@ -26,7 +26,7 @@ class FoodstuffsCorrespondenceManagerTest {
         verify(directMsgsManager).sendDirectMSGToPartner(any(), encodedFoodstuff.capture(), any())
 
         val foodstuffsList2 = spy(FoodstuffsList(mock(), mock(), mock()))
-        val manager2 = FoodstuffsCorrespondenceManager(directMsgsManager, foodstuffsList2, mock())
+        val manager2 = FoodstuffsCorrespondenceManager(directMsgsManager, foodstuffsList2, mock(), mock())
 
         verify(foodstuffsList2, never()).saveFoodstuff(any())
         manager2.onNewDirectMessage(encodedFoodstuff.firstValue)

@@ -3,10 +3,7 @@ package korablique.recipecalculator.outside.fcm
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.nhaarman.mockitokotlin2.*
-import korablique.recipecalculator.BroccalcApplication
-import korablique.recipecalculator.FakeHttpClient
-import korablique.recipecalculator.InstantMainThreadExecutor
-import korablique.recipecalculator.R
+import korablique.recipecalculator.*
 import korablique.recipecalculator.base.prefs.SharedPrefsManager
 import korablique.recipecalculator.outside.http.BroccalcHttpContext
 import korablique.recipecalculator.outside.http.RequestResult
@@ -29,17 +26,7 @@ class FCMManagerTest {
     val context = ApplicationProvider.getApplicationContext<Context>()
     val prefsManager = spy(SharedPrefsManager(context))
 
-    val netObservers = mutableListOf<NetworkStateDispatcher.Observer>()
-    val netStateDispatcher = mock<NetworkStateDispatcher> {
-        on { addObserver(any()) } doAnswer {
-            netObservers.add(it.arguments[0] as NetworkStateDispatcher.Observer)
-            Unit
-        }
-        on { removeObserver(any()) } doAnswer {
-            netObservers.remove(it.arguments[0] as NetworkStateDispatcher.Observer)
-            Unit
-        }
-    }
+    val netStateDispatcher = FakeNetworkStateDispatcher()
 
     val httpClient = FakeHttpClient()
     val httpContext = BroccalcHttpContext(httpClient)
@@ -68,7 +55,7 @@ class FCMManagerTest {
 
     @Before
     fun setUp() {
-        enableNetwork(true)
+        netStateDispatcher.setNetworkAvailable(true)
         setServerFcmResponseStatus("ok")
         setUserParams(ServerUserParams("uid", "token"))
     }
@@ -111,23 +98,23 @@ class FCMManagerTest {
 
     @Test
     fun `sends token to server when network becomes available`() {
-        enableNetwork(false)
+        netStateDispatcher.setNetworkAvailable(false)
         updateFCMToken("mynewtoken")
 
         assertEquals(0, httpClient.getRequestsMatching(".*update_fcm_token.*").size)
-        enableNetwork(true)
+        netStateDispatcher.setNetworkAvailable(true)
         assertEquals(1, httpClient.getRequestsMatching(".*update_fcm_token.*").size)
     }
 
     @Test
     fun `only first network switch causes same token sending`() {
-        enableNetwork(false)
+        netStateDispatcher.setNetworkAvailable(false)
         updateFCMToken("mynewtoken")
 
         assertEquals(0, httpClient.getRequestsMatching(".*update_fcm_token.*").size)
-        enableNetwork(true)
-        enableNetwork(false)
-        enableNetwork(true)
+        netStateDispatcher.setNetworkAvailable(true)
+        netStateDispatcher.setNetworkAvailable(false)
+        netStateDispatcher.setNetworkAvailable(true)
         assertEquals(1, httpClient.getRequestsMatching(".*update_fcm_token.*").size)
     }
 
@@ -226,11 +213,6 @@ class FCMManagerTest {
     fun `can register only 1 msg receiver for single msg type`() {
         fcmManager!!.registerMessageReceiver("mymsgtype", mock())
         fcmManager!!.registerMessageReceiver("mymsgtype", mock())
-    }
-
-    private fun enableNetwork(enabled: Boolean) {
-        whenever(netStateDispatcher.isNetworkAvailable).doReturn(enabled)
-        netObservers.forEach { it.onNetworkAvailabilityChange(enabled) }
     }
 
     private fun setServerFcmResponseStatus(status: String) {

@@ -76,7 +76,7 @@ class FCMManager @Inject constructor(
             }
 
             val lastToken = prefsManager.getString(FCM_MANAGER, PREF_TOKEN)
-            if (!networkStateDispatcher.isNetworkAvailable || token == lastToken) {
+            if (!networkStateDispatcher.isNetworkAvailable() || token == lastToken) {
                 return@launch
             }
 

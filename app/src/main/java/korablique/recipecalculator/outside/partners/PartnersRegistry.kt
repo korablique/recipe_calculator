@@ -7,8 +7,12 @@ import korablique.recipecalculator.base.executors.MainThreadExecutor
 import korablique.recipecalculator.outside.fcm.FCMManager
 import korablique.recipecalculator.outside.http.BroccalcHttpContext
 import korablique.recipecalculator.outside.http.BroccalcNetJobResult
+import korablique.recipecalculator.outside.network.NetworkStateDispatcher
 import korablique.recipecalculator.outside.serverAddr
+import korablique.recipecalculator.outside.userparams.ServerUserParams
 import korablique.recipecalculator.outside.userparams.ServerUserParamsRegistry
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -16,15 +20,19 @@ private const val SERV_MSG_PAIRED_WITH_PARTNER = "paired_with_partner"
 
 /**
  * "Хранилище" партнёров пользователя.
+ * NOTE: на данный момент не хранит партнёров персистентно, на каждом старте приложения
+ * заново их получает с сервера.
+ * TODO: хранить партнёров персистентно
  */
 @Singleton
 class PartnersRegistry @Inject constructor(
         private val context: Context,
         private val mainThreadExecutor: MainThreadExecutor,
+        private val networkStateDispatcher: NetworkStateDispatcher,
         private val userParamsRegistry: ServerUserParamsRegistry,
         private val broccalcHttpContext: BroccalcHttpContext,
         private val fcmManager: FCMManager
-) : FCMManager.MessageReceiver {
+) : FCMManager.MessageReceiver, NetworkStateDispatcher.Observer, ServerUserParamsRegistry.Observer {
     private val cachedPartners = mutableListOf<Partner>()
     private var partnersCached = false
 
@@ -36,9 +44,13 @@ class PartnersRegistry @Inject constructor(
 
     init {
         fcmManager.registerMessageReceiver(SERV_MSG_PAIRED_WITH_PARTNER, this)
-        suspend {
-            updateAndGetPartners()
+        GlobalScope.launch(mainThreadExecutor) {
+            if (networkStateDispatcher.isNetworkAvailable()) {
+                updateAndGetPartners()
+            }
         }
+        networkStateDispatcher.addObserver(this)
+        userParamsRegistry.addObserver(this)
     }
 
     suspend fun getPartners(): BroccalcNetJobResult<List<Partner>> {
@@ -77,9 +89,24 @@ class PartnersRegistry @Inject constructor(
 
     override fun onNewFcmMessage(msg: String) {
         // We subscribed only to SERV_MSG_PAIRED_WITH_PARTNER
-        suspend {
+        GlobalScope.launch(mainThreadExecutor) {
             updateAndGetPartners()
         }
+    }
+
+    override fun onNetworkAvailabilityChange(available: Boolean) {
+        if (partnersCached) {
+            return
+        }
+        GlobalScope.launch(mainThreadExecutor) {
+            updateAndGetPartners()
+        }
+    }
+
+    override fun onUserParamsChange(userParams: ServerUserParams?) {
+        cachedPartners.clear()
+        partnersCached = false
+        observers.forEach { it.onPartnersChanged(cachedPartners) }
     }
 }
 

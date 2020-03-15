@@ -9,6 +9,7 @@ import dagger.Provides;
 import dagger.android.ContributesAndroidInjector;
 import dagger.android.support.AndroidSupportInjectionModule;
 import korablique.recipecalculator.base.BaseActivityModule;
+import korablique.recipecalculator.base.RxGlobalSubscriptions;
 import korablique.recipecalculator.base.TimeProvider;
 import korablique.recipecalculator.base.TimeProviderImpl;
 import korablique.recipecalculator.base.executors.ComputationThreadsExecutor;
@@ -26,6 +27,8 @@ import korablique.recipecalculator.outside.fcm.FCMService;
 import korablique.recipecalculator.outside.fcm.FCMServiceModule;
 import korablique.recipecalculator.outside.http.HttpClient;
 import korablique.recipecalculator.outside.http.HttpClientImpl;
+import korablique.recipecalculator.outside.network.NetworkStateDispatcher;
+import korablique.recipecalculator.outside.network.NetworkStateDispatcherImpl;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivityModule;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
@@ -85,6 +88,13 @@ public abstract class BroccalcApplicationModule {
     @Singleton
     public static HttpClient provideHttpClient() {
         return new HttpClientImpl();
+    }
+
+    @Provides
+    @Singleton
+    public static NetworkStateDispatcher provideNetStateDispatcher(
+            Context context, RxGlobalSubscriptions subscriptions) {
+        return new NetworkStateDispatcherImpl(context, subscriptions);
     }
 
     @Provides

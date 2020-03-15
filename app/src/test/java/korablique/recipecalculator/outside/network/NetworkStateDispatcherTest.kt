@@ -29,7 +29,7 @@ class NetworkStateDispatcherTest {
             }
         }
 
-        val dispatcher = NetworkStateDispatcher(mock(), mock())
+        val dispatcher = NetworkStateDispatcherImpl(mock(), mock())
         dispatcher.addObserver(dispatcherObserver)
 
         assertFalse(networkAvailable)
@@ -51,7 +51,7 @@ class NetworkStateDispatcherTest {
             }
         }
 
-        val dispatcher = NetworkStateDispatcher(mock(), mock())
+        val dispatcher = NetworkStateDispatcherImpl(mock(), mock())
         dispatcher.addObserver(dispatcherObserver)
 
         publishSubject.onNext(Connectivity.Builder().available(true).build())
