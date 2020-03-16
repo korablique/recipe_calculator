@@ -61,28 +61,10 @@ class PartnersListFragmentController @Inject constructor(
         recyclerView.layoutManager = layoutManager
         recyclerView.adapter = partnersAdapter
 
-        fragment.lifecycleScope.launch {
-            val partnersResult = partnersRegistry.getPartners()
-            when (partnersResult) {
-                is BroccalcNetJobResult.Ok -> {
-                    updateDisplayedPartners(partnersResult.item, fragmentView)
-                }
-                is BroccalcNetJobResult.Error.ServerError.NotLoggedIn -> {
-                    // TODO: ask user if they want to login or to cancel
-                    serverUserParamsObtainer.obtainUserParams()
-                }
-                else -> {
-                    Toast.makeText(activity, "Unexpected failure: partnersResult", Toast.LENGTH_LONG).show()
-                    // Crashlytics.logException(partnersResult.exception)
-                }
-            }
-        }
-        
         fragmentView.findViewById<TextView>(R.id.title_text).setText(R.string.partners_list)
         fragmentView.findViewById<View>(R.id.button_close).setOnClickListener {
             fragment.close()
         }
-
         fragmentView.findViewById<View>(R.id.add_fab).setOnClickListener {
             fragment.lifecycleScope.launch {
                 val paramsResult = serverUserParamsObtainer.obtainUserParams()
@@ -97,6 +79,23 @@ class PartnersListFragmentController @Inject constructor(
                         Toast.makeText(activity, "Unexpected failure: ${paramsResult.exception}", Toast.LENGTH_LONG).show()
                         // Crashlytics.logException(paramsResult.exception)
                     }
+                }
+            }
+        }
+
+        fragment.lifecycleScope.launch {
+            val partnersResult = partnersRegistry.getPartners()
+            when (partnersResult) {
+                is BroccalcNetJobResult.Ok -> {
+                    updateDisplayedPartners(partnersResult.item, fragmentView)
+                }
+                is BroccalcNetJobResult.Error.ServerError.NotLoggedIn -> {
+                    // TODO: ask user if they want to login or to cancel
+                    serverUserParamsObtainer.obtainUserParams()
+                }
+                else -> {
+                    Toast.makeText(activity, "Unexpected failure: partnersResult", Toast.LENGTH_LONG).show()
+                    // Crashlytics.logException(partnersResult.exception)
                 }
             }
         }

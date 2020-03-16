@@ -12,7 +12,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4ClassRunner::class)
 @LargeTest
 class HttpClientTest {
-    val httpClient = HttpClient()
+    val httpClient = HttpClientImpl()
 
     @Test
     fun testSuccessfulRequest() = runBlocking {

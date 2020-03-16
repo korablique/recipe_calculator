@@ -49,7 +49,6 @@ class ServerUserParamsRegistry @Inject constructor(
         set(value) {
             field = value
             if (value != null) {
-                // TODO: keep the vals in DB instead of preferences
                 prefsManager.putString(PrefsOwner.USER_PARAMS_REGISTRY, "uid", value.uid)
                 prefsManager.putString(PrefsOwner.USER_PARAMS_REGISTRY, "token", value.token)
             }
@@ -63,12 +62,10 @@ class ServerUserParamsRegistry @Inject constructor(
     }
 
     init {
-        // TODO: keep the vals in DB instead of preferences
         val uid = prefsManager.getString(PrefsOwner.USER_PARAMS_REGISTRY, "uid")
         val token = prefsManager.getString(PrefsOwner.USER_PARAMS_REGISTRY, "token")
         if (token != null && uid != null) {
-            val userParams = ServerUserParams(uid, token)
-            cachedUserParams = userParams
+            cachedUserParams = ServerUserParams(uid, token)
         }
     }
 

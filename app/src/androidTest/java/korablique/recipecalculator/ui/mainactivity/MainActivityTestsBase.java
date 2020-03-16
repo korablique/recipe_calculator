@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import korablique.recipecalculator.FakeHttpClient;
 import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.BaseFragment;
@@ -72,8 +73,7 @@ import korablique.recipecalculator.InstantComputationsThreadsExecutor;
 import korablique.recipecalculator.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.InstantIOExecutor;
 import korablique.recipecalculator.util.SyncMainThreadExecutor;
-import korablique.recipecalculator.util.TestingGPAuthorizer;
-import korablique.recipecalculator.util.TestingHttpClient;
+import korablique.recipecalculator.util.FakeGPAuthorizer;
 import korablique.recipecalculator.util.TestingTimeProvider;
 
 public class MainActivityTestsBase {
@@ -106,6 +106,8 @@ public class MainActivityTestsBase {
     protected FoodstuffsSearchEngine foodstuffsSearchEngine;
     protected InteractiveServerUserParamsObtainer serverUserParamsObtainer;
     protected ServerUserParamsRegistry serverUserParamsRegistry;
+    protected FakeHttpClient fakeHttpClient;
+    protected FakeGPAuthorizer fakeGPAuthorizer;
     protected TempLongClickedFoodstuffsHandler longClickedFoodstuffsHandler;
     protected HistoryViewHoldersPool historyViewHoldersPool;
 
@@ -135,10 +137,21 @@ public class MainActivityTestsBase {
                         foodstuffsSearchEngine = new FoodstuffsSearchEngine(
                                 foodstuffsList, topList, computationThreadsExecutor,
                                 mainThreadExecutor);
+
+                        fakeHttpClient = new FakeHttpClient();
+                        BroccalcHttpContext httpContext = new BroccalcHttpContext(fakeHttpClient);
+                        fakeGPAuthorizer = new FakeGPAuthorizer();
+                        serverUserParamsRegistry =
+                                new ServerUserParamsRegistry(
+                                        context,
+                                        mainThreadExecutor, ioExecutor, fakeGPAuthorizer,
+                                        userNameProvider, httpContext, prefsManager);
+
                         return Arrays.asList(databaseWorker, historyWorker, userParametersWorker,
                                 foodstuffsList, databaseHolder, userNameProvider,
                                 timeProvider, currentActivityProvider, sessionController,
-                                new CalcKeyboardController(), bucketList, foodstuffsSearchEngine);
+                                new CalcKeyboardController(), bucketList, foodstuffsSearchEngine,
+                                serverUserParamsRegistry, httpContext);
                     })
                     .withActivityScoped((injectionTarget) -> {
                         if (!(injectionTarget instanceof MainActivity)) {
@@ -155,20 +168,14 @@ public class MainActivityTestsBase {
                                 activity, activityCallbacks, fragmentsController);
                         activitySubscriptions = new RxActivitySubscriptions(activityCallbacks);
 
-                        BroccalcHttpContext httpContext = new BroccalcHttpContext(new TestingHttpClient());
-                        serverUserParamsRegistry =
-                                new ServerUserParamsRegistry(
-                                        context,
-                                        mainThreadExecutor, ioExecutor, new TestingGPAuthorizer(),
-                                        userNameProvider, httpContext, prefsManager);
-                        serverUserParamsObtainer =
-                                new InteractiveServerUserParamsObtainer(
-                                        activity, activityCallbacks, serverUserParamsRegistry);
-
                         longClickedFoodstuffsHandler =
                                 new TempLongClickedFoodstuffsHandler(activity, serverUserParamsRegistry);
                         historyViewHoldersPool = new HistoryViewHoldersPool(
                                 computationThreadsExecutor, mainThreadExecutor, activity);
+
+                        serverUserParamsObtainer =
+                                new InteractiveServerUserParamsObtainer(
+                                        activity, activityCallbacks, serverUserParamsRegistry);
 
                         return Arrays.asList(activity, controller, serverUserParamsObtainer,
                                 longClickedFoodstuffsHandler);

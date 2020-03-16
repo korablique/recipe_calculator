@@ -79,7 +79,8 @@ open class InteractiveServerUserParamsObtainer @Inject constructor(
 
     private suspend fun askUserToMoveAccount(): TwoOptionsDialog.ButtonName = suspendCoroutine { continuation ->
         val dialog = TwoOptionsDialog.showDialog(
-                activity.supportFragmentManager, MOVE_ACCOUNT_DIALOG_TAG,
+                activity.supportFragmentManager,
+                MOVE_ACCOUNT_DIALOG_TAG,
                 activity.getString(R.string.gp_account_move_request),
                 activity.getString(R.string.gp_account_move_request_confirmation),
                 activity.getString(R.string.gp_account_move_request_cancellation))

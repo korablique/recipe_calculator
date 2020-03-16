@@ -29,6 +29,8 @@ import korablique.recipecalculator.outside.http.HttpClient;
 import korablique.recipecalculator.outside.http.HttpClientImpl;
 import korablique.recipecalculator.outside.network.NetworkStateDispatcher;
 import korablique.recipecalculator.outside.network.NetworkStateDispatcherImpl;
+import korablique.recipecalculator.outside.thirdparty.GPAuthorizer;
+import korablique.recipecalculator.outside.thirdparty.GPAuthorizerImpl;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivityModule;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
@@ -101,6 +103,12 @@ public abstract class BroccalcApplicationModule {
     @Singleton
     public static TimeProvider provideTimeProvider() {
         return new TimeProviderImpl();
+    }
+
+    @Provides
+    @Singleton
+    public static GPAuthorizer provideGpAuthorizer() {
+        return new GPAuthorizerImpl();
     }
 
     @ActivityScope
