@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import korablique.recipecalculator.R
 import korablique.recipecalculator.base.BaseActivity
 import korablique.recipecalculator.base.FragmentCallbacks
+import korablique.recipecalculator.base.executors.MainThreadExecutor
 import korablique.recipecalculator.dagger.FragmentScope
 import korablique.recipecalculator.model.Foodstuff
 import korablique.recipecalculator.outside.http.BroccalcNetJobResult
@@ -19,6 +20,8 @@ import korablique.recipecalculator.outside.partners.PartnersRegistry
 import korablique.recipecalculator.outside.partners.direct.FoodstuffsCorrespondenceManager
 import korablique.recipecalculator.outside.userparams.InteractiveServerUserParamsObtainer
 import korablique.recipecalculator.outside.userparams.ObtainResult
+import korablique.recipecalculator.outside.userparams.ServerUserParams
+import korablique.recipecalculator.outside.userparams.ServerUserParamsRegistry
 import korablique.recipecalculator.ui.mainactivity.partners.pairing.PairingFragment
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -27,15 +30,17 @@ private const val FOODSTUFF_PARCEL_TO_PARTNER = "FOODSTUFF_PARCEL_TO_PARTNER"
 
 @FragmentScope
 class PartnersListFragmentController @Inject constructor(
+        private val mainThreadExecutor: MainThreadExecutor,
         private val activity: BaseActivity,
         private val fragment: PartnersListFragment,
         private val fragmentCallbacks: FragmentCallbacks,
+        private val userParamsRegistry: ServerUserParamsRegistry,
         private val partnersRegistry: PartnersRegistry,
-        private val serverUserParamsObtainer: InteractiveServerUserParamsObtainer,
+        private val interactiveServerUserParamsObtainer: InteractiveServerUserParamsObtainer,
         private val foodstuffsCorrespondenceManager: FoodstuffsCorrespondenceManager)
-    : FragmentCallbacks.Observer, PartnersRegistry.Observer {
-
+    : FragmentCallbacks.Observer, PartnersRegistry.Observer, ServerUserParamsRegistry.Observer {
     private val partnersAdapter: PartnersListAdapter = PartnersListAdapter(this::onPartnerClick)
+    private lateinit var fragmentView: View
 
     companion object {
         internal fun startToSendFoodstuff(activity: BaseActivity, foodstuff: Foodstuff) {
@@ -48,13 +53,18 @@ class PartnersListFragmentController @Inject constructor(
     init {
         fragmentCallbacks.addObserver(this)
         partnersRegistry.addObserver(this)
+        userParamsRegistry.addObserver(this)
     }
 
     override fun onFragmentDestroy() {
         partnersRegistry.removeObserver(this)
+        userParamsRegistry.removeObserver(this)
     }
 
     override fun onFragmentViewCreated(fragmentView: View, savedInstanceState: Bundle?) {
+        this.fragmentView = fragmentView
+        onUserParamsChange(userParamsRegistry.getUserParams())
+
         val recyclerView: RecyclerView =
                 fragmentView.findViewById(R.id.partners_list_recycler_view)
         val layoutManager = LinearLayoutManager(fragment.context)
@@ -65,59 +75,48 @@ class PartnersListFragmentController @Inject constructor(
         fragmentView.findViewById<View>(R.id.button_close).setOnClickListener {
             fragment.close()
         }
+        fragmentView.findViewById<View>(R.id.button_google_sign_in).setOnClickListener {
+            fragment.lifecycleScope.launch(mainThreadExecutor) {
+                interactiveServerUserParamsObtainer.obtainUserParams()
+            }
+        }
         fragmentView.findViewById<View>(R.id.add_fab).setOnClickListener {
-            fragment.lifecycleScope.launch {
-                val paramsResult = serverUserParamsObtainer.obtainUserParams()
+            fragment.lifecycleScope.launch(mainThreadExecutor) {
+                val paramsResult = interactiveServerUserParamsObtainer.obtainUserParams()
                 when (paramsResult) {
                     is ObtainResult.Success -> {
                         PairingFragment.start(activity)
                     }
                     is ObtainResult.CanceledByUser -> {
-                        Toast.makeText(activity, "Login canceled", Toast.LENGTH_LONG).show()
+                        // Nothing to do
                     }
                     is ObtainResult.Failure -> {
-                        Toast.makeText(activity, "Unexpected failure: ${paramsResult.exception}", Toast.LENGTH_LONG).show()
                         // Crashlytics.logException(paramsResult.exception)
                     }
                 }
             }
         }
 
-        fragment.lifecycleScope.launch {
-            val partnersResult = partnersRegistry.getPartners()
+        fragment.lifecycleScope.launch(mainThreadExecutor) {
+            val partnersResult = partnersRegistry.requestPartners()
             when (partnersResult) {
                 is BroccalcNetJobResult.Ok -> {
-                    updateDisplayedPartners(partnersResult.item, fragmentView)
+                    updateDisplayedState(fragmentView)
                 }
                 is BroccalcNetJobResult.Error.ServerError.NotLoggedIn -> {
-                    // TODO: ask user if they want to login or to cancel
-                    serverUserParamsObtainer.obtainUserParams()
+                    // Nothing to do - waiting for social network sign in
                 }
                 else -> {
-                    Toast.makeText(activity, "Unexpected failure: partnersResult", Toast.LENGTH_LONG).show()
                     // Crashlytics.logException(partnersResult.exception)
                 }
             }
         }
     }
 
-    private fun updateDisplayedPartners(partners: List<Partner>, view: View) {
-        partnersAdapter.setPartners(partners)
-        if (partners.isEmpty()) {
-            view.findViewById<View>(R.id.no_partners_layout).visibility = View.VISIBLE
-        } else {
-            view.findViewById<View>(R.id.no_partners_layout).visibility = View.GONE
-        }
-    }
-
-    override fun onPartnersChanged(partners: List<Partner>) {
-        updateDisplayedPartners(partners, fragment.requireView())
-    }
-
     private fun onPartnerClick(partner: Partner) {
         val foodstuff = fragment.arguments?.getParcelable<Foodstuff>(FOODSTUFF_PARCEL_TO_PARTNER)
         if (foodstuff != null) {
-            fragment.lifecycleScope.launch {
+            fragment.lifecycleScope.launch(mainThreadExecutor) {
                 val sendResult = foodstuffsCorrespondenceManager.sendFooodstuffToPartner(foodstuff, partner)
                 when (sendResult) {
                     is BroccalcNetJobResult.Ok -> {
@@ -125,7 +124,6 @@ class PartnersListFragmentController @Inject constructor(
                         fragment.close()
                     }
                     is BroccalcNetJobResult.Error.ServerError.NotLoggedIn -> {
-                        Toast.makeText(fragment.context, "Not logged in", Toast.LENGTH_LONG).show()
                         fragment.close()
                     }
                     is BroccalcNetJobResult.Error -> {
@@ -134,6 +132,38 @@ class PartnersListFragmentController @Inject constructor(
                         fragment.close()
                     }
                 }
+            }
+        }
+    }
+
+    override fun onPartnersChanged(partners: List<Partner>) {
+        updateDisplayedState(fragmentView)
+    }
+
+    override fun onUserParamsChange(userParams: ServerUserParams?) {
+        updateDisplayedState(fragmentView)
+    }
+
+    private fun updateDisplayedState(view: View) {
+        view.findViewById<View>(R.id.not_logged_in_layout).visibility = View.GONE
+        view.findViewById<View>(R.id.add_fab).visibility = View.GONE
+        view.findViewById<View>(R.id.no_partners_layout).visibility = View.GONE
+
+        // Let's refresh partners list
+        fragment.lifecycleScope.launch(mainThreadExecutor) {
+            partnersRegistry.requestPartners()
+        }
+
+        if (userParamsRegistry.getUserParams() == null) {
+            view.findViewById<View>(R.id.not_logged_in_layout).visibility = View.VISIBLE
+        } else {
+            fragmentView.findViewById<View>(R.id.add_fab).visibility = View.VISIBLE
+            val partners = partnersRegistry.getPartnersCache()
+            if (partners.isEmpty()) {
+                view.findViewById<View>(R.id.no_partners_layout).visibility = View.VISIBLE
+            } else {
+                view.findViewById<View>(R.id.no_partners_layout).visibility = View.GONE
+                partnersAdapter.setPartners(partners)
             }
         }
     }

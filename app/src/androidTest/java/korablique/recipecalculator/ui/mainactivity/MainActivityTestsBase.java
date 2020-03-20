@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.List;
 
 import korablique.recipecalculator.FakeHttpClient;
+import korablique.recipecalculator.FakeNetworkStateDispatcher;
 import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.BaseFragment;
@@ -23,6 +24,7 @@ import korablique.recipecalculator.base.CurrentActivityProvider;
 import korablique.recipecalculator.base.FragmentCallbacks;
 import korablique.recipecalculator.base.RxActivitySubscriptions;
 import korablique.recipecalculator.base.RxFragmentSubscriptions;
+import korablique.recipecalculator.base.RxGlobalSubscriptions;
 import korablique.recipecalculator.base.SoftKeyboardStateWatcher;
 import korablique.recipecalculator.base.executors.ComputationThreadsExecutor;
 import korablique.recipecalculator.base.executors.IOExecutor;
@@ -43,7 +45,11 @@ import korablique.recipecalculator.model.Gender;
 import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
+import korablique.recipecalculator.outside.fcm.FCMManager;
 import korablique.recipecalculator.outside.http.BroccalcHttpContext;
+import korablique.recipecalculator.outside.partners.PartnersRegistry;
+import korablique.recipecalculator.outside.partners.direct.DirectMsgsManager;
+import korablique.recipecalculator.outside.partners.direct.FoodstuffsCorrespondenceManager;
 import korablique.recipecalculator.outside.userparams.InteractiveServerUserParamsObtainer;
 import korablique.recipecalculator.outside.userparams.ServerUserParamsRegistry;
 import korablique.recipecalculator.search.FoodstuffsSearchEngine;
@@ -64,10 +70,13 @@ import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenSearchCo
 import korablique.recipecalculator.ui.mainactivity.mainscreen.SearchResultsFragment;
 import korablique.recipecalculator.ui.mainactivity.mainscreen.TempLongClickedFoodstuffsHandler;
 import korablique.recipecalculator.ui.mainactivity.mainscreen.UpFABController;
+import korablique.recipecalculator.ui.mainactivity.partners.PartnersListFragment;
+import korablique.recipecalculator.ui.mainactivity.partners.PartnersListFragmentController;
 import korablique.recipecalculator.ui.mainactivity.profile.NewMeasurementsDialog;
 import korablique.recipecalculator.ui.mainactivity.profile.ProfileController;
 import korablique.recipecalculator.ui.mainactivity.profile.ProfileFragment;
 import korablique.recipecalculator.util.DBTestingUtils;
+import korablique.recipecalculator.FakeFCMTokenProvider;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.InstantComputationsThreadsExecutor;
 import korablique.recipecalculator.InstantDatabaseThreadExecutor;
@@ -110,6 +119,12 @@ public class MainActivityTestsBase {
     protected FakeGPAuthorizer fakeGPAuthorizer;
     protected TempLongClickedFoodstuffsHandler longClickedFoodstuffsHandler;
     protected HistoryViewHoldersPool historyViewHoldersPool;
+    protected PartnersRegistry partnersRegistry;
+    protected FakeNetworkStateDispatcher fakeNetworkStateDispatcher;
+    protected FCMManager fcmManager;
+    protected InteractiveServerUserParamsObtainer interactiveServerUserParamsObtainer;
+    protected FoodstuffsCorrespondenceManager foodstuffsCorrespondenceManager;
+    protected DirectMsgsManager directMsgsManager;
 
     @Rule
     public ActivityTestRule<MainActivity> mActivityRule =
@@ -147,6 +162,28 @@ public class MainActivityTestsBase {
                                         mainThreadExecutor, ioExecutor, fakeGPAuthorizer,
                                         userNameProvider, httpContext, prefsManager);
 
+                        fakeNetworkStateDispatcher = new FakeNetworkStateDispatcher();
+                        fakeNetworkStateDispatcher.setNetworkAvailable(true);
+
+                        fcmManager =
+                                new FCMManager(
+                                        context, mainThreadExecutor, prefsManager,
+                                        fakeNetworkStateDispatcher, httpContext, serverUserParamsRegistry,
+                                        new FakeFCMTokenProvider(() -> "fcmtoken"));
+
+                        partnersRegistry =
+                                new PartnersRegistry(
+                                        context, mainThreadExecutor, fakeNetworkStateDispatcher,
+                                        serverUserParamsRegistry, httpContext, fcmManager);
+
+                        directMsgsManager =
+                                new DirectMsgsManager(
+                                        context, fcmManager, serverUserParamsRegistry, httpContext);
+                        foodstuffsCorrespondenceManager =
+                                new FoodstuffsCorrespondenceManager(
+                                        directMsgsManager, foodstuffsList, currentActivityProvider,
+                                        new RxGlobalSubscriptions());
+
                         return Arrays.asList(databaseWorker, historyWorker, userParametersWorker,
                                 foodstuffsList, databaseHolder, userNameProvider,
                                 timeProvider, currentActivityProvider, sessionController,
@@ -174,6 +211,10 @@ public class MainActivityTestsBase {
                                 computationThreadsExecutor, mainThreadExecutor, activity);
 
                         serverUserParamsObtainer =
+                                new InteractiveServerUserParamsObtainer(
+                                        activity, activityCallbacks, serverUserParamsRegistry);
+
+                        interactiveServerUserParamsObtainer =
                                 new InteractiveServerUserParamsObtainer(
                                         activity, activityCallbacks, serverUserParamsRegistry);
 
@@ -242,8 +283,16 @@ public class MainActivityTestsBase {
                                             historyViewHoldersPool, computationThreadsExecutor,
                                             mainThreadExecutor);
                             return Arrays.asList(pageController);
+                        } else if (fragment instanceof PartnersListFragment) {
+                            PartnersListFragmentController controller =
+                                    new PartnersListFragmentController(
+                                            mainThreadExecutor, activity, (PartnersListFragment) fragment,
+                                            fragment.getFragmentCallbacks(), serverUserParamsRegistry,
+                                            partnersRegistry, interactiveServerUserParamsObtainer,
+                                            foodstuffsCorrespondenceManager);
+                            return Arrays.asList(controller);
                         } else {
-                            throw new IllegalStateException("There is no such fragment class");
+                            throw new IllegalStateException("Unhandled fragment: " + fragment.getClass().getName());
                         }
                     }))
                     .build();

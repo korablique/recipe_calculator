@@ -8,7 +8,6 @@ import korablique.recipecalculator.base.prefs.SharedPrefsManager
 import korablique.recipecalculator.outside.http.BroccalcHttpContext
 import korablique.recipecalculator.outside.http.RequestResult
 import korablique.recipecalculator.outside.http.Response
-import korablique.recipecalculator.outside.network.NetworkStateDispatcher
 import korablique.recipecalculator.outside.userparams.ServerUserParams
 import korablique.recipecalculator.outside.userparams.ServerUserParamsRegistry
 import org.junit.Assert.assertEquals
@@ -226,7 +225,4 @@ class FCMManagerTest {
         fcmManager?.onFCMTokenChanged(newVal)
     }
 
-    private class FakeFCMTokenProvider(val token: ()->String?) : FCMTokenObtainer() {
-        override suspend fun requestToken() = token()
-    }
 }

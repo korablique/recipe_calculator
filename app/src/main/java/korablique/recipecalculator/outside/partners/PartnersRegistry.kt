@@ -53,7 +53,9 @@ class PartnersRegistry @Inject constructor(
         userParamsRegistry.addObserver(this)
     }
 
-    suspend fun getPartners(): BroccalcNetJobResult<List<Partner>> {
+    fun getPartnersCache(): List<Partner> = cachedPartners
+
+    suspend fun requestPartners(): BroccalcNetJobResult<List<Partner>> {
         if (partnersCached) {
             return BroccalcNetJobResult.Ok(cachedPartners)
         }

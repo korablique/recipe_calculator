@@ -114,7 +114,7 @@ class PartnersRegistryTest {
         initRegistry()
 
         assertEquals(0, httpClient.getRequestsMatching(".*list_partners.*").size)
-        partnersRegistry.getPartners()
+        partnersRegistry.requestPartners()
         assertEquals(1, httpClient.getRequestsMatching(".*list_partners.*").size)
     }
 
@@ -123,14 +123,14 @@ class PartnersRegistryTest {
         initRegistry()
 
         val initSize = httpClient.getRequestsMatching(".*list_partners.*").size
-        partnersRegistry.getPartners()
+        partnersRegistry.requestPartners()
         assertEquals(initSize, httpClient.getRequestsMatching(".*list_partners.*").size)
     }
 
     @Test
     fun `proper partners list is obtained`() = runBlocking {
         initRegistry()
-        val response = partnersRegistry.getPartners() as BroccalcNetJobResult.Ok
+        val response = partnersRegistry.requestPartners() as BroccalcNetJobResult.Ok
         val partners = response.item
         assertEquals(2, partners.size)
         assertEquals(Partner("uid1", "name1"), partners[0])
@@ -142,7 +142,7 @@ class PartnersRegistryTest {
         whenever(userParamsRegistry.getUserParams()).doReturn(null)
         initRegistry()
 
-        assertTrue(partnersRegistry.getPartners() is BroccalcNetJobResult.Error.ServerError.NotLoggedIn)
+        assertTrue(partnersRegistry.requestPartners() is BroccalcNetJobResult.Error.ServerError.NotLoggedIn)
         assertEquals(0, httpClient.getRequestsMatching(".*list_partners.*").size)
     }
 
@@ -150,10 +150,10 @@ class PartnersRegistryTest {
     fun `cached partners are erased when user logs out`() = runBlocking {
         initRegistry()
 
-        assertTrue(partnersRegistry.getPartners() is BroccalcNetJobResult.Ok)
+        assertTrue(partnersRegistry.requestPartners() is BroccalcNetJobResult.Ok)
         whenever(userParamsRegistry.getUserParams()).doReturn(null)
         userParamsRegistryObservers.forEach { it.onUserParamsChange(null) }
-        assertTrue(partnersRegistry.getPartners() is BroccalcNetJobResult.Error.ServerError.NotLoggedIn)
+        assertTrue(partnersRegistry.requestPartners() is BroccalcNetJobResult.Error.ServerError.NotLoggedIn)
     }
 
     @Test
