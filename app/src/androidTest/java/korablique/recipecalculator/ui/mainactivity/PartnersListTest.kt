@@ -13,6 +13,7 @@ import korablique.recipecalculator.outside.http.Response
 import korablique.recipecalculator.outside.thirdparty.GPAuthResult
 import korablique.recipecalculator.util.EspressoUtils.isNotDisplayed
 import korablique.recipecalculator.util.EspressoUtils.matches
+import korablique.recipecalculator.util.checkNetworkChangesSnackbarReaction
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.hamcrest.CoreMatchers.allOf
@@ -21,7 +22,7 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
-class MainActivityPartnersListTest : MainActivityTestsBase() {
+class PartnersListTest : MainActivityTestsBase() {
     @Test
     fun partnersListOpening_whenNotRegistered() {
         fakeGPAuthorizer.authResult = GPAuthResult.Success("gptoken")
@@ -179,5 +180,15 @@ class MainActivityPartnersListTest : MainActivityTestsBase() {
                 withText("partner name2"),
                 matches(isCompletelyBelow(withText("partner name1")))))
                     .check(matches(isDisplayed()))
+    }
+
+    @Test
+    fun networkUnavailableMessage() {
+        mActivityRule.launchActivity(null)
+
+        onView(withId(R.id.menu_item_profile)).perform(click())
+        onView(withId(R.id.layout_button_partners)).perform(click())
+
+        checkNetworkChangesSnackbarReaction(fakeNetworkStateDispatcher)
     }
 }

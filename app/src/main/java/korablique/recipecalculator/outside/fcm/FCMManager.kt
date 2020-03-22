@@ -33,6 +33,12 @@ class FCMManager @Inject constructor(
         private val userParamsRegistry: ServerUserParamsRegistry,
         private val fcmTokenObtainer: FCMTokenObtainer)
     : NetworkStateDispatcher.Observer, ServerUserParamsRegistry.Observer {
+    companion object {
+        @VisibleForTesting
+        fun createMsgForTests(type: String, msg: String): Map<String, String> {
+            return mapOf(SERV_FIELD_MSG_TYPE to type, SERV_FIELD_MSG to msg)
+        }
+    }
 
     private val messageReceivers = mutableMapOf<String, MessageReceiver>()
 

@@ -22,7 +22,7 @@ import java.lang.Exception
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
-class MainActivityAuthTest : MainActivityTestsBase() {
+class AuthTest : MainActivityTestsBase() {
     @Test
     fun noAccMoveServAuth() = runBlocking {
         fakeGPAuthorizer.authResult = GPAuthResult.Success("gptoken")
