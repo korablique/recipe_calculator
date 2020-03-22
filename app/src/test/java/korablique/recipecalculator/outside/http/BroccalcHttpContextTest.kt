@@ -165,6 +165,53 @@ class BroccalcHttpContextTest {
         }
         assertTrue(response is BroccalcNetJobResult.Error.ResponseFormatError)
     }
+
+    @Test
+    fun serverErrorsAreDeliveredToObservers() = runBlocking {
+        val receivedErrors = mutableListOf<BroccalcNetJobResult.Error.ServerError<*>>()
+        val observer = object : BroccalcHttpContext.ServerErrorsObserver {
+            override fun onBroccalcServerError(error: BroccalcNetJobResult.Error.ServerError<*>) {
+                receivedErrors += error
+            }
+        }
+        broccalcHttpContext.addServerErrorsObserver(observer)
+
+        whenever(httpClient.request(any(), any())).doAnswer {
+            RequestResult.Success(Response("""
+                {
+                    "status": "internal_error",
+                    "error_description": "wow such error"
+                }""".trimIndent()))
+        }
+        broccalcHttpContext.run { httpRequest("broccalc.com", SomeJsonClass::class) }
+        assertEquals(1, receivedErrors.size)
+        assertTrue(receivedErrors.removeAt(0) is BroccalcNetJobResult.Error.ServerError.Other)
+        receivedErrors.clear()
+
+        whenever(httpClient.request(any(), any())).doAnswer {
+            RequestResult.Success(Response("""
+                {
+                    "status": "$STATUS_INVALID_CLIENT_TOKEN",
+                    "error_description": "wow such error"
+                }""".trimIndent()))
+        }
+        broccalcHttpContext.run { httpRequest("broccalc.com", SomeJsonClass::class) }
+        assertEquals(1, receivedErrors.size)
+        assertTrue(receivedErrors.removeAt(0) is BroccalcNetJobResult.Error.ServerError.NotLoggedIn)
+        receivedErrors.clear()
+
+        whenever(httpClient.request(any(), any())).doAnswer {
+            RequestResult.Success(Response("""
+                {
+                    "status": "$STATUS_USER_NOT_FOUND",
+                    "error_description": "wow such error"
+                }""".trimIndent()))
+        }
+        broccalcHttpContext.run { httpRequest("broccalc.com", SomeJsonClass::class) }
+        assertEquals(1, receivedErrors.size)
+        assertTrue(receivedErrors.removeAt(0) is BroccalcNetJobResult.Error.ServerError.NotLoggedIn)
+        receivedErrors.clear()
+    }
 }
 
 @JsonClass(generateAdapter = true)
@@ -175,15 +222,3 @@ data class SomeJsonClass(
 @JsonClass(generateAdapter = true)
 data class SomeJsonWithoutStatus(
         val some_field: String)
-
-
-
-//
-//val result = try {
-//    responseStrToType(responseStr, resultType)
-//} catch (e: Throwable) {
-//    return BroccalcNetJobResult.Error.ResponseFormatError(
-//            Exception("Couldn't transform OK response into $resultType."
-//                    + "Response str: $responseStr", e))
-//}
-//return BroccalcNetJobResult.Ok(result)

@@ -42,16 +42,14 @@ class ServerUserParamsRegistry @Inject constructor(
         private val userNameProvider: UserNameProvider,
         private val httpContext: BroccalcHttpContext,
         private val prefsManager: SharedPrefsManager
-) {
+): BroccalcHttpContext.ServerErrorsObserver {
     private val observers = mutableListOf<Observer>()
     @Volatile
     private var cachedUserParams: ServerUserParams? = null
         set(value) {
             field = value
-            if (value != null) {
-                prefsManager.putString(PrefsOwner.USER_PARAMS_REGISTRY, "uid", value.uid)
-                prefsManager.putString(PrefsOwner.USER_PARAMS_REGISTRY, "token", value.token)
-            }
+            prefsManager.putString(PrefsOwner.USER_PARAMS_REGISTRY, "uid", value?.uid)
+            prefsManager.putString(PrefsOwner.USER_PARAMS_REGISTRY, "token", value?.token)
             mainThreadExecutor.execute {
                 observers.forEach { it.onUserParamsChange(cachedUserParams) }
             }
@@ -67,6 +65,7 @@ class ServerUserParamsRegistry @Inject constructor(
         if (token != null && uid != null) {
             cachedUserParams = ServerUserParams(uid, token)
         }
+        httpContext.addServerErrorsObserver(this)
     }
 
     suspend fun getUserParamsMaybeRegister(context: BaseActivity) = withContext(ioExecutor) {
@@ -163,6 +162,12 @@ class ServerUserParamsRegistry @Inject constructor(
 
     fun removeObserver(observer: Observer) {
         observers -= observer
+    }
+
+    override fun onBroccalcServerError(error: BroccalcNetJobResult.Error.ServerError<*>) {
+        if (error is BroccalcNetJobResult.Error.ServerError.NotLoggedIn) {
+            cachedUserParams = null
+        }
     }
 }
 

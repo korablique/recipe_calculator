@@ -21,6 +21,19 @@ class BroccalcHttpContext @Inject constructor(
             .Builder()
             .add(KotlinJsonAdapterFactory())
             .build()
+    private val serverErrorsObservers = mutableListOf<ServerErrorsObserver>()
+
+    interface ServerErrorsObserver {
+        fun onBroccalcServerError(error: BroccalcNetJobResult.Error.ServerError<*>)
+    }
+
+    fun addServerErrorsObserver(observer: ServerErrorsObserver) {
+        serverErrorsObservers += observer
+    }
+
+    fun removeServerErrorsObserver(observer: ServerErrorsObserver) {
+        serverErrorsObservers -= observer
+    }
 
     suspend fun <T:Any> run(
             fn: suspend BroccalcHttpContext.()->BroccalcNetJobResult<T>): BroccalcNetJobResult<T> {
@@ -89,7 +102,7 @@ class BroccalcHttpContext @Inject constructor(
                                 + "Response str: $responseStr", e))
             }
 
-            return when (servErr.status) {
+            val serverError: BroccalcNetJobResult.Error.ServerError<T> = when (servErr.status) {
                 STATUS_INVALID_CLIENT_TOKEN -> {
                     BroccalcNetJobResult.Error.ServerError.NotLoggedIn(servErr)
                 }
@@ -100,6 +113,8 @@ class BroccalcHttpContext @Inject constructor(
                     BroccalcNetJobResult.Error.ServerError.Other(servErr)
                 }
             }
+            serverErrorsObservers.forEach { it.onBroccalcServerError(serverError) }
+            return serverError
         }
 
         val result = try {

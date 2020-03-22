@@ -6,16 +6,18 @@ import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.filters.LargeTest
 import androidx.test.runner.AndroidJUnit4
 import korablique.recipecalculator.R
+import korablique.recipecalculator.outside.STATUS_INVALID_CLIENT_TOKEN
+import korablique.recipecalculator.outside.STATUS_USER_NOT_FOUND
 import korablique.recipecalculator.outside.http.RequestResult
 import korablique.recipecalculator.outside.http.Response
 import korablique.recipecalculator.outside.thirdparty.GPAuthResult
 import korablique.recipecalculator.outside.userparams.ObtainResult
 import korablique.recipecalculator.outside.userparams.ServerUserParams
+import korablique.recipecalculator.outside.userparams.ServerUserParamsRegistry
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.lang.Exception
@@ -137,5 +139,80 @@ class AuthTest : MainActivityTestsBase() {
 
         val result = serverUserParamsObtainer.obtainUserParams()
         assertEquals("$result", ObtainResult.Failure::class, result::class)
+    }
+
+    @Test
+    fun savedAuthErasedOnServerInvalidTokenError() {
+        testSavedUserParamsReactionOnServerErrors(STATUS_INVALID_CLIENT_TOKEN, true)
+    }
+
+    @Test
+    fun savedAuthErasedOnServerUserNotFoundError() = runBlocking {
+        testSavedUserParamsReactionOnServerErrors(STATUS_USER_NOT_FOUND, true)
+    }
+
+    @Test
+    fun savedAuthNotErasedOnServerInternalError() = runBlocking {
+        testSavedUserParamsReactionOnServerErrors("internal_error", false)
+    }
+
+    private fun testSavedUserParamsReactionOnServerErrors(
+            errorStatus: String,
+            paramsExpectedToBeErased: Boolean) = runBlocking {
+        var observedUser: ServerUserParams? = null
+        val observer = object : ServerUserParamsRegistry.Observer {
+            override fun onUserParamsChange(userParams: ServerUserParams?) {
+                observedUser = userParams
+            }
+        }
+        serverUserParamsRegistry.addObserver(observer)
+
+        // Successful registration
+        fakeGPAuthorizer.authResult = GPAuthResult.Success("gptoken")
+        fakeHttpClient.setResponse(".*register.*") {
+            RequestResult.Success(Response("""
+                {
+                    "status": "ok",
+                    "user_id": "uid",
+                    "client_token": "token"
+                }
+            """))
+        }
+        mActivityRule.launchActivity(null)
+        val result = serverUserParamsObtainer.obtainUserParams()
+        assertTrue(result is ObtainResult.Success)
+
+        // Assert user params exist at first
+        assertEquals(ServerUserParams("uid", "token"), observedUser)
+        assertEquals(ServerUserParams("uid", "token"), serverUserParamsRegistry.getUserParams())
+
+        // Set up failed response and make request so that the response would be received
+        fakeHttpClient.setResponse(".*my_cool_request.*") {
+            RequestResult.Success(Response("""
+                {
+                    "status": "$errorStatus",
+                    "error_description": "wow"
+                }
+            """))
+        }
+        httpContext.httpRequest("my_cool_request", String::class)
+
+        if (paramsExpectedToBeErased) {
+            // Assert user params are gone
+            assertEquals(null, observedUser)
+            assertEquals(null, serverUserParamsRegistry.getUserParams())
+
+            // Register again
+            val result2 = serverUserParamsObtainer.obtainUserParams()
+            assertTrue(result2 is ObtainResult.Success)
+
+            // Assert user params exist again
+            assertEquals(ServerUserParams("uid", "token"), observedUser)
+            assertEquals(ServerUserParams("uid", "token"), serverUserParamsRegistry.getUserParams())
+        } else {
+            // Assert user params still exist
+            assertEquals(ServerUserParams("uid", "token"), observedUser)
+            assertEquals(ServerUserParams("uid", "token"), serverUserParamsRegistry.getUserParams())
+        }
     }
 }
