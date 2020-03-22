@@ -9,6 +9,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import androidx.annotation.AnyThread;
+import androidx.annotation.VisibleForTesting;
 import androidx.room.Room;
 
 import korablique.recipecalculator.util.FileSystemUtils;
@@ -39,6 +40,7 @@ public class DatabaseHolder {
         this.databaseThreadExecutor = databaseThreadExecutor;
     }
 
+    @VisibleForTesting
     public synchronized AppDatabase getDatabase() {
         if (db == null) {
             db = createDB();
@@ -51,7 +53,8 @@ public class DatabaseHolder {
      * Метод не стоит использовать вне тестов - нет смысла, и Room не особо
      * даёт гарантии о результатах закрытия.
      */
-    synchronized void closeDatabaseConnection() {
+    @VisibleForTesting
+    public synchronized void closeDatabaseConnection() {
         if (db == null) {
             return;
         }
@@ -79,7 +82,7 @@ public class DatabaseHolder {
         return builder.build();
     }
 
-    File getDBFile() {
+    public File getDBFile() {
         return new File(context.getFilesDir(), DATABASE_NAME);
     }
 

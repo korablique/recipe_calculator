@@ -154,6 +154,14 @@
     <string name="your_partner_pairing_code">Код партнёра:</string>
     <string name="send_to_partner">Отправить партнёру</string>
     <string name="sign_in_with_google">Войти с Google</string>
+    <string name="something_went_wrong">Упс, что-то пошло не так</string>
+    <string name="possibly_no_network_connection">Возможно интернет не подключен</string>
+    <string name="your_code_is_valid_for">Ваш код действителен ещё:</string>
+    <string name="successfully_paired_with">Добавлен новый партнёр: %s</string>
+    <string name="successfully_paired_with_multiple_partners">Добавлены новые партнёры</string>
+    <string name="pairing_request_sent">Запрос отправлен</string>
+    <string name="obtain_pairing_code">Получить код</string>
+    <string name="partner_with_code_not_found">Пользователь с кодом %s не найден</string>
 
     <string-array name="gender_array">
         <item name="not_selected">—</item>

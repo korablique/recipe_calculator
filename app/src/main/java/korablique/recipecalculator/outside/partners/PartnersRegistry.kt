@@ -1,6 +1,7 @@
 package korablique.recipecalculator.outside.partners
 
 import android.content.Context
+import androidx.annotation.VisibleForTesting
 import com.squareup.moshi.JsonClass
 import korablique.recipecalculator.R
 import korablique.recipecalculator.base.executors.MainThreadExecutor
@@ -16,7 +17,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
-private const val SERV_MSG_PAIRED_WITH_PARTNER = "paired_with_partner"
+@VisibleForTesting
+const val SERV_MSG_PAIRED_WITH_PARTNER = "paired_with_partner"
 
 /**
  * "Хранилище" партнёров пользователя.
@@ -39,7 +41,10 @@ class PartnersRegistry @Inject constructor(
     private val observers = mutableListOf<Observer>()
 
     interface Observer {
-        fun onPartnersChanged(partners: List<Partner>)
+        fun onPartnersChanged(
+                partners: List<Partner>,
+                newPartners: List<Partner>,
+                removedPartners: List<Partner>)
     }
 
     init {
@@ -55,10 +60,7 @@ class PartnersRegistry @Inject constructor(
 
     fun getPartnersCache(): List<Partner> = cachedPartners
 
-    suspend fun requestPartners(): BroccalcNetJobResult<List<Partner>> {
-        if (partnersCached) {
-            return BroccalcNetJobResult.Ok(cachedPartners)
-        }
+    suspend fun requestPartnersFromServer(): BroccalcNetJobResult<List<Partner>> {
         return updateAndGetPartners()
     }
 
@@ -73,10 +75,25 @@ class PartnersRegistry @Inject constructor(
         return broccalcHttpContext.run {
             val response = unwrap(httpRequest(url, ListPartnersResponse::class))
 
+            val updatedPartnersList = response.partners.map { it.into() }
+            val newPartners =
+                    updatedPartnersList
+                            .toMutableList()
+                            .apply { removeAll(cachedPartners) }
+            val deletedPartners =
+                    cachedPartners
+                            .toMutableList()
+                            .apply { removeAll(updatedPartnersList) }
+
+            val partnersChanged = updatedPartnersList != cachedPartners
             cachedPartners.clear()
-            cachedPartners.addAll(response.partners.map { it.into() })
+            cachedPartners.addAll(updatedPartnersList)
             partnersCached = true
-            observers.forEach { it.onPartnersChanged(cachedPartners) }
+            if (partnersChanged) {
+                observers.forEach {
+                    it.onPartnersChanged(cachedPartners, newPartners, deletedPartners)
+                }
+            }
             BroccalcNetJobResult.Ok(cachedPartners as List<Partner>)
         }
     }
@@ -106,9 +123,10 @@ class PartnersRegistry @Inject constructor(
     }
 
     override fun onUserParamsChange(userParams: ServerUserParams?) {
+        val deletedPartners = cachedPartners.toMutableList()
         cachedPartners.clear()
         partnersCached = false
-        observers.forEach { it.onPartnersChanged(cachedPartners) }
+        observers.forEach { it.onPartnersChanged(cachedPartners, emptyList(), deletedPartners) }
     }
 }
 

@@ -95,8 +95,9 @@ public abstract class BroccalcApplicationModule {
     @Provides
     @Singleton
     public static NetworkStateDispatcher provideNetStateDispatcher(
-            Context context, RxGlobalSubscriptions subscriptions) {
-        return new NetworkStateDispatcherImpl(context, subscriptions);
+            Context context, RxGlobalSubscriptions subscriptions,
+            MainThreadExecutor mainThreadExecutor) {
+        return new NetworkStateDispatcherImpl(context, subscriptions, mainThreadExecutor);
     }
 
     @Provides

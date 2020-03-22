@@ -72,9 +72,12 @@ import korablique.recipecalculator.ui.mainactivity.mainscreen.TempLongClickedFoo
 import korablique.recipecalculator.ui.mainactivity.mainscreen.UpFABController;
 import korablique.recipecalculator.ui.mainactivity.partners.PartnersListFragment;
 import korablique.recipecalculator.ui.mainactivity.partners.PartnersListFragmentController;
+import korablique.recipecalculator.ui.mainactivity.partners.pairing.PairingFragment;
+import korablique.recipecalculator.ui.mainactivity.partners.pairing.PairingFragmentController;
 import korablique.recipecalculator.ui.mainactivity.profile.NewMeasurementsDialog;
 import korablique.recipecalculator.ui.mainactivity.profile.ProfileController;
 import korablique.recipecalculator.ui.mainactivity.profile.ProfileFragment;
+import korablique.recipecalculator.ui.netsnack.NetworkSnackbarControllersFactory;
 import korablique.recipecalculator.util.DBTestingUtils;
 import korablique.recipecalculator.FakeFCMTokenProvider;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
@@ -116,6 +119,7 @@ public class MainActivityTestsBase {
     protected InteractiveServerUserParamsObtainer serverUserParamsObtainer;
     protected ServerUserParamsRegistry serverUserParamsRegistry;
     protected FakeHttpClient fakeHttpClient;
+    protected BroccalcHttpContext httpContext;
     protected FakeGPAuthorizer fakeGPAuthorizer;
     protected TempLongClickedFoodstuffsHandler longClickedFoodstuffsHandler;
     protected HistoryViewHoldersPool historyViewHoldersPool;
@@ -125,6 +129,7 @@ public class MainActivityTestsBase {
     protected InteractiveServerUserParamsObtainer interactiveServerUserParamsObtainer;
     protected FoodstuffsCorrespondenceManager foodstuffsCorrespondenceManager;
     protected DirectMsgsManager directMsgsManager;
+    protected NetworkSnackbarControllersFactory networkSnackbarControllersFactory;
 
     @Rule
     public ActivityTestRule<MainActivity> mActivityRule =
@@ -154,7 +159,7 @@ public class MainActivityTestsBase {
                                 mainThreadExecutor);
 
                         fakeHttpClient = new FakeHttpClient();
-                        BroccalcHttpContext httpContext = new BroccalcHttpContext(fakeHttpClient);
+                        httpContext = new BroccalcHttpContext(fakeHttpClient);
                         fakeGPAuthorizer = new FakeGPAuthorizer();
                         serverUserParamsRegistry =
                                 new ServerUserParamsRegistry(
@@ -183,6 +188,9 @@ public class MainActivityTestsBase {
                                 new FoodstuffsCorrespondenceManager(
                                         directMsgsManager, foodstuffsList, currentActivityProvider,
                                         new RxGlobalSubscriptions());
+
+                        networkSnackbarControllersFactory = new NetworkSnackbarControllersFactory(
+                                context, fakeNetworkStateDispatcher);
 
                         return Arrays.asList(databaseWorker, historyWorker, userParametersWorker,
                                 foodstuffsList, databaseHolder, userNameProvider,
@@ -289,7 +297,15 @@ public class MainActivityTestsBase {
                                             mainThreadExecutor, activity, (PartnersListFragment) fragment,
                                             fragment.getFragmentCallbacks(), serverUserParamsRegistry,
                                             partnersRegistry, interactiveServerUserParamsObtainer,
-                                            foodstuffsCorrespondenceManager);
+                                            foodstuffsCorrespondenceManager,
+                                            networkSnackbarControllersFactory);
+                            return Arrays.asList(controller);
+                        } else if (fragment instanceof PairingFragment) {
+                            PairingFragmentController controller =
+                                    new PairingFragmentController(
+                                            fragment.getFragmentCallbacks(), (PairingFragment) fragment,
+                                            httpContext, serverUserParamsRegistry,
+                                            partnersRegistry, timeProvider, mainThreadExecutor);
                             return Arrays.asList(controller);
                         } else {
                             throw new IllegalStateException("Unhandled fragment: " + fragment.getClass().getName());

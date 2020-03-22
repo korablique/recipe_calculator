@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/pairing_fragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
@@ -32,12 +34,26 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:text="@string/your_pairing_code"/>
-        <TextView
-            android:id="@+id/your_pairing_code_text"
+        <FrameLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="72sp"
-            tools:text="1234"/>
+            android:layout_height="wrap_content">
+            <TextView
+                android:id="@+id/your_pairing_code_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="72sp"
+                tools:text="1234"
+                android:visibility="visible"/>
+            <Button
+                android:id="@+id/request_code_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="@style/VioletButton"
+                android:gravity="center"
+                android:layout_gravity="center"
+                android:visibility="invisible"
+                android:text="@string/obtain_pairing_code"/>
+        </FrameLayout>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -54,5 +70,25 @@
             android:inputType="numberDecimal"
             tools:text="4321"/>
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/countdown_seconds_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/your_code_is_valid_for"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        style="@style/RobotoMonoHintText"
+        android:layout_marginStart="15dp"
+        android:layout_marginBottom="15dp"/>
+    <TextView
+        android:id="@+id/countdown_seconds_value_text"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="@+id/countdown_seconds_title"
+        app:layout_constraintStart_toEndOf="@+id/countdown_seconds_title"
+        style="@style/RobotoMonoHintText"
+        android:paddingStart="5dp"
+        tools:text="125"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
