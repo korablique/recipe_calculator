@@ -1,6 +1,7 @@
 package korablique.recipecalculator.database.room;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 import korablique.recipecalculator.database.FoodstuffsContract;
@@ -13,7 +14,8 @@ import static korablique.recipecalculator.database.UserParametersContract.USER_P
 public class Migrations {
     private Migrations() {}
 
-    static final Migration MIGRATION_1_2 = new Migration(1, 2) {
+    @VisibleForTesting
+    public static final Migration MIGRATION_1_2 = new Migration(1, 2) {
         @Override
         public void migrate(SupportSQLiteDatabase database) {
             LegacyDatabaseUpdater.upgradeIfNeeded(database);

@@ -23,6 +23,8 @@ import korablique.recipecalculator.outside.userparams.ObtainResult
 import korablique.recipecalculator.outside.userparams.ServerUserParams
 import korablique.recipecalculator.outside.userparams.ServerUserParamsRegistry
 import korablique.recipecalculator.ui.mainactivity.partners.pairing.PairingFragment
+import korablique.recipecalculator.ui.netsnack.NetworkSnackbarController
+import korablique.recipecalculator.ui.netsnack.NetworkSnackbarControllersFactory
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -37,10 +39,12 @@ class PartnersListFragmentController @Inject constructor(
         private val userParamsRegistry: ServerUserParamsRegistry,
         private val partnersRegistry: PartnersRegistry,
         private val interactiveServerUserParamsObtainer: InteractiveServerUserParamsObtainer,
-        private val foodstuffsCorrespondenceManager: FoodstuffsCorrespondenceManager)
+        private val foodstuffsCorrespondenceManager: FoodstuffsCorrespondenceManager,
+        private val networkSnackbarControllersFactory: NetworkSnackbarControllersFactory)
     : FragmentCallbacks.Observer, PartnersRegistry.Observer, ServerUserParamsRegistry.Observer {
     private val partnersAdapter: PartnersListAdapter = PartnersListAdapter(this::onPartnerClick)
     private lateinit var fragmentView: View
+    private lateinit var netSnackbarController: NetworkSnackbarController
 
     companion object {
         internal fun startToSendFoodstuff(activity: BaseActivity, foodstuff: Foodstuff) {
@@ -63,6 +67,7 @@ class PartnersListFragmentController @Inject constructor(
 
     override fun onFragmentViewCreated(fragmentView: View, savedInstanceState: Bundle?) {
         this.fragmentView = fragmentView
+        netSnackbarController = networkSnackbarControllersFactory.createFor(fragmentView, fragment.lifecycle)
         onUserParamsChange(userParamsRegistry.getUserParams())
 
         val recyclerView: RecyclerView =
@@ -97,20 +102,7 @@ class PartnersListFragmentController @Inject constructor(
             }
         }
 
-        fragment.lifecycleScope.launch(mainThreadExecutor) {
-            val partnersResult = partnersRegistry.requestPartners()
-            when (partnersResult) {
-                is BroccalcNetJobResult.Ok -> {
-                    updateDisplayedState(fragmentView)
-                }
-                is BroccalcNetJobResult.Error.ServerError.NotLoggedIn -> {
-                    // Nothing to do - waiting for social network sign in
-                }
-                else -> {
-                    // Crashlytics.logException(partnersResult.exception)
-                }
-            }
-        }
+        updateDisplayedState(fragmentView)
     }
 
     private fun onPartnerClick(partner: Partner) {
@@ -136,7 +128,8 @@ class PartnersListFragmentController @Inject constructor(
         }
     }
 
-    override fun onPartnersChanged(partners: List<Partner>) {
+    override fun onPartnersChanged(
+            partners: List<Partner>, newPartners: List<Partner>, removedPartners: List<Partner>) {
         updateDisplayedState(fragmentView)
     }
 
@@ -151,7 +144,7 @@ class PartnersListFragmentController @Inject constructor(
 
         // Let's refresh partners list
         fragment.lifecycleScope.launch(mainThreadExecutor) {
-            partnersRegistry.requestPartners()
+            partnersRegistry.requestPartnersFromServer()
         }
 
         if (userParamsRegistry.getUserParams() == null) {

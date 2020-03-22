@@ -6,6 +6,7 @@ import com.github.pwittchen.reactivenetwork.library.rx2.ReactiveNetwork
 import com.nhaarman.mockitokotlin2.mock
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
+import korablique.recipecalculator.InstantMainThreadExecutor
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -29,7 +30,7 @@ class NetworkStateDispatcherTest {
             }
         }
 
-        val dispatcher = NetworkStateDispatcherImpl(mock(), mock())
+        val dispatcher = NetworkStateDispatcherImpl(mock(), mock(), InstantMainThreadExecutor())
         dispatcher.addObserver(dispatcherObserver)
 
         assertFalse(networkAvailable)
@@ -51,7 +52,7 @@ class NetworkStateDispatcherTest {
             }
         }
 
-        val dispatcher = NetworkStateDispatcherImpl(mock(), mock())
+        val dispatcher = NetworkStateDispatcherImpl(mock(), mock(), InstantMainThreadExecutor())
         dispatcher.addObserver(dispatcherObserver)
 
         publishSubject.onNext(Connectivity.Builder().available(true).build())

@@ -48,7 +48,9 @@ public class BroccalcApplication extends Application
     @Override
     public void onCreate() {
         super.onCreate();
-        Fabric.with(this, new Crashlytics());
+        if (!BuildConfig.DEBUG) {
+            Fabric.with(this, new Crashlytics());
+        }
         if (!TestEnvironmentDetector.isInTests()) {
             InjectorHolder.getInjector().inject(this);
             historyWorker.updateCache();

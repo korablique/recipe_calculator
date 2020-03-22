@@ -114,23 +114,14 @@ class PartnersRegistryTest {
         initRegistry()
 
         assertEquals(0, httpClient.getRequestsMatching(".*list_partners.*").size)
-        partnersRegistry.requestPartners()
+        partnersRegistry.requestPartnersFromServer()
         assertEquals(1, httpClient.getRequestsMatching(".*list_partners.*").size)
-    }
-
-    @Test
-    fun `partners cache used`() = runBlocking {
-        initRegistry()
-
-        val initSize = httpClient.getRequestsMatching(".*list_partners.*").size
-        partnersRegistry.requestPartners()
-        assertEquals(initSize, httpClient.getRequestsMatching(".*list_partners.*").size)
     }
 
     @Test
     fun `proper partners list is obtained`() = runBlocking {
         initRegistry()
-        val response = partnersRegistry.requestPartners() as BroccalcNetJobResult.Ok
+        val response = partnersRegistry.requestPartnersFromServer() as BroccalcNetJobResult.Ok
         val partners = response.item
         assertEquals(2, partners.size)
         assertEquals(Partner("uid1", "name1"), partners[0])
@@ -142,7 +133,7 @@ class PartnersRegistryTest {
         whenever(userParamsRegistry.getUserParams()).doReturn(null)
         initRegistry()
 
-        assertTrue(partnersRegistry.requestPartners() is BroccalcNetJobResult.Error.ServerError.NotLoggedIn)
+        assertTrue(partnersRegistry.requestPartnersFromServer() is BroccalcNetJobResult.Error.ServerError.NotLoggedIn)
         assertEquals(0, httpClient.getRequestsMatching(".*list_partners.*").size)
     }
 
@@ -150,10 +141,10 @@ class PartnersRegistryTest {
     fun `cached partners are erased when user logs out`() = runBlocking {
         initRegistry()
 
-        assertTrue(partnersRegistry.requestPartners() is BroccalcNetJobResult.Ok)
+        assertTrue(partnersRegistry.requestPartnersFromServer() is BroccalcNetJobResult.Ok)
         whenever(userParamsRegistry.getUserParams()).doReturn(null)
         userParamsRegistryObservers.forEach { it.onUserParamsChange(null) }
-        assertTrue(partnersRegistry.requestPartners() is BroccalcNetJobResult.Error.ServerError.NotLoggedIn)
+        assertTrue(partnersRegistry.requestPartnersFromServer() is BroccalcNetJobResult.Error.ServerError.NotLoggedIn)
     }
 
     @Test
@@ -164,9 +155,11 @@ class PartnersRegistryTest {
         val observer = mock<PartnersRegistry.Observer>()
         partnersRegistry.addObserver(observer)
 
-        verify(observer, never()).onPartnersChanged(any())
+        verify(observer, never()).onPartnersChanged(any(), any(), any())
         netStateDispatcher.setNetworkAvailable(true)
-        verify(observer).onPartnersChanged(any())
+
+        val newPartners = listOf(Partner("uid1", "name1"), Partner("uid2", "name2"))
+        verify(observer).onPartnersChanged(eq(newPartners), eq(newPartners), eq(emptyList()))
     }
 
     @Test
@@ -176,10 +169,12 @@ class PartnersRegistryTest {
         val observer = mock<PartnersRegistry.Observer>()
         partnersRegistry.addObserver(observer)
 
-        verify(observer, never()).onPartnersChanged(any())
+        verify(observer, never()).onPartnersChanged(any(), any(), any())
         whenever(userParamsRegistry.getUserParams()).doReturn(null)
         userParamsRegistryObservers.forEach { it.onUserParamsChange(null) }
-        verify(observer).onPartnersChanged(any())
+
+        val lostPartners = listOf(Partner("uid1", "name1"), Partner("uid2", "name2"))
+        verify(observer).onPartnersChanged(emptyList(), emptyList(), lostPartners)
     }
 
     @Test
@@ -212,5 +207,70 @@ class PartnersRegistryTest {
         val initSize = httpClient.getRequestsMatching(".*list_partners.*").size
         partnersRegistry.onNewFcmMessage("")
         assertEquals(initSize + 1, httpClient.getRequestsMatching(".*list_partners.*").size)
+    }
+
+    @Test
+    fun `correct added and removed partners are given on partners change`() = runBlocking {
+        // Initial partners
+        httpClient.setResponse(".*list_partners.*") {
+            val body = """
+                {
+                    "status": "ok",
+                    "partners": [
+                        {
+                            "partner_user_id": "uid1",
+                            "partner_name": "name1"
+                        },
+                        {
+                            "partner_user_id": "uid2",
+                            "partner_name": "name2"
+                        }
+                    ]
+                }
+            """.trimIndent()
+            RequestResult.Success(Response(body))
+        }
+        initRegistry()
+
+        // Updated partners
+        httpClient.setResponse(".*list_partners.*") {
+            val body = """
+                {
+                    "status": "ok",
+                    "partners": [
+                        {
+                            "partner_user_id": "uid2",
+                            "partner_name": "name2"
+                        },
+                        {
+                            "partner_user_id": "uid3",
+                            "partner_name": "name3"
+                        }
+                    ]
+                }
+            """.trimIndent()
+            RequestResult.Success(Response(body))
+        }
+
+        val observer = mock<PartnersRegistry.Observer>()
+        partnersRegistry.addObserver(observer)
+        verify(observer, never()).onPartnersChanged(any(), any(), any())
+
+        partnersRegistry.requestPartnersFromServer()
+        verify(observer).onPartnersChanged(
+                eq(listOf(Partner("uid2", "name2"), Partner("uid3", "name3"))),
+                eq(listOf(Partner("uid3", "name3"))),
+                eq(listOf(Partner("uid1", "name1"))))
+    }
+
+    @Test
+    fun `does not notify when partners are not changed`() = runBlocking {
+        initRegistry()
+
+        val observer = mock<PartnersRegistry.Observer>()
+        partnersRegistry.addObserver(observer)
+
+        partnersRegistry.requestPartnersFromServer()
+        verify(observer, never()).onPartnersChanged(any(), any(), any())
     }
 }

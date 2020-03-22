@@ -1,9 +1,16 @@
-package korablique.recipecalculator.database.room;
+package korablique.recipecalculator.z;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+
+import androidx.room.testing.MigrationTestHelper;
+import androidx.sqlite.db.SupportSQLiteDatabase;
+import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory;
+import androidx.test.InstrumentationRegistry;
+import androidx.test.filters.LargeTest;
+import androidx.test.runner.AndroidJUnit4;
 
 import junit.framework.Assert;
 
@@ -15,23 +22,19 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 
-import androidx.room.testing.MigrationTestHelper;
-import androidx.sqlite.db.SupportSQLiteDatabase;
-import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory;
-import androidx.test.InstrumentationRegistry;
-import androidx.test.filters.LargeTest;
-import androidx.test.runner.AndroidJUnit4;
+import korablique.recipecalculator.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseUtils;
 import korablique.recipecalculator.database.FoodstuffsContract;
 import korablique.recipecalculator.database.HistoryContract;
 import korablique.recipecalculator.database.LegacyDatabaseValues;
 import korablique.recipecalculator.database.UserParametersContract;
+import korablique.recipecalculator.database.room.AppDatabase;
+import korablique.recipecalculator.database.room.DatabaseHolder;
 import korablique.recipecalculator.model.Formula;
 import korablique.recipecalculator.model.Gender;
 import korablique.recipecalculator.model.Goal;
 import korablique.recipecalculator.model.Lifestyle;
-import korablique.recipecalculator.InstantDatabaseThreadExecutor;
 
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_CALORIES;
 import static korablique.recipecalculator.database.FoodstuffsContract.COLUMN_NAME_CARBS;
@@ -58,6 +61,12 @@ import static korablique.recipecalculator.database.room.LegacyDatabaseUpdater.CO
 import static korablique.recipecalculator.database.room.LegacyDatabaseUpdater.TABLE_DATABASE_VERSION;
 import static korablique.recipecalculator.database.room.Migrations.MIGRATION_1_2;
 
+/**
+ * NOTE: файл лежит в пакете "z" намеренно - эти тесты должны выполняться самыми последними,
+ * т.к. они корраптят БД.
+ * По-хорошему нужно выпилить legacy updater, заменив его на апдейты через room, но это
+ * дольше, чем просто переименовать пакет в "z".
+ */
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class LegacyDatabaseUpdaterTest {
