@@ -19,6 +19,7 @@ import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.dagger.ActivityScope;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.WeightedFoodstuff;
+import korablique.recipecalculator.ui.mainactivity.mainscreen.MainScreenFragment;
 
 @ActivityScope
 public class MainActivityController implements ActivityCallbacks.Observer {
@@ -103,5 +104,11 @@ public class MainActivityController implements ActivityCallbacks.Observer {
         intent.putExtra(EXTRA_DATE, date);
         intent.setAction(ACTION_ADD_FOODSTUFFS_TO_HISTORY);
         return intent;
+    }
+
+    void openFoodstuffCard(Foodstuff foodstuff) {
+        fragmentsController.showMainScreen();
+        MainScreenFragment fragment = fragmentsController.getMainScreenFragment();
+        fragment.openFoodstuffCard(foodstuff);
     }
 }

@@ -109,21 +109,8 @@ class PartnersListFragmentController @Inject constructor(
         val foodstuff = fragment.arguments?.getParcelable<Foodstuff>(FOODSTUFF_PARCEL_TO_PARTNER)
         if (foodstuff != null) {
             fragment.lifecycleScope.launch(mainThreadExecutor) {
-                val sendResult = foodstuffsCorrespondenceManager.sendFooodstuffToPartner(foodstuff, partner)
-                when (sendResult) {
-                    is BroccalcNetJobResult.Ok -> {
-                        Toast.makeText(fragment.context, "Sent!", Toast.LENGTH_LONG).show()
-                        fragment.close()
-                    }
-                    is BroccalcNetJobResult.Error.ServerError.NotLoggedIn -> {
-                        fragment.close()
-                    }
-                    is BroccalcNetJobResult.Error -> {
-                        Toast.makeText(activity, "Unexpected failure: ${sendResult.unwrapException()}", Toast.LENGTH_LONG).show()
-                        // Crashlytics.logException(sendResult.exception)
-                        fragment.close()
-                    }
-                }
+                foodstuffsCorrespondenceManager.sendFooodstuffToPartner(foodstuff, partner)
+                fragment.close()
             }
         }
     }

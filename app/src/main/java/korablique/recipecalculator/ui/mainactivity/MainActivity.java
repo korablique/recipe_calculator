@@ -50,4 +50,11 @@ public class MainActivity extends BaseActivity implements HasSupportFragmentInje
             LocalDate selectedDate) {
         MainActivityController.openHistoryAndAddFoodstuffs(context, historyList, selectedDate);
     }
+
+    /**
+     * Don't call if {@link #getContentView()} returns null!
+     */
+    public void openFoodstuffCard(Foodstuff foodstuff) {
+        controller.openFoodstuffCard(foodstuff);
+    }
 }

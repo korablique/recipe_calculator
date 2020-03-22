@@ -176,6 +176,10 @@ public class MainActivityFragmentsController implements
         bottomNavigationView.setSelectedItemId(R.id.menu_item_foodstuffs);
     }
 
+    public MainScreenFragment getMainScreenFragment() {
+        return mainScreenFragment;
+    }
+
     public void addFoodstuffsToHistory(LocalDate selectedDate, List<WeightedFoodstuff> foodstuffs) {
         bottomNavigationView.setSelectedItemId(R.id.menu_item_history);
         historyFragment.addFoodstuffs(selectedDate, foodstuffs);

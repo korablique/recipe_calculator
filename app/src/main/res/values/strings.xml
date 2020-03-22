@@ -162,6 +162,9 @@
     <string name="pairing_request_sent">Запрос отправлен</string>
     <string name="obtain_pairing_code">Получить код</string>
     <string name="partner_with_code_not_found">Пользователь с кодом %s не найден</string>
+    <string name="foodstuff_is_sent">Продукт отправлен</string>
+    <string name="foodstuff_is_received">Получен продукт: %s</string>
+    <string name="show_received_foodstuff">Показать</string>
 
     <string-array name="gender_array">
         <item name="not_selected">—</item>

@@ -277,4 +277,8 @@ public class MainScreenController
             cardController.showCard(foodstuff);
         }
     }
+
+    void openFoodstuffCard(Foodstuff foodstuff) {
+        cardController.showCard(foodstuff);
+    }
 }

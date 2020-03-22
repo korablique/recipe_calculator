@@ -2,6 +2,7 @@ package korablique.recipecalculator.outside.partners.direct
 
 import android.content.Context
 import android.util.Base64
+import androidx.annotation.VisibleForTesting
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -49,8 +50,13 @@ class DirectMsgsManager @Inject constructor(
         if (directMsg == null) {
             return
         }
-        val receiver = messageReceivers[directMsg.msg_type] ?: return
-        receiver.onNewDirectMessage(directMsg.msg)
+        onNewDirectMsg(directMsg.msg_type, directMsg.msg)
+    }
+
+    @VisibleForTesting
+    fun onNewDirectMsg(type: String, msg: String) {
+        val receiver = messageReceivers[type] ?: return
+        receiver.onNewDirectMessage(msg)
     }
 
     suspend fun sendDirectMSGToPartner(msgType: String, msg: String, partner: Partner): BroccalcNetJobResult<Unit> {
