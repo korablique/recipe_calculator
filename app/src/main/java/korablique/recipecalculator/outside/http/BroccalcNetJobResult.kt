@@ -19,7 +19,7 @@ sealed class BroccalcNetJobResult<T:Any> {
     }
 }
 
-fun <T:Any> BroccalcNetJobResult.Error<T>.unwrapException(): Exception {
+fun <T:Any> BroccalcNetJobResult.Error<T>.extractException(): Exception {
     return when (this) {
         is BroccalcNetJobResult.Error.NetError -> this.e
         is BroccalcNetJobResult.Error.ResponseFormatError -> this.e

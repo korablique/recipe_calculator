@@ -6,6 +6,9 @@ import korablique.recipecalculator.R
 import korablique.recipecalculator.base.ActivityCallbacks
 import korablique.recipecalculator.base.BaseActivity
 import korablique.recipecalculator.dagger.ActivityScope
+import korablique.recipecalculator.model.UserNameProvider
+import korablique.recipecalculator.outside.http.BroccalcNetJobResult
+import korablique.recipecalculator.outside.http.extractException
 import korablique.recipecalculator.ui.TwoOptionsDialog
 import java.lang.IllegalStateException
 import javax.inject.Inject
@@ -27,7 +30,8 @@ sealed class ObtainResult {
 open class InteractiveServerUserParamsObtainer @Inject constructor(
         private val activity: BaseActivity,
         private val activityCallbacks: ActivityCallbacks,
-        private val serverUserParamsRegistry: ServerUserParamsRegistry
+        private val serverUserParamsRegistry: ServerUserParamsRegistry,
+        private val userNameProvider: UserNameProvider
 ) : ActivityCallbacks.Observer {
     init {
         if (activity.lifecycle.currentState.isAtLeast(Lifecycle.State.CREATED)) {
@@ -66,6 +70,11 @@ open class InteractiveServerUserParamsObtainer @Inject constructor(
         val paramsResult2 = serverUserParamsRegistry.getUserParamsMaybeMoveAccount(activity)
         when (paramsResult2) {
             is GetWithAccountMoveRequestResult.Success -> {
+                val updateResult = serverUserParamsRegistry
+                        .updateUserName(userNameProvider.userName.toString())
+                if (updateResult is BroccalcNetJobResult.Error) {
+                    return ObtainResult.Failure(updateResult.extractException())
+                }
                 return ObtainResult.Success(paramsResult2.user)
             }
             is GetWithAccountMoveRequestResult.Failure -> {

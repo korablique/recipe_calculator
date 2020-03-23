@@ -12,10 +12,12 @@ import korablique.recipecalculator.outside.STATUS_ALREADY_REGISTERED
 import korablique.recipecalculator.outside.http.BroccalcHttpContext
 import korablique.recipecalculator.outside.http.BroccalcNetJobResult
 import korablique.recipecalculator.outside.http.tryGetServerErrorStatus
-import korablique.recipecalculator.outside.http.unwrapException
+import korablique.recipecalculator.outside.http.extractException
 import korablique.recipecalculator.outside.serverAddr
 import korablique.recipecalculator.outside.thirdparty.GPAuthResult
 import korablique.recipecalculator.outside.thirdparty.GPAuthorizer
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -108,7 +110,7 @@ class ServerUserParamsRegistry @Inject constructor(
                 if (STATUS_ALREADY_REGISTERED == response.tryGetServerErrorStatus()) {
                     GetWithRegistrationRequestResult.RegistrationParamsTaken
                 } else {
-                    GetWithRegistrationRequestResult.Failure(response.unwrapException())
+                    GetWithRegistrationRequestResult.Failure(response.extractException())
                 }
             }
         }
@@ -149,7 +151,7 @@ class ServerUserParamsRegistry @Inject constructor(
                 GetWithAccountMoveRequestResult.Success(response.item)
             }
             is BroccalcNetJobResult.Error -> {
-                GetWithAccountMoveRequestResult.Failure(response.unwrapException())
+                GetWithAccountMoveRequestResult.Failure(response.extractException())
             }
         }
     }
@@ -162,6 +164,33 @@ class ServerUserParamsRegistry @Inject constructor(
 
     fun removeObserver(observer: Observer) {
         observers -= observer
+    }
+
+    // TODO: store the updated name persistently, resend it to server
+    //       when previous sending failed and network/cold start happend again.
+    suspend fun updateUserName(newName: String): BroccalcNetJobResult<Unit> {
+        val userParams = cachedUserParams
+        if (userParams == null) {
+            return BroccalcNetJobResult.Error.ServerError.NotLoggedIn(null)
+        }
+
+        val url = ("${serverAddr(context)}/v1/user/update_user_name?"
+                + "client_token=${userParams.token}&"
+                + "user_id=${userParams.uid}&"
+                + "name=$newName")
+        return httpContext.run {
+            httpRequest(url, EmptyResponse::class)
+            BroccalcNetJobResult.Ok(Unit)
+        }
+    }
+
+    /**
+     * For Java
+     */
+    fun updateUserNameIgnoreResult(newName: String) {
+        GlobalScope.launch(mainThreadExecutor) {
+            updateUserName(newName)
+        }
     }
 
     override fun onBroccalcServerError(error: BroccalcNetJobResult.Error.ServerError<*>) {
@@ -184,3 +213,6 @@ private data class RegisterResponse(
         val user_id: String,
         val client_token: String
 )
+
+@JsonClass(generateAdapter = true)
+private class EmptyResponse()

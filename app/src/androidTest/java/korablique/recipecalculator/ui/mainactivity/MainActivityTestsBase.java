@@ -116,7 +116,6 @@ public class MainActivityTestsBase {
     protected SharedPrefsManager prefsManager;
     protected SoftKeyboardStateWatcher softKeyboardStateWatcher;
     protected FoodstuffsSearchEngine foodstuffsSearchEngine;
-    protected InteractiveServerUserParamsObtainer serverUserParamsObtainer;
     protected ServerUserParamsRegistry serverUserParamsRegistry;
     protected FakeHttpClient fakeHttpClient;
     protected BroccalcHttpContext httpContext;
@@ -218,15 +217,12 @@ public class MainActivityTestsBase {
                         historyViewHoldersPool = new HistoryViewHoldersPool(
                                 computationThreadsExecutor, mainThreadExecutor, activity);
 
-                        serverUserParamsObtainer =
-                                new InteractiveServerUserParamsObtainer(
-                                        activity, activityCallbacks, serverUserParamsRegistry);
-
                         interactiveServerUserParamsObtainer =
                                 new InteractiveServerUserParamsObtainer(
-                                        activity, activityCallbacks, serverUserParamsRegistry);
+                                        activity, activityCallbacks, serverUserParamsRegistry,
+                                        userNameProvider);
 
-                        return Arrays.asList(activity, controller, serverUserParamsObtainer,
+                        return Arrays.asList(activity, controller, interactiveServerUserParamsObtainer,
                                 longClickedFoodstuffsHandler);
                     })
                     .withFragmentScoped((injectionTarget -> {

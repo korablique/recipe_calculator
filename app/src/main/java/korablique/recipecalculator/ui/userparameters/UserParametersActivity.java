@@ -31,6 +31,7 @@ import korablique.recipecalculator.model.Gender;
 import korablique.recipecalculator.model.Lifestyle;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.model.UserParameters;
+import korablique.recipecalculator.outside.userparams.ServerUserParamsRegistry;
 import korablique.recipecalculator.ui.DatePickerFragment;
 import korablique.recipecalculator.ui.DecimalUtils;
 import korablique.recipecalculator.ui.TextWatcherAfterTextChangedAdapter;
@@ -49,6 +50,8 @@ public class UserParametersActivity extends BaseActivity {
     TimeProvider timeProvider;
     @Inject
     MainScreenLoader mainScreenLoader;
+    @Inject
+    ServerUserParamsRegistry serverUserParamsRegistry;
     private TextWatcher textWatcher = new TextWatcherAfterTextChangedAdapter(editable -> updateSaveButtonEnability());
     private Button saveUserParamsButton;
 
@@ -99,6 +102,7 @@ public class UserParametersActivity extends BaseActivity {
                 String lastName = ((EditText) findViewById(R.id.last_name)).getText().toString();
                 FullName fullName = new FullName(firstName, lastName);
                 userNameProvider.saveUserName(fullName);
+                serverUserParamsRegistry.updateUserNameIgnoreResult(fullName.toString());
 
                 UserParameters userParameters = extractUserParameters();
                 Completable callback = userParametersWorker.saveUserParameters(userParameters);

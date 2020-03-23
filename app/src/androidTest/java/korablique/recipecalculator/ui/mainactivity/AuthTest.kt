@@ -40,7 +40,7 @@ class AuthTest : MainActivityTestsBase() {
         mActivityRule.launchActivity(null)
 
 
-        val result = serverUserParamsObtainer.obtainUserParams()
+        val result = interactiveServerUserParamsObtainer.obtainUserParams()
         assertTrue(result is ObtainResult.Success)
         val success = result as ObtainResult.Success
         assertEquals(ServerUserParams("uid", "token"), success.params)
@@ -55,7 +55,7 @@ class AuthTest : MainActivityTestsBase() {
                     "status": "already_registered",
                     "error_description": "wow such error"
                 }
-            """.trimIndent()))
+            """))
         }
         fakeHttpClient.setResponse(".*move_device_account.*") {
             RequestResult.Success(Response("""
@@ -65,13 +65,17 @@ class AuthTest : MainActivityTestsBase() {
                     "client_token": "token",
                     "user_name": "general kenobi"
                 }
-            """.trimIndent()))
+            """))
         }
-        mActivityRule.launchActivity(null)
+        fakeHttpClient.setResponse(".*update_user_name.*") {
+            RequestResult.Success(Response("""{"status": "ok"}"""))
+        }
 
+        mActivityRule.launchActivity(null)
+        assertEquals(0, fakeHttpClient.getRequestsMatching(".*update_user_name.*").size)
 
         val resultFuture = GlobalScope.async(mainThreadExecutor) {
-            serverUserParamsObtainer.obtainUserParams()
+            interactiveServerUserParamsObtainer.obtainUserParams()
         }
         onView(withId(R.id.positive_button)).perform(click())
 
@@ -79,6 +83,9 @@ class AuthTest : MainActivityTestsBase() {
         assertEquals("$result", ObtainResult.Success::class, result::class)
         val success = result as ObtainResult.Success
         assertEquals(ServerUserParams("uid", "token"), success.params)
+
+        // Account move should always be accompanied by user name update
+        assertEquals(1, fakeHttpClient.getRequestsMatching(".*update_user_name.*").size)
     }
 
     @Test
@@ -96,20 +103,21 @@ class AuthTest : MainActivityTestsBase() {
 
 
         val resultFuture = GlobalScope.async(mainThreadExecutor) {
-            serverUserParamsObtainer.obtainUserParams()
+            interactiveServerUserParamsObtainer.obtainUserParams()
         }
         onView(withId(R.id.negative_button)).perform(click())
 
         val result = runBlocking { resultFuture.await() }
         assertEquals("$result", ObtainResult.CanceledByUser::class, result::class)
         assertEquals(0, fakeHttpClient.getRequestsMatching(".*move_device_account.*").size)
+        assertEquals(0, fakeHttpClient.getRequestsMatching(".*update_user_name.*").size)
     }
 
     @Test
     fun cancelledByUserGPAuth() = runBlocking {
         fakeGPAuthorizer.authResult = GPAuthResult.CanceledByUser
         mActivityRule.launchActivity(null)
-        val result = serverUserParamsObtainer.obtainUserParams()
+        val result = interactiveServerUserParamsObtainer.obtainUserParams()
         assertEquals("$result", ObtainResult.CanceledByUser::class, result::class)
         assertEquals(0, fakeHttpClient.getRequestsMatching(".*register.*").size)
     }
@@ -118,7 +126,7 @@ class AuthTest : MainActivityTestsBase() {
     fun failedGPAuth() = runBlocking {
         fakeGPAuthorizer.authResult = GPAuthResult.Failure(Exception("such exception wow"))
         mActivityRule.launchActivity(null)
-        val result = serverUserParamsObtainer.obtainUserParams()
+        val result = interactiveServerUserParamsObtainer.obtainUserParams()
         assertEquals("$result", ObtainResult.Failure::class, result::class)
         assertEquals(0, fakeHttpClient.getRequestsMatching(".*register.*").size)
     }
@@ -137,7 +145,7 @@ class AuthTest : MainActivityTestsBase() {
         mActivityRule.launchActivity(null)
 
 
-        val result = serverUserParamsObtainer.obtainUserParams()
+        val result = interactiveServerUserParamsObtainer.obtainUserParams()
         assertEquals("$result", ObtainResult.Failure::class, result::class)
     }
 
@@ -179,7 +187,7 @@ class AuthTest : MainActivityTestsBase() {
             """))
         }
         mActivityRule.launchActivity(null)
-        val result = serverUserParamsObtainer.obtainUserParams()
+        val result = interactiveServerUserParamsObtainer.obtainUserParams()
         assertTrue(result is ObtainResult.Success)
 
         // Assert user params exist at first
@@ -203,7 +211,7 @@ class AuthTest : MainActivityTestsBase() {
             assertEquals(null, serverUserParamsRegistry.getUserParams())
 
             // Register again
-            val result2 = serverUserParamsObtainer.obtainUserParams()
+            val result2 = interactiveServerUserParamsObtainer.obtainUserParams()
             assertTrue(result2 is ObtainResult.Success)
 
             // Assert user params exist again

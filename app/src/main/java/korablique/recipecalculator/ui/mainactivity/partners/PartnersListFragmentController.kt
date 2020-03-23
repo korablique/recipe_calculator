@@ -3,7 +3,6 @@ package korablique.recipecalculator.ui.mainactivity.partners
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -14,8 +13,6 @@ import korablique.recipecalculator.base.FragmentCallbacks
 import korablique.recipecalculator.base.executors.MainThreadExecutor
 import korablique.recipecalculator.dagger.FragmentScope
 import korablique.recipecalculator.model.Foodstuff
-import korablique.recipecalculator.outside.http.BroccalcNetJobResult
-import korablique.recipecalculator.outside.http.unwrapException
 import korablique.recipecalculator.outside.partners.Partner
 import korablique.recipecalculator.outside.partners.PartnersRegistry
 import korablique.recipecalculator.outside.partners.direct.FoodstuffsCorrespondenceManager
