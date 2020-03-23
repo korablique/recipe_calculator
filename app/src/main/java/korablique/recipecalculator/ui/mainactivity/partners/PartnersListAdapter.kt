@@ -1,6 +1,7 @@
 package korablique.recipecalculator.ui.mainactivity.partners
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
@@ -9,7 +10,8 @@ import korablique.recipecalculator.outside.partners.Partner
 import korablique.recipecalculator.ui.MyViewHolder
 
 class PartnersListAdapter(
-        private val onClickFn: (Partner)->Unit)
+        private val onClickFn: (Partner)->Unit,
+        private val onLongClickFn: (Partner,View)->Boolean)
     : RecyclerView.Adapter<MyViewHolder>() {
     private val partners = mutableListOf<Partner>()
 
@@ -17,6 +19,9 @@ class PartnersListAdapter(
         holder.item.findViewById<TextView>(R.id.partner_name).text = partners[position].name
         holder.item.setOnClickListener {
             onClickFn.invoke(partners[position])
+        }
+        holder.item.setOnLongClickListener {
+            onLongClickFn.invoke(partners[position], it)
         }
     }
 

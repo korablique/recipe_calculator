@@ -98,6 +98,23 @@ class PartnersRegistry @Inject constructor(
         }
     }
 
+    suspend fun deletePartner(partnerUserId: String): BroccalcNetJobResult<Unit> {
+        val userParams = userParamsRegistry.getUserParams()
+        if (userParams == null) {
+            return BroccalcNetJobResult.Error.ServerError.NotLoggedIn(null)
+        }
+
+        val url = ("${serverAddr(context)}/v1/user/unpair?"
+                + "client_token=${userParams.token}&"
+                + "user_id=${userParams.uid}&"
+                + "partner_user_id=$partnerUserId")
+        return broccalcHttpContext.run {
+            httpRequestUnwrapped(url, EmptyResponse::class)
+            unwrap(updateAndGetPartners())
+            BroccalcNetJobResult.Ok(Unit)
+        }
+    }
+
     fun addObserver(oberver: Observer) {
         observers += oberver
     }
@@ -140,6 +157,9 @@ private data class ReceivedPartner(
 private data class ListPartnersResponse(
         val partners: List<ReceivedPartner>
 )
+
+@JsonClass(generateAdapter = true)
+private class EmptyResponse()
 
 private fun ReceivedPartner.into(): Partner {
     return Partner(partner_user_id, partner_name)

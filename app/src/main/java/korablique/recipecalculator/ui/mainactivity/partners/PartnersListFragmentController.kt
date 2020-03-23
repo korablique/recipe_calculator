@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.widget.PopupMenu
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -42,7 +43,10 @@ class PartnersListFragmentController @Inject constructor(
         private val foodstuffsCorrespondenceManager: FoodstuffsCorrespondenceManager,
         private val networkSnackbarControllersFactory: NetworkSnackbarControllersFactory)
     : FragmentCallbacks.Observer, PartnersRegistry.Observer, ServerUserParamsRegistry.Observer {
-    private val partnersAdapter: PartnersListAdapter = PartnersListAdapter(this::onPartnerClick)
+    private val partnersAdapter: PartnersListAdapter =
+            PartnersListAdapter(
+                    this::onPartnerClick,
+                    this::onPartnerLongClick)
     private lateinit var fragmentView: View
     private lateinit var netSnackbarController: NetworkSnackbarController
 
@@ -113,6 +117,22 @@ class PartnersListFragmentController @Inject constructor(
                 fragment.close()
             }
         }
+    }
+
+    private fun onPartnerLongClick(partner: Partner, view: View): Boolean {
+        val menu = PopupMenu(activity, view)
+        menu.inflate(R.menu.partner_menu)
+        menu.show()
+        menu.setOnMenuItemClickListener {
+            if (it.itemId == R.id.delete_partner) {
+                fragment.lifecycleScope.launch(mainThreadExecutor) {
+                    partnersRegistry.deletePartner(partner.uid)
+                }
+                return@setOnMenuItemClickListener true
+            }
+            return@setOnMenuItemClickListener false
+        }
+        return true
     }
 
     override fun onPartnersChanged(

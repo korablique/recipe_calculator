@@ -273,4 +273,57 @@ class PartnersRegistryTest {
         partnersRegistry.requestPartnersFromServer()
         verify(observer, never()).onPartnersChanged(any(), any(), any())
     }
+
+    @Test
+    fun `delete partner`() = runBlocking {
+        initRegistry()
+
+        // Prepare deletion response
+        httpClient.setResponse(".*unpair.*") {
+            RequestResult.Success(Response("""{"status":"ok"}"""))
+        }
+        // Prepare a response without the deleted user
+        httpClient.setResponse(".*list_partners.*") {
+            val body = """
+                {
+                    "status": "ok",
+                    "partners": [
+                        {
+                            "partner_user_id": "uid2",
+                            "partner_name": "name2"
+                        }
+                    ]
+                }
+            """
+            RequestResult.Success(Response(body))
+        }
+
+        val observer = mock<PartnersRegistry.Observer>()
+        partnersRegistry.addObserver(observer)
+
+        // Ask to delete the user
+        partnersRegistry.deletePartner("uid1")
+
+        // Verify the user was deleted
+        verify(observer).onPartnersChanged(
+                eq(listOf(Partner("uid2", "name2"))),
+                eq(emptyList()),
+                eq(listOf(Partner("uid1", "name1"))))
+        assertEquals(listOf(Partner("uid2", "name2")), partnersRegistry.getPartnersCache())
+
+        // Verify a correct request was sent
+        assertEquals(1, httpClient.getRequestsMatching(".*unpair.*").size)
+
+        val request = httpClient.getRequestsMatching(".*unpair.*").first()
+        assertTrue(request.body.isEmpty())
+        val url = request.url
+        val serverUrl = context.getString(R.string.server_address)
+        val expectedUrlStart = "$serverUrl/v1/user/unpair?"
+        assertTrue("$serverUrl vs $expectedUrlStart", url.startsWith(expectedUrlStart))
+
+        val userParams = userParamsRegistry.getUserParams()!!
+        assertTrue(url.contains("client_token=${userParams.token}"))
+        assertTrue(url.contains("user_id=${userParams.uid}"))
+        assertTrue(url.contains("partner_user_id=uid1"))
+    }
 }
