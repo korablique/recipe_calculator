@@ -19,8 +19,6 @@ import javax.inject.Singleton
 
 @VisibleForTesting
 const val SERV_FIELD_MSG_TYPE = "msg_type"
-@VisibleForTesting
-const val SERV_FIELD_MSG = "msg"
 private const val PREF_TOKEN = "token"
 
 @Singleton
@@ -35,8 +33,13 @@ class FCMManager @Inject constructor(
     : NetworkStateDispatcher.Observer, ServerUserParamsRegistry.Observer {
     companion object {
         @VisibleForTesting
-        fun createMsgForTests(type: String, msg: String): Map<String, String> {
-            return mapOf(SERV_FIELD_MSG_TYPE to type, SERV_FIELD_MSG to msg)
+        fun createMsgForTests(type: String, otherData: Map<String, String> = emptyMap()): Map<String, String> {
+            if (SERV_FIELD_MSG_TYPE in otherData) {
+                throw IllegalArgumentException("$SERV_FIELD_MSG_TYPE expected not to be in $otherData")
+            }
+            val result = otherData.toMutableMap()
+            result[SERV_FIELD_MSG_TYPE] = type
+            return result
         }
     }
 
@@ -108,11 +111,9 @@ class FCMManager @Inject constructor(
 //            Crashlytics.logException(RuntimeException("Server FCM message without msg type: $data"))
             return
         }
-        val msg = data[SERV_FIELD_MSG]
-        if (msg == null) {
-            return
-        }
-        messageReceivers[msgType]?.onNewFcmMessage(msg)
+        val jsonKeyValues = data.map { """ "${it.key}":"${it.value}" """ }
+        val jsonMsg = jsonKeyValues.joinToString(separator = ",\n", prefix = "{", postfix = "}")
+        messageReceivers[msgType]?.onNewFcmMessage(jsonMsg)
     }
 
     fun registerMessageReceiver(msgType: String, messageReceiver: MessageReceiver) {

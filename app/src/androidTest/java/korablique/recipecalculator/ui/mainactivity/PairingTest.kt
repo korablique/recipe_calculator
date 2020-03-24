@@ -145,7 +145,7 @@ class PairingTest : MainActivityTestsBase() {
         onView(withId(R.id.pairing_fragment)).check(matches(isDisplayed()))
 
         // Simulate successful pairing msg
-        fcmManager.onMessageReceived(FCMManager.createMsgForTests(SERV_MSG_PAIRED_WITH_PARTNER, ""))
+        fcmManager.onMessageReceived(FCMManager.createMsgForTests(SERV_MSG_PAIRED_WITH_PARTNER))
 
         // Verify the partner is received
         assertEquals(1, partnersRegistry.getPartnersCache().size)

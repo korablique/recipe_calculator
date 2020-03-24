@@ -3,6 +3,9 @@ package korablique.recipecalculator.outside.fcm
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.nhaarman.mockitokotlin2.*
+import com.squareup.moshi.JsonClass
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import korablique.recipecalculator.*
 import korablique.recipecalculator.base.prefs.SharedPrefsManager
 import korablique.recipecalculator.outside.http.BroccalcHttpContext
@@ -181,10 +184,22 @@ class FCMManagerTest {
 
         verify(msgsReceiver, never()).onNewFcmMessage(any())
         fcmManager!!.onMessageReceived(mapOf(
-                SERV_FIELD_MSG_TYPE to "mymsgtype",
-                SERV_FIELD_MSG to "hello there"))
-        verify(msgsReceiver).onNewFcmMessage("hello there")
+                "msg_type" to "mymsgtype",
+                "other_key" to "other_val"))
+
+        val msgCaptor = argumentCaptor<String>()
+        verify(msgsReceiver).onNewFcmMessage(msgCaptor.capture())
+
+        val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
+        val msg = moshi.adapter(Msg::class.java).fromJson(msgCaptor.firstValue)
+        assertEquals(Msg("mymsgtype", "other_val"), msg)
     }
+
+    @JsonClass(generateAdapter = true)
+    data class Msg(
+            val msg_type: String,
+            val other_key: String
+    )
 
     @Test
     fun `received FCM message ignored if there's no type`() {
@@ -193,18 +208,7 @@ class FCMManagerTest {
         val msgsReceiver = mock<FCMManager.MessageReceiver>()
         fcmManager!!.registerMessageReceiver("mymsgtype", msgsReceiver)
 
-        fcmManager!!.onMessageReceived(mapOf(SERV_FIELD_MSG to "hello there"))
-        verify(msgsReceiver, never()).onNewFcmMessage(any())
-    }
-
-    @Test
-    fun `received FCM message ignored if there's no msg`() {
-        updateFCMToken("mynewtoken")
-
-        val msgsReceiver = mock<FCMManager.MessageReceiver>()
-        fcmManager!!.registerMessageReceiver("mymsgtype", msgsReceiver)
-
-        fcmManager!!.onMessageReceived(mapOf(SERV_FIELD_MSG_TYPE to "mymsgtype"))
+        fcmManager!!.onMessageReceived(mapOf("some_key" to "hello there"))
         verify(msgsReceiver, never()).onNewFcmMessage(any())
     }
 
