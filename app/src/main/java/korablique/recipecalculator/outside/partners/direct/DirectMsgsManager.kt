@@ -44,12 +44,25 @@ class DirectMsgsManager @Inject constructor(
     }
 
     override fun onNewFcmMessage(msg: String) {
-        val directMsg = moshi
-                .adapter<DirectMsg>(DirectMsg::class.java)
-                .fromJson(String(Base64.decode(msg, Base64.DEFAULT)))
+        val directMsgWrapped = try {
+            moshi.adapter<DirectMsgWrapped>(DirectMsgWrapped::class.java).fromJson(msg)
+        } catch (e: Exception) {
+            null
+        }
+        if (directMsgWrapped == null) {
+            return
+        }
+
+        val directMsg = try {
+            moshi.adapter<DirectMsg>(DirectMsg::class.java)
+                    .fromJson(String(Base64.decode(directMsgWrapped.msg, Base64.DEFAULT)))
+        } catch (e: Exception) {
+            null
+        }
         if (directMsg == null) {
             return
         }
+
         onNewDirectMsg(directMsg.msg_type, directMsg.msg)
     }
 
@@ -83,6 +96,11 @@ class DirectMsgsManager @Inject constructor(
         }
     }
 }
+
+@JsonClass(generateAdapter = true)
+private data class DirectMsgWrapped(
+        val msg: String
+)
 
 @JsonClass(generateAdapter = true)
 private data class DirectMsg(

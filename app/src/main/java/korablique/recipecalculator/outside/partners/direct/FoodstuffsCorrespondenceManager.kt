@@ -74,7 +74,11 @@ class FoodstuffsCorrespondenceManager @Inject constructor(
 
     override fun onNewDirectMessage(msg: String) {
         val foodstuffDecoded = String(Base64.decode(msg, Base64.DEFAULT))
-        val foodstuffMsg = moshi.adapter<FoodstuffMsg>(FoodstuffMsg::class.java).fromJson(foodstuffDecoded)
+        val foodstuffMsg = try {
+            moshi.adapter<FoodstuffMsg>(FoodstuffMsg::class.java).fromJson(foodstuffDecoded)
+        } catch (e: Exception) {
+            null
+        }
         if (foodstuffMsg == null) {
             return
         }

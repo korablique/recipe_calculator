@@ -84,7 +84,7 @@ class DirectMsgsManagerTest {
         manager2.registerReceiver("msgtype", manager2Observer)
 
         verifyZeroInteractions(manager2Observer)
-        manager2.onNewFcmMessage(msg)
+        manager2.onNewFcmMessage("""{"msg":"$msg"}""")
         verify(manager2Observer).onNewDirectMessage("hello there!")
     }
 }
