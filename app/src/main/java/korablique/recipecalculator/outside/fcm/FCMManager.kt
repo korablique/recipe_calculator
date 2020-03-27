@@ -20,6 +20,7 @@ import javax.inject.Singleton
 @VisibleForTesting
 const val SERV_FIELD_MSG_TYPE = "msg_type"
 private const val PREF_TOKEN = "token"
+private const val PREF_TOKEN_OWNER = "token_owner"
 
 @Singleton
 class FCMManager @Inject constructor(
@@ -84,8 +85,14 @@ class FCMManager @Inject constructor(
                 return@launch
             }
 
+            if (!networkStateDispatcher.isNetworkAvailable()) {
+                return@launch
+            }
+
             val lastToken = prefsManager.getString(FCM_MANAGER, PREF_TOKEN)
-            if (!networkStateDispatcher.isNetworkAvailable() || token == lastToken) {
+            val lastTokenOwner = prefsManager.getString(FCM_MANAGER, PREF_TOKEN_OWNER)
+            if (token == lastToken
+                    && userParams.uid == lastTokenOwner) {
                 return@launch
             }
 
@@ -102,10 +109,11 @@ class FCMManager @Inject constructor(
         }
         if (response is BroccalcNetJobResult.Ok) {
             prefsManager.putString(FCM_MANAGER, PREF_TOKEN, fcmToken)
+            prefsManager.putString(FCM_MANAGER, PREF_TOKEN_OWNER, userParams.uid)
         }
     }
 
-    internal fun onMessageReceived(data: Map<String, String>) {
+    fun onMessageReceived(data: Map<String, String>) {
         val msgType = data[SERV_FIELD_MSG_TYPE]
         if (msgType == null) {
 //            Crashlytics.logException(RuntimeException("Server FCM message without msg type: $data"))

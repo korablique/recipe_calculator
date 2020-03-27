@@ -195,11 +195,6 @@ class FCMManagerTest {
         assertEquals(Msg("mymsgtype", "other_val"), msg)
     }
 
-    @JsonClass(generateAdapter = true)
-    data class Msg(
-            val msg_type: String,
-            val other_key: String
-    )
 
     @Test
     fun `received FCM message ignored if there's no type`() {
@@ -218,6 +213,17 @@ class FCMManagerTest {
         fcmManager!!.registerMessageReceiver("mymsgtype", mock())
     }
 
+    @Test
+    fun `sends same old token on user change`() {
+        assertEquals(0, httpClient.getRequestsMatching(".*update_fcm_token.*").size)
+        updateFCMToken("mynewtoken")
+        assertEquals(1, httpClient.getRequestsMatching(".*update_fcm_token.*").size)
+        setUserParams(
+                ServerUserParams(
+                        userParamsRegistry.getUserParams()!!.uid + "2", "token"))
+        assertEquals(2, httpClient.getRequestsMatching(".*update_fcm_token.*").size)
+    }
+
     private fun setServerFcmResponseStatus(status: String) {
         httpClient.setResponse(".*update_fcm_token.*") {
             RequestResult.Success(Response("""{"status": "$status"}"""))
@@ -229,4 +235,9 @@ class FCMManagerTest {
         fcmManager?.onFCMTokenChanged(newVal)
     }
 
+    @JsonClass(generateAdapter = true)
+    data class Msg(
+            val msg_type: String,
+            val other_key: String
+    )
 }
