@@ -37,7 +37,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<MyViewHolder> {
     private Observer onItemClickObserver;
 
     private boolean destroyed;
-    private Set<MyViewHolder> aliveHistoryViewHolders = Collections.newSetFromMap(new WeakHashMap<>());
+    private Set<View> aliveViews = Collections.newSetFromMap(new WeakHashMap<>());
 
     public HistoryAdapter(Context context, HistoryViewHoldersPool viewHoldersPool) {
         this.context = context;
@@ -48,18 +48,18 @@ public class HistoryAdapter extends RecyclerView.Adapter<MyViewHolder> {
     @Override
     public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         checkNotDestroyed();
-        ViewGroup view;
+        View view;
         switch (viewType) {
             case VIEW_TYPE_EMPTY_TOP:
-                view = (ViewGroup) LayoutInflater.from(parent.getContext())
+                view = LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.history_recycler_view_empty_top, parent, false);
                 return new MyViewHolder(view);
             case VIEW_TYPE_FOODSTUFF:
-                MyViewHolder viewHolder = viewHoldersPool.take();
-                aliveHistoryViewHolders.add(viewHolder);
-                return viewHolder;
+                view = viewHoldersPool.take();
+                aliveViews.add(view);
+                return new MyViewHolder(view);
             case VIEW_TYPE_EMPTY_BOTTOM:
-                view = (ViewGroup) LayoutInflater.from(parent.getContext())
+                view = LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.history_recycler_view_empty_bottom, parent, false);
                 return new MyViewHolder(view);
             default:
@@ -80,7 +80,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<MyViewHolder> {
             // Empty item is not bound to any data
             return;
         }
-        ViewGroup item = holder.getItem();
+        View item = holder.getItem();
         TextView foodstuffNameWithWeightView = item.findViewById(R.id.foodstuff_name_and_weight);
         TextView proteinView = item.findViewById(R.id.protein);
         TextView fatsView = item.findViewById(R.id.fats);
@@ -106,11 +106,13 @@ public class HistoryAdapter extends RecyclerView.Adapter<MyViewHolder> {
 
     @Override
     public int getItemCount() {
+        checkNotDestroyed();
         return historyEntries.size() + 2; // First and last items are empty spaces
     }
 
     @Override
     public int getItemViewType(int position) {
+        checkNotDestroyed();
         if (position == 0) {
             return VIEW_TYPE_EMPTY_TOP;
         } else if (position == getItemCount() - 1) {
@@ -186,8 +188,9 @@ public class HistoryAdapter extends RecyclerView.Adapter<MyViewHolder> {
     }
 
     public void destroy() {
+        checkNotDestroyed();
         destroyed = true;
-        viewHoldersPool.put(aliveHistoryViewHolders);
-        aliveHistoryViewHolders.clear();
+        viewHoldersPool.put(aliveViews);
+        aliveViews.clear();
     }
 }

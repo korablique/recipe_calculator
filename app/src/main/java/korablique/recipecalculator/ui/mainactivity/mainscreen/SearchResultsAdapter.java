@@ -43,7 +43,7 @@ public class SearchResultsAdapter extends RecyclerView.Adapter<MyViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
-        ViewGroup item = holder.getItem();
+        View item = holder.getItem();
         setTextViewText(item, R.id.name, searchResults.get(position).getName());
         setTextViewText(item, R.id.extra_info_block,
                 context.getString(R.string.n_calories, toDecimalString(searchResults.get(position).getCalories())));

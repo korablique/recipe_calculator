@@ -53,7 +53,7 @@ public class FoodstuffsAdapterChild extends AdapterChild {
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int childPosition) {
-        ViewGroup item = ((MyViewHolder) holder).getItem();
+        View item = ((MyViewHolder) holder).getItem();
         Foodstuff foodstuff = foodstuffs.get(childPosition);
         setTextViewText(item, R.id.name, foodstuff.getName());
 

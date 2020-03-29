@@ -1,6 +1,7 @@
 package korablique.recipecalculator.ui.mainactivity.history.pages
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -9,7 +10,6 @@ import korablique.recipecalculator.base.BaseActivity
 import korablique.recipecalculator.base.executors.ComputationThreadsExecutor
 import korablique.recipecalculator.base.executors.MainThreadExecutor
 import korablique.recipecalculator.dagger.ActivityScope
-import korablique.recipecalculator.ui.MyViewHolder
 import javax.inject.Inject
 
 private const val INITIAL_CAPACITY = 150
@@ -33,7 +33,7 @@ class HistoryViewHoldersPool @Inject constructor(
      * RecyclerView used as a source of layout params for inflated R.layout.history_item_layout.
      */
     private val zygoteRecyclerView: RecyclerView
-    private val holders = mutableListOf<MyViewHolder>()
+    private val views = mutableListOf<View>()
 
     init {
         // Let's create the zygoteRecyclerView by first inflating the history page layout
@@ -42,44 +42,43 @@ class HistoryViewHoldersPool @Inject constructor(
                 LayoutInflater.from(activity).inflate(
                         R.layout.fragment_history_page_real,
                         activity.findViewById(R.id.fragment_history),
-                        false) as ViewGroup
+                        false)
         zygoteRecyclerView = throwawayHistoryPage.findViewById(R.id.history_list)
         zygoteRecyclerView.layoutManager = LinearLayoutManager(activity)
 
         computationThreadsExecutor.execute {
-            val initialPool = mutableListOf<MyViewHolder>()
+            val initialPool = mutableListOf<View>()
             for (indx in 0 until INITIAL_CAPACITY) {
-                val view = inflate()
-                initialPool += MyViewHolder(view)
+                initialPool += inflate()
             }
             mainThreadExecutor.execute {
-                holders.addAll(initialPool)
+                views.addAll(initialPool)
             }
         }
     }
 
-    private fun inflate(): ViewGroup {
+    private fun inflate(): View {
         return LayoutInflater.from(activity).inflate(
                 R.layout.history_item_layout,
                 zygoteRecyclerView,
-                false) as ViewGroup
+                false) as View
     }
 
-    fun put(holder: MyViewHolder) {
-        if (holder.item.parent != null) {
-            (holder.item.parent as ViewGroup).removeView(holder.item)
+    fun put(view: View) {
+        if (view.parent != null) {
+            (view.parent as ViewGroup).removeView(view)
         }
-        holders += holder
+        views += view
     }
 
-    fun put(holders: Collection<MyViewHolder>) {
+    fun put(holders: Collection<View>) {
         holders.forEach { put(it) }
     }
 
-    fun take(): MyViewHolder {
-        if (holders.isEmpty()) {
-            return MyViewHolder(inflate())
+    fun take(): View {
+        if (views.isEmpty()) {
+            return inflate()
         }
-        return holders.removeAt(holders.size-1)
+        return views.removeAt(views.size-1)
     }
 }

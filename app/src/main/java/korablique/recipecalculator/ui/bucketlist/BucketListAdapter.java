@@ -55,7 +55,7 @@ public class BucketListAdapter extends RecyclerView.Adapter<MyViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull final MyViewHolder holder, int displayedPosition) {
-        ViewGroup item = holder.getItem();
+        View item = holder.getItem();
         final WeightedFoodstuff foodstuff = getItem(displayedPosition);
 
         setTextViewText(item, R.id.name, foodstuff.getName());
