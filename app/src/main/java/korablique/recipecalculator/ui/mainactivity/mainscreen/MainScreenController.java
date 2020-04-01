@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 
 import androidx.appcompat.widget.PopupMenu;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -32,6 +33,7 @@ import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
+import korablique.recipecalculator.ui.mainactivity.MainActivityFragmentsController;
 import korablique.recipecalculator.ui.mainactivity.MainActivitySelectedDateStorage;
 import korablique.recipecalculator.ui.nestingadapters.FoodstuffsAdapterChild;
 import korablique.recipecalculator.ui.nestingadapters.SectionedAdapterParent;
@@ -41,7 +43,8 @@ import korablique.recipecalculator.ui.nestingadapters.SingleItemAdapterChild;
 @FragmentScope
 public class MainScreenController
         implements FragmentCallbacks.Observer,
-        ActivityCallbacks.Observer {
+        ActivityCallbacks.Observer,
+        MainActivityFragmentsController.Observer {
     public static final int TOP_ITEMS_MAX_COUNT = 5;
     private static final String EXTRA_INITIAL_TOP = "EXTRA_INITIAL_TOP";
     private static final String EXTRA_ALL_FOODSTUFFS_FIRST_BATCH = "EXTRA_ALL_FOODSTUFFS_FIRST_BATCH";
@@ -57,23 +60,13 @@ public class MainScreenController
     private final MainScreenReadinessDispatcher readinessDispatcher;
     private final RxFragmentSubscriptions subscriptions;
     private final TempLongClickedFoodstuffsHandler tempLongClickedFoodstuffsHandler;
+    private final MainActivityFragmentsController mainActivityFragmentsController;
     private SectionedAdapterParent adapterParent;
     private SingleItemAdapterChild topTitleAdapterChild;
     private FoodstuffsAdapterChild topAdapterChild;
     private SectionedFoodstuffsAdapterChild foodstuffAdapterChild;
     private SelectedFoodstuffsSnackbar snackbar;
 
-    private FoodstuffsTopList.Observer topListObserver = new FoodstuffsTopList.Observer() {
-        @Override
-        public void onFoodstuffsTopPossiblyChanged() {
-            subscriptions.subscribe(topList.getWeekTop(), (foodstuffs -> {
-                if (topAdapterChild != null) {
-                    topAdapterChild.clear();
-                }
-                fillTop(foodstuffs);
-            }));
-        }
-    };
     private boolean isTopFilledFromArguments;
     private boolean isAllFoodstuffsListFilledFromArguments;
 
@@ -90,7 +83,8 @@ public class MainScreenController
             MainScreenCardController cardController,
             MainScreenReadinessDispatcher readinessDispatcher,
             RxFragmentSubscriptions subscriptions,
-            TempLongClickedFoodstuffsHandler tempLongClickedFoodstuffsHandler) {
+            TempLongClickedFoodstuffsHandler tempLongClickedFoodstuffsHandler,
+            MainActivityFragmentsController mainActivityFragmentsController) {
         this.context = context;
         this.fragment = fragment;
         this.fragmentCallbacks = fragmentCallbacks;
@@ -103,6 +97,7 @@ public class MainScreenController
         this.readinessDispatcher = readinessDispatcher;
         this.subscriptions = subscriptions;
         this.tempLongClickedFoodstuffsHandler = tempLongClickedFoodstuffsHandler;
+        this.mainActivityFragmentsController = mainActivityFragmentsController;
         fragmentCallbacks.addObserver(this);
         activityCallbacks.addObserver(this);
     }
@@ -192,7 +187,7 @@ public class MainScreenController
                 readinessDispatcher.onMainScreenReady();
             });
         }));
-        topList.addObserver(topListObserver);
+        mainActivityFragmentsController.addObserver(this);
     }
 
     private void fillListsFromArguments() {
@@ -214,8 +209,20 @@ public class MainScreenController
 
     @Override
     public void onFragmentDestroy() {
-        topList.removeObserver(topListObserver);
         activityCallbacks.removeObserver(this);
+        mainActivityFragmentsController.removeObserver(this);
+    }
+
+    @Override
+    public void onMainActivityFragmentSwitch(Fragment oldShownFragment, Fragment newShownFragment) {
+        // Re-request top so that user would get an updated
+        // top when they return to main fragment.
+        subscriptions.subscribe(topList.getWeekTop(), (foodstuffs -> {
+            if (topAdapterChild != null) {
+                topAdapterChild.clear();
+            }
+            fillTop(foodstuffs);
+        }));
     }
 
     private void createAllFoodstuffsAdapter() {

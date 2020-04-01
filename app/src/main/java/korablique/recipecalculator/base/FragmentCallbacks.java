@@ -17,6 +17,8 @@ public class FragmentCallbacks {
         default void onFragmentViewCreated(View fragmentView, @Nullable Bundle savedInstanceState) {}
         default void onFragmentStart() {}
         default void onFragmentResume() {}
+        default void onFragmentPause() {}
+        default void onFragmentStop() {}
         default void onFragmentActivityResult(int requestCode, int resultCode, Intent data) {}
         default void onFragmentSaveInstanceState(Bundle outState) {}
         default void onFragmentViewStateRestored(Bundle savedInstanceState) {}
@@ -52,6 +54,18 @@ public class FragmentCallbacks {
     void dispatchFragmentResume() {
         for (Observer observer : observers) {
             observer.onFragmentResume();
+        }
+    }
+
+    void dispatchFragmentPause() {
+        for (Observer observer : observers) {
+            observer.onFragmentPause();
+        }
+    }
+
+    void dispatchFragmentStop() {
+        for (Observer observer : observers) {
+            observer.onFragmentStop();
         }
     }
 

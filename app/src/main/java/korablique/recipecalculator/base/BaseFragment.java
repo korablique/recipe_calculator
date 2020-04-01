@@ -89,6 +89,18 @@ public abstract class BaseFragment extends Fragment {
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+        fragmentCallbacks.dispatchFragmentPause();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        fragmentCallbacks.dispatchFragmentStop();
+    }
+
+    @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         fragmentCallbacks.dispatchActivityResult(requestCode, resultCode, data);

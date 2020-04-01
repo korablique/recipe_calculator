@@ -260,7 +260,8 @@ public class MainActivityTestsBase {
                                     activity.getActivityCallbacks(), bucketList, topList,
                                     foodstuffsList, mainActivitySelectedDateStorage,
                                     mainScreenCardController, readinessDispatcher,
-                                    subscriptions, longClickedFoodstuffsHandler);
+                                    subscriptions, longClickedFoodstuffsHandler,
+                                    fragmentsController);
                             return Arrays.asList(subscriptions, mainScreenController,
                                     upFABController, mainScreenCardController, searchController);
 
