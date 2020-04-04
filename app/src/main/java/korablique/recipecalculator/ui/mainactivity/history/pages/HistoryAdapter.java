@@ -149,7 +149,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<MyViewHolder> {
         }
         for (int index = 0; index < historyEntries.size(); index++) {
             WeightedFoodstuff f = historyEntries.get(index).getFoodstuff();
-            if (foodstuff.getId() == f.getId()) {
+            if (foodstuff.equals(f)) {
                 HistoryEntry removingEntry = historyEntries.get(index);
                 historyEntries.remove(index);
                 notifyItemRemoved(index + 1); // First item is empty space
@@ -163,13 +163,13 @@ public class HistoryAdapter extends RecyclerView.Adapter<MyViewHolder> {
      * @param newFoodstuff foodstuff with changed weight
      * @return replaced item's id or -1 if item not found
      */
-    public long replaceItem(WeightedFoodstuff newFoodstuff) {
+    public long replaceItem(WeightedFoodstuff oldFoodstuff, WeightedFoodstuff newFoodstuff) {
         if (newFoodstuff.getId() == -1) {
             throw new IllegalArgumentException("Foodstuff has no id");
         }
         for (int index = 0; index < historyEntries.size(); index++) {
             WeightedFoodstuff foodstuff = historyEntries.get(index).getFoodstuff();
-            if (newFoodstuff.getId() == foodstuff.getId()) {
+            if (foodstuff.equals(oldFoodstuff)) {
                 HistoryEntry oldEntry = historyEntries.get(index);
                 historyEntries.set(index, new HistoryEntry(oldEntry.getHistoryId(), newFoodstuff, oldEntry.getTime()));
                 notifyItemChanged(index + 1); // First item is empty space

@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -30,6 +31,7 @@ import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.dagger.FragmentScope;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
+import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.HistoryEntry;
 import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.model.RateCalculator;
@@ -65,10 +67,20 @@ public class HistoryPageController implements
     private Card.OnMainButtonClickListener onAddFoodstuffButtonClickListener
             = new Card.OnMainButtonClickListener() {
         @Override
-        public void onClick(WeightedFoodstuff foodstuff) {
+        public void onClick(
+                WeightedFoodstuff newFoodstuff,
+                Foodstuff originalFoodstuff,
+                @Nullable Double originalWeight) {
+            if (originalWeight == null) {
+                throw new IllegalStateException(
+                        "History expected to work only with weighted foodstuffs, "
+                                + "originalFoodstuff: " + originalFoodstuff);
+            }
             CardDialog.hideCard(context);
-            long replacedItemId = adapter.replaceItem(foodstuff);
-            historyWorker.editWeightInHistoryEntry(replacedItemId, foodstuff.getWeight());
+            long replacedItemId = adapter.replaceItem(
+                    originalFoodstuff.withWeight(originalWeight),
+                    newFoodstuff);
+            historyWorker.editWeightInHistoryEntry(replacedItemId, newFoodstuff.getWeight());
 
             // update wrappers
             Nutrition updatedNutrition = Nutrition.zero();

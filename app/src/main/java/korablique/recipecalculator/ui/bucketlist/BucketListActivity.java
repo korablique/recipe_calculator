@@ -61,7 +61,7 @@ public class BucketListActivity extends BaseActivity implements HasSupportFragme
     @Inject
     BucketList bucketList;
     private int displayedInCardFoodstuffPosition;
-    private Card.OnMainButtonClickListener onAddFoodstuffButtonClickListener;
+    private Card.OnMainButtonSimpleClickListener onAddFoodstuffButtonClickListener;
     @Inject
     TimeProvider timeProvider;
 
@@ -106,7 +106,7 @@ public class BucketListActivity extends BaseActivity implements HasSupportFragme
             updateSaveButtonsEnability();
         };
 
-        onAddFoodstuffButtonClickListener = new Card.OnMainButtonClickListener() {
+        onAddFoodstuffButtonClickListener = new Card.OnMainButtonSimpleClickListener() {
             @Override
             public void onClick(WeightedFoodstuff newFoodstuff) {
                 WeightedFoodstuff oldFoodstuff = adapter.getItem(displayedInCardFoodstuffPosition);

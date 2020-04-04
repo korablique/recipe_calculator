@@ -91,12 +91,22 @@ public class CardDialog extends BaseBottomDialog {
     }
 
     public void setUpButton1(
+            Card.OnMainButtonSimpleClickListener listener, @StringRes int buttonTextRes) {
+        setUpButton1(listener.convert(), buttonTextRes);
+    }
+
+    public void setUpButton1(
             Card.OnMainButtonClickListener listener, @StringRes int buttonTextRes) {
         button1ClickListener = listener;
         this.button1TextRes = buttonTextRes;
         if (card != null) {
             card.setUpButton1(listener, buttonTextRes);
         }
+    }
+
+    public void setUpButton2(
+            Card.OnMainButtonSimpleClickListener listener, @StringRes int buttonTextRes) {
+        setUpButton2(listener.convert(), buttonTextRes);
     }
 
     public void setUpButton2(

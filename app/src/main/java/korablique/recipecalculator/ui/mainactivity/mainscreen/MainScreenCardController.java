@@ -71,8 +71,8 @@ public class MainScreenCardController implements FragmentCallbacks.Observer {
             }
         }
     };
-    private Card.OnMainButtonClickListener onAddFoodstuffToRecipeListener;
-    private Card.OnMainButtonClickListener onAddFoodstuffToHistoryListener;
+    private Card.OnMainButtonSimpleClickListener onAddFoodstuffToRecipeListener;
+    private Card.OnMainButtonSimpleClickListener onAddFoodstuffToHistoryListener;
     private Card.OnEditButtonClickListener onEditButtonClickListener;
     private CardMode currentCardMode = CardMode.NONE;
 
