@@ -229,6 +229,18 @@ public class HistoryPageController implements
                         recyclerView.getContext(), DividerItemDecoration.VERTICAL);
         dividerItemDecoration.setDrawable(fragmentView.getResources().getDrawable(R.drawable.divider));
         recyclerView.addItemDecoration(dividerItemDecoration);
+
+        // В комбинации ViewPager2 + (вложенный) RecyclerView есть баг - когда уведомляешь RecyclerView
+        // о том, что поменялся какой-то элемент, тот без видимых причин проигрывает анимацию удаления
+        // у всех элементов, что вызывает моргание.
+        // У ViewPager(первый) + (вложенный) RecyclerView такой проблемы нет, но первый ViewPager
+        // не может справиться с Int.MAX_VALUE количеством элементов, постоянно зависает.
+        //
+        // Костыль - просто отключим анимацию удаления элементов. Мы могли бы попытаться следить
+        // за тем, просим ли мы удалить элемент, или он удаляется сам по себе, и разрешать анимацию
+        // удаления в первом случае, и запрещать во втором (всё внутри ItemAnimatorWithoutRemovals),
+        // но это труднее, нужды в этом пока нет.
+        recyclerView.setItemAnimator(new ItemAnimatorWithoutRemovals());
     }
 
     private void updateWrappers() {
