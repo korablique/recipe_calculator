@@ -42,6 +42,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<MyViewHolder> {
     public HistoryAdapter(Context context, HistoryViewHoldersPool viewHoldersPool) {
         this.context = context;
         this.viewHoldersPool = viewHoldersPool;
+        setHasStableIds(true);
     }
 
     @NonNull
@@ -192,5 +193,17 @@ public class HistoryAdapter extends RecyclerView.Adapter<MyViewHolder> {
         destroyed = true;
         viewHoldersPool.put(aliveViews);
         aliveViews.clear();
+    }
+
+    @Override
+    public long getItemId(int position) {
+        // First and last items are empty spaces
+        if (position == 0) {
+            return -1;
+        } else if (position == getItemCount() - 1) {
+            return -2;
+        } else {
+            return historyEntries.get(position - 1).getHistoryId();
+        }
     }
 }
