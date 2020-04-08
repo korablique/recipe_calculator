@@ -6,4 +6,5 @@ object IngredientContract {
     const val COLUMN_NAME_RECIPE_ID = "recipe_id"
     const val COLUMN_NAME_INGREDIENT_WEIGHT = "ingredient_weight"
     const val COLUMN_NAME_INGREDIENT_FOODSTUFF_ID = "ingredient_foodstuff_id"
+    const val COLUMN_NAME_COMMENT = "comment"
 }

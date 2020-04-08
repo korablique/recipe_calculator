@@ -5,4 +5,5 @@ object RecipeContract {
     const val ID = "id"
     const val COLUMN_NAME_FOODSTUFF_ID = "foodstuff_id"
     const val COLUMN_NAME_INGREDIENTS_TOTAL_WEIGHT = "ingredients_total_weight"
+    const val COLUMN_NAME_COMMENT = "comment"
 }

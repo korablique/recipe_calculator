@@ -1,11 +1,9 @@
 package korablique.recipecalculator.database.room
 
-import androidx.room.ColumnInfo
-import androidx.room.Entity
-import androidx.room.ForeignKey
-import androidx.room.PrimaryKey
+import androidx.room.*
 import korablique.recipecalculator.database.FoodstuffsContract
 import korablique.recipecalculator.database.IngredientContract
+import korablique.recipecalculator.database.IngredientContract.COLUMN_NAME_COMMENT
 import korablique.recipecalculator.database.IngredientContract.COLUMN_NAME_INGREDIENT_FOODSTUFF_ID
 import korablique.recipecalculator.database.IngredientContract.COLUMN_NAME_INGREDIENT_WEIGHT
 import korablique.recipecalculator.database.IngredientContract.COLUMN_NAME_RECIPE_ID
@@ -21,7 +19,8 @@ import korablique.recipecalculator.database.RecipeContract
             ForeignKey(
                     entity = FoodstuffEntity::class,
                     parentColumns = [FoodstuffsContract.ID],
-                    childColumns = [COLUMN_NAME_INGREDIENT_FOODSTUFF_ID])]
+                    childColumns = [COLUMN_NAME_INGREDIENT_FOODSTUFF_ID])],
+        indices = [Index(COLUMN_NAME_RECIPE_ID), Index(COLUMN_NAME_INGREDIENT_FOODSTUFF_ID)]
         )
 class IngredientEntity {
     @PrimaryKey(autoGenerate = true)
@@ -37,11 +36,16 @@ class IngredientEntity {
     @ColumnInfo(name = COLUMN_NAME_INGREDIENT_FOODSTUFF_ID)
     val ingredientFoodstuffId: Long
 
-    constructor(id: Long, recipeId: Long, ingredientWeight: Float, ingredientFoodstuffId: Long) {
+    @ColumnInfo(name = COLUMN_NAME_COMMENT)
+    val comment: String
+
+    constructor(id: Long, recipeId: Long, ingredientWeight: Float, ingredientFoodstuffId: Long,
+                comment: String) {
         this.id = id
         this.recipeId = recipeId
         this.ingredientWeight = ingredientWeight
         this.ingredientFoodstuffId = ingredientFoodstuffId
+        this.comment = comment
     }
 }
 

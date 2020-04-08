@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 7,
-    "identityHash": "d1f5bf262fac74401fbe76a4b48d747b",
+    "identityHash": "5a1995188a947b74c7cf9971542c8b48",
     "entities": [
       {
         "tableName": "foodstuffs",
@@ -207,7 +207,7 @@
       },
       {
         "tableName": "recipe",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `foodstuff_id` INTEGER NOT NULL, `ingredients_total_weight` REAL NOT NULL, FOREIGN KEY(`foodstuff_id`) REFERENCES `foodstuffs`(`ID`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `foodstuff_id` INTEGER NOT NULL, `ingredients_total_weight` REAL NOT NULL, `comment` TEXT NOT NULL, FOREIGN KEY(`foodstuff_id`) REFERENCES `foodstuffs`(`ID`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
         "fields": [
           {
             "fieldPath": "id",
@@ -226,6 +226,12 @@
             "columnName": "ingredients_total_weight",
             "affinity": "REAL",
             "notNull": true
+          },
+          {
+            "fieldPath": "comment",
+            "columnName": "comment",
+            "affinity": "TEXT",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -234,7 +240,16 @@
           ],
           "autoGenerate": true
         },
-        "indices": [],
+        "indices": [
+          {
+            "name": "index_recipe_foodstuff_id",
+            "unique": false,
+            "columnNames": [
+              "foodstuff_id"
+            ],
+            "createSql": "CREATE  INDEX `index_recipe_foodstuff_id` ON `${TABLE_NAME}` (`foodstuff_id`)"
+          }
+        ],
         "foreignKeys": [
           {
             "table": "foodstuffs",
@@ -251,7 +266,7 @@
       },
       {
         "tableName": "ingredient",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `recipe_id` INTEGER NOT NULL, `ingredient_weight` REAL NOT NULL, `ingredient_foodstuff_id` INTEGER NOT NULL, FOREIGN KEY(`recipe_id`) REFERENCES `recipe`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION , FOREIGN KEY(`ingredient_foodstuff_id`) REFERENCES `foodstuffs`(`ID`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `recipe_id` INTEGER NOT NULL, `ingredient_weight` REAL NOT NULL, `ingredient_foodstuff_id` INTEGER NOT NULL, `comment` TEXT NOT NULL, FOREIGN KEY(`recipe_id`) REFERENCES `recipe`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION , FOREIGN KEY(`ingredient_foodstuff_id`) REFERENCES `foodstuffs`(`ID`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
         "fields": [
           {
             "fieldPath": "id",
@@ -276,6 +291,12 @@
             "columnName": "ingredient_foodstuff_id",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "comment",
+            "columnName": "comment",
+            "affinity": "TEXT",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -284,7 +305,24 @@
           ],
           "autoGenerate": true
         },
-        "indices": [],
+        "indices": [
+          {
+            "name": "index_ingredient_recipe_id",
+            "unique": false,
+            "columnNames": [
+              "recipe_id"
+            ],
+            "createSql": "CREATE  INDEX `index_ingredient_recipe_id` ON `${TABLE_NAME}` (`recipe_id`)"
+          },
+          {
+            "name": "index_ingredient_ingredient_foodstuff_id",
+            "unique": false,
+            "columnNames": [
+              "ingredient_foodstuff_id"
+            ],
+            "createSql": "CREATE  INDEX `index_ingredient_ingredient_foodstuff_id` ON `${TABLE_NAME}` (`ingredient_foodstuff_id`)"
+          }
+        ],
         "foreignKeys": [
           {
             "table": "recipe",
@@ -314,7 +352,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd1f5bf262fac74401fbe76a4b48d747b')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5a1995188a947b74c7cf9971542c8b48')"
     ]
   }
 }

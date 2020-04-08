@@ -157,8 +157,13 @@ public class Migrations {
                             RecipeContract.ID + " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
                             RecipeContract.COLUMN_NAME_FOODSTUFF_ID + " INTEGER NOT NULL, " +
                             RecipeContract.COLUMN_NAME_INGREDIENTS_TOTAL_WEIGHT + " REAL NOT NULL, " +
+                            RecipeContract.COLUMN_NAME_COMMENT + " TEXT NOT NULL, " +
                             "FOREIGN KEY (" + RecipeContract.COLUMN_NAME_FOODSTUFF_ID + ") " +
                             "REFERENCES " + FoodstuffsContract.FOODSTUFFS_TABLE_NAME + "(" + FoodstuffsContract.ID + "))");
+            database.execSQL("CREATE INDEX "
+                    + "index_" + RECIPE_TABLE_NAME + "_" + RecipeContract.COLUMN_NAME_FOODSTUFF_ID
+                    + " ON " + RECIPE_TABLE_NAME
+                    + "(" + RecipeContract.COLUMN_NAME_FOODSTUFF_ID + ")");
             // add table ingredient
             database.execSQL(
                     "CREATE TABLE " + INGREDIENT_TABLE_NAME + " (" +
@@ -166,10 +171,19 @@ public class Migrations {
                             IngredientContract.COLUMN_NAME_RECIPE_ID + " INTEGER NOT NULL, " +
                             IngredientContract.COLUMN_NAME_INGREDIENT_WEIGHT + " REAL NOT NULL, " +
                             IngredientContract.COLUMN_NAME_INGREDIENT_FOODSTUFF_ID + " INTEGER NOT NULL, " +
+                            IngredientContract.COLUMN_NAME_COMMENT + " TEXT NOT NULL, " +
                             "FOREIGN KEY (" + IngredientContract.COLUMN_NAME_RECIPE_ID + ") " +
                             "REFERENCES " + RECIPE_TABLE_NAME + "(" + RecipeContract.ID + "), " +
                             "FOREIGN KEY (" + IngredientContract.COLUMN_NAME_INGREDIENT_FOODSTUFF_ID + ") " +
                             "REFERENCES " + FoodstuffsContract.FOODSTUFFS_TABLE_NAME + "(" + FoodstuffsContract.ID + "))");
+            database.execSQL("CREATE INDEX "
+                    + "index_" + INGREDIENT_TABLE_NAME + "_" + IngredientContract.COLUMN_NAME_RECIPE_ID
+                    + " ON " + INGREDIENT_TABLE_NAME
+                    + "(" + IngredientContract.COLUMN_NAME_RECIPE_ID + ")");
+            database.execSQL("CREATE INDEX "
+                    + "index_" + INGREDIENT_TABLE_NAME + "_" + IngredientContract.COLUMN_NAME_INGREDIENT_FOODSTUFF_ID
+                    + " ON " + INGREDIENT_TABLE_NAME
+                    + "(" + IngredientContract.COLUMN_NAME_INGREDIENT_FOODSTUFF_ID + ")");
         }
     };
 
