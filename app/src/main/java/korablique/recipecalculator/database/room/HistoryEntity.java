@@ -11,9 +11,10 @@ import korablique.recipecalculator.database.HistoryContract;
 import static korablique.recipecalculator.database.HistoryContract.*;
 
 @Entity(tableName = HISTORY_TABLE_NAME,
-        foreignKeys = @ForeignKey(entity = FoodstuffEntity.class,
-        parentColumns = FoodstuffsContract.ID,
-        childColumns = COLUMN_NAME_FOODSTUFF_ID),
+        foreignKeys = @ForeignKey(
+                entity = FoodstuffEntity.class,
+                parentColumns = FoodstuffsContract.ID,
+                childColumns = COLUMN_NAME_FOODSTUFF_ID),
         indices = {@Index(COLUMN_NAME_FOODSTUFF_ID)})
 public class HistoryEntity {
     @ColumnInfo(name = HistoryContract.ID)
