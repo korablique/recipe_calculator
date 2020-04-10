@@ -159,7 +159,8 @@ public class Migrations {
                             RecipeContract.COLUMN_NAME_INGREDIENTS_TOTAL_WEIGHT + " REAL NOT NULL, " +
                             RecipeContract.COLUMN_NAME_COMMENT + " TEXT NOT NULL, " +
                             "FOREIGN KEY (" + RecipeContract.COLUMN_NAME_FOODSTUFF_ID + ") " +
-                            "REFERENCES " + FoodstuffsContract.FOODSTUFFS_TABLE_NAME + "(" + FoodstuffsContract.ID + "))");
+                            "REFERENCES " + FoodstuffsContract.FOODSTUFFS_TABLE_NAME + "(" + FoodstuffsContract.ID + ")," +
+                            "UNIQUE (" + RecipeContract.COLUMN_NAME_FOODSTUFF_ID + "))");
             database.execSQL("CREATE INDEX "
                     + "index_" + RECIPE_TABLE_NAME + "_" + RecipeContract.COLUMN_NAME_FOODSTUFF_ID
                     + " ON " + RECIPE_TABLE_NAME

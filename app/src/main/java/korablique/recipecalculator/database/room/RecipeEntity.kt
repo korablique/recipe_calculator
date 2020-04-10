@@ -15,25 +15,13 @@ import korablique.recipecalculator.database.RecipeContract.RECIPE_TABLE_NAME
                 parentColumns = [FoodstuffsContract.ID],
                 childColumns = [COLUMN_NAME_FOODSTUFF_ID])],
         indices = [Index(COLUMN_NAME_FOODSTUFF_ID)])
-class RecipeEntity {
-    @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = RecipeContract.ID)
-    val id: Long
-
-    @ColumnInfo(name = COLUMN_NAME_FOODSTUFF_ID)
-    val foodstuffId: Long
-
-    @ColumnInfo(name = COLUMN_NAME_INGREDIENTS_TOTAL_WEIGHT)
-    val ingredientsTotalWeight: Float
-
-    @ColumnInfo(name = COLUMN_NAME_COMMENT)
-    val comment: String
-
-    constructor(id: Long, foodstuffId: Long, ingredientsTotalWeight: Float, comment: String) {
-        this.id = id
-        this.foodstuffId = foodstuffId
-        this.ingredientsTotalWeight = ingredientsTotalWeight
-        this.comment = comment
-    }
-}
-
+data class RecipeEntity(
+        @PrimaryKey(autoGenerate = true)
+        @ColumnInfo(name = RecipeContract.ID)
+        val id: Long,
+        @ColumnInfo(name = COLUMN_NAME_FOODSTUFF_ID)
+        val foodstuffId: Long,
+        @ColumnInfo(name = COLUMN_NAME_INGREDIENTS_TOTAL_WEIGHT)
+        val ingredientsTotalWeight: Float,
+        @ColumnInfo(name = COLUMN_NAME_COMMENT)
+        val comment: String)
