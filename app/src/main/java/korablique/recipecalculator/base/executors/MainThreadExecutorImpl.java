@@ -1,5 +1,7 @@
 package korablique.recipecalculator.base.executors;
 
+import android.os.Looper;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
@@ -27,5 +29,10 @@ public class MainThreadExecutorImpl extends MainThreadExecutor {
     @Override
     public void dispatch(@NotNull CoroutineContext coroutineContext, @NotNull Runnable runnable) {
         execute(runnable);
+    }
+
+    @Override
+    public boolean isCurrentThreadMain() {
+        return Looper.getMainLooper().getThread() == Thread.currentThread();
     }
 }

@@ -29,7 +29,7 @@ class RecipeDatabaseWorkerTest {
             InstantDatabaseThreadExecutor())
 
     val recipeDatabaseWorker =
-            RecipeDatabaseWorker(
+            RecipeDatabaseWorkerImpl(
                     InstantIOExecutor(),
                     dbHolder,
                     databaseWorker)

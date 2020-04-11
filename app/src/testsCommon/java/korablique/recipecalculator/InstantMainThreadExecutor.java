@@ -32,4 +32,9 @@ public class InstantMainThreadExecutor extends MainThreadExecutor {
     public void dispatch(@NotNull CoroutineContext coroutineContext, @NotNull Runnable runnable) {
         execute(runnable);
     }
+
+    @Override
+    public boolean isCurrentThreadMain() {
+        return true;
+    }
 }

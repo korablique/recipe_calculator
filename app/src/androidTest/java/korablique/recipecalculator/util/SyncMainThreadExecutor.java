@@ -1,5 +1,7 @@
 package korablique.recipecalculator.util;
 
+import android.os.Looper;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
@@ -61,6 +63,10 @@ public class SyncMainThreadExecutor extends MainThreadExecutor {
         public Worker createWorker() {
             return new SyncMainThreadRxWorker();
         }
+    }
 
+    @Override
+    public boolean isCurrentThreadMain() {
+        return Looper.getMainLooper().getThread() == Thread.currentThread();
     }
 }

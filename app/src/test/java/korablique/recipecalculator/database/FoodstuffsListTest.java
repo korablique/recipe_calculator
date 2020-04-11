@@ -1,4 +1,4 @@
-package korablique.recipecalculator.model;
+package korablique.recipecalculator.database;
 
 import android.content.Context;
 
@@ -22,6 +22,7 @@ import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.DatabaseWorker.FinishCallback;
 import korablique.recipecalculator.database.DatabaseWorker.FoodstuffsBatchReceiveCallback;
 import korablique.recipecalculator.database.FoodstuffsList;
+import korablique.recipecalculator.model.Foodstuff;
 
 import static korablique.recipecalculator.database.FoodstuffsList.BATCH_SIZE;
 import static org.mockito.Matchers.any;
@@ -82,8 +83,8 @@ public class FoodstuffsListTest {
     // Если клиент вызвал метод, в его коллбек через неопределенное время придут фудстафы.
     @Test
     public void foodstuffsRequestLeadsToCallbackCall() {
-        dbFoodstuffs.add(new Foodstuff("a", 1, 2, 3, 4));
-        dbFoodstuffs.add(new Foodstuff("b", 4, 3, 2, 1));
+        dbFoodstuffs.add(Foodstuff.withName("a").withNutrition(1, 2, 3, 4));
+        dbFoodstuffs.add(Foodstuff.withName("b").withNutrition(4, 3, 2, 1));
 
         List<Foodstuff> receivedFoodstuffs = new ArrayList<>();
         foodstuffsList.getAllFoodstuffs(unused -> {}, foodstuffs -> {
@@ -106,7 +107,7 @@ public class FoodstuffsListTest {
     @Test
     public void foodstuffsReturningInBatches() {
         for (int index = 0; index < FOODSTUFFS_NUMBER; index++) {
-            dbFoodstuffs.add(new Foodstuff("a" + index, 1, 2, 3, 4 + index));
+            dbFoodstuffs.add(Foodstuff.withName("a" + index).withNutrition(1, 2, 3, 4 + index));
         }
 
         final int[] batchesNumber = {0};
@@ -131,8 +132,8 @@ public class FoodstuffsListTest {
     // ждёт, пока будут загружены фудстаффы для первого клиента и затем получит их.
     @Test
     public void ifSecondClientCallMethodDuringLoadingItAwaits() {
-        dbFoodstuffs.add(new Foodstuff("a", 1, 2, 3, 4));
-        dbFoodstuffs.add(new Foodstuff("b", 4, 3, 2, 1));
+        dbFoodstuffs.add(Foodstuff.withName("a").withNutrition(1, 2, 3, 4));
+        dbFoodstuffs.add(Foodstuff.withName("b").withNutrition(4, 3, 2, 1));
 
         List<FoodstuffsBatchReceiveCallback> batchReceiveCallbacks = new ArrayList<>();
         List<FinishCallback> finishCallbacks = new ArrayList<>();
@@ -177,7 +178,7 @@ public class FoodstuffsListTest {
     @Test
     public void ifSecondClientCallMethodDuringLoadingItGetAlreadyLoadedFoodstuffsAndThanOtherBatches() {
         for (int index = 0; index < FOODSTUFFS_NUMBER; index++) {
-            dbFoodstuffs.add(new Foodstuff("a" + index, 1, 2, 3, 4 + index));
+            dbFoodstuffs.add(Foodstuff.withName("a" + index).withNutrition(1, 2, 3, 4 + index));
         }
         List<FoodstuffsBatchReceiveCallback> batchReceiveCallbacks = new ArrayList<>();
         List<FinishCallback> finishCallbacks = new ArrayList<>();

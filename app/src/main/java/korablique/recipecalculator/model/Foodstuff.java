@@ -152,4 +152,8 @@ public class Foodstuff implements Parcelable, Comparable<Foodstuff> {
                 ", calories=" + calories +
                 '}';
     }
+
+    public boolean hasValidID() {
+        return id != -1;
+    }
 }
