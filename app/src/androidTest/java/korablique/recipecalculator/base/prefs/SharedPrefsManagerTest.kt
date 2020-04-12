@@ -67,6 +67,20 @@ class SharedPrefsManagerTest {
     }
 
     @Test
+    fun canPutAndGetStringList() {
+        val myKey = "myKey"
+        var extractedStringList = prefsManager.getStringList(PrefsOwner.BUCKET_LIST, myKey)
+        assertEquals(null, extractedStringList)
+
+        val createdStringList = listOf("1", "2", "3")
+        prefsManager.putStringList(PrefsOwner.BUCKET_LIST, myKey, createdStringList)
+
+        extractedStringList = prefsManager.getStringList(PrefsOwner.BUCKET_LIST, myKey)
+        assertEquals(3, extractedStringList!!.size)
+        assertEquals(createdStringList, extractedStringList!!)
+    }
+
+    @Test
     fun canPutAndGetEmptyFloatList() {
         prefsManager.putFloatList(PrefsOwner.BUCKET_LIST, "mykey", emptyList(), digitsAfterDot = 3)
         assertEquals(null, prefsManager.getFloatList(PrefsOwner.BUCKET_LIST, "mykey"))
@@ -76,5 +90,11 @@ class SharedPrefsManagerTest {
     fun canPutAndGetEmptyLongList() {
         prefsManager.putLongList(PrefsOwner.BUCKET_LIST, "mykey", emptyList())
         assertEquals(null, prefsManager.getLongList(PrefsOwner.BUCKET_LIST, "mykey"))
+    }
+
+    @Test
+    fun canPutAndGetEmptyStringList() {
+        prefsManager.putStringList(PrefsOwner.BUCKET_LIST, "mykey", emptyList())
+        assertEquals(null, prefsManager.getStringList(PrefsOwner.BUCKET_LIST, "mykey"))
     }
 }

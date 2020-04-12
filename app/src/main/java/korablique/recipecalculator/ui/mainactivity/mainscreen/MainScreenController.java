@@ -29,6 +29,8 @@ import korablique.recipecalculator.dagger.FragmentScope;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.FoodstuffsTopList;
+import korablique.recipecalculator.model.Ingredient;
+import korablique.recipecalculator.model.Recipe;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
@@ -154,7 +156,7 @@ public class MainScreenController
                     RequestCodes.MAIN_SCREEN_BUCKET_LIST_CREATE_FOODSTUFF);
         });
         snackbar.setOnDismissListener(() -> {
-            List<WeightedFoodstuff> dismissedFoodstuffs = new ArrayList<>(bucketList.getList());
+            List<Ingredient> dismissedFoodstuffs = new ArrayList<>(bucketList.getList());
             bucketList.clear();
 
             Snackbar snackbar = Snackbar.make(fragmentView, R.string.foodstuffs_deleted, Snackbar.LENGTH_LONG);
@@ -280,8 +282,8 @@ public class MainScreenController
             Foodstuff foodstuff = data.getParcelableExtra(EditFoodstuffActivity.EXTRA_RESULT_FOODSTUFF);
             cardController.showCard(foodstuff);
         } else if (requestCode == RequestCodes.MAIN_SCREEN_BUCKET_LIST_CREATE_FOODSTUFF) {
-            Foodstuff foodstuff = data.getParcelableExtra(BucketListActivity.EXTRA_CREATED_FOODSTUFF);
-            cardController.showCard(foodstuff);
+            Recipe recipe = data.getParcelableExtra(BucketListActivity.EXTRA_CREATED_RECIPE);
+            cardController.showCard(recipe.getFoodstuff());
         }
     }
 

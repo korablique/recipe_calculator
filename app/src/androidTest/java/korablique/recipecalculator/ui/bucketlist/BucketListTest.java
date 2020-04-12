@@ -22,6 +22,7 @@ import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.database.room.DatabaseHolder;
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.Ingredient;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.InstantComputationsThreadsExecutor;
 import korablique.recipecalculator.InstantDatabaseThreadExecutor;
@@ -64,13 +65,14 @@ public class BucketListTest {
                 foodstuffsList
                         .saveFoodstuff(Foodstuff.withName("apple").withNutrition(1, 2, 3, 4))
                         .blockingGet();
-
-        WeightedFoodstuff wf = savedFoodstuff.withWeight(123);
-        bucketList.add(wf);
+        Ingredient ingredient = Ingredient.create(savedFoodstuff, 123, "comment");
+        bucketList.add(ingredient);
+        bucketList.setComment("general comment");
 
         // Новый бакетлист со старым prefs manager'ом
         BucketList bucketList2 = new BucketList(prefsManager, foodstuffsList);
-        Assert.assertEquals(Collections.singletonList(wf), bucketList2.getList());
+        Assert.assertEquals(Collections.singletonList(ingredient), bucketList2.getList());
+        Assert.assertEquals("general comment", bucketList2.getComment());
     }
 
     @Test
@@ -79,9 +81,9 @@ public class BucketListTest {
                 foodstuffsList
                         .saveFoodstuff(Foodstuff.withName("apple").withNutrition(1, 2, 3, 4))
                         .blockingGet();
-
-        WeightedFoodstuff wf = savedFoodstuff.withWeight(123);
-        bucketList.add(wf);
+        Ingredient ingredient = Ingredient.create(savedFoodstuff, 123, "comment");
+        bucketList.add(ingredient);
+        bucketList.setComment("general comment");
 
         // Чистим преференсы!
         PrefsCleaningHelper.INSTANCE.cleanAllPrefs(context);
@@ -89,53 +91,54 @@ public class BucketListTest {
         // Новый бакетлист со старым prefs manager'ом, но преференсы очищены
         BucketList bucketList2 = new BucketList(prefsManager, foodstuffsList);
         Assert.assertEquals(Collections.emptyList(), bucketList2.getList());
+        Assert.assertEquals("", bucketList2.getComment());
     }
 
     @Test
-    public void bucketListRestoresAsEmpty_ifFoodstuffRemoved() {
+    public void bucketListDoesNotRestoreRemovedIngredient() {
         Foodstuff savedFoodstuff1 =
                 foodstuffsList
                         .saveFoodstuff(Foodstuff.withName("apple").withNutrition(1, 2, 3, 4))
                         .blockingGet();
+        Ingredient ingredient1 = Ingredient.create(savedFoodstuff1, 123, "comment");
         Foodstuff savedFoodstuff2 =
                 foodstuffsList
                         .saveFoodstuff(Foodstuff.withName("carrot").withNutrition(1, 2, 3, 4))
                         .blockingGet();
+        Ingredient ingredient2 = Ingredient.create(savedFoodstuff2, 123, "comment");
+        bucketList.add(ingredient1);
+        bucketList.add(ingredient2);
 
-        WeightedFoodstuff wf1 = savedFoodstuff1.withWeight(123);
-        WeightedFoodstuff wf2 = savedFoodstuff2.withWeight(123);
-        bucketList.add(wf1);
-        bucketList.add(wf2);
-
-        // Удаляем продукт!
-        bucketList.remove(wf1);
+        // Удаляем рецепт!
+        bucketList.remove(ingredient1);
 
         // Новый бакетлист со старым prefs manager'ом
         BucketList bucketList2 = new BucketList(prefsManager, foodstuffsList);
-        Assert.assertEquals(Collections.singletonList(wf2), bucketList2.getList());
+        Assert.assertEquals(Collections.singletonList(ingredient2), bucketList2.getList());
     }
 
     @Test
-    public void bucketListRestoresAsEmpty_ifFoodstuffsCleared() {
+    public void bucketListRestoresAsEmpty_ifCleared() {
         Foodstuff savedFoodstuff1 =
                 foodstuffsList
                         .saveFoodstuff(Foodstuff.withName("apple").withNutrition(1, 2, 3, 4))
                         .blockingGet();
+        Ingredient ingredient1 = Ingredient.create(savedFoodstuff1, 123, "comment");
         Foodstuff savedFoodstuff2 =
                 foodstuffsList
-                        .saveFoodstuff(Foodstuff.withName("carrot").withNutrition(1, 2, 3, 4))
+                        .saveFoodstuff(Foodstuff.withName("pinapple").withNutrition(1, 2, 3, 4))
                         .blockingGet();
+        Ingredient ingredient2 = Ingredient.create(savedFoodstuff2, 123, "comment");
+        bucketList.add(ingredient1);
+        bucketList.add(ingredient2);
+        bucketList.setComment("general comment");
 
-        WeightedFoodstuff wf1 = savedFoodstuff1.withWeight(123);
-        WeightedFoodstuff wf2 = savedFoodstuff2.withWeight(123);
-        bucketList.add(wf1);
-        bucketList.add(wf2);
-
-        // Удаляем все продукты!
+        // Удаляем всё!
         bucketList.clear();
 
         // Новый бакетлист со старым prefs manager'ом
         BucketList bucketList2 = new BucketList(prefsManager, foodstuffsList);
         Assert.assertEquals(Collections.emptyList(), bucketList2.getList());
+        Assert.assertEquals("", bucketList2.getComment());
     }
 }

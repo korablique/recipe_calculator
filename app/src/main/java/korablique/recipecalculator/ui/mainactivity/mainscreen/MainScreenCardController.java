@@ -24,7 +24,7 @@ import korablique.recipecalculator.base.TimeProvider;
 import korablique.recipecalculator.dagger.FragmentScope;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.model.Foodstuff;
-import korablique.recipecalculator.model.WeightedFoodstuff;
+import korablique.recipecalculator.model.Ingredient;
 import korablique.recipecalculator.ui.KeyboardHandler;
 import korablique.recipecalculator.ui.TwoOptionsDialog;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
@@ -57,14 +57,14 @@ public class MainScreenCardController implements FragmentCallbacks.Observer {
     private final MainActivitySelectedDateStorage selectedDateStorage;
     private final BucketList.Observer bucketListObserver = new BucketList.Observer() {
         @Override
-        public void onFoodstuffAdded(WeightedFoodstuff wf) {
+        public void onIngredientAdded(Ingredient ingredient) {
             // Первый продукт добавлен в бакетлист
             if (bucketList.getList().size() == 1) {
                 switchCardMode(CardMode.DISH_CREATION);
             }
         }
         @Override
-        public void onFoodstuffRemoved(WeightedFoodstuff wf) {
+        public void onIngredientRemoved(Ingredient ingredient) {
             // Последний продукт удален из бакетлиста
             if (bucketList.getList().isEmpty()) {
                 switchCardMode(CardMode.DEFAULT);
@@ -148,7 +148,7 @@ public class MainScreenCardController implements FragmentCallbacks.Observer {
         onAddFoodstuffToRecipeListener = foodstuff -> {
             hideCardAfterUserAction();
             new KeyboardHandler(context).hideKeyBoard();
-            bucketList.add(foodstuff);
+            bucketList.add(Ingredient.create(foodstuff, ""));
         };
         onAddFoodstuffToHistoryListener = foodstuff -> {
             new KeyboardHandler(context).hideKeyBoard();

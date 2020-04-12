@@ -12,6 +12,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.model.Ingredient;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 
 import static androidx.test.espresso.Espresso.onView;
@@ -31,14 +32,14 @@ public class MainActivityMainScreenSnackbarTest extends MainActivityTestsBase {
     @Test
     public void snackbarUpdatesAfterChangingBucketList() {
         // добавляем в bucket list продукты, запускаем активити, в снекбаре должно быть 3 фудстаффа
-        WeightedFoodstuff wf0 = foodstuffs[0].withWeight(100);
-        WeightedFoodstuff wf1 = foodstuffs[1].withWeight(100);
-        WeightedFoodstuff wf2 = foodstuffs[2].withWeight(100);
+        Ingredient ingr0 = Ingredient.create(foodstuffs[0].withWeight(100), "");
+        Ingredient ingr1 = Ingredient.create(foodstuffs[1].withWeight(100), "");
+        Ingredient ingr2 = Ingredient.create(foodstuffs[2].withWeight(100), "");
 
         mainThreadExecutor.execute(() -> {
-            bucketList.add(wf0);
-            bucketList.add(wf1);
-            bucketList.add(wf2);
+            bucketList.add(ingr0);
+            bucketList.add(ingr1);
+            bucketList.add(ingr2);
         });
 
         mActivityRule.launchActivity(null);
@@ -46,7 +47,7 @@ public class MainActivityMainScreenSnackbarTest extends MainActivityTestsBase {
 
         // убираем один продукт, перезапускаем активити, в снекбаре должно быть 2 фудстаффа
         mainThreadExecutor.execute(() -> {
-            bucketList.remove(foodstuffs[0].withWeight(100));
+            bucketList.remove(Ingredient.create(foodstuffs[0].withWeight(100), ""));
         });
 
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
@@ -54,8 +55,8 @@ public class MainActivityMainScreenSnackbarTest extends MainActivityTestsBase {
         instrumentation.waitForIdleSync();
         onView(withId(R.id.selected_foodstuffs_counter)).check(matches(isDisplayed()));
         onView(withId(R.id.selected_foodstuffs_counter)).check(matches(withText("2")));
-        Assert.assertTrue(bucketList.getList().contains(wf1));
-        Assert.assertTrue(bucketList.getList().contains(wf2));
+        Assert.assertTrue(bucketList.getList().contains(ingr1));
+        Assert.assertTrue(bucketList.getList().contains(ingr2));
 
         // убираем все продукты, перезапускаем активити, снекбара быть не должно
         mainThreadExecutor.execute(() -> {
@@ -69,12 +70,12 @@ public class MainActivityMainScreenSnackbarTest extends MainActivityTestsBase {
     @Test
     public void swipedOutSnackbar_cleansBuckerList() throws InterruptedException {
         // добавляем в bucket list продукты, запускаем активити
-        WeightedFoodstuff wf0 = foodstuffs[0].withWeight(100);
-        WeightedFoodstuff wf1 = foodstuffs[1].withWeight(100);
+        Ingredient ingr0 = Ingredient.create(foodstuffs[0].withWeight(100), "");
+        Ingredient ingr1 = Ingredient.create(foodstuffs[1].withWeight(100), "");
 
         mainThreadExecutor.execute(() -> {
-            bucketList.add(wf0);
-            bucketList.add(wf1);
+            bucketList.add(ingr0);
+            bucketList.add(ingr1);
             assertEquals(2, bucketList.getList().size());
         });
 
@@ -94,12 +95,12 @@ public class MainActivityMainScreenSnackbarTest extends MainActivityTestsBase {
     @Test
     public void swipedOutSnackbar_canBeCanceled() throws InterruptedException {
         // добавляем в bucket list продукты, запускаем активити
-        WeightedFoodstuff wf0 = foodstuffs[0].withWeight(100);
-        WeightedFoodstuff wf1 = foodstuffs[1].withWeight(100);
+        Ingredient ingr0 = Ingredient.create(foodstuffs[0].withWeight(100), "");
+        Ingredient ingr1 = Ingredient.create(foodstuffs[1].withWeight(100), "");
 
         mainThreadExecutor.execute(() -> {
-            bucketList.add(wf0);
-            bucketList.add(wf1);
+            bucketList.add(ingr0);
+            bucketList.add(ingr1);
             assertEquals(2, bucketList.getList().size());
         });
 

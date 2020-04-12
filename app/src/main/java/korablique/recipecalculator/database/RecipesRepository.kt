@@ -1,5 +1,7 @@
 package korablique.recipecalculator.database
 
+import io.reactivex.Single
+import io.reactivex.subjects.SingleSubject
 import korablique.recipecalculator.base.executors.MainThreadExecutor
 import korablique.recipecalculator.model.Foodstuff
 import korablique.recipecalculator.model.Ingredient
@@ -107,5 +109,18 @@ class RecipesRepository @Inject constructor(
         recipesCache.add(newRecipe)
         recipesFoodstuffsCache[newRecipe.foodstuff] = newRecipe
         return CreateRecipeResult.Ok(newRecipe)
+    }
+
+    suspend fun saveRecipe(recipe: Recipe): CreateRecipeResult {
+        return createRecipe(recipe.foodstuff, recipe.ingredients, recipe.comment, recipe.weight)
+    }
+
+    fun saveRecipeRx(recipe: Recipe): Single<CreateRecipeResult> {
+        val subject: SingleSubject<CreateRecipeResult> = SingleSubject.create()
+        GlobalScope.launch(mainThreadExecutor) {
+            val result = saveRecipe(recipe)
+            subject.onSuccess(result)
+        }
+        return subject
     }
 }

@@ -35,6 +35,9 @@ import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.database.HistoryWorker;
+import korablique.recipecalculator.database.RecipeDatabaseWorker;
+import korablique.recipecalculator.database.RecipeDatabaseWorkerImpl;
+import korablique.recipecalculator.database.RecipesRepository;
 import korablique.recipecalculator.database.UserParametersWorker;
 import korablique.recipecalculator.database.room.DatabaseHolder;
 import korablique.recipecalculator.model.Foodstuff;
@@ -129,6 +132,8 @@ public class MainActivityTestsBase {
     protected FoodstuffsCorrespondenceManager foodstuffsCorrespondenceManager;
     protected DirectMsgsManager directMsgsManager;
     protected NetworkSnackbarControllersFactory networkSnackbarControllersFactory;
+    protected RecipeDatabaseWorker recipeDatabaseWorker;
+    protected RecipesRepository recipesRepository;
 
     @Rule
     public ActivityTestRule<MainActivity> mActivityRule =
@@ -191,11 +196,16 @@ public class MainActivityTestsBase {
                         networkSnackbarControllersFactory = new NetworkSnackbarControllersFactory(
                                 context, fakeNetworkStateDispatcher);
 
+                        recipeDatabaseWorker = new RecipeDatabaseWorkerImpl(
+                                ioExecutor, databaseHolder, databaseWorker);
+                        recipesRepository = new RecipesRepository(
+                                recipeDatabaseWorker, foodstuffsList, mainThreadExecutor);
+
                         return Arrays.asList(databaseWorker, historyWorker, userParametersWorker,
                                 foodstuffsList, databaseHolder, userNameProvider,
                                 timeProvider, currentActivityProvider, sessionController,
                                 new CalcKeyboardController(), bucketList, foodstuffsSearchEngine,
-                                serverUserParamsRegistry, httpContext);
+                                serverUserParamsRegistry, httpContext, recipesRepository);
                     })
                     .withActivityScoped((injectionTarget) -> {
                         if (!(injectionTarget instanceof MainActivity)) {

@@ -72,7 +72,7 @@
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/foodstuffs_list"
+        android:id="@+id/ingredients_list"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:background="#EFF1F6"
@@ -90,7 +90,7 @@
         android:paddingEnd="20dp"
         app:layout_constraintBottom_toBottomOf="parent" >
         <Button
-            android:id="@+id/save_as_single_foodstuff_button"
+            android:id="@+id/save_as_recipe_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"

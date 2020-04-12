@@ -31,11 +31,11 @@ class SharedPrefsManager @Inject constructor(val context: Context) {
         return getStringList(owner, key)?.map { it.toFloat() }
     }
 
-    private fun putStringList(owner: PrefsOwner, key: String, strList: List<String>) {
+    fun putStringList(owner: PrefsOwner, key: String, strList: List<String>) {
         putString(owner, key, strList.joinToString(separator = VALS_DELIMETER))
     }
 
-    private fun getStringList(owner: PrefsOwner, key: String): List<String>? {
+    fun getStringList(owner: PrefsOwner, key: String): List<String>? {
         val str = getString(owner, key)
         if (str == null || str.isEmpty()) {
             return null
@@ -50,10 +50,10 @@ class SharedPrefsManager @Inject constructor(val context: Context) {
                 .apply()
     }
 
-    fun getString(owner: PrefsOwner, key: String): String? {
+    fun getString(owner: PrefsOwner, key: String, default: String? = null): String? {
         return context
                 .getSharedPreferences(owner.fileName, Context.MODE_PRIVATE)
-                .getString(key, null)
+                .getString(key, default)
     }
 
     fun putBool(owner: PrefsOwner, key: String, value: Boolean) {

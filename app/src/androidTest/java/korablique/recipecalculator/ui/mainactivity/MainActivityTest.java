@@ -19,12 +19,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.RequestCodes;
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.Ingredient;
 import korablique.recipecalculator.model.Nutrition;
+import korablique.recipecalculator.model.Recipe;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 
@@ -44,6 +47,7 @@ import static androidx.test.espresso.matcher.ViewMatchers.isRoot;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertContains;
+import static java.util.Collections.emptyList;
 import static korablique.recipecalculator.util.EspressoUtils.matches;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.Matchers.containsString;
@@ -106,12 +110,12 @@ public class MainActivityTest extends MainActivityTestsBase {
                 hasAction(expectedIntent.getAction()),
                 hasComponent(expectedIntent.getComponent())));
 
-        ArrayList<WeightedFoodstuff> weightedFoodstuffs = new ArrayList<>();
-        weightedFoodstuffs.add(clickedFoodstuffs.get(0).withWeight(123));
-        weightedFoodstuffs.add(clickedFoodstuffs.get(1).withWeight(123));
-        weightedFoodstuffs.add(clickedFoodstuffs.get(2).withWeight(123));
+        ArrayList<Ingredient> ingredients = new ArrayList<>();
+        ingredients.add(Ingredient.create(clickedFoodstuffs.get(0), 123, ""));
+        ingredients.add(Ingredient.create(clickedFoodstuffs.get(1), 123, ""));
+        ingredients.add(Ingredient.create(clickedFoodstuffs.get(2), 123, ""));
         mainThreadExecutor.execute(() -> {
-            Assert.assertEquals(weightedFoodstuffs, bucketList.getList());
+            Assert.assertEquals(ingredients, bucketList.getList());
         });
     }
 
@@ -130,7 +134,8 @@ public class MainActivityTest extends MainActivityTestsBase {
         for (Fragment f : fragments) {
             f.onActivityResult(RequestCodes.MAIN_SCREEN_BUCKET_LIST_CREATE_FOODSTUFF,
                     Activity.RESULT_OK,
-                    BucketListActivity.createFoodstuffResultIntent(foodstuff));
+                    BucketListActivity.createFoodstuffResultIntent(
+                            Recipe.create(foodstuff, emptyList(), 123f, "")));
         }
         // Убеждаемся, что показана карточка с новым продуктом
         onView(withId(R.id.foodstuff_card_layout)).check(matches(isDisplayed()));

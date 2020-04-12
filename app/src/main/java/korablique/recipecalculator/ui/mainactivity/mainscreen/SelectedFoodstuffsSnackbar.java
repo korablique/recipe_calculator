@@ -17,6 +17,7 @@ import java.util.List;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.FragmentCallbacks;
+import korablique.recipecalculator.model.Ingredient;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 
@@ -25,7 +26,7 @@ public class SelectedFoodstuffsSnackbar {
     private boolean isShown;
     private final ViewGroup snackbarLayout;
     private final TextView selectedFoodstuffsCounter;
-    private List<WeightedFoodstuff> selectedFoodstuffs = new ArrayList<>();
+    private List<Ingredient> selectedIngredients = new ArrayList<>();
 
     @Nullable
     private Runnable onDismissListener;
@@ -70,11 +71,11 @@ public class SelectedFoodstuffsSnackbar {
 
         BucketList.Observer bucketListObserver = new BucketList.Observer() {
             @Override
-            public void onFoodstuffAdded(WeightedFoodstuff wf) {
+            public void onIngredientAdded(Ingredient ingredient) {
                 update(bucketList.getList());
             }
             @Override
-            public void onFoodstuffRemoved(WeightedFoodstuff wf) {
+            public void onIngredientRemoved(Ingredient ingredient) {
                 update(bucketList.getList());
             }
         };
@@ -128,19 +129,19 @@ public class SelectedFoodstuffsSnackbar {
         animator.start();
     }
 
-    private void update(List<WeightedFoodstuff> newSelectedFoodstuffs) {
-        selectedFoodstuffs.clear();
-        if (newSelectedFoodstuffs.isEmpty()) {
+    private void update(List<Ingredient> newSelectedIngredients) {
+        selectedIngredients.clear();
+        if (newSelectedIngredients.isEmpty()) {
             hide();
         } else {
-            selectedFoodstuffs.addAll(newSelectedFoodstuffs);
+            selectedIngredients.addAll(newSelectedIngredients);
             updateSelectedFoodstuffsCounter();
             show();
         }
     }
 
     private void updateSelectedFoodstuffsCounter() {
-        selectedFoodstuffsCounter.setText(String.valueOf(selectedFoodstuffs.size()));
+        selectedFoodstuffsCounter.setText(String.valueOf(selectedIngredients.size()));
     }
 
     private int getParentHeight() {

@@ -33,6 +33,7 @@ import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.dagger.FragmentScope;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.Ingredient;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.search.FoodstuffsSearchEngine;
 import korablique.recipecalculator.search.FoodstuffsSearchEngine.SearchResults;
@@ -59,7 +60,7 @@ public class MainScreenSearchController
 
     private BucketList.Observer bucketListObserver = new BucketList.Observer() {
         @Override
-        public void onFoodstuffAdded(WeightedFoodstuff weightedFoodstuff) {
+        public void onIngredientAdded(Ingredient ingredient) {
             searchView.clearQuery();
         }
     };

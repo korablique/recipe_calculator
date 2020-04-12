@@ -13,7 +13,6 @@ import korablique.recipecalculator.model.Ingredient
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.lang.IllegalArgumentException
@@ -46,7 +45,7 @@ class RecipeDatabaseWorkerTest {
             }
             foodstuffsIngredients.add(foodstuffIngredient)
         }
-        var ingredients = foodstuffsIngredients.map { Ingredient.new(it, 10f, "comment") }
+        var ingredients = foodstuffsIngredients.map { Ingredient.create(it, 10f, "comment") }
 
         val insertedRecipe = recipeDatabaseWorker.createRecipe(foodstuff, ingredients, "comment", 123f)
 

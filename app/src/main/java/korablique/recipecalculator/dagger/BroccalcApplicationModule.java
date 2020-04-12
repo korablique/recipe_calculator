@@ -18,6 +18,8 @@ import korablique.recipecalculator.base.executors.IOExecutor;
 import korablique.recipecalculator.base.executors.IOExecutorImpl;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.base.executors.MainThreadExecutorImpl;
+import korablique.recipecalculator.database.RecipeDatabaseWorker;
+import korablique.recipecalculator.database.RecipeDatabaseWorkerImpl;
 import korablique.recipecalculator.database.room.DatabaseHolder;
 import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseThreadExecutorImpl;
@@ -110,6 +112,15 @@ public abstract class BroccalcApplicationModule {
     @Singleton
     public static GPAuthorizer provideGpAuthorizer() {
         return new GPAuthorizerImpl();
+    }
+
+    @Provides
+    @Singleton
+    public static RecipeDatabaseWorker provideRecipeDatabaseWorker(
+            IOExecutor ioExecutor,
+            DatabaseHolder databaseHolder,
+            DatabaseWorker databaseWorker) {
+        return new RecipeDatabaseWorkerImpl(ioExecutor, databaseHolder, databaseWorker);
     }
 
     @ActivityScope

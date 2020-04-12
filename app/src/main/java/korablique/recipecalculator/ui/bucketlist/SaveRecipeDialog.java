@@ -1,19 +1,14 @@
 package korablique.recipecalculator.ui.bucketlist;
 
-import android.app.Dialog;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentActivity;
 
 import java.util.ArrayList;
@@ -23,19 +18,22 @@ import korablique.recipecalculator.DishNutritionCalculator;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseBottomDialog;
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.Ingredient;
 import korablique.recipecalculator.model.Nutrition;
+import korablique.recipecalculator.model.Recipe;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.TextWatcherAfterTextChangedAdapter;
 
-public class SaveDishDialog extends BaseBottomDialog {
-    public static String SELECTED_FOODSTUFFS = "SELECTED_FOODSTUFFS";
+public class SaveRecipeDialog extends BaseBottomDialog {
+    public static String SELECTED_INGREDIENTS = "SELECTED_INGREDIENTS";
     public static String RESULT_WEIGHT = "RESULT_WEIGHT";
+    public static String COMMENT = "COMMENT";
     public static String SAVE_DISH = "SAVE_DISH";
     private OnSaveDishButtonClickListener listener;
     private Button saveDishButton;
 
     public interface OnSaveDishButtonClickListener {
-        void onClick(Foodstuff foodstuff);
+        void onClick(Recipe recipe);
     }
 
     @Override
@@ -51,7 +49,7 @@ public class SaveDishDialog extends BaseBottomDialog {
         saveDishButton = dialogView.findViewById(R.id.save_button);
         if (listener != null) {
             saveDishButton.setOnClickListener(v -> {
-                listener.onClick(extractFoodstuff());
+                listener.onClick(extractRecipe());
             });
         }
 
@@ -70,23 +68,28 @@ public class SaveDishDialog extends BaseBottomDialog {
         saveDishButton.setEnabled(isDishNameFilled);
     }
 
-    public static SaveDishDialog showDialog(FragmentActivity activity, List<WeightedFoodstuff> foodstuffs, double resultWeight) {
+    public static SaveRecipeDialog showDialog(
+            FragmentActivity activity,
+            List<Ingredient> ingredients,
+            float resultWeight,
+            String comment) {
         Bundle bundle = new Bundle();
-        bundle.putParcelableArrayList(SELECTED_FOODSTUFFS, new ArrayList<>(foodstuffs));
-        bundle.putDouble(RESULT_WEIGHT, resultWeight);
-        SaveDishDialog dialog = new SaveDishDialog();
+        bundle.putParcelableArrayList(SELECTED_INGREDIENTS, new ArrayList<>(ingredients));
+        bundle.putFloat(RESULT_WEIGHT, resultWeight);
+        bundle.putString(COMMENT, comment);
+        SaveRecipeDialog dialog = new SaveRecipeDialog();
         dialog.setArguments(bundle);
         dialog.show(activity.getSupportFragmentManager(), SAVE_DISH);
         return dialog;
     }
 
-    public void setOnSaveDishButtonClickListener(OnSaveDishButtonClickListener listener) {
+    public void setOnSaveRecipeButtonClickListener(OnSaveDishButtonClickListener listener) {
         View dialogView = getView();
         if (dialogView != null) {
             dialogView.findViewById(R.id.save_button).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    listener.onClick(extractFoodstuff());
+                    listener.onClick(extractRecipe());
                 }
             });
         } else {
@@ -95,19 +98,22 @@ public class SaveDishDialog extends BaseBottomDialog {
     }
 
     /**
-     * Создает фудстафф для блюда, рассчитанного из ингридиентов, выбранных в BucketListActivity
+     * Создает рецепт, рассчитанный из ингридиентов, выбранных в BucketListActivity
      */
-    private Foodstuff extractFoodstuff() {
-        ArrayList<WeightedFoodstuff> savedFoodstuffs = getArguments().getParcelableArrayList(SELECTED_FOODSTUFFS);
-        double resultWeight = getArguments().getDouble(RESULT_WEIGHT);
-        Nutrition nutrition = DishNutritionCalculator.calculate(savedFoodstuffs, resultWeight);
+    private Recipe extractRecipe() {
+        ArrayList<Ingredient> ingredients = getArguments().getParcelableArrayList(SELECTED_INGREDIENTS);
+        float resultWeight = getArguments().getFloat(RESULT_WEIGHT);
+        String comment = getArguments().getString(COMMENT);
+        Nutrition nutrition = DishNutritionCalculator.calculateIngredients(ingredients, resultWeight);
         EditText nameEditText = getView().findViewById(R.id.dish_name_edit_text);
         String name = nameEditText.getText().toString();
-        return Foodstuff.withName(name).withNutrition(nutrition);
+
+        Foodstuff foodstuff = Foodstuff.withName(name).withNutrition(nutrition);
+        return Recipe.create(foodstuff, ingredients, resultWeight, comment);
     }
 
     @Nullable
-    public static SaveDishDialog findDialog(FragmentActivity activity) {
-        return (SaveDishDialog) activity.getSupportFragmentManager().findFragmentByTag(SAVE_DISH);
+    public static SaveRecipeDialog findDialog(FragmentActivity activity) {
+        return (SaveRecipeDialog) activity.getSupportFragmentManager().findFragmentByTag(SAVE_DISH);
     }
 }

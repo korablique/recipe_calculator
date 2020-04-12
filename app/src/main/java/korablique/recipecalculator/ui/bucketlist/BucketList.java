@@ -16,19 +16,23 @@ import korablique.recipecalculator.base.prefs.PrefsOwner;
 import korablique.recipecalculator.base.prefs.SharedPrefsManager;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.Ingredient;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 
 @Singleton
 public class BucketList {
     private static final String PREFS_FOODSTUFFS_IDS = "PREFS_FOODSTUFFS_IDS";
     private static final String PREFS_FOODSTUFFS_WEIGHTS = "PREFS_FOODSTUFFS_WEIGHTS";
+    private static final String PREFS_FOODSTUFFS_COMMENTS = "PREFS_FOODSTUFFS_COMMENTS";
+    private static final String PREFS_COMMENT = "PREFS_COMMENT";
     private static final short PERSISTENT_WEIGHT_PRECISION = 3; // 3 цифры после точки хватит всем
     public interface Observer {
-        default void onFoodstuffAdded(WeightedFoodstuff wf) {}
-        default void onFoodstuffRemoved(WeightedFoodstuff wf) {}
+        default void onIngredientAdded(Ingredient ingredient) {}
+        default void onIngredientRemoved(Ingredient ingredient) {}
     }
     private final SharedPrefsManager prefsManager;
-    private List<WeightedFoodstuff> bucketList = new ArrayList<>();
+    private List<Ingredient> bucketList = new ArrayList<>();
+    private String comment = "";
     private List<Observer> observers = new ArrayList<>();
 
     @Inject
@@ -38,10 +42,12 @@ public class BucketList {
         this.prefsManager = prefsManager;
         List<Long> ids = prefsManager.getLongList(PrefsOwner.BUCKET_LIST, PREFS_FOODSTUFFS_IDS);
         List<Float> weights = prefsManager.getFloatList(PrefsOwner.BUCKET_LIST, PREFS_FOODSTUFFS_WEIGHTS);
-        if (ids == null || weights == null) {
+        List<String> comments = prefsManager.getStringList(PrefsOwner.BUCKET_LIST, PREFS_FOODSTUFFS_COMMENTS);
+        this.comment = prefsManager.getString(PrefsOwner.BUCKET_LIST, PREFS_COMMENT, "");
+        if (ids == null || weights == null || comments == null) {
             return;
         }
-        if (ids.size() != weights.size()) {
+        if (ids.size() != weights.size() || ids.size() != comments.size()) {
             // TODO: report an error
             return;
         }
@@ -50,62 +56,75 @@ public class BucketList {
                 .getFoodstuffsWithIds(ids)
                 .toList()
                 .subscribe((foodstuffs) -> {
-                    if (foodstuffs.size() != ids.size()) {
+                    if (foodstuffs.size() != ids.size() || ids.size() != comments.size()) {
                         // Количество восстановленных продуктов не равно
                         // количеству запрошенных - что-то пошло не так.
                         // TODO: report an error
                         return;
                     }
-                    List<WeightedFoodstuff> weightedFoodstuffs = new ArrayList<>();
+                    List<Ingredient> ingredients = new ArrayList<>();
                     for (int index = 0; index < foodstuffs.size(); ++index) {
-                        weightedFoodstuffs.add(
-                                foodstuffs.get(index).withWeight(weights.get(index)));
+                        ingredients.add(
+                                Ingredient.create(
+                                        foodstuffs.get(index),
+                                        weights.get(index),
+                                        comments.get(index)));
                     }
-                    add(weightedFoodstuffs);
+                    add(ingredients);
                 });
     }
 
-    public List<WeightedFoodstuff> getList() {
+    public List<Ingredient> getList() {
         return Collections.unmodifiableList(bucketList);
     }
 
-    public void add(List<WeightedFoodstuff> wfs) {
+    public void add(List<Ingredient> ingredients) {
         checkCurrentThread();
-        bucketList.addAll(wfs);
+        bucketList.addAll(ingredients);
         updatePersistentState();
-        for (WeightedFoodstuff wf : wfs) {
+        for (Ingredient ingredient : ingredients) {
             for (Observer observer : observers) {
-                observer.onFoodstuffAdded(wf);
+                observer.onIngredientAdded(ingredient);
             }
         }
     }
 
-    public void add(WeightedFoodstuff wf) {
+    public void add(Ingredient ingredient) {
         checkCurrentThread();
-        bucketList.add(wf);
+        bucketList.add(ingredient);
         updatePersistentState();
         for (Observer observer : observers) {
-            observer.onFoodstuffAdded(wf);
+            observer.onIngredientAdded(ingredient);
         }
     }
 
-    public void remove(WeightedFoodstuff wf) {
+    public void remove(Ingredient ingredient) {
         checkCurrentThread();
-        bucketList.remove(wf);
+        bucketList.remove(ingredient);
         updatePersistentState();
         for (Observer observer : observers) {
-            observer.onFoodstuffRemoved(wf);
+            observer.onIngredientRemoved(ingredient);
         }
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+        updatePersistentState();
+    }
+
+    public String getComment() {
+        return comment;
     }
 
     public void clear() {
         checkCurrentThread();
-        List<WeightedFoodstuff> removedList = new ArrayList<>(bucketList);
+        List<Ingredient> removedList = new ArrayList<>(bucketList);
         bucketList.clear();
+        comment = "";
         updatePersistentState();
-        for (WeightedFoodstuff wf : removedList) {
+        for (Ingredient ingredient : removedList) {
             for (Observer observer : observers) {
-                observer.onFoodstuffRemoved(wf);
+                observer.onIngredientRemoved(ingredient);
             }
         }
     }
@@ -113,15 +132,19 @@ public class BucketList {
     private void updatePersistentState() {
         List<Long> ids = new ArrayList<>();
         List<Float> weights = new ArrayList<>();
+        List<String> comments = new ArrayList<>();
         for (int index = 0; index < bucketList.size(); ++index) {
-            ids.add(bucketList.get(index).getId());
+            ids.add(bucketList.get(index).getFoodstuff().getId());
             weights.add((float)bucketList.get(index).getWeight());
+            comments.add(bucketList.get(index).getComment());
             if (ids.get(index) == -1) {
                 throw new IllegalStateException("Cannot have foodstuffs without ids in bucket list");
             }
         }
         prefsManager.putLongList(PrefsOwner.BUCKET_LIST, PREFS_FOODSTUFFS_IDS, ids);
         prefsManager.putFloatList(PrefsOwner.BUCKET_LIST, PREFS_FOODSTUFFS_WEIGHTS, weights, PERSISTENT_WEIGHT_PRECISION);
+        prefsManager.putStringList(PrefsOwner.BUCKET_LIST, PREFS_FOODSTUFFS_COMMENTS, comments);
+        prefsManager.putString(PrefsOwner.BUCKET_LIST, PREFS_COMMENT, comment);
     }
 
     public void addObserver(Observer o) {
