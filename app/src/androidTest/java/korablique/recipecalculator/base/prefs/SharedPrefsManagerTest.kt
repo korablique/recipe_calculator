@@ -17,7 +17,7 @@ class SharedPrefsManagerTest {
 
     @Before
     fun setUp() {
-        val context = InstrumentationRegistry.getInstrumentation().context
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
         PrefsCleaningHelper.cleanAllPrefs(context)
         prefsManager = SharedPrefsManager(context)
     }
@@ -53,6 +53,19 @@ class SharedPrefsManagerTest {
     }
 
     @Test
+    fun canPutAndGetFloat() {
+        val myKey = "myKey"
+        var extractedFloat = prefsManager.getFloat(PrefsOwner.BUCKET_LIST, myKey, 0f)
+        assertEquals(0f, extractedFloat)
+
+        val createdFloat = 1f
+        prefsManager.putFloat(PrefsOwner.BUCKET_LIST, myKey, createdFloat)
+
+        extractedFloat = prefsManager.getFloat(PrefsOwner.BUCKET_LIST, myKey, 0f)
+        assertEquals(1f, extractedFloat)
+    }
+
+    @Test
     fun canChooseStoredFloatsPrecision() {
         val myKey = "myKey"
         val precision = 2.toShort()
@@ -83,18 +96,24 @@ class SharedPrefsManagerTest {
     @Test
     fun canPutAndGetEmptyFloatList() {
         prefsManager.putFloatList(PrefsOwner.BUCKET_LIST, "mykey", emptyList(), digitsAfterDot = 3)
-        assertEquals(null, prefsManager.getFloatList(PrefsOwner.BUCKET_LIST, "mykey"))
+        assertEquals(0, prefsManager.getFloatList(PrefsOwner.BUCKET_LIST, "mykey")!!.size)
     }
 
     @Test
     fun canPutAndGetEmptyLongList() {
         prefsManager.putLongList(PrefsOwner.BUCKET_LIST, "mykey", emptyList())
-        assertEquals(null, prefsManager.getLongList(PrefsOwner.BUCKET_LIST, "mykey"))
+        assertEquals(0, prefsManager.getLongList(PrefsOwner.BUCKET_LIST, "mykey")!!.size)
     }
 
     @Test
     fun canPutAndGetEmptyStringList() {
         prefsManager.putStringList(PrefsOwner.BUCKET_LIST, "mykey", emptyList())
-        assertEquals(null, prefsManager.getStringList(PrefsOwner.BUCKET_LIST, "mykey"))
+        assertEquals(0, prefsManager.getStringList(PrefsOwner.BUCKET_LIST, "mykey")!!.size)
+    }
+
+    @Test
+    fun canPutAndGetStringListWithSingleEmptyElement() {
+        prefsManager.putStringList(PrefsOwner.BUCKET_LIST, "mykey", listOf(""))
+        assertEquals(listOf(""), prefsManager.getStringList(PrefsOwner.BUCKET_LIST, "mykey"))
     }
 }
