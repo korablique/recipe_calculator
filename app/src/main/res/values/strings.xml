@@ -14,7 +14,8 @@
     <string name="product_name">Название продукта</string>
     <string name="delete">Удалить</string>
     <string name="save">Сохранить</string>
-    <string name="recipe_name">Введите название рецепта</string>
+    <string name="enter_recipe_name">Введите название рецепта</string>
+    <string name="recipe_name">Название рецепта</string>
     <string name="start">Для добавления продукта нажмите на +</string>
     <string name="search">Поиск…</string>
     <string name="calculator">Калькулятор</string>
@@ -49,12 +50,13 @@
     <string name="add_foodstuff_to_recipe">В рецепт</string>
     <string name="add_foodstuff_to_history">В журнал</string>
     <string name="selected_foodstuffs">Выбранные продукты</string>
+    <string name="recipe_creation">Создание рецепта</string>
     <string name="meal">Приём пищи</string>
     <string name="meal_notification">Не забудьте внести в приложение, что вы кушали</string>
     <string name="channel_name">Напоминание о приеме пищи</string>
     <string name="save_as_dish">Сохранить как блюдо</string>
     <string name="add_to_history">Добавить в журнал</string>
-    <string name="selected_foodstuffs_summary">Всего из списка продуктов (на 100 г)</string>
+    <string name="future_recipe_nutrition">Пищевая ценность рецепта (на 100 г)</string>
     <string name="name">Название</string>
     <string name="saved">Сохранено</string>
     <string name="foodstuff_already_exists">Такой продукт уже существует</string>

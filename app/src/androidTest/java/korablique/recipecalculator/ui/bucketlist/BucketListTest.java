@@ -68,11 +68,15 @@ public class BucketListTest {
         Ingredient ingredient = Ingredient.create(savedFoodstuff, 123, "comment");
         bucketList.add(ingredient);
         bucketList.setComment("general comment");
+        bucketList.setName("name");
+        bucketList.setTotalWeight(1f);
 
         // Новый бакетлист со старым prefs manager'ом
         BucketList bucketList2 = new BucketList(prefsManager, foodstuffsList);
         Assert.assertEquals(Collections.singletonList(ingredient), bucketList2.getList());
         Assert.assertEquals("general comment", bucketList2.getComment());
+        Assert.assertEquals("name", bucketList2.getName());
+        Assert.assertEquals(1f, bucketList2.getTotalWeight(), 0.0001f);
     }
 
     @Test
@@ -84,6 +88,8 @@ public class BucketListTest {
         Ingredient ingredient = Ingredient.create(savedFoodstuff, 123, "comment");
         bucketList.add(ingredient);
         bucketList.setComment("general comment");
+        bucketList.setName("name");
+        bucketList.setTotalWeight(1f);
 
         // Чистим преференсы!
         PrefsCleaningHelper.INSTANCE.cleanAllPrefs(context);
@@ -92,6 +98,8 @@ public class BucketListTest {
         BucketList bucketList2 = new BucketList(prefsManager, foodstuffsList);
         Assert.assertEquals(Collections.emptyList(), bucketList2.getList());
         Assert.assertEquals("", bucketList2.getComment());
+        Assert.assertEquals("", bucketList2.getName());
+        Assert.assertEquals(0f, bucketList2.getTotalWeight(), 0.0001f);
     }
 
     @Test
@@ -132,6 +140,8 @@ public class BucketListTest {
         bucketList.add(ingredient1);
         bucketList.add(ingredient2);
         bucketList.setComment("general comment");
+        bucketList.setName("name");
+        bucketList.setTotalWeight(1f);
 
         // Удаляем всё!
         bucketList.clear();
@@ -140,5 +150,7 @@ public class BucketListTest {
         BucketList bucketList2 = new BucketList(prefsManager, foodstuffsList);
         Assert.assertEquals(Collections.emptyList(), bucketList2.getList());
         Assert.assertEquals("", bucketList2.getComment());
+        Assert.assertEquals("", bucketList2.getName());
+        Assert.assertEquals(0f, bucketList2.getTotalWeight(), 0.0001f);
     }
 }

@@ -149,6 +149,12 @@ public class MainScreenCardController implements FragmentCallbacks.Observer {
             hideCardAfterUserAction();
             new KeyboardHandler(context).hideKeyBoard();
             bucketList.add(Ingredient.create(foodstuff, ""));
+
+            float totalWeight = 0f;
+            for (Ingredient ingredient : bucketList.getList()) {
+                totalWeight += ingredient.getWeight();
+            }
+            bucketList.setTotalWeight(totalWeight);
         };
         onAddFoodstuffToHistoryListener = foodstuff -> {
             new KeyboardHandler(context).hideKeyBoard();

@@ -24,7 +24,9 @@ public class BucketList {
     private static final String PREFS_FOODSTUFFS_IDS = "PREFS_FOODSTUFFS_IDS";
     private static final String PREFS_FOODSTUFFS_WEIGHTS = "PREFS_FOODSTUFFS_WEIGHTS";
     private static final String PREFS_FOODSTUFFS_COMMENTS = "PREFS_FOODSTUFFS_COMMENTS";
+    private static final String PREFS_NAME = "PREFS_NAME";
     private static final String PREFS_COMMENT = "PREFS_COMMENT";
+    private static final String PREFS_TOTAL_WEIGHT = "PREFS_TOTAL_WEIGHT";
     private static final short PERSISTENT_WEIGHT_PRECISION = 3; // 3 цифры после точки хватит всем
     public interface Observer {
         default void onIngredientAdded(Ingredient ingredient) {}
@@ -32,7 +34,9 @@ public class BucketList {
     }
     private final SharedPrefsManager prefsManager;
     private List<Ingredient> bucketList = new ArrayList<>();
+    private String name = "";
     private String comment = "";
+    private float totalWeight = 0;
     private List<Observer> observers = new ArrayList<>();
 
     @Inject
@@ -43,7 +47,9 @@ public class BucketList {
         List<Long> ids = prefsManager.getLongList(PrefsOwner.BUCKET_LIST, PREFS_FOODSTUFFS_IDS);
         List<Float> weights = prefsManager.getFloatList(PrefsOwner.BUCKET_LIST, PREFS_FOODSTUFFS_WEIGHTS);
         List<String> comments = prefsManager.getStringList(PrefsOwner.BUCKET_LIST, PREFS_FOODSTUFFS_COMMENTS);
+        this.name = prefsManager.getString(PrefsOwner.BUCKET_LIST, PREFS_NAME, "");
         this.comment = prefsManager.getString(PrefsOwner.BUCKET_LIST, PREFS_COMMENT, "");
+        this.totalWeight = prefsManager.getFloat(PrefsOwner.BUCKET_LIST, PREFS_TOTAL_WEIGHT, 0f);
         if (ids == null || weights == null || comments == null) {
             return;
         }
@@ -107,6 +113,15 @@ public class BucketList {
         }
     }
 
+    public void setName(String name) {
+        this.name = name;
+        updatePersistentState();
+    }
+
+    public String getName() {
+        return name;
+    }
+
     public void setComment(String comment) {
         this.comment = comment;
         updatePersistentState();
@@ -116,11 +131,22 @@ public class BucketList {
         return comment;
     }
 
+    public void setTotalWeight(float weight) {
+        this.totalWeight = weight;
+        updatePersistentState();
+    }
+
+    public float getTotalWeight() {
+        return totalWeight;
+    }
+
     public void clear() {
         checkCurrentThread();
         List<Ingredient> removedList = new ArrayList<>(bucketList);
         bucketList.clear();
         comment = "";
+        name = "";
+        totalWeight = 0f;
         updatePersistentState();
         for (Ingredient ingredient : removedList) {
             for (Observer observer : observers) {
@@ -144,7 +170,9 @@ public class BucketList {
         prefsManager.putLongList(PrefsOwner.BUCKET_LIST, PREFS_FOODSTUFFS_IDS, ids);
         prefsManager.putFloatList(PrefsOwner.BUCKET_LIST, PREFS_FOODSTUFFS_WEIGHTS, weights, PERSISTENT_WEIGHT_PRECISION);
         prefsManager.putStringList(PrefsOwner.BUCKET_LIST, PREFS_FOODSTUFFS_COMMENTS, comments);
+        prefsManager.putString(PrefsOwner.BUCKET_LIST, PREFS_NAME, name);
         prefsManager.putString(PrefsOwner.BUCKET_LIST, PREFS_COMMENT, comment);
+        prefsManager.putFloat(PrefsOwner.BUCKET_LIST, PREFS_TOTAL_WEIGHT, totalWeight);
     }
 
     public void addObserver(Observer o) {

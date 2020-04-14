@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.InputFilter;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -19,6 +20,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.arlib.floatingsearchview.util.adapter.TextWatcherAdapter;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -33,6 +36,7 @@ import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.TimeProvider;
 import korablique.recipecalculator.database.CreateRecipeResult;
 import korablique.recipecalculator.database.RecipesRepository;
+import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Ingredient;
 import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.model.Recipe;
@@ -56,11 +60,12 @@ public class BucketListActivity extends BaseActivity implements HasSupportFragme
     RecipesRepository recipesRepository;
     private BucketListAdapter adapter;
     private EditText totalWeightEditText;
+    private EditText recipeNameEditText;
     private Button saveAsRecipeButton;
     @Inject
     BucketList bucketList;
     private int displayedInCardFoodstuffPosition;
-    private Card.OnMainButtonSimpleClickListener onAddFoodstuffButtonClickListener;
+    private Card.OnMainButtonSimpleClickListener onSaveFoodstuffButtonClickListener;
     @Inject
     TimeProvider timeProvider;
 
@@ -85,27 +90,15 @@ public class BucketListActivity extends BaseActivity implements HasSupportFragme
         pluralProgressBar = findViewById(R.id.new_nutrition_progress_bar);
         nutritionValuesWrapper = new NutritionValuesWrapper(this, nutritionLayout);
 
-        List<Ingredient> ingredients = bucketList.getList();
-        double totalWeight = countTotalWeight(ingredients);
-        updateNutritionWrappers(ingredients, totalWeight);
-
         saveAsRecipeButton = findViewById(R.id.save_as_recipe_button);
-
+        recipeNameEditText = findViewById(R.id.recipe_name_edit_text);
         totalWeightEditText = findViewById(R.id.total_weight_edit_text);
-        totalWeightEditText.setText(toDecimalString(totalWeight));
-        totalWeightEditText.addTextChangedListener(new TextWatcherAdapter() {
-            @Override
-            public void afterTextChanged(Editable s) {
-                super.afterTextChanged(s);
-                updateSaveButtonsEnability();
-            }
-        });
 
         BucketListAdapter.OnItemsCountChangeListener onItemsCountChangeListener = count -> {
             updateSaveButtonsEnability();
         };
 
-        onAddFoodstuffButtonClickListener = new Card.OnMainButtonSimpleClickListener() {
+        onSaveFoodstuffButtonClickListener = new Card.OnMainButtonSimpleClickListener() {
             @Override
             public void onClick(WeightedFoodstuff newFoodstuff) {
                 Ingredient oldIngredient = adapter.getItem(displayedInCardFoodstuffPosition);
@@ -116,16 +109,17 @@ public class BucketListActivity extends BaseActivity implements HasSupportFragme
                 bucketList.remove(oldIngredient);
                 bucketList.add(newIngredient);
 
-                double newTotalWeight = countTotalWeight(adapter.getItems());
+                float newTotalWeight = countTotalWeight(adapter.getItems());
                 totalWeightEditText.setText(toDecimalString(newTotalWeight));
+                bucketList.setTotalWeight(newTotalWeight);
 
-                updateNutritionWrappers(adapter.getItems(), newTotalWeight);
+                updateNutritionWrappers();
             }
         };
 
         CardDialog existingCardDialog = CardDialog.findCard(this);
         if (existingCardDialog != null) {
-            existingCardDialog.setUpButton1(onAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
+            existingCardDialog.setUpButton1(onSaveFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
         }
 
         BucketListAdapter.OnItemClickedObserver onItemClickedObserver = (ingredient, position) -> {
@@ -135,14 +129,15 @@ public class BucketListActivity extends BaseActivity implements HasSupportFragme
             cardDialog.prohibitEditing(true);
             // чтобы не запутать пользователя. для удаления продукта из выбранных нужно его смахнуть
             cardDialog.prohibitDeleting(true);
-            cardDialog.setUpButton1(onAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
+            cardDialog.setUpButton1(onSaveFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
         };
 
         adapter = new BucketListAdapter(this, R.layout.new_foodstuff_layout, onItemsCountChangeListener, onItemClickedObserver);
-        adapter.addItems(ingredients);
-
+        adapter.addItems(bucketList.getList());
         RecyclerView ingredientsListRecyclerView = findViewById(R.id.ingredients_list);
         ingredientsListRecyclerView.setAdapter(adapter);
+
+        updateNutritionWrappers();
 
         OnSwipeItemCallback onSwipeItemCallback = new OnSwipeItemCallback(
                 0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
@@ -152,9 +147,10 @@ public class BucketListActivity extends BaseActivity implements HasSupportFragme
                 Ingredient deleting = adapter.getItem(position);
                 adapter.deleteItem(position);
                 bucketList.remove(deleting);
-                double newWeight = countTotalWeight(adapter.getItems());
+                float newWeight = countTotalWeight(adapter.getItems());
                 totalWeightEditText.setText(toDecimalString(newWeight));
-                updateNutritionWrappers(adapter.getItems(), newWeight);
+                bucketList.setTotalWeight(newWeight);
+                updateNutritionWrappers();
 
                 Snackbar snackbar = Snackbar.make(ingredientsListRecyclerView,
                         R.string.foodstuff_deleted, Snackbar.LENGTH_SHORT);
@@ -162,7 +158,7 @@ public class BucketListActivity extends BaseActivity implements HasSupportFragme
                     bucketList.add(deleting);
                     adapter.addItem(deleting, position);
                     totalWeightEditText.setText(toDecimalString(newWeight + deleting.getWeight()));
-                    updateNutritionWrappers(adapter.getItems(), newWeight + deleting.getWeight());
+                    updateNutritionWrappers();
                 });
                 snackbar.show();
             }
@@ -170,19 +166,16 @@ public class BucketListActivity extends BaseActivity implements HasSupportFragme
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(onSwipeItemCallback);
         itemTouchHelper.attachToRecyclerView(ingredientsListRecyclerView);
 
-        // диалог, появляющийся при сохранении блюда
-        SaveRecipeDialog.OnSaveDishButtonClickListener saveDishButtonClickListener = (recipe) -> {
+        saveAsRecipeButton.setOnClickListener((view) -> {
+            Recipe recipe = extractRecipe();
+
             Disposable d = recipesRepository.saveRecipeRx(recipe).subscribe((result) -> {
                 if (result instanceof CreateRecipeResult.Ok) {
                     Recipe savedToDbRecipe = ((CreateRecipeResult.Ok) result).getRecipe();
-                    SaveRecipeDialog dialog = SaveRecipeDialog.findDialog(BucketListActivity.this);
-                    if (dialog != null) {
-                        dialog.dismiss();
-                    }
                     Toast.makeText(BucketListActivity.this, R.string.saved, Toast.LENGTH_SHORT).show();
 
                     BucketListActivity.this.setResult(
-                            Activity.RESULT_OK, createFoodstuffResultIntent(savedToDbRecipe));
+                            Activity.RESULT_OK, createRecipeResultIntent(savedToDbRecipe));
                     bucketList.clear();
                     BucketListActivity.this.finish();
                 } else if (result instanceof CreateRecipeResult.FoodstuffDuplicationError) {
@@ -191,26 +184,69 @@ public class BucketListActivity extends BaseActivity implements HasSupportFragme
                     throw new Error("Unhandled sealed class");
                 }
             });
-        };
-
-        SaveRecipeDialog existingDialog = SaveRecipeDialog.findDialog(this);
-        if (existingDialog != null) {
-            existingDialog.setOnSaveRecipeButtonClickListener(saveDishButtonClickListener);
-        }
-
-        saveAsRecipeButton.setOnClickListener((view) -> {
-            // т.к. вес готового продукта мог быть изменён, получаем его ещё раз
-            float resultWeight = Float.parseFloat(totalWeightEditText.getText().toString());
-            SaveRecipeDialog dialog = SaveRecipeDialog.showDialog(
-                    BucketListActivity.this, ingredients, resultWeight, bucketList.getComment());
-            dialog.setOnSaveRecipeButtonClickListener(saveDishButtonClickListener);
         });
+
+        recipeNameEditText.addTextChangedListener(new TextWatcherAdapter() {
+            @Override
+            public void afterTextChanged(Editable s) {
+                bucketList.setName(s.toString());
+                updateSaveButtonsEnability();
+            }
+        });
+        totalWeightEditText.addTextChangedListener(new TextWatcherAdapter() {
+            @Override
+            public void afterTextChanged(Editable s) {
+                float totalWeight = 0;
+                if (!s.toString().isEmpty()) {
+                    totalWeight = Float.parseFloat(s.toString());
+                }
+                bucketList.setTotalWeight(totalWeight);
+                updateSaveButtonsEnability();
+                updateNutritionWrappers();
+            }
+        });
+        recipeNameEditText.setText(bucketList.getName());
+        totalWeightEditText.setText(toDecimalString(bucketList.getTotalWeight()));
 
         View cancelView = findViewById(R.id.button_close);
         cancelView.setOnClickListener(view -> BucketListActivity.this.finish());
     }
 
-    public static Intent createFoodstuffResultIntent(Recipe recipe) {
+    private Recipe extractRecipe() {
+        float totalWeight = bucketList.getTotalWeight();
+        return extractRecipe(totalWeight);
+    }
+
+    private Recipe extractRecipe(float totalWeight) {
+        Nutrition nutrition = DishNutritionCalculator.calculateIngredients(
+                bucketList.getList(), totalWeight);
+        nutrition = normalizeFoodstuffNutrition(nutrition);
+        String name = recipeNameEditText.getText().toString();
+        return Recipe.create(
+                Foodstuff.withName(name).withNutrition(nutrition),
+                bucketList.getList(),
+                totalWeight,
+                bucketList.getComment());
+    }
+
+    /**
+     * When sum of protein, fats and carbs is greater than 100, then we should not create
+     * a foodstuff with such nutrition, and must normalize the nutrition before foodstuff creation.
+     */
+    private Nutrition normalizeFoodstuffNutrition(Nutrition nutrition) {
+        double gramsSum = nutrition.getProtein() + nutrition.getFats() + nutrition.getCarbs();
+        if (gramsSum <= 100f) {
+            return nutrition;
+        }
+        double factor = 100f / gramsSum;
+        return Nutrition.withValues(
+                nutrition.getProtein() * factor,
+                nutrition.getFats() * factor,
+                nutrition.getCarbs() * factor,
+                nutrition.getCalories() * factor);
+    }
+
+    public static Intent createRecipeResultIntent(Recipe recipe) {
         Intent resultIntent = new Intent();
         resultIntent.putExtra(EXTRA_CREATED_RECIPE, recipe);
         return resultIntent;
@@ -228,41 +264,36 @@ public class BucketListActivity extends BaseActivity implements HasSupportFragme
         displayedInCardFoodstuffPosition = savedInstanceState.getInt(DISPLAYED_IN_CARD_FOODSTUFF_POSITION);
         CardDialog cardDialog = CardDialog.findCard(this);
         if (cardDialog != null) {
-            cardDialog.setUpButton1(onAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
+            cardDialog.setUpButton1(onSaveFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
         }
     }
 
-    private void updateNutritionWrappers(List<Ingredient> ingredients, double totalWeight) {
-        Nutrition totalNutrition = countTotalNutrition(ingredients);
-        nutritionValuesWrapper.setNutrition(totalNutrition);
-        // чтобы высчитать БЖУ на 100% для PluralProgressBar'а
-        Nutrition nutritionPer100Percent =
-                DishNutritionCalculator.calculateIngredients(ingredients, totalWeight);
+    private void updateNutritionWrappers() {
+        Nutrition nutrition = Nutrition.zero();
+        if (!FloatUtils.areFloatsEquals(0f, bucketList.getTotalWeight(), 0.0001f)) {
+            Recipe recipe = extractRecipe();
+            nutrition = Nutrition.of100gramsOf(recipe.getFoodstuff());
+        }
+        nutritionValuesWrapper.setNutrition(nutrition);
         pluralProgressBar.setProgress(
-                (float) nutritionPer100Percent.getProtein(),
-                (float) nutritionPer100Percent.getFats(),
-                (float) nutritionPer100Percent.getCarbs());
+                (float) nutrition.getProtein(),
+                (float) nutrition.getFats(),
+                (float) nutrition.getCarbs());
     }
 
-    private double countTotalWeight(List<Ingredient> ingredients) {
-        double result = 0;
+    private float countTotalWeight(List<Ingredient> ingredients) {
+        float result = 0;
         for (Ingredient foodstuff : ingredients) {
             result += foodstuff.getWeight();
         }
         return result;
     }
 
-    private Nutrition countTotalNutrition(List<Ingredient> ingredients) {
-        Nutrition totalNutrition = Nutrition.zero();
-        for (Ingredient ingredient : ingredients) {
-            totalNutrition = totalNutrition.plus(Nutrition.of100gramsOf(ingredient.getFoodstuff()));
-        }
-        return totalNutrition;
-    }
-
     private void updateSaveButtonsEnability() {
         String text = totalWeightEditText.getText().toString();
+        String name = recipeNameEditText.getText().toString().trim();
         if (text.isEmpty()
+                || name.isEmpty()
                 || FloatUtils.areFloatsEquals(Double.parseDouble(text), 0.0)
                 || adapter.getItemCount() == 0) {
             saveAsRecipeButton.setEnabled(false);
