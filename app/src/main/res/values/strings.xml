@@ -156,6 +156,7 @@
     <string name="your_partner_pairing_code">Код партнёра:</string>
     <string name="send_to_partner">Отправить партнёру</string>
     <string name="delete_partner">Удалить партнёра</string>
+    <string name="delete_ingredient">Удалить ингредиент</string>
     <string name="sign_in_with_google">Войти с Google</string>
     <string name="something_went_wrong">Упс, что-то пошло не так</string>
     <string name="possibly_no_network_connection">Возможно интернет не подключен</string>

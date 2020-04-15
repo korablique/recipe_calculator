@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputFilter;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -13,6 +14,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.StringRes;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
@@ -94,10 +96,6 @@ public class BucketListActivity extends BaseActivity implements HasSupportFragme
         recipeNameEditText = findViewById(R.id.recipe_name_edit_text);
         totalWeightEditText = findViewById(R.id.total_weight_edit_text);
 
-        BucketListAdapter.OnItemsCountChangeListener onItemsCountChangeListener = count -> {
-            updateSaveButtonsEnability();
-        };
-
         onSaveFoodstuffButtonClickListener = new Card.OnMainButtonSimpleClickListener() {
             @Override
             public void onClick(WeightedFoodstuff newFoodstuff) {
@@ -116,12 +114,14 @@ public class BucketListActivity extends BaseActivity implements HasSupportFragme
                 updateNutritionWrappers();
             }
         };
-
         CardDialog existingCardDialog = CardDialog.findCard(this);
         if (existingCardDialog != null) {
             existingCardDialog.setUpButton1(onSaveFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
         }
 
+        BucketListAdapter.OnItemsCountChangeListener onItemsCountChangeListener = count -> {
+            updateSaveButtonsEnability();
+        };
         BucketListAdapter.OnItemClickedObserver onItemClickedObserver = (ingredient, position) -> {
             displayedInCardFoodstuffPosition = position;
             CardDialog cardDialog = CardDialog.showCard(
@@ -131,40 +131,33 @@ public class BucketListActivity extends BaseActivity implements HasSupportFragme
             cardDialog.prohibitDeleting(true);
             cardDialog.setUpButton1(onSaveFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
         };
-
-        adapter = new BucketListAdapter(this, R.layout.new_foodstuff_layout, onItemsCountChangeListener, onItemClickedObserver);
+        BucketListAdapter.OnItemLongClickedObserver onItemLongClickedObserver = (ingredient, position, view) -> {
+            PopupMenu menu = new PopupMenu(this, view);
+            menu.inflate(R.menu.bucket_list_menu);
+            menu.show();
+            menu.setOnMenuItemClickListener(item -> {
+                if (item.getItemId() == R.id.delete_ingredient) {
+                    adapter.deleteItem(position);
+                    bucketList.remove(ingredient);
+                    float newWeight = countTotalWeight(adapter.getItems());
+                    totalWeightEditText.setText(toDecimalString(newWeight));
+                    bucketList.setTotalWeight(newWeight);
+                    updateNutritionWrappers();
+                    return true;
+                }
+                return false;
+            });
+            return true;
+        };
+        adapter = new BucketListAdapter(
+                this,
+                R.layout.new_foodstuff_layout,
+                onItemsCountChangeListener,
+                onItemClickedObserver,
+                onItemLongClickedObserver);
         adapter.addItems(bucketList.getList());
         RecyclerView ingredientsListRecyclerView = findViewById(R.id.ingredients_list);
         ingredientsListRecyclerView.setAdapter(adapter);
-
-        updateNutritionWrappers();
-
-        OnSwipeItemCallback onSwipeItemCallback = new OnSwipeItemCallback(
-                0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
-            @Override
-            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-                int position = viewHolder.getAdapterPosition();
-                Ingredient deleting = adapter.getItem(position);
-                adapter.deleteItem(position);
-                bucketList.remove(deleting);
-                float newWeight = countTotalWeight(adapter.getItems());
-                totalWeightEditText.setText(toDecimalString(newWeight));
-                bucketList.setTotalWeight(newWeight);
-                updateNutritionWrappers();
-
-                Snackbar snackbar = Snackbar.make(ingredientsListRecyclerView,
-                        R.string.foodstuff_deleted, Snackbar.LENGTH_SHORT);
-                snackbar.setAction(R.string.undo, v -> {
-                    bucketList.add(deleting);
-                    adapter.addItem(deleting, position);
-                    totalWeightEditText.setText(toDecimalString(newWeight + deleting.getWeight()));
-                    updateNutritionWrappers();
-                });
-                snackbar.show();
-            }
-        };
-        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(onSwipeItemCallback);
-        itemTouchHelper.attachToRecyclerView(ingredientsListRecyclerView);
 
         saveAsRecipeButton.setOnClickListener((view) -> {
             Recipe recipe = extractRecipe();
@@ -185,7 +178,6 @@ public class BucketListActivity extends BaseActivity implements HasSupportFragme
                 }
             });
         });
-
         recipeNameEditText.addTextChangedListener(new TextWatcherAdapter() {
             @Override
             public void afterTextChanged(Editable s) {
@@ -210,6 +202,8 @@ public class BucketListActivity extends BaseActivity implements HasSupportFragme
 
         View cancelView = findViewById(R.id.button_close);
         cancelView.setOnClickListener(view -> BucketListActivity.this.finish());
+
+        updateNutritionWrappers();
     }
 
     private Recipe extractRecipe() {

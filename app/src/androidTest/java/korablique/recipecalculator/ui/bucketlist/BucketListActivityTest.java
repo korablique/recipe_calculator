@@ -3,6 +3,11 @@ package korablique.recipecalculator.ui.bucketlist;
 import android.content.Context;
 import android.content.Intent;
 
+import androidx.test.InstrumentationRegistry;
+import androidx.test.filters.LargeTest;
+import androidx.test.rule.ActivityTestRule;
+import androidx.test.runner.AndroidJUnit4;
+
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -13,11 +18,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import androidx.test.InstrumentationRegistry;
-import androidx.test.filters.LargeTest;
-import androidx.test.rule.ActivityTestRule;
-import androidx.test.runner.AndroidJUnit4;
-
+import korablique.recipecalculator.InstantComputationsThreadsExecutor;
+import korablique.recipecalculator.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.InstantIOExecutor;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.ActivityCallbacks;
@@ -47,30 +49,23 @@ import korablique.recipecalculator.model.Ingredient;
 import korablique.recipecalculator.model.Recipe;
 import korablique.recipecalculator.model.UserNameProvider;
 import korablique.recipecalculator.ui.calckeyboard.CalcKeyboardController;
-import korablique.recipecalculator.ui.mainactivity.history.HistoryController;
-import korablique.recipecalculator.ui.mainactivity.history.HistoryFragment;
 import korablique.recipecalculator.ui.mainactivity.MainActivity;
 import korablique.recipecalculator.ui.mainactivity.MainActivityController;
 import korablique.recipecalculator.ui.mainactivity.MainActivityFragmentsController;
 import korablique.recipecalculator.ui.mainactivity.MainActivitySelectedDateStorage;
+import korablique.recipecalculator.ui.mainactivity.history.HistoryController;
+import korablique.recipecalculator.ui.mainactivity.history.HistoryFragment;
 import korablique.recipecalculator.util.FloatUtils;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
-import korablique.recipecalculator.InstantComputationsThreadsExecutor;
-import korablique.recipecalculator.InstantDatabaseThreadExecutor;
 import korablique.recipecalculator.util.SyncMainThreadExecutor;
 import korablique.recipecalculator.util.TestingTimeProvider;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.closeSoftKeyboard;
+import static androidx.test.espresso.action.ViewActions.longClick;
 import static androidx.test.espresso.action.ViewActions.replaceText;
-import static androidx.test.espresso.action.ViewActions.swipeRight;
-import static androidx.test.espresso.action.ViewActions.typeText;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
-import static androidx.test.espresso.intent.Intents.intended;
-import static androidx.test.espresso.intent.matcher.BundleMatchers.hasValue;
-import static androidx.test.espresso.intent.matcher.IntentMatchers.hasAction;
-import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
 import static androidx.test.espresso.matcher.ViewMatchers.isDescendantOfA;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
@@ -358,7 +353,8 @@ public class BucketListActivityTest {
         activityRule.launchActivity(startIntent);
 
         // Deleting product
-        onView(withText("carrot")).perform(swipeRight());
+        onView(withText("carrot")).perform(longClick());
+        onView(withText(R.string.delete_ingredient)).perform(click());
 
         mainThreadExecutor.execute(() -> {
             // The left product has a weight of 10

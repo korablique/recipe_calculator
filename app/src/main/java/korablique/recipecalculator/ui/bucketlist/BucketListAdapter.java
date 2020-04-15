@@ -27,22 +27,28 @@ public class BucketListAdapter extends RecyclerView.Adapter<MyViewHolder> {
     public interface OnItemClickedObserver {
         void onItemClicked(Ingredient ingredient, int position);
     }
+    public interface OnItemLongClickedObserver {
+        boolean onItemLongClicked(Ingredient ingredient, int position, View view);
+    }
     private List<Ingredient> allFoodstuffs = new ArrayList<>();
     private Context context;
     @LayoutRes
     private int itemLayoutRes;
     private OnItemsCountChangeListener listener;
     private OnItemClickedObserver onItemClickedObserver;
+    private OnItemLongClickedObserver onItemLongClickedObserver;
 
     public BucketListAdapter(
             Context context,
             @LayoutRes int itemLayoutId,
             OnItemsCountChangeListener listener,
-            OnItemClickedObserver onItemClickedObserver) {
+            OnItemClickedObserver onItemClickedObserver,
+            OnItemLongClickedObserver onItemLongClickedObserver) {
         this.context = context;
         this.itemLayoutRes = itemLayoutId;
         this.listener = listener;
         this.onItemClickedObserver = onItemClickedObserver;
+        this.onItemLongClickedObserver = onItemLongClickedObserver;
     }
 
     @NonNull
@@ -63,6 +69,10 @@ public class BucketListAdapter extends RecyclerView.Adapter<MyViewHolder> {
 
         item.setOnClickListener(v -> {
             onItemClickedObserver.onItemClicked(ingredient, holder.getAdapterPosition());
+        });
+        item.setOnLongClickListener(v -> {
+            return onItemLongClickedObserver.onItemLongClicked(
+                    ingredient, holder.getAdapterPosition(), holder.itemView);
         });
     }
 
