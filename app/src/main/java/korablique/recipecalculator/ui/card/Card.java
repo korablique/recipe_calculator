@@ -90,6 +90,10 @@ public class Card {
         pluralProgressBar = nutritionLayout.findViewById(R.id.new_nutrition_progress_bar);
         nutritionValuesWrapper = new NutritionValuesWrapper(context, nutritionLayout);
 
+        editButton.setVisibility(View.GONE);
+        closeButton.setVisibility(View.GONE);
+        deleteButton.setVisibility(View.GONE);
+
         calcKeyboardController.useCalcKeyboardWith(weightEditText, dialog);
     }
 
@@ -108,7 +112,6 @@ public class Card {
     public void setFoodstuff(WeightedFoodstuff weightedFoodstuff) {
         setFoodstuffImpl(weightedFoodstuff.withoutWeight(), weightedFoodstuff.getWeight());
         nutritionValuesWrapper.setNutrition(Nutrition.of(weightedFoodstuff));
-
     }
 
     public void setFoodstuff(Foodstuff foodstuff) {
@@ -212,39 +215,48 @@ public class Card {
                 .withWeight(weight);
     }
 
-    void setOnEditButtonClickListener(OnEditButtonClickListener listener) {
+    public Foodstuff extractFoodstuff() {
+        return extractWeightedFoodstuff().withoutWeight();
+    }
+
+    void setOnEditButtonClickListener(@Nullable OnEditButtonClickListener listener) {
+        if (listener != null) {
+            editButton.setVisibility(View.VISIBLE);
+        } else {
+            editButton.setVisibility(View.GONE);
+        }
         editButton.setOnClickListener(v -> {
-            listener.onClick(receivedFoodstuff);
+            if (listener != null) {
+                listener.onClick(receivedFoodstuff);
+            }
         });
     }
 
     void setOnCloseButtonClickListener(OnCloseButtonClickListener listener) {
+        if (listener != null) {
+            closeButton.setVisibility(View.VISIBLE);
+        } else {
+            closeButton.setVisibility(View.GONE);
+        }
         closeButton.setOnClickListener(v -> {
-            listener.onClick();
+            if (listener != null) {
+                listener.onClick();
+            }
         });
     }
 
     void setOnDeleteButtonClickListener(OnDeleteButtonClickListener listener) {
-        deleteButton.setOnClickListener(v -> {
-            WeightedFoodstuff clickedFoodstuff = extractWeightedFoodstuff();
-            listener.onClick(clickedFoodstuff);
-        });
-    }
-
-    void prohibitEditing(boolean flag) {
-        if (flag) {
-            editButton.setVisibility(View.GONE);
-        } else {
-            editButton.setVisibility(View.VISIBLE);
-        }
-    }
-
-    void prohibitDeleting(boolean flag) {
-        if (flag) {
-            deleteButton.setVisibility(View.GONE);
-        } else {
+        if (listener != null) {
             deleteButton.setVisibility(View.VISIBLE);
+        } else {
+            deleteButton.setVisibility(View.GONE);
         }
+        deleteButton.setOnClickListener(v -> {
+            if (listener != null) {
+                WeightedFoodstuff clickedFoodstuff = extractWeightedFoodstuff();
+                listener.onClick(clickedFoodstuff);
+            }
+        });
     }
 
     void focusOnEditing() {

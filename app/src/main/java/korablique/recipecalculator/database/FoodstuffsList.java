@@ -178,6 +178,13 @@ public class FoodstuffsList {
      * @param editedFoodstuff отредактированный фудстафф
      */
     public void editFoodstuff(long id, Foodstuff editedFoodstuff) {
+        editFoodstuff(id, editedFoodstuff, (unused)->{});
+    }
+
+    /**
+     * @see #editFoodstuff(long, Foodstuff)
+     */
+    public void editFoodstuff(long id, Foodstuff editedFoodstuff, Callback<Foodstuff> callback) {
         getAllFoodstuffs(foodstuffs -> {}, foodstuffs -> {
             databaseWorker.editFoodstuff(id, editedFoodstuff, () -> {
                 int editingFoodstuffIndex = -1;
@@ -191,6 +198,7 @@ public class FoodstuffsList {
                 Foodstuff editedFoodstuffWithId = Foodstuff.withId(id).withName(editedFoodstuff.getName())
                         .withNutrition(Nutrition.of100gramsOf(editedFoodstuff));
                 all.set(editingFoodstuffIndex, editedFoodstuffWithId);
+                callback.onResult(editedFoodstuffWithId);
                 for (Observer observer : observers) {
                     observer.onFoodstuffEdited(editedFoodstuffWithId);
                 }

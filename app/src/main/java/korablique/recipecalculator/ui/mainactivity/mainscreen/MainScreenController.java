@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -31,7 +30,6 @@ import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.FoodstuffsTopList;
 import korablique.recipecalculator.model.Ingredient;
 import korablique.recipecalculator.model.Recipe;
-import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
@@ -281,8 +279,9 @@ public class MainScreenController
         if (requestCode == RequestCodes.MAIN_SCREEN_CREATE_FOODSTUFF) {
             Foodstuff foodstuff = data.getParcelableExtra(EditFoodstuffActivity.EXTRA_RESULT_FOODSTUFF);
             cardController.showCard(foodstuff);
-        } else if (requestCode == RequestCodes.MAIN_SCREEN_BUCKET_LIST_CREATE_FOODSTUFF) {
-            Recipe recipe = data.getParcelableExtra(BucketListActivity.EXTRA_CREATED_RECIPE);
+        } else if (requestCode == RequestCodes.MAIN_SCREEN_BUCKET_LIST_CREATE_FOODSTUFF
+                    || requestCode == RequestCodes.MAIN_SCREEN_BUCKET_LIST_OPEN_RECIPE) {
+            Recipe recipe = data.getParcelableExtra(BucketListActivity.EXTRA_PRODUCED_RECIPE);
             cardController.showCard(recipe.getFoodstuff());
         }
     }

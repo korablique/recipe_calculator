@@ -3,6 +3,8 @@ package korablique.recipecalculator.database
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doAnswer
 import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.never
+import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
 import korablique.recipecalculator.InstantMainThreadExecutor
 import korablique.recipecalculator.model.Foodstuff
@@ -10,6 +12,7 @@ import korablique.recipecalculator.model.Ingredient
 import korablique.recipecalculator.model.Recipe
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -29,7 +32,7 @@ import kotlin.coroutines.suspendCoroutine
 @Config(manifest = Config.NONE)
 class RecipeRepositoryTest {
     val fakeDatabaseWorker = FakeRecipeDatabaseWorker()
-    val mainThreadExecutor = InstantMainThreadExecutor()
+    val instantExecutor = InstantMainThreadExecutor()
 
     val foodstuffsSavedToDB = mutableListOf<Foodstuff>()
     val foodstuffsList = mock<FoodstuffsList> {
@@ -42,7 +45,7 @@ class RecipeRepositoryTest {
             Unit
         }
     }
-    val recipesRepository = RecipesRepository(fakeDatabaseWorker, foodstuffsList, mainThreadExecutor)
+    val recipesRepository = RecipesRepository(fakeDatabaseWorker, foodstuffsList, instantExecutor)
 
     @Test
     fun `getting all recipes when cache is ready`() {
@@ -50,7 +53,7 @@ class RecipeRepositoryTest {
         fakeDatabaseWorker.setInitialRecipes(initialRecipes)
 
         var recipes: Set<Recipe>? = null
-        GlobalScope.async(mainThreadExecutor) {
+        GlobalScope.async(instantExecutor) {
             recipes = recipesRepository.getAllRecipes()
         }
         assertEquals(HashSet(initialRecipes), recipes)
@@ -59,7 +62,7 @@ class RecipeRepositoryTest {
     @Test
     fun `getting all recipes when cache is not ready`() {
         var recipes: Set<Recipe>? = null
-        GlobalScope.async(mainThreadExecutor) {
+        GlobalScope.async(instantExecutor) {
             recipes = recipesRepository.getAllRecipes()
         }
         assertNull(recipes)
@@ -93,7 +96,7 @@ class RecipeRepositoryTest {
         fakeDatabaseWorker.setInitialRecipes(createRecipes(foodstuff))
 
         var recipe: Recipe? = null
-        GlobalScope.async(mainThreadExecutor) {
+        GlobalScope.async(instantExecutor) {
             recipe = recipesRepository.getRecipeOfFoodstuff(foodstuff)
         }
 
@@ -105,7 +108,7 @@ class RecipeRepositoryTest {
         val foodstuff = Foodstuff.withId(randID()).withName("name").withNutrition(1f, 2f, 3f, 4f)
 
         var recipe: Recipe? = null
-        GlobalScope.async(mainThreadExecutor) {
+        GlobalScope.async(instantExecutor) {
             recipe = recipesRepository.getRecipeOfFoodstuff(foodstuff)
         }
 
@@ -162,7 +165,7 @@ class RecipeRepositoryTest {
         assertEquals(0, fakeDatabaseWorker.createRecipesCallsCount)
 
         var createdRecipe: Recipe? = null
-        GlobalScope.async(mainThreadExecutor) {
+        GlobalScope.async(instantExecutor) {
             val createResult = recipesRepository.createRecipe(
                     Foodstuff.withId(randID()).withName("name").withNutrition(1f, 2f, 3f, 4f),
                     emptyList(),
@@ -184,7 +187,7 @@ class RecipeRepositoryTest {
     fun `create recipe when cache is not ready`() {
         assertEquals(0, fakeDatabaseWorker.createRecipesCallsCount)
         var createdRecipe: Recipe? = null
-        GlobalScope.async(mainThreadExecutor) {
+        GlobalScope.async(instantExecutor) {
             val createResult = recipesRepository.createRecipe(
                     Foodstuff.withId(randID()).withName("name").withNutrition(1f, 2f, 3f, 4f),
                     emptyList(),
@@ -242,7 +245,7 @@ class RecipeRepositoryTest {
 
         var createdRecipe: Recipe? = null
         val foodstuff = Foodstuff.withName("name").withNutrition(1f, 2f, 3f, 4f)
-        GlobalScope.async(mainThreadExecutor) {
+        GlobalScope.async(instantExecutor) {
             val result = recipesRepository.createRecipe(foodstuff, emptyList(), "comment", 123f)
             createdRecipe = (result as CreateRecipeResult.Ok).recipe
         }
@@ -250,6 +253,94 @@ class RecipeRepositoryTest {
         assertNull(createdRecipe)
         requests.forEach { it.onResult(foodstuff.recreateWithId(randID())) }
         assertNotNull(createdRecipe)
+    }
+
+    @Test
+    fun `update recipe when cache is ready`() {
+        val initialRecipes = createRecipes("1", "2", "3")
+        fakeDatabaseWorker.setInitialRecipes(initialRecipes)
+
+        val updatedRecipe = initialRecipes[0].copy(comment = "new comment")
+        var returnedUpdatedRecipe: Recipe? = null
+        GlobalScope.async(instantExecutor) {
+            val result = recipesRepository.updateRecipe(initialRecipes[0], updatedRecipe)
+            assertTrue(result is UpdateRecipeResult.Ok)
+            returnedUpdatedRecipe = (result as UpdateRecipeResult.Ok).recipe
+        }
+
+        GlobalScope.launch(instantExecutor) {
+            assertTrue(updatedRecipe in recipesRepository.getAllRecipes())
+            assertTrue(returnedUpdatedRecipe in recipesRepository.getAllRecipes())
+            assertEquals(updatedRecipe, recipesRepository.getRecipeOfFoodstuff(updatedRecipe.foodstuff))
+            assertEquals(updatedRecipe, returnedUpdatedRecipe)
+        }
+    }
+
+    @Test
+    fun `update recipe when cache is not ready`() {
+        val initialRecipes = createRecipes("1", "2", "3")
+        val updatedRecipe = initialRecipes[0].copy(comment = "new comment")
+        var returnedUpdatedRecipe: Recipe? = null
+        GlobalScope.async(instantExecutor) {
+            val result = recipesRepository.updateRecipe(initialRecipes[0], updatedRecipe)
+            assertTrue(result is UpdateRecipeResult.Ok)
+            returnedUpdatedRecipe = (result as UpdateRecipeResult.Ok).recipe
+        }
+
+        fakeDatabaseWorker.setInitialRecipes(initialRecipes)
+        GlobalScope.launch(instantExecutor) {
+            assertTrue(updatedRecipe in recipesRepository.getAllRecipes())
+            assertTrue(returnedUpdatedRecipe in recipesRepository.getAllRecipes())
+            assertEquals(updatedRecipe, recipesRepository.getRecipeOfFoodstuff(updatedRecipe.foodstuff))
+            assertEquals(updatedRecipe, returnedUpdatedRecipe)
+        }
+    }
+
+    @Test
+    fun `update not existing recipe when cache is ready`() {
+        val initialRecipes = createRecipes("1", "2", "3")
+        fakeDatabaseWorker.setInitialRecipes(initialRecipes)
+        val updatedRecipe = createRecipes("4")[0]
+        GlobalScope.async(instantExecutor) {
+            val result = recipesRepository.updateRecipe(initialRecipes[0], updatedRecipe)
+            assertTrue(result is UpdateRecipeResult.UpdatedRecipeNotFound)
+        }
+
+        GlobalScope.launch(instantExecutor) {
+            assertFalse(updatedRecipe in recipesRepository.getAllRecipes())
+            assertNull(recipesRepository.getRecipeOfFoodstuff(updatedRecipe.foodstuff))
+        }
+    }
+
+    @Test
+    fun `update not existing recipe when cache is not ready`() {
+        val initialRecipes = createRecipes("1", "2", "3")
+        fakeDatabaseWorker.shouldUpdateRecipesBeforeInitialRecipesSet = false
+        val updatedRecipe = createRecipes("4")[0]
+        GlobalScope.async(instantExecutor) {
+            val result = recipesRepository.updateRecipe(initialRecipes[0], updatedRecipe)
+            assertTrue(result is UpdateRecipeResult.UpdatedRecipeNotFound)
+        }
+
+        fakeDatabaseWorker.setInitialRecipes(initialRecipes)
+
+        GlobalScope.launch(instantExecutor) {
+            assertFalse(updatedRecipe in recipesRepository.getAllRecipes())
+            assertNull(recipesRepository.getRecipeOfFoodstuff(updatedRecipe.foodstuff))
+        }
+    }
+
+    @Test
+    fun `updated recipe passes foodstuff FoodstuffsList`() {
+        val initialRecipes = createRecipes("1", "2", "3")
+        fakeDatabaseWorker.setInitialRecipes(initialRecipes)
+        val updatedRecipe = initialRecipes[0].copy(comment = "new comment")
+
+        verify(foodstuffsList, never()).editFoodstuff(any(), any(), any())
+        GlobalScope.launch(instantExecutor) {
+            recipesRepository.updateRecipe(initialRecipes[0], updatedRecipe)
+        }
+        verify(foodstuffsList).editFoodstuff(any(), any(), any())
     }
 
     private fun createRecipes(vararg names: String): List<Recipe> {
@@ -278,10 +369,9 @@ class RecipeRepositoryTest {
 
     class FakeRecipeDatabaseWorker : RecipeDatabaseWorker {
         private var recipes: MutableList<Recipe>? = null
-
         private val delayedActions = mutableListOf<()->Unit>()
-
         var createRecipesCallsCount = 0
+        var shouldUpdateRecipesBeforeInitialRecipesSet = true
 
         fun setInitialRecipes(recipes: List<Recipe>) {
             if (this.recipes != null) {
@@ -298,13 +388,13 @@ class RecipeRepositoryTest {
         }
 
         override suspend fun getAllRecipes(): List<Recipe> = suspendCoroutine { continuation ->
-            runWhenRecipesAcuired {
+            runWhenRecipesAcquired {
                 continuation.resume(recipes!!)
             }
         }
 
         override suspend fun getRecipeOfFoodstuff(foodstuff: Foodstuff): Recipe? = suspendCoroutine { continuation ->
-            runWhenRecipesAcuired {
+            runWhenRecipesAcquired {
                 val result = recipes!!.find { it.foodstuff == foodstuff }
                 continuation.resume(result)
             }
@@ -322,14 +412,37 @@ class RecipeRepositoryTest {
                     ingredients,
                     weight,
                     comment)
-            runWhenRecipesAcuired {
+            runWhenRecipesAcquired {
                 recipes!!.add(recipe)
                 Unit
             }
             return recipe
         }
 
-        private fun runWhenRecipesAcuired(action: ()->Unit) {
+        override suspend fun updateRecipe(updatedRecipe: Recipe): Recipe? {
+            if (recipes == null) {
+                if (shouldUpdateRecipesBeforeInitialRecipesSet) {
+                    runWhenRecipesAcquired {
+                        val removed = recipes!!.removeIf { it.id == updatedRecipe.id }
+                        if (removed) {
+                            recipes!!.add(updatedRecipe)
+                        }
+                    }
+                    return updatedRecipe
+                } else {
+                    return null
+                }
+            }
+            val removed = recipes!!.removeIf { it.id == updatedRecipe.id }
+            if (removed) {
+                recipes!!.add(updatedRecipe)
+                return updatedRecipe
+            } else {
+                return null
+            }
+        }
+
+        private fun runWhenRecipesAcquired(action: ()->Unit) {
             if (recipes != null) {
                 action.invoke()
             } else {

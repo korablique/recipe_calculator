@@ -261,7 +261,6 @@ public class HistoryPageController implements
             // листенер на нажатия на элемент адаптера
             adapter.setOnItemClickObserver((historyEntry) -> {
                 CardDialog card = CardDialog.showCard(context, historyEntry.getFoodstuff());
-                card.prohibitEditing(true);
                 card.setUpButton1(onAddFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
                 card.setOnDeleteButtonClickListener(onDeleteButtonClickListener);
             });

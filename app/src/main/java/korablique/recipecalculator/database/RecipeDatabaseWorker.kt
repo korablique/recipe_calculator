@@ -15,4 +15,9 @@ interface RecipeDatabaseWorker {
             weight: Float): Recipe
     suspend fun getRecipeOfFoodstuff(foodstuff: Foodstuff): Recipe?
     suspend fun getAllRecipes(): List<Recipe>
+    /**
+     * @param updatedRecipe must already exist in DB (have a valid ID)
+     * @return exactly same recipe as the given one on success, null on error
+     */
+    suspend fun updateRecipe(updatedRecipe: Recipe): Recipe?
 }

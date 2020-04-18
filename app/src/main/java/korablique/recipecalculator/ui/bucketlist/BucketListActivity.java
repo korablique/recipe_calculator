@@ -5,25 +5,21 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
-import android.text.InputFilter;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.StringRes;
+import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.arlib.floatingsearchview.util.adapter.TextWatcherAdapter;
-import com.google.android.material.snackbar.Snackbar;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -31,29 +27,34 @@ import javax.inject.Inject;
 import dagger.android.AndroidInjector;
 import dagger.android.DispatchingAndroidInjector;
 import dagger.android.support.HasSupportFragmentInjector;
-import io.reactivex.disposables.Disposable;
-import korablique.recipecalculator.DishNutritionCalculator;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.TimeProvider;
-import korablique.recipecalculator.database.CreateRecipeResult;
+import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.database.RecipesRepository;
-import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Ingredient;
 import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.model.Recipe;
 import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.NutritionValuesWrapper;
-import korablique.recipecalculator.ui.card.CardDialog;
+import korablique.recipecalculator.ui.bucketlist.model.ModifiedRecipeModel;
+import korablique.recipecalculator.ui.bucketlist.model.ModifiedRecipeModelBucketList;
+import korablique.recipecalculator.ui.bucketlist.model.ModifiedRecipeModelRecipeEditing;
+import korablique.recipecalculator.ui.bucketlist.model.RecipeModelSaveChangesResult;
 import korablique.recipecalculator.ui.card.Card;
+import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar;
 import korablique.recipecalculator.util.FloatUtils;
 
 import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
 
 public class BucketListActivity extends BaseActivity implements HasSupportFragmentInjector {
-    public static final String EXTRA_CREATED_RECIPE = "EXTRA_CREATED_RECIPE";
+    public static final String EXTRA_PRODUCED_RECIPE = "EXTRA_CREATED_RECIPE";
     private static final String DISPLAYED_IN_CARD_FOODSTUFF_POSITION = "DISPLAYED_IN_CARD_FOODSTUFF_POSITION";
+    @VisibleForTesting
+    public static final String ACTION_EDIT_RECIPE = "ACTION_EDIT_RECIPE";
+    @VisibleForTesting
+    public static final String EXTRA_RECIPE = "EXTRA_RECIPE";
     @StringRes
     private static final int CARD_BUTTON_TEXT_RES = R.string.save;
     private PluralProgressBar pluralProgressBar;
@@ -66,10 +67,14 @@ public class BucketListActivity extends BaseActivity implements HasSupportFragme
     private Button saveAsRecipeButton;
     @Inject
     BucketList bucketList;
+    @Inject
+    MainThreadExecutor mainThreadExecutor;
     private int displayedInCardFoodstuffPosition;
     private Card.OnMainButtonSimpleClickListener onSaveFoodstuffButtonClickListener;
     @Inject
     TimeProvider timeProvider;
+
+    private ModifiedRecipeModel recipeModel;
 
     @Inject
     DispatchingAndroidInjector<Fragment> fragmentInjector;
@@ -88,6 +93,18 @@ public class BucketListActivity extends BaseActivity implements HasSupportFragme
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        TextView title = findViewById(R.id.title_text);
+        if (ACTION_EDIT_RECIPE.equals(getIntent().getAction())) {
+            Recipe recipe = getIntent().getParcelableExtra(EXTRA_RECIPE);
+            recipeModel = new ModifiedRecipeModelRecipeEditing(
+                    recipe, recipesRepository, mainThreadExecutor);
+            title.setText(R.string.bucket_list_title_recipe);
+        } else {
+            recipeModel = new ModifiedRecipeModelBucketList(
+                    bucketList, recipesRepository, mainThreadExecutor);
+            title.setText(R.string.bucket_list_title_recipe_creation);
+        }
+
         ViewGroup nutritionLayout = findViewById(R.id.nutrition_progress_with_values);
         pluralProgressBar = findViewById(R.id.new_nutrition_progress_bar);
         nutritionValuesWrapper = new NutritionValuesWrapper(this, nutritionLayout);
@@ -102,14 +119,14 @@ public class BucketListActivity extends BaseActivity implements HasSupportFragme
                 Ingredient oldIngredient = adapter.getItem(displayedInCardFoodstuffPosition);
                 Ingredient newIngredient = Ingredient.create(newFoodstuff, oldIngredient.getComment());
                 adapter.replaceItem(newIngredient, displayedInCardFoodstuffPosition);
-                CardDialog.hideCard(BucketListActivity.this);
-
-                bucketList.remove(oldIngredient);
-                bucketList.add(newIngredient);
-
                 float newTotalWeight = countTotalWeight(adapter.getItems());
                 totalWeightEditText.setText(toDecimalString(newTotalWeight));
-                bucketList.setTotalWeight(newTotalWeight);
+
+                CardDialog.hideCard(BucketListActivity.this);
+
+                recipeModel.removeIngredient(oldIngredient);
+                recipeModel.addIngredient(newIngredient);
+                recipeModel.setTotalWeight(newTotalWeight);
 
                 updateNutritionWrappers();
             }
@@ -126,9 +143,6 @@ public class BucketListActivity extends BaseActivity implements HasSupportFragme
             displayedInCardFoodstuffPosition = position;
             CardDialog cardDialog = CardDialog.showCard(
                     BucketListActivity.this, ingredient.toWeightedFoodstuff());
-            cardDialog.prohibitEditing(true);
-            // чтобы не запутать пользователя. для удаления продукта из выбранных нужно его смахнуть
-            cardDialog.prohibitDeleting(true);
             cardDialog.setUpButton1(onSaveFoodstuffButtonClickListener, CARD_BUTTON_TEXT_RES);
         };
         BucketListAdapter.OnItemLongClickedObserver onItemLongClickedObserver = (ingredient, position, view) -> {
@@ -138,10 +152,10 @@ public class BucketListActivity extends BaseActivity implements HasSupportFragme
             menu.setOnMenuItemClickListener(item -> {
                 if (item.getItemId() == R.id.delete_ingredient) {
                     adapter.deleteItem(position);
-                    bucketList.remove(ingredient);
+                    recipeModel.removeIngredient(ingredient);
                     float newWeight = countTotalWeight(adapter.getItems());
                     totalWeightEditText.setText(toDecimalString(newWeight));
-                    bucketList.setTotalWeight(newWeight);
+                    recipeModel.setTotalWeight(newWeight);
                     updateNutritionWrappers();
                     return true;
                 }
@@ -155,24 +169,22 @@ public class BucketListActivity extends BaseActivity implements HasSupportFragme
                 onItemsCountChangeListener,
                 onItemClickedObserver,
                 onItemLongClickedObserver);
-        adapter.addItems(bucketList.getList());
+        adapter.addItems(recipeModel.getIngredients());
         RecyclerView ingredientsListRecyclerView = findViewById(R.id.ingredients_list);
         ingredientsListRecyclerView.setAdapter(adapter);
 
         saveAsRecipeButton.setOnClickListener((view) -> {
-            Recipe recipe = extractRecipe();
-
-            Disposable d = recipesRepository.saveRecipeRx(recipe).subscribe((result) -> {
-                if (result instanceof CreateRecipeResult.Ok) {
-                    Recipe savedToDbRecipe = ((CreateRecipeResult.Ok) result).getRecipe();
+            recipeModel.flushChanges(result -> {
+                if (result instanceof RecipeModelSaveChangesResult.Ok) {
+                    Recipe savedToDbRecipe = ((RecipeModelSaveChangesResult.Ok) result).getRecipe();
                     Toast.makeText(BucketListActivity.this, R.string.saved, Toast.LENGTH_SHORT).show();
-
                     BucketListActivity.this.setResult(
                             Activity.RESULT_OK, createRecipeResultIntent(savedToDbRecipe));
-                    bucketList.clear();
                     BucketListActivity.this.finish();
-                } else if (result instanceof CreateRecipeResult.FoodstuffDuplicationError) {
+                } else if (result instanceof RecipeModelSaveChangesResult.FoodstuffDuplicationError) {
                     Toast.makeText(BucketListActivity.this, R.string.foodstuff_already_exists, Toast.LENGTH_LONG).show();
+                } else if (result instanceof RecipeModelSaveChangesResult.InternalError) {
+                    Toast.makeText(BucketListActivity.this, R.string.something_went_wrong, Toast.LENGTH_LONG).show();
                 } else {
                     throw new Error("Unhandled sealed class");
                 }
@@ -181,7 +193,7 @@ public class BucketListActivity extends BaseActivity implements HasSupportFragme
         recipeNameEditText.addTextChangedListener(new TextWatcherAdapter() {
             @Override
             public void afterTextChanged(Editable s) {
-                bucketList.setName(s.toString());
+                recipeModel.setName(s.toString());
                 updateSaveButtonsEnability();
             }
         });
@@ -192,13 +204,13 @@ public class BucketListActivity extends BaseActivity implements HasSupportFragme
                 if (!s.toString().isEmpty()) {
                     totalWeight = Float.parseFloat(s.toString());
                 }
-                bucketList.setTotalWeight(totalWeight);
+                recipeModel.setTotalWeight(totalWeight);
                 updateSaveButtonsEnability();
                 updateNutritionWrappers();
             }
         });
-        recipeNameEditText.setText(bucketList.getName());
-        totalWeightEditText.setText(toDecimalString(bucketList.getTotalWeight()));
+        recipeNameEditText.setText(recipeModel.getName());
+        totalWeightEditText.setText(toDecimalString(recipeModel.getTotalWeight()));
 
         View cancelView = findViewById(R.id.button_close);
         cancelView.setOnClickListener(view -> BucketListActivity.this.finish());
@@ -206,43 +218,9 @@ public class BucketListActivity extends BaseActivity implements HasSupportFragme
         updateNutritionWrappers();
     }
 
-    private Recipe extractRecipe() {
-        float totalWeight = bucketList.getTotalWeight();
-        return extractRecipe(totalWeight);
-    }
-
-    private Recipe extractRecipe(float totalWeight) {
-        Nutrition nutrition = DishNutritionCalculator.calculateIngredients(
-                bucketList.getList(), totalWeight);
-        nutrition = normalizeFoodstuffNutrition(nutrition);
-        String name = recipeNameEditText.getText().toString();
-        return Recipe.create(
-                Foodstuff.withName(name).withNutrition(nutrition),
-                bucketList.getList(),
-                totalWeight,
-                bucketList.getComment());
-    }
-
-    /**
-     * When sum of protein, fats and carbs is greater than 100, then we should not create
-     * a foodstuff with such nutrition, and must normalize the nutrition before foodstuff creation.
-     */
-    private Nutrition normalizeFoodstuffNutrition(Nutrition nutrition) {
-        double gramsSum = nutrition.getProtein() + nutrition.getFats() + nutrition.getCarbs();
-        if (gramsSum <= 100f) {
-            return nutrition;
-        }
-        double factor = 100f / gramsSum;
-        return Nutrition.withValues(
-                nutrition.getProtein() * factor,
-                nutrition.getFats() * factor,
-                nutrition.getCarbs() * factor,
-                nutrition.getCalories() * factor);
-    }
-
     public static Intent createRecipeResultIntent(Recipe recipe) {
         Intent resultIntent = new Intent();
-        resultIntent.putExtra(EXTRA_CREATED_RECIPE, recipe);
+        resultIntent.putExtra(EXTRA_PRODUCED_RECIPE, recipe);
         return resultIntent;
     }
 
@@ -264,8 +242,8 @@ public class BucketListActivity extends BaseActivity implements HasSupportFragme
 
     private void updateNutritionWrappers() {
         Nutrition nutrition = Nutrition.zero();
-        if (!FloatUtils.areFloatsEquals(0f, bucketList.getTotalWeight(), 0.0001f)) {
-            Recipe recipe = extractRecipe();
+        if (!FloatUtils.areFloatsEquals(0f, recipeModel.getTotalWeight(), 0.0001f)) {
+            Recipe recipe = recipeModel.extractEditedRecipe();
             nutrition = Nutrition.of100gramsOf(recipe.getFoodstuff());
         }
         nutritionValuesWrapper.setNutrition(nutrition);
@@ -304,5 +282,19 @@ public class BucketListActivity extends BaseActivity implements HasSupportFragme
 
     public static Intent createIntent(Context context) {
         return new Intent(context, BucketListActivity.class);
+    }
+
+    public static void startForRecipe(
+            Fragment fragment,
+            int requestCode,
+            Recipe recipe) {
+        fragment.startActivityForResult(createIntent(fragment.requireContext(), recipe), requestCode);
+    }
+
+    public static Intent createIntent(Context context, Recipe recipe) {
+        Intent intent = new Intent(context, BucketListActivity.class);
+        intent.setAction(ACTION_EDIT_RECIPE);
+        intent.putExtra(EXTRA_RECIPE, recipe);
+        return intent;
     }
 }

@@ -20,3 +20,10 @@ suspend fun FoodstuffsList.saveFoodstuffKx(foodstuff: Foodstuff): SaveFoodstuffR
         }
     })
 }
+
+suspend fun FoodstuffsList.editFoodstuffKx(id: Long, foodstuff: Foodstuff): Foodstuff
+        = suspendCoroutine { continuation ->
+    editFoodstuff(id, foodstuff) {
+        editedFoodstuff -> continuation.resume(editedFoodstuff)
+    }
+}

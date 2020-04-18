@@ -25,6 +25,13 @@ public class Optional<T> {
     }
 
     /**
+     * Использование: {@code}Optional<String> os = Optional.ofNullable("asd");{@code}
+     */
+    public static <T> Optional<T> ofNullable(@Nullable T val) {
+        return new Optional<>(val);
+    }
+
+    /**
      * Использование: {@code}Optional<String> os = Optional.empty();{@code}
      */
     public static <T> Optional<T> empty() {

@@ -205,7 +205,8 @@ public class MainActivityTestsBase {
                                 foodstuffsList, databaseHolder, userNameProvider,
                                 timeProvider, currentActivityProvider, sessionController,
                                 new CalcKeyboardController(), bucketList, foodstuffsSearchEngine,
-                                serverUserParamsRegistry, httpContext, recipesRepository);
+                                serverUserParamsRegistry, httpContext, recipesRepository,
+                                mainThreadExecutor);
                     })
                     .withActivityScoped((injectionTarget) -> {
                         if (!(injectionTarget instanceof MainActivity)) {
@@ -254,7 +255,7 @@ public class MainActivityTestsBase {
                             mainScreenCardController = new MainScreenCardController(
                                     activity, fragment, fragmentCallbacks, lifecycle,
                                     bucketList, historyWorker, timeProvider,
-                                    mainActivitySelectedDateStorage);
+                                    mainActivitySelectedDateStorage, recipesRepository, subscriptions);
 
                             MainScreenSearchController searchController = new MainScreenSearchController(
                                     mainThreadExecutor, bucketList, foodstuffsList, foodstuffsSearchEngine,

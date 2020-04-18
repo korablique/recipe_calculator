@@ -1,6 +1,7 @@
 package korablique.recipecalculator.ui.mainactivity;
 
 import android.app.Instrumentation;
+import android.content.Intent;
 import android.view.View;
 
 import androidx.test.espresso.Espresso;
@@ -16,11 +17,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.database.CreateRecipeResult;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
+import korablique.recipecalculator.model.Recipe;
+import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
+import korablique.recipecalculator.util.DBTestingUtils;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
@@ -29,6 +35,9 @@ import static androidx.test.espresso.assertion.PositionAssertions.isCompletelyAb
 import static androidx.test.espresso.assertion.PositionAssertions.isCompletelyBelow;
 import static androidx.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
+import static androidx.test.espresso.intent.Intents.intended;
+import static androidx.test.espresso.intent.matcher.IntentMatchers.hasAction;
+import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
 import static androidx.test.espresso.matcher.ViewMatchers.isDescendantOfA;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.isRoot;
@@ -248,6 +257,28 @@ public class MainActivityTest extends MainActivityTestsBase {
         onView(allOf(
                 isDescendantOfA(withId(R.id.foodstuff_card_layout)),
                 withText(name))).check(matches(isDisplayed()));
+    }
+
+    @Test
+    public void cardOpenedForRecipe_opensBucketListOnEditClick() {
+        // Create recipe
+        DBTestingUtils.clearAllData(foodstuffsList, historyWorker, databaseHolder);
+        Foodstuff foodstuff = Foodstuff.withName("cake").withNutrition(1, 2, 3, 4);
+        Recipe recipe = Recipe.create(foodstuff, Collections.emptyList(), 123f, "comment");
+        CreateRecipeResult recipeResult = recipesRepository.saveRecipeRx(recipe).blockingGet();
+        assertTrue(recipeResult instanceof CreateRecipeResult.Ok);
+
+        recipe = ((CreateRecipeResult.Ok)recipeResult).getRecipe();
+
+        mActivityRule.launchActivity(null);
+        // Open card and click on edit
+        onView(withText(foodstuff.getName())).perform(click());
+        onView(withId(R.id.button_edit)).perform(click());
+
+        Intent expectedIntent = BucketListActivity.createIntent(context, recipe);
+        intended(allOf(
+                hasAction(expectedIntent.getAction()),
+                hasComponent(expectedIntent.getComponent())));
     }
 
     private List<Foodstuff> extractFoodstuffsTopFromDB() {

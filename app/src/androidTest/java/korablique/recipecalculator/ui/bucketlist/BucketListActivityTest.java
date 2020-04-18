@@ -16,7 +16,9 @@ import org.junit.runner.RunWith;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import korablique.recipecalculator.InstantComputationsThreadsExecutor;
 import korablique.recipecalculator.InstantDatabaseThreadExecutor;
@@ -35,6 +37,7 @@ import korablique.recipecalculator.base.executors.IOExecutor;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.base.prefs.PrefsCleaningHelper;
 import korablique.recipecalculator.base.prefs.SharedPrefsManager;
+import korablique.recipecalculator.database.CreateRecipeResult;
 import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.FoodstuffsList;
@@ -55,6 +58,7 @@ import korablique.recipecalculator.ui.mainactivity.MainActivityFragmentsControll
 import korablique.recipecalculator.ui.mainactivity.MainActivitySelectedDateStorage;
 import korablique.recipecalculator.ui.mainactivity.history.HistoryController;
 import korablique.recipecalculator.ui.mainactivity.history.HistoryFragment;
+import korablique.recipecalculator.util.DBTestingUtils;
 import korablique.recipecalculator.util.FloatUtils;
 import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.SyncMainThreadExecutor;
@@ -69,8 +73,11 @@ import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.isDescendantOfA;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
+import static androidx.test.espresso.matcher.ViewMatchers.withParent;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.CoreMatchers.allOf;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 @RunWith(AndroidJUnit4.class)
@@ -263,7 +270,7 @@ public class BucketListActivityTest {
         onView(withId(R.id.save_as_recipe_button)).perform(click());
 
         Intent resultIntent = activityRule.getActivityResult().getResultData();
-        Recipe resultRecipe = resultIntent.getParcelableExtra(BucketListActivity.EXTRA_CREATED_RECIPE);
+        Recipe resultRecipe = resultIntent.getParcelableExtra(BucketListActivity.EXTRA_PRODUCED_RECIPE);
         Assert.assertEquals("new super carrot", resultRecipe.getFoodstuff().getName());
     }
 
@@ -460,5 +467,81 @@ public class BucketListActivityTest {
                 isDescendantOfA(withId(R.id.protein_layout)),
                 withId(R.id.nutrition_text_view)))
                 .check(matches(withText("33.3")));
+    }
+
+    @Test
+    public void editRecipe() {
+        // Create recipe
+        DBTestingUtils.clearAllData(foodstuffsList, historyWorker, databaseHolder);
+        Foodstuff ingredientFoodstuff1 = Foodstuff.withName("dough").withNutrition(1, 2, 3, 4);
+        Foodstuff ingredientFoodstuff2 = Foodstuff.withName("oil").withNutrition(5, 6, 7, 8);
+        ingredientFoodstuff1 = foodstuffsList.saveFoodstuff(ingredientFoodstuff1).blockingGet();
+        ingredientFoodstuff2 = foodstuffsList.saveFoodstuff(ingredientFoodstuff2).blockingGet();
+        List<Ingredient> ingredients = new ArrayList<>();
+        ingredients.add(Ingredient.create(ingredientFoodstuff1, 111, "comment1"));
+        ingredients.add(Ingredient.create(ingredientFoodstuff2, 222, "comment2"));
+
+        Foodstuff foodstuff = Foodstuff.withName("cake").withNutrition(1, 2, 3, 4);
+        Recipe recipe = Recipe.create(foodstuff, ingredients, 123f, "comment");
+        CreateRecipeResult recipeResult = recipesRepository.saveRecipeRx(recipe).blockingGet();
+        recipe = ((CreateRecipeResult.Ok)recipeResult).getRecipe();
+
+        Intent startIntent =
+                BucketListActivity.createIntent(
+                        InstrumentationRegistry.getTargetContext(),
+                        recipe);
+        activityRule.launchActivity(startIntent);
+
+        // Verify valid values
+        onView(withId(R.id.title_text)).check(matches(withText(R.string.bucket_list_title_recipe)));
+        onView(withId(R.id.recipe_name_edit_text)).check(matches(withText("cake")));
+        onView(withId(R.id.total_weight_edit_text)).check(matches(withText("123")));
+
+        onView(allOf(
+                withParent(isDescendantOfA(withId(R.id.ingredients_list))),
+                withText("dough")
+        )).check(matches(isDisplayed()));
+        onView(allOf(
+                withParent(isDescendantOfA(withId(R.id.ingredients_list))),
+                withText("oil")
+        )).check(matches(isDisplayed()));
+
+        onView(withText("dough")).perform(click());
+        onView(allOf(
+                withParent(isDescendantOfA(withId(R.id.foodstuff_card_layout))),
+                withId(R.id.weight_edit_text)
+        )).check(matches(withText("111")));
+        onView(withId(R.id.button_close)).perform(click());
+
+        onView(withText("oil")).perform(click());
+        onView(allOf(
+                withParent(isDescendantOfA(withId(R.id.foodstuff_card_layout))),
+                withId(R.id.weight_edit_text)
+        )).check(matches(withText("222")));
+        onView(withId(R.id.button_close)).perform(click());
+
+        // Edit
+        onView(withText("oil")).perform(longClick());
+        onView(withText(R.string.delete_ingredient)).perform(click());
+        onView(withText("dough")).perform(click());
+        onView(allOf(
+                withParent(isDescendantOfA(withId(R.id.foodstuff_card_layout))),
+                withId(R.id.weight_edit_text)
+        )).perform(replaceText("1"));
+        onView(withId(R.id.button1)).perform(click());
+        onView(withId(R.id.recipe_name_edit_text)).perform(replaceText("cake without oil"));
+        onView(withId(R.id.total_weight_edit_text)).perform(replaceText("10"));
+        onView(withId(R.id.save_as_recipe_button)).perform(click());
+
+        // Validate updated recipe
+        List<Recipe> allRecipes = new ArrayList<>(recipesRepository.getAllRecipesRx().blockingGet());
+        assertEquals(1, allRecipes.size());
+        Recipe updatedRecipe = allRecipes.get(0);
+
+        assertEquals("cake without oil", updatedRecipe.getFoodstuff().getName());
+        assertEquals(10, updatedRecipe.getWeight(), 0.001f);
+        assertEquals(1, updatedRecipe.getIngredients().size());
+        assertEquals("dough", updatedRecipe.getIngredients().get(0).getFoodstuff().getName());
+        assertEquals(1f, updatedRecipe.getIngredients().get(0).getWeight(), 0.001f);
     }
 }

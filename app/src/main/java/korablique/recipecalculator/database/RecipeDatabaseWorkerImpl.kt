@@ -1,6 +1,7 @@
 package korablique.recipecalculator.database
 
 import korablique.recipecalculator.base.executors.IOExecutor
+import korablique.recipecalculator.database.room.AppDatabase
 import korablique.recipecalculator.database.room.DatabaseHolder
 import korablique.recipecalculator.database.room.IngredientEntity
 import korablique.recipecalculator.database.room.RecipeEntity
@@ -10,6 +11,7 @@ import korablique.recipecalculator.model.Recipe
 import kotlinx.coroutines.withContext
 import java.lang.IllegalArgumentException
 import java.lang.IllegalStateException
+import java.lang.RuntimeException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -78,24 +80,66 @@ class RecipeDatabaseWorkerImpl constructor(
         var recipe: Recipe? = null
         db.runInTransaction {
             val newEntity = RecipeEntity(0, foodstuff.id, weight, comment)
-            val id = db.recipeDao().insertRecipe(newEntity)
-            val entity = newEntity.copy(id = id)
-
-            val ingredientsEntities = ingredients.map {
-                IngredientEntity(0, entity.id, it.weight, it.foodstuff.id, it.comment)
-            }
-
-            val ids = db.ingredientDao().insertIngredients(ingredientsEntities)
-            val ingredientsWithIds = ingredients.zip(ids) { ingredient, id ->
-                ingredient.copy(id = id)
-            }
-
-            recipe = Recipe.from(entity, foodstuff, ingredientsWithIds)
+            recipe = createOrUpdateRecipeWithIngredients(db, newEntity, foodstuff, ingredients)
         }
         if (recipe == null) {
             throw IllegalStateException(
                     "Couldn't create a recipe with: $foodstuff, $ingredients, $comment, $weight")
         }
         recipe!!
+    }
+
+    private fun createOrUpdateRecipeWithIngredients(
+            db: AppDatabase,
+            inputEntity: RecipeEntity,
+            foodstuff: Foodstuff,
+            ingredients: List<Ingredient>): Recipe {
+        if (!db.inTransaction()) {
+            throw Error("Must be called within transaction because of multiple DB updates")
+        }
+        val entity = when (inputEntity.id) {
+            0L -> {
+                val id = db.recipeDao().insertRecipe(inputEntity)
+                inputEntity.copy(id = id)
+            }
+            else -> {
+                // Update the recipe
+                val updatedRowsCount = db.recipeDao().updateRecipe(inputEntity)
+                if (updatedRowsCount <= 0) {
+                    throw RuntimeException("Couldn't update given entity: $inputEntity")
+                }
+                // Delete its old ingredients
+                db.ingredientDao().deleteIngredientsByRecipe(inputEntity.id)
+                inputEntity
+            }
+        }
+
+        val ingredientsEntities = ingredients.map {
+            IngredientEntity(0, entity.id, it.weight, it.foodstuff.id, it.comment)
+        }
+        val ids = db.ingredientDao().insertIngredients(ingredientsEntities)
+        val ingredientsWithIds = ingredients.zip(ids) { ingredient, id ->
+            ingredient.copy(id = id)
+        }
+        return Recipe.from(entity, foodstuff, ingredientsWithIds)
+    }
+
+    override suspend fun updateRecipe(updatedRecipe: Recipe): Recipe = withContext(ioExecutor) {
+        val db = databaseHolder.database
+        var result: Recipe? = null
+        db.runInTransaction {
+            val entity = RecipeEntity(
+                    updatedRecipe.id,
+                    updatedRecipe.foodstuff.id,
+                    updatedRecipe.weight,
+                    updatedRecipe.comment)
+            result = createOrUpdateRecipeWithIngredients(
+                    db, entity, updatedRecipe.foodstuff, updatedRecipe.ingredients)
+        }
+        if (result == null) {
+            throw IllegalStateException(
+                    "Couldn't update recipe: $updatedRecipe")
+        }
+        result!!
     }
 }
