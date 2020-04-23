@@ -4,6 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import androidx.annotation.NonNull;
 
+import korablique.recipecalculator.model.proto.FoodstuffProtos;
 import korablique.recipecalculator.util.FloatUtils;
 
 public class Foodstuff implements Parcelable, Comparable<Foodstuff> {
@@ -141,6 +142,14 @@ public class Foodstuff implements Parcelable, Comparable<Foodstuff> {
         return Foodstuff.withId(id).withName(name).withNutrition(protein, fats, carbs, calories);
     }
 
+    public Foodstuff recreateWithName(String name) {
+        return Foodstuff.withId(id).withName(name).withNutrition(protein, fats, carbs, calories);
+    }
+
+    public Foodstuff recreateWithNutrition(Nutrition nutrition) {
+        return Foodstuff.withId(id).withName(name).withNutrition(nutrition);
+    }
+
     @Override
     public String toString() {
         return "Foodstuff{" +
@@ -155,5 +164,30 @@ public class Foodstuff implements Parcelable, Comparable<Foodstuff> {
 
     public boolean hasValidID() {
         return id != -1;
+    }
+
+    public FoodstuffProtos.Foodstuff toProto() {
+        return FoodstuffProtos.Foodstuff.newBuilder()
+                .setLocalId(id)
+                .setName(name)
+                .setProtein((float) protein)
+                .setFats((float) fats)
+                .setCarbs((float) carbs)
+                .setCalories((float) calories)
+                .build();
+    }
+
+    public static Foodstuff fromProto(FoodstuffProtos.Foodstuff protoFoodstuff) {
+        long id = -1;
+        if (protoFoodstuff.hasLocalId()) {
+            id = protoFoodstuff.getLocalId();
+        }
+        return new Foodstuff(
+                id,
+                protoFoodstuff.getName(),
+                protoFoodstuff.getProtein(),
+                protoFoodstuff.getFats(),
+                protoFoodstuff.getCarbs(),
+                protoFoodstuff.getCalories());
     }
 }

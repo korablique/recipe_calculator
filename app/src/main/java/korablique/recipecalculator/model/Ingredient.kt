@@ -3,6 +3,8 @@ package korablique.recipecalculator.model
 import android.os.Parcel
 import android.os.Parcelable
 import korablique.recipecalculator.database.room.IngredientEntity
+import korablique.recipecalculator.model.proto.FoodstuffProtos
+import korablique.recipecalculator.model.proto.IngredientProtos
 
 data class Ingredient(
         val id: Long,
@@ -37,6 +39,19 @@ data class Ingredient(
                 return arrayOf()
             }
         }
+
+        @JvmStatic
+        fun fromProto(protoIngredient: IngredientProtos.Ingredient): Ingredient {
+            var id: Long = -1
+            if (protoIngredient.hasLocalId()) {
+                id = protoIngredient.localId
+            }
+            return Ingredient(
+                    id,
+                    Foodstuff.fromProto(protoIngredient.foodstuff),
+                    protoIngredient.weight,
+                    protoIngredient.comment)
+        }
     }
 
     fun toWeightedFoodstuff(): WeightedFoodstuff {
@@ -52,5 +67,14 @@ data class Ingredient(
         dest.writeParcelable(foodstuff, 0)
         dest.writeFloat(weight)
         dest.writeString(comment)
+    }
+
+    fun toProto(): IngredientProtos.Ingredient? {
+        return IngredientProtos.Ingredient.newBuilder()
+                .setLocalId(id)
+                .setFoodstuff(foodstuff.toProto())
+                .setWeight(weight)
+                .setComment(comment)
+                .build()
     }
 }
