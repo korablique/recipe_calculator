@@ -40,6 +40,8 @@ import korablique.recipecalculator.ui.nestingadapters.SectionedAdapterParent;
 import korablique.recipecalculator.ui.nestingadapters.SectionedFoodstuffsAdapterChild;
 import korablique.recipecalculator.ui.nestingadapters.SingleItemAdapterChild;
 
+import static korablique.recipecalculator.ui.bucketlist.BucketListActivityKt.EXTRA_PRODUCED_RECIPE;
+
 @FragmentScope
 public class MainScreenController
         implements FragmentCallbacks.Observer,
@@ -281,7 +283,7 @@ public class MainScreenController
             cardController.showCard(foodstuff);
         } else if (requestCode == RequestCodes.MAIN_SCREEN_BUCKET_LIST_CREATE_FOODSTUFF
                     || requestCode == RequestCodes.MAIN_SCREEN_BUCKET_LIST_OPEN_RECIPE) {
-            Recipe recipe = data.getParcelableExtra(BucketListActivity.EXTRA_PRODUCED_RECIPE);
+            Recipe recipe = data.getParcelableExtra(EXTRA_PRODUCED_RECIPE);
             cardController.showCard(recipe.getFoodstuff());
         }
     }

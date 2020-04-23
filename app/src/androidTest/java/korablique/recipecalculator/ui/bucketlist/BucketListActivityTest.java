@@ -75,6 +75,7 @@ import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withParent;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
+import static korablique.recipecalculator.ui.bucketlist.BucketListActivityKt.EXTRA_PRODUCED_RECIPE;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -139,13 +140,19 @@ public class BucketListActivityTest {
                     })
                     .withActivityScoped((target) -> {
                         if (target instanceof BucketListActivity) {
-                            return Collections.emptyList();
+                            BucketListActivity activity = (BucketListActivity) target;
+                            BucketListActivityController controller =
+                                    new BucketListActivityController(
+                                            activity, recipesRepository, bucketList,
+                                            mainThreadExecutor, timeProvider);
+                            return Arrays.asList(controller);
                         }
                         MainActivity activity = (MainActivity) target;
                         ActivityCallbacks activityCallbacks = new ActivityCallbacks();
                         MainActivityController controller = new MainActivityController(activity,
                                 activityCallbacks,
                                 mock(MainActivityFragmentsController.class));
+
                         return Arrays.asList(new RxActivitySubscriptions(activity.getActivityCallbacks()),
                                 controller);
                     })
@@ -270,7 +277,7 @@ public class BucketListActivityTest {
         onView(withId(R.id.save_as_recipe_button)).perform(click());
 
         Intent resultIntent = activityRule.getActivityResult().getResultData();
-        Recipe resultRecipe = resultIntent.getParcelableExtra(BucketListActivity.EXTRA_PRODUCED_RECIPE);
+        Recipe resultRecipe = resultIntent.getParcelableExtra(EXTRA_PRODUCED_RECIPE);
         Assert.assertEquals("new super carrot", resultRecipe.getFoodstuff().getName());
     }
 
