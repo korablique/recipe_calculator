@@ -9,6 +9,7 @@ import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Ingredient;
 import korablique.recipecalculator.model.Nutrition;
 import korablique.recipecalculator.model.WeightedFoodstuff;
+import korablique.recipecalculator.util.FloatUtils;
 
 public class DishNutritionCalculator {
 
@@ -22,6 +23,9 @@ public class DishNutritionCalculator {
 
     public static Nutrition calculate(List<WeightedFoodstuff> foodstuffs, double resultWeight) {
         Nutrition result = Nutrition.zero();
+        if (resultWeight == 0) {
+            return result;
+        }
         for (WeightedFoodstuff foodstuff : foodstuffs) {
             result = result.plus(Nutrition.of(foodstuff));
         }

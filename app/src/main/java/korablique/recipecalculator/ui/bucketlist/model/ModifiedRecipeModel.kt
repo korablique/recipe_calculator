@@ -27,7 +27,7 @@ interface ModifiedRecipeModel {
      * When sum of protein, fats and carbs is greater than 100, then we should not create
      * a foodstuff with such nutrition, and must normalize the nutrition before foodstuff creation.
      */
-    fun normalizeFoodstuffNutrition(nutrition: Nutrition): Nutrition? {
+    fun normalizeFoodstuffNutrition(nutrition: Nutrition): Nutrition {
         val gramsSum = nutrition.protein + nutrition.fats + nutrition.carbs
         if (gramsSum <= 100f) {
             return nutrition

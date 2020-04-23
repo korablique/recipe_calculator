@@ -130,7 +130,7 @@ public class BucketListActivityTest {
                                 recipeDatabaseWorker, foodstuffsList, mainThreadExecutor);
                         userNameProvider = new UserNameProvider(context);
                         currentActivityProvider = new CurrentActivityProvider();
-                        bucketList = new BucketList(prefsManager, foodstuffsList);
+                        bucketList = new BucketList(prefsManager);
 
                         return Arrays.asList(mainThreadExecutor, databaseThreadExecutor, databaseWorker,
                                 historyWorker, userParametersWorker, foodstuffsList, userNameProvider,

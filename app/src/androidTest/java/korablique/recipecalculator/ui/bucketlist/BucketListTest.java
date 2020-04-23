@@ -56,7 +56,7 @@ public class BucketListTest {
                         databaseWorker,
                         mainThreadExecutor,
                         computationThreadsExecutor);
-        bucketList = new BucketList(prefsManager, foodstuffsList);
+        bucketList = new BucketList(prefsManager);
     }
 
     @Test
@@ -72,7 +72,7 @@ public class BucketListTest {
         bucketList.setTotalWeight(1f);
 
         // Новый бакетлист со старым prefs manager'ом
-        BucketList bucketList2 = new BucketList(prefsManager, foodstuffsList);
+        BucketList bucketList2 = new BucketList(prefsManager);
         Assert.assertEquals(Collections.singletonList(ingredient), bucketList2.getList());
         Assert.assertEquals("general comment", bucketList2.getComment());
         Assert.assertEquals("name", bucketList2.getName());
@@ -95,7 +95,7 @@ public class BucketListTest {
         PrefsCleaningHelper.INSTANCE.cleanAllPrefs(context);
 
         // Новый бакетлист со старым prefs manager'ом, но преференсы очищены
-        BucketList bucketList2 = new BucketList(prefsManager, foodstuffsList);
+        BucketList bucketList2 = new BucketList(prefsManager);
         Assert.assertEquals(Collections.emptyList(), bucketList2.getList());
         Assert.assertEquals("", bucketList2.getComment());
         Assert.assertEquals("", bucketList2.getName());
@@ -121,7 +121,7 @@ public class BucketListTest {
         bucketList.remove(ingredient1);
 
         // Новый бакетлист со старым prefs manager'ом
-        BucketList bucketList2 = new BucketList(prefsManager, foodstuffsList);
+        BucketList bucketList2 = new BucketList(prefsManager);
         Assert.assertEquals(Collections.singletonList(ingredient2), bucketList2.getList());
     }
 
@@ -147,7 +147,7 @@ public class BucketListTest {
         bucketList.clear();
 
         // Новый бакетлист со старым prefs manager'ом
-        BucketList bucketList2 = new BucketList(prefsManager, foodstuffsList);
+        BucketList bucketList2 = new BucketList(prefsManager);
         Assert.assertEquals(Collections.emptyList(), bucketList2.getList());
         Assert.assertEquals("", bucketList2.getComment());
         Assert.assertEquals("", bucketList2.getName());

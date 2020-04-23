@@ -89,8 +89,20 @@ class SharedPrefsManagerTest {
         prefsManager.putStringList(PrefsOwner.BUCKET_LIST, myKey, createdStringList)
 
         extractedStringList = prefsManager.getStringList(PrefsOwner.BUCKET_LIST, myKey)
-        assertEquals(3, extractedStringList!!.size)
         assertEquals(createdStringList, extractedStringList!!)
+    }
+
+    @Test
+    fun canPutAndGetBytes() {
+        val myKey = "myKey"
+        var extractedBytes = prefsManager.getBytes(PrefsOwner.BUCKET_LIST, myKey)
+        assertEquals(null, extractedBytes)
+
+        val createdBytes = byteArrayOf(0x01, 0x02, 0x00)
+        prefsManager.putBytes(PrefsOwner.BUCKET_LIST, myKey, createdBytes)
+
+        extractedBytes = prefsManager.getBytes(PrefsOwner.BUCKET_LIST, myKey)
+        assertTrue(createdBytes.contentEquals(extractedBytes!!))
     }
 
     @Test
@@ -115,5 +127,11 @@ class SharedPrefsManagerTest {
     fun canPutAndGetStringListWithSingleEmptyElement() {
         prefsManager.putStringList(PrefsOwner.BUCKET_LIST, "mykey", listOf(""))
         assertEquals(listOf(""), prefsManager.getStringList(PrefsOwner.BUCKET_LIST, "mykey"))
+    }
+
+    @Test
+    fun canPutAndGetEmptyBytes() {
+        prefsManager.putBytes(PrefsOwner.BUCKET_LIST, "mykey", byteArrayOf())
+        assertEquals(0, prefsManager.getBytes(PrefsOwner.BUCKET_LIST, "mykey")!!.size)
     }
 }

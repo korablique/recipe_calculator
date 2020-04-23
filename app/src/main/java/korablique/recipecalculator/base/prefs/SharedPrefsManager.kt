@@ -99,4 +99,19 @@ class SharedPrefsManager @Inject constructor(val context: Context) {
                 .getSharedPreferences(owner.fileName, Context.MODE_PRIVATE)
                 .getBoolean(key, default)
     }
+
+    fun putBytes(owner: PrefsOwner, key: String, value: ByteArray?) {
+        val base64 = value?.let { String(Base64.encode(it, 0)) }
+        context.getSharedPreferences(owner.fileName, Context.MODE_PRIVATE)
+                .edit()
+                .putString(key, base64)
+                .apply()
+    }
+
+    fun getBytes(owner: PrefsOwner, key: String): ByteArray? {
+        val result = context
+                .getSharedPreferences(owner.fileName, Context.MODE_PRIVATE)
+                .getString(key, null)
+        return result?.let { Base64.decode(it, 0) }
+    }
 }

@@ -63,6 +63,7 @@ public class MainScreenSearchController
         public void onIngredientAdded(Ingredient ingredient) {
             searchView.clearQuery();
         }
+        @Override public void onIngredientRemoved(Ingredient ingredient) {}
     };
 
     private FoodstuffsList.Observer foodstuffsListObserver = new FoodstuffsList.Observer() {

@@ -157,7 +157,7 @@ public class MainActivityTestsBase {
                         userNameProvider = new UserNameProvider(context);
                         currentActivityProvider = new CurrentActivityProvider();
                         sessionController = new SessionController(context, timeProvider, currentActivityProvider);
-                        bucketList = new BucketList(prefsManager, foodstuffsList);
+                        bucketList = new BucketList(prefsManager);
                         foodstuffsSearchEngine = new FoodstuffsSearchEngine(
                                 foodstuffsList, topList, computationThreadsExecutor,
                                 mainThreadExecutor);
