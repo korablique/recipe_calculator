@@ -12,13 +12,11 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout;
 
 import com.google.android.material.behavior.SwipeDismissBehavior;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.FragmentCallbacks;
 import korablique.recipecalculator.model.Ingredient;
-import korablique.recipecalculator.model.WeightedFoodstuff;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 
 public class SelectedFoodstuffsSnackbar {
@@ -26,7 +24,7 @@ public class SelectedFoodstuffsSnackbar {
     private boolean isShown;
     private final ViewGroup snackbarLayout;
     private final TextView selectedFoodstuffsCounter;
-    private List<Ingredient> selectedIngredients = new ArrayList<>();
+    private final BucketList bucketList;
 
     @Nullable
     private Runnable onDismissListener;
@@ -36,6 +34,7 @@ public class SelectedFoodstuffsSnackbar {
                                       BucketList bucketList) {
         snackbarLayout = fragmentView.findViewById(R.id.snackbar);
         selectedFoodstuffsCounter = fragmentView.findViewById(R.id.selected_foodstuffs_counter);
+        this.bucketList = bucketList;
 
         // Настраиваем "высвайпываемость" снекбара
         SwipeDismissBehavior<View> swipeDismissBehavior = new SwipeDismissBehavior<>();
@@ -96,6 +95,14 @@ public class SelectedFoodstuffsSnackbar {
         if (!isShown) {
             animateSnackbar(startValue, endValue);
         }
+
+        TextView title = snackbarLayout.findViewById(R.id.selected_foodstuffs_snackbar_title);
+        if (bucketList.getRecipe().isFromDB()) {
+            title.setText(R.string.selected_foodstuffs_snackbar_title_recipe_editing);
+        } else {
+            title.setText(R.string.selected_foodstuffs_snackbar_title_recipe_creation);
+        }
+
         isShown = true;
     }
 
@@ -130,18 +137,17 @@ public class SelectedFoodstuffsSnackbar {
     }
 
     private void update(List<Ingredient> newSelectedIngredients) {
-        selectedIngredients.clear();
         if (newSelectedIngredients.isEmpty()) {
             hide();
         } else {
-            selectedIngredients.addAll(newSelectedIngredients);
             updateSelectedFoodstuffsCounter();
             show();
         }
     }
 
     private void updateSelectedFoodstuffsCounter() {
-        selectedFoodstuffsCounter.setText(String.valueOf(selectedIngredients.size()));
+        selectedFoodstuffsCounter.setText(String.valueOf(
+                bucketList.getRecipe().getIngredients().size()));
     }
 
     private int getParentHeight() {

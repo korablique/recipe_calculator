@@ -58,6 +58,8 @@ import korablique.recipecalculator.outside.userparams.ServerUserParamsRegistry;
 import korablique.recipecalculator.search.FoodstuffsSearchEngine;
 import korablique.recipecalculator.session.SessionController;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
+import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
+import korablique.recipecalculator.ui.bucketlist.BucketListActivityController;
 import korablique.recipecalculator.ui.calckeyboard.CalcKeyboardController;
 import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.mainactivity.history.HistoryController;
@@ -210,6 +212,14 @@ public class MainActivityTestsBase {
                     })
                     .withActivityScoped((injectionTarget) -> {
                         if (!(injectionTarget instanceof MainActivity)) {
+                            if (injectionTarget instanceof BucketListActivity) {
+                                BucketListActivity activity = (BucketListActivity) injectionTarget;
+                                BucketListActivityController bucketListActivityController =
+                                        new BucketListActivityController(
+                                                activity, recipesRepository, bucketList,
+                                                mainThreadExecutor);
+                                return Arrays.asList(bucketListActivityController);
+                            }
                             return Collections.emptyList();
                         }
                         MainActivity activity = (MainActivity) injectionTarget;
@@ -255,7 +265,8 @@ public class MainActivityTestsBase {
                             mainScreenCardController = new MainScreenCardController(
                                     activity, fragment, fragmentCallbacks, lifecycle,
                                     bucketList, historyWorker, timeProvider,
-                                    mainActivitySelectedDateStorage, recipesRepository, subscriptions);
+                                    mainActivitySelectedDateStorage, recipesRepository,
+                                    foodstuffsList, subscriptions);
 
                             MainScreenSearchController searchController = new MainScreenSearchController(
                                     mainThreadExecutor, bucketList, foodstuffsList, foodstuffsSearchEngine,

@@ -83,6 +83,19 @@ class BucketList @Inject constructor(
         }
     }
 
+    fun setRecipe(recipe: Recipe) {
+        checkCurrentThread()
+
+        val addedIngredients = recipe.ingredients - editedRecipe.ingredients
+        val removedIngredients = editedRecipe.ingredients - recipe.ingredients
+
+        editedRecipe = recipe
+        updatePersistentState()
+
+        observers.forEach { obs -> addedIngredients.forEach { obs.onIngredientAdded(it) } }
+        observers.forEach { obs -> removedIngredients.forEach { obs.onIngredientRemoved(it) } }
+    }
+
     fun getName(): String = editedRecipe.foodstuff.name
 
     fun getComment(): String = editedRecipe.comment

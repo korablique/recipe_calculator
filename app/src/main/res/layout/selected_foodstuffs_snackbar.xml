@@ -17,13 +17,14 @@
         android:background="#FF373B4F">
 
         <TextView
+            android:id="@+id/selected_foodstuffs_snackbar_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_marginLeft="16dp"
             android:paddingTop="9dp"
             android:paddingBottom="9dp"
-            android:text="@string/selected_foodstuffs"
+            tools:text="@string/selected_foodstuffs_snackbar_title_recipe_creation"
             android:textColor="#FFFFFF"
             style="@style/MainScreenSnackbarTextStyle" />
 

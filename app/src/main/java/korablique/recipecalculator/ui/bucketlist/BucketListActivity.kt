@@ -39,38 +39,19 @@ class BucketListActivity() : BaseActivity(), HasSupportFragmentInjector {
 
     companion object {
         @JvmStatic
-        fun createRecipeResultIntent(recipe: Recipe?): Intent {
-            val resultIntent = Intent()
-            resultIntent.putExtra(EXTRA_PRODUCED_RECIPE, recipe)
-            return resultIntent
-        }
-
+        fun createRecipeResultIntent(recipe: Recipe?): Intent =
+                BucketListActivityController.createRecipeResultIntent(recipe)
         @JvmStatic
-        fun start(
-                context: Activity,
-                requestCode: Int) {
-            context.startActivityForResult(createIntent(context), requestCode)
-        }
-
+        fun start(context: Activity, requestCode: Int) =
+                BucketListActivityController.start(context, requestCode)
         @JvmStatic
-        fun createIntent(context: Context?): Intent {
-            return Intent(context, BucketListActivity::class.java)
-        }
-
+        fun createIntent(context: Context): Intent =
+                BucketListActivityController.createIntent(context)
         @JvmStatic
-        fun startForRecipe(
-                fragment: Fragment,
-                requestCode: Int,
-                recipe: Recipe?) {
-            fragment.startActivityForResult(createIntent(fragment.requireContext(), recipe), requestCode)
-        }
-
+        fun startForRecipe(fragment: Fragment, requestCode: Int, recipe: Recipe) =
+                BucketListActivityController.startForRecipe(fragment, requestCode, recipe)
         @JvmStatic
-        fun createIntent(context: Context?, recipe: Recipe?): Intent {
-            val intent = Intent(context, BucketListActivity::class.java)
-            intent.action = ACTION_EDIT_RECIPE
-            intent.putExtra(EXTRA_RECIPE, recipe)
-            return intent
-        }
+        fun createIntent(context: Context, recipe: Recipe): Intent =
+                BucketListActivityController.createIntent(context, recipe)
     }
 }

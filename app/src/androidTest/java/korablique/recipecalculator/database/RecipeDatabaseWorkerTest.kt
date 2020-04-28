@@ -13,6 +13,7 @@ import korablique.recipecalculator.model.Ingredient
 import korablique.recipecalculator.model.Recipe
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -169,6 +170,21 @@ class RecipeDatabaseWorkerTest {
         // NOTE: the recipe is not saved to DB
         val updatedRecipe = recipeDatabaseWorker.updateRecipe(recipe)
         assertNull(updatedRecipe)
+    }
+
+    @Test
+    fun savingToDBSetsIsFromDBProperty() = runBlocking {
+        val foodstuff = saveFoodstuffWith("recipe", 10f, 20f, 30f, 40f)
+
+        val recipe = Recipe.create(foodstuff, emptyList(), 123f, "")
+        assertFalse(recipe.isFromDB)
+
+        val insertedRecipe = recipeDatabaseWorker.createRecipe(
+                recipe.foodstuff, recipe.ingredients, recipe.comment, recipe.weight)
+        assertTrue(insertedRecipe.isFromDB)
+
+        val selectedRecipe = recipeDatabaseWorker.getRecipeOfFoodstuff(foodstuff)
+        assertTrue(selectedRecipe!!.isFromDB)
     }
 
     private fun saveFoodstuffWith(

@@ -40,7 +40,7 @@ class RecipesRepository @Inject constructor(
     private val recipesCache = TreeSet<Recipe>(Comparator { lhs, rhs ->
         lhs.foodstuff.name.compareTo(rhs.foodstuff.name)
     })
-    private val recipesFoodstuffsCache = mutableMapOf<Foodstuff, Recipe>()
+    private val recipesFoodstuffsCache = mutableMapOf<Long, Recipe>()
     private val recipesIdsCache = mutableMapOf<Long, Recipe>()
 
     private val cacheReadyCallbacks = mutableListOf<()->Unit>()
@@ -50,7 +50,7 @@ class RecipesRepository @Inject constructor(
         GlobalScope.launch(mainThreadExecutor) {
             val recipes = recipeDatabaseWorker.getAllRecipes()
             recipesCache.addAll(recipes)
-            recipesCache.forEach { recipesFoodstuffsCache[it.foodstuff] = it }
+            recipesCache.forEach { recipesFoodstuffsCache[it.foodstuff.id] = it }
             recipesCache.forEach { recipesIdsCache[it.id] = it }
 
             cacheReady = true
@@ -62,7 +62,7 @@ class RecipesRepository @Inject constructor(
     suspend fun getRecipeOfFoodstuff(foodstuff: Foodstuff): Recipe? {
         ensureMainThread()
         if (cacheReady) {
-            return recipesFoodstuffsCache[foodstuff]
+            return recipesFoodstuffsCache[foodstuff.id]
         } else {
             return recipeDatabaseWorker.getRecipeOfFoodstuff(foodstuff)
         }
@@ -136,7 +136,7 @@ class RecipesRepository @Inject constructor(
 
         val newRecipe = recipeDatabaseWorker.createRecipe(savedFoodstuff, ingredients, comment, weight)
         recipesCache.add(newRecipe)
-        recipesFoodstuffsCache[newRecipe.foodstuff] = newRecipe
+        recipesFoodstuffsCache[newRecipe.foodstuff.id] = newRecipe
         recipesIdsCache[newRecipe.id] = newRecipe
         return CreateRecipeResult.Ok(newRecipe)
     }
@@ -163,7 +163,7 @@ class RecipesRepository @Inject constructor(
                     "Cannot updated recipe when ID is changed. "
                             + "Original: $originalRecipe, updated: $updatedRecipe")
         }
-        if (recipesFoodstuffsCache[originalRecipe.foodstuff] == null) {
+        if (recipesFoodstuffsCache[originalRecipe.foodstuff.id] == null) {
             throw IllegalArgumentException("Foodstuff of original recipe is not known. "
                     + "Was recipe taken from RecipesRepository? "
                     + "Original: $originalRecipe, updated: $updatedRecipe")
@@ -185,8 +185,8 @@ class RecipesRepository @Inject constructor(
 
         recipesCache.remove(originalRecipe)
         recipesCache.add(updatedRecipe)
-        recipesFoodstuffsCache.remove(originalRecipe.foodstuff)
-        recipesFoodstuffsCache[updatedRecipe.foodstuff] = updatedRecipe
+        recipesFoodstuffsCache.remove(originalRecipe.foodstuff.id)
+        recipesFoodstuffsCache[updatedRecipe.foodstuff.id] = updatedRecipe
         recipesIdsCache[updatedRecipe.id] = updatedRecipe
         return UpdateRecipeResult.Ok(updatedRecipe)
     }

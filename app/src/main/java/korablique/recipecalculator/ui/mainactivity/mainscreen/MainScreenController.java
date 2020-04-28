@@ -159,7 +159,7 @@ public class MainScreenController
             List<Ingredient> dismissedFoodstuffs = new ArrayList<>(bucketList.getList());
             bucketList.clear();
 
-            Snackbar snackbar = Snackbar.make(fragmentView, R.string.foodstuffs_deleted, Snackbar.LENGTH_LONG);
+            Snackbar snackbar = Snackbar.make(fragmentView, R.string.work_with_recipe_canceled, Snackbar.LENGTH_LONG);
             snackbar.setAction(R.string.undo, v -> {
                 bucketList.add(dismissedFoodstuffs);
             });

@@ -57,6 +57,9 @@ data class Recipe(
         }
     }
 
+    val name: String get() = foodstuff.name
+    val isFromDB: Boolean get() = id > 0
+
     override fun describeContents(): Int {
         return 0
     }
