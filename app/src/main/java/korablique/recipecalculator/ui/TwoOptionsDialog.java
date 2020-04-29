@@ -11,11 +11,13 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
 import androidx.fragment.app.FragmentManager;
 
 import org.joda.time.DateTime;
 
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.BaseBottomDialog;
 import korablique.recipecalculator.model.UserParameters;
 
@@ -85,6 +87,20 @@ public class TwoOptionsDialog extends BaseBottomDialog {
 
     public void setOnDismissListener(Runnable listener) {
         this.dismissListener = listener;
+    }
+
+    public static TwoOptionsDialog showDialog(
+            BaseActivity baseActivity,
+            String fragmentTag,
+            @StringRes int titleId,
+            @StringRes int positiveButtonTextId,
+            @StringRes int negativeButtonTextId) {
+        return showDialog(
+                baseActivity.getSupportFragmentManager(),
+                fragmentTag,
+                baseActivity.getString(titleId),
+                baseActivity.getString(positiveButtonTextId),
+                baseActivity.getString(negativeButtonTextId));
     }
 
     public static TwoOptionsDialog showDialog(

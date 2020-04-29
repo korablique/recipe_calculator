@@ -24,6 +24,7 @@ import korablique.recipecalculator.base.Optional;
 import korablique.recipecalculator.base.RxFragmentSubscriptions;
 import korablique.recipecalculator.base.TimeProvider;
 import korablique.recipecalculator.dagger.FragmentScope;
+import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.database.HistoryWorker;
 import korablique.recipecalculator.database.RecipesRepository;
 import korablique.recipecalculator.model.Foodstuff;
@@ -62,20 +63,30 @@ public class MainScreenCardController implements FragmentCallbacks.Observer {
     private final TimeProvider timeProvider;
     private final MainActivitySelectedDateStorage selectedDateStorage;
     private final RecipesRepository recipesRepository;
+    private final FoodstuffsList foodstuffsList;
     private final RxFragmentSubscriptions rxSubscriptions;
     private final BucketList.Observer bucketListObserver = new BucketList.Observer() {
         @Override
         public void onIngredientAdded(Ingredient ingredient) {
             // Первый продукт добавлен в бакетлист
-            if (bucketList.getList().size() == 1) {
+            if (currentCardMode != CardMode.RECIPE_CREATION) {
                 switchCardMode(CardMode.RECIPE_CREATION);
             }
         }
         @Override
         public void onIngredientRemoved(Ingredient ingredient) {
             // Последний продукт удален из бакетлиста
-            if (bucketList.getList().isEmpty()) {
+            if (currentCardMode == CardMode.RECIPE_CREATION) {
                 switchCardMode(CardMode.DEFAULT);
+            }
+        }
+    };
+    private final FoodstuffsList.Observer foodstuffsListObserver = new FoodstuffsList.Observer() {
+        @Override
+        public void onFoodstuffEdited(Foodstuff edited) {
+            CardDialog card = CardDialog.findCard(context);
+            if (card != null && card.extractFoodstuff().getId() == edited.getId()) {
+                showCard(edited);
             }
         }
     };
@@ -126,6 +137,7 @@ public class MainScreenCardController implements FragmentCallbacks.Observer {
             TimeProvider timeProvider,
             MainActivitySelectedDateStorage selectedDateStorage,
             RecipesRepository recipesRepository,
+            FoodstuffsList foodstuffsList,
             RxFragmentSubscriptions rxSubscriptions) {
         this.context = context;
         this.fragment = fragment;
@@ -135,6 +147,7 @@ public class MainScreenCardController implements FragmentCallbacks.Observer {
         this.timeProvider = timeProvider;
         this.selectedDateStorage = selectedDateStorage;
         this.recipesRepository = recipesRepository;
+        this.foodstuffsList = foodstuffsList;
         this.rxSubscriptions = rxSubscriptions;
         fragmentCallbacks.addObserver(this);
     }
@@ -219,6 +232,7 @@ public class MainScreenCardController implements FragmentCallbacks.Observer {
                     });
         };
         bucketList.addObserver(bucketListObserver);
+        foodstuffsList.addObserver(foodstuffsListObserver);
 
         if (bucketList.getList().isEmpty()) {
             switchCardMode(CardMode.DEFAULT);
@@ -230,12 +244,23 @@ public class MainScreenCardController implements FragmentCallbacks.Observer {
     @Override
     public void onFragmentDestroy() {
         bucketList.removeObserver(bucketListObserver);
+        foodstuffsList.addObserver(foodstuffsListObserver);
     }
 
     @Override
     public void onFragmentResume() {
         if (dialogAction != null) {
             dialogAction.run();
+        }
+        // If we were resumed with a showing card, and BucketList also
+        // contains card's recipe - we probably were resumed because user
+        // wants to add an ingredient to the recipe.
+        // In such case we should close the card, because user probably doesn't want
+        // to add the recipe into itself as an ingredient.
+        CardDialog cardDialog = CardDialog.findCard(context);
+        if (cardDialog != null
+                && bucketList.getRecipe().getFoodstuff().getId() == cardDialog.extractFoodstuff().getId()) {
+            cardDialog.dismiss();
         }
     }
 

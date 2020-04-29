@@ -1,9 +1,12 @@
 package korablique.recipecalculator.ui.bucketlist;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 
+import androidx.core.util.Pair;
 import androidx.test.InstrumentationRegistry;
+import androidx.test.espresso.Espresso;
 import androidx.test.filters.LargeTest;
 import androidx.test.rule.ActivityTestRule;
 import androidx.test.runner.AndroidJUnit4;
@@ -14,9 +17,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -70,13 +70,22 @@ import static androidx.test.espresso.action.ViewActions.closeSoftKeyboard;
 import static androidx.test.espresso.action.ViewActions.longClick;
 import static androidx.test.espresso.action.ViewActions.replaceText;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
+import static androidx.test.espresso.matcher.ViewMatchers.hasDescendant;
 import static androidx.test.espresso.matcher.ViewMatchers.isDescendantOfA;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static androidx.test.espresso.matcher.ViewMatchers.isEnabled;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withParent;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static korablique.recipecalculator.ui.bucketlist.BucketListActivityKt.EXTRA_PRODUCED_RECIPE;
+import static korablique.recipecalculator.util.EspressoUtils.isNotDisplayed;
 import static org.hamcrest.CoreMatchers.allOf;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
@@ -132,26 +141,32 @@ public class BucketListActivityTest {
                         currentActivityProvider = new CurrentActivityProvider();
                         bucketList = new BucketList(prefsManager);
 
-                        return Arrays.asList(mainThreadExecutor, databaseThreadExecutor, databaseWorker,
+                        return asList(mainThreadExecutor, databaseThreadExecutor, databaseWorker,
                                 historyWorker, userParametersWorker, foodstuffsList, userNameProvider,
                                 timeProvider, currentActivityProvider, bucketList,
                                 new CalcKeyboardController(), recipesRepository);
                     })
                     .withActivityScoped((target) -> {
                         if (target instanceof BucketListActivity) {
-                            return Collections.emptyList();
+                            BucketListActivity activity = (BucketListActivity) target;
+                            BucketListActivityController controller =
+                                    new BucketListActivityController(
+                                            activity, recipesRepository, bucketList,
+                                            mainThreadExecutor);
+                            return asList(controller);
                         }
                         MainActivity activity = (MainActivity) target;
                         ActivityCallbacks activityCallbacks = new ActivityCallbacks();
                         MainActivityController controller = new MainActivityController(activity,
                                 activityCallbacks,
                                 mock(MainActivityFragmentsController.class));
-                        return Arrays.asList(new RxActivitySubscriptions(activity.getActivityCallbacks()),
+
+                        return asList(new RxActivitySubscriptions(activity.getActivityCallbacks()),
                                 controller);
                     })
                     .withFragmentScoped(target -> {
                         if (target instanceof BaseBottomDialog) {
-                            return Collections.emptyList();
+                            return emptyList();
                         }
                         BaseFragment fragment = (BaseFragment) target;
                         FragmentCallbacks fragmentCallbacks = new FragmentCallbacks();
@@ -161,9 +176,9 @@ public class BucketListActivityTest {
                                     fragment, fragmentCallbacks, historyWorker, timeProvider,
                                     mock(MainActivityFragmentsController.class),
                                     mock(MainActivitySelectedDateStorage.class));
-                            return Arrays.asList(subscriptions, historyController);
+                            return asList(subscriptions, historyController);
                         }
-                        return Collections.emptyList();
+                        return emptyList();
                     })
                     .build();
 
@@ -214,7 +229,7 @@ public class BucketListActivityTest {
     }
 
     @Test
-    public void savesDishToFoodstuffsList() {
+    public void savesRecipeFoodstuffToFoodstuffsList() {
         Foodstuff f1 =
                 foodstuffsList.saveFoodstuff(
                         Foodstuff.withName("carrot").withNutrition(1.3, 0.1, 6.9, 32)).blockingGet();
@@ -249,7 +264,7 @@ public class BucketListActivityTest {
     }
 
     @Test
-    public void setsActivityResultWhenSavesDish() {
+    public void setsActivityResultWhenSavesCreatedRecipe() {
         Foodstuff f1 =
                 foodstuffsList.saveFoodstuff(
                         Foodstuff.withName("carrot").withNutrition(1.3, 0.1, 6.9, 32)).blockingGet();
@@ -270,8 +285,55 @@ public class BucketListActivityTest {
         onView(withId(R.id.save_as_recipe_button)).perform(click());
 
         Intent resultIntent = activityRule.getActivityResult().getResultData();
-        Recipe resultRecipe = resultIntent.getParcelableExtra(BucketListActivity.EXTRA_PRODUCED_RECIPE);
+        Recipe resultRecipe = resultIntent.getParcelableExtra(EXTRA_PRODUCED_RECIPE);
         Assert.assertEquals("new super carrot", resultRecipe.getFoodstuff().getName());
+    }
+
+    @Test
+    public void setsActivityResultAsCanceled_whenUserEditsRecipeSavesAndExits() {
+        // Create recipe
+        DBTestingUtils.clearAllData(foodstuffsList, historyWorker, databaseHolder);
+        Recipe recipe = createSavedRecipe(
+                "cake", 123,
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)));
+
+        Intent startIntent =
+                BucketListActivity.createIntent(
+                        InstrumentationRegistry.getTargetContext(),
+                        recipe);
+        activityRule.launchActivity(startIntent);
+
+        onView(withId(R.id.button_edit)).perform(click());
+        onView(withId(R.id.total_weight_edit_text)).perform(replaceText("323"));
+        onView(withId(R.id.recipe_name_edit_text)).perform(replaceText("new super cake"), closeSoftKeyboard());
+        onView(withId(R.id.save_as_recipe_button)).perform(click());
+
+        onView(withId(R.id.button_close)).perform(click());
+
+        assertEquals(Activity.RESULT_CANCELED, activityRule.getActivityResult().getResultCode());
+    }
+
+    @Test
+    public void setsActivityResultAsCanceled_whenUserCancelsRecipeCreation() {
+        Foodstuff f1 =
+                foodstuffsList.saveFoodstuff(
+                        Foodstuff.withName("carrot").withNutrition(1.3, 0.1, 6.9, 32)).blockingGet();
+
+        ArrayList<Ingredient> ingredients = new ArrayList<>();
+        ingredients.add(Ingredient.create(f1, 310, ""));
+        mainThreadExecutor.execute(() -> {
+            bucketList.add(ingredients);
+        });
+
+        Intent startIntent =
+                BucketListActivity.createIntent(
+                        InstrumentationRegistry.getTargetContext());
+        activityRule.launchActivity(startIntent);
+
+        onView(withId(R.id.button_close)).perform(click());
+        onView(withId(R.id.positive_button)).perform(click()); // Yes, close
+
+        assertEquals(Activity.RESULT_CANCELED, activityRule.getActivityResult().getResultCode());
     }
 
     @Test
@@ -473,18 +535,9 @@ public class BucketListActivityTest {
     public void editRecipe() {
         // Create recipe
         DBTestingUtils.clearAllData(foodstuffsList, historyWorker, databaseHolder);
-        Foodstuff ingredientFoodstuff1 = Foodstuff.withName("dough").withNutrition(1, 2, 3, 4);
-        Foodstuff ingredientFoodstuff2 = Foodstuff.withName("oil").withNutrition(5, 6, 7, 8);
-        ingredientFoodstuff1 = foodstuffsList.saveFoodstuff(ingredientFoodstuff1).blockingGet();
-        ingredientFoodstuff2 = foodstuffsList.saveFoodstuff(ingredientFoodstuff2).blockingGet();
-        List<Ingredient> ingredients = new ArrayList<>();
-        ingredients.add(Ingredient.create(ingredientFoodstuff1, 111, "comment1"));
-        ingredients.add(Ingredient.create(ingredientFoodstuff2, 222, "comment2"));
-
-        Foodstuff foodstuff = Foodstuff.withName("cake").withNutrition(1, 2, 3, 4);
-        Recipe recipe = Recipe.create(foodstuff, ingredients, 123f, "comment");
-        CreateRecipeResult recipeResult = recipesRepository.saveRecipeRx(recipe).blockingGet();
-        recipe = ((CreateRecipeResult.Ok)recipeResult).getRecipe();
+        Recipe recipe = createSavedRecipe(
+                "cake", 123,
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)));
 
         Intent startIntent =
                 BucketListActivity.createIntent(
@@ -493,41 +546,21 @@ public class BucketListActivityTest {
         activityRule.launchActivity(startIntent);
 
         // Verify valid values
-        onView(withId(R.id.title_text)).check(matches(withText(R.string.bucket_list_title_recipe)));
-        onView(withId(R.id.recipe_name_edit_text)).check(matches(withText("cake")));
-        onView(withId(R.id.total_weight_edit_text)).check(matches(withText("123")));
-
-        onView(allOf(
-                withParent(isDescendantOfA(withId(R.id.ingredients_list))),
-                withText("dough")
-        )).check(matches(isDisplayed()));
-        onView(allOf(
-                withParent(isDescendantOfA(withId(R.id.ingredients_list))),
-                withText("oil")
-        )).check(matches(isDisplayed()));
-
-        onView(withText("dough")).perform(click());
-        onView(allOf(
-                withParent(isDescendantOfA(withId(R.id.foodstuff_card_layout))),
-                withId(R.id.weight_edit_text)
-        )).check(matches(withText("111")));
-        onView(withId(R.id.button_close)).perform(click());
-
-        onView(withText("oil")).perform(click());
-        onView(allOf(
-                withParent(isDescendantOfA(withId(R.id.foodstuff_card_layout))),
-                withId(R.id.weight_edit_text)
-        )).check(matches(withText("222")));
-        onView(withId(R.id.button_close)).perform(click());
+        verifyRecipeDisplayingState(
+                "cake", "123",
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)),
+                emptyList());
 
         // Edit
+        onView(withId(R.id.button_edit)).perform(click());
+
         onView(withText("oil")).perform(longClick());
         onView(withText(R.string.delete_ingredient)).perform(click());
         onView(withText("dough")).perform(click());
         onView(allOf(
                 withParent(isDescendantOfA(withId(R.id.foodstuff_card_layout))),
                 withId(R.id.weight_edit_text)
-        )).perform(replaceText("1"));
+        )).perform(replaceText("3"));
         onView(withId(R.id.button1)).perform(click());
         onView(withId(R.id.recipe_name_edit_text)).perform(replaceText("cake without oil"));
         onView(withId(R.id.total_weight_edit_text)).perform(replaceText("10"));
@@ -542,6 +575,742 @@ public class BucketListActivityTest {
         assertEquals(10, updatedRecipe.getWeight(), 0.001f);
         assertEquals(1, updatedRecipe.getIngredients().size());
         assertEquals("dough", updatedRecipe.getIngredients().get(0).getFoodstuff().getName());
-        assertEquals(1f, updatedRecipe.getIngredients().get(0).getWeight(), 0.001f);
+        assertEquals(3f, updatedRecipe.getIngredients().get(0).getWeight(), 0.001f);
+
+        // Validate updated recipe UI
+        verifyRecipeDisplayingState(
+                "cake without oil", "10",
+                asList(Pair.create("dough", 3)),
+                asList(Pair.create("oil", 222)));
+    }
+
+    @Test
+    public void recipeModificationStateRestore() {
+        // Create recipe
+        DBTestingUtils.clearAllData(foodstuffsList, historyWorker, databaseHolder);
+        Recipe recipe = createSavedRecipe(
+                "cake", 123,
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)));
+
+        Intent startIntent =
+                BucketListActivity.createIntent(
+                        InstrumentationRegistry.getTargetContext(),
+                        recipe);
+        activityRule.launchActivity(startIntent);
+
+        // Edit
+        onView(withId(R.id.button_edit)).perform(click());
+        verifyRecipeEditingState(
+                "cake", "123",
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)),
+                emptyList());
+
+        onView(withText("oil")).perform(longClick());
+        onView(withText(R.string.delete_ingredient)).perform(click());
+        onView(withText("dough")).perform(click());
+        onView(allOf(
+                withParent(isDescendantOfA(withId(R.id.foodstuff_card_layout))),
+                withId(R.id.weight_edit_text)
+        )).perform(replaceText("3"));
+        onView(withId(R.id.button1)).perform(click());
+        onView(withId(R.id.recipe_name_edit_text)).perform(replaceText("cake without oil"));
+        onView(withId(R.id.total_weight_edit_text)).perform(replaceText("10"));
+
+        mainThreadExecutor.execute(() -> activityRule.getActivity().recreate());
+
+        verifyRecipeEditingState(
+                "cake without oil", "10",
+                asList(Pair.create("dough", 3)),
+                asList(Pair.create("oil", 222)));
+    }
+
+    @Test
+    public void recipeCreationStateRestore() {
+        // Start creating recipe (put not saved recipe into bucket list)
+        DBTestingUtils.clearAllData(foodstuffsList, historyWorker, databaseHolder);
+        Recipe recipe = createRecipe(
+                "cake", 123,
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)));
+        mainThreadExecutor.execute(() -> {
+            bucketList.setRecipe(recipe);
+        });
+
+        Intent startIntent =
+                BucketListActivity.createIntent(
+                        InstrumentationRegistry.getTargetContext());
+        activityRule.launchActivity(startIntent);
+
+        // Verify displayed data, verify creating state, edit the recipe
+        verifyRecipeCreatingState(
+                "cake", "123",
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)),
+                emptyList());
+
+        onView(withText("oil")).perform(longClick());
+        onView(withText(R.string.delete_ingredient)).perform(click());
+        onView(withText("dough")).perform(click());
+        onView(allOf(
+                withParent(isDescendantOfA(withId(R.id.foodstuff_card_layout))),
+                withId(R.id.weight_edit_text)
+        )).perform(replaceText("3"));
+        onView(withId(R.id.button1)).perform(click());
+        onView(withId(R.id.recipe_name_edit_text)).perform(replaceText("cake without oil"));
+        onView(withId(R.id.total_weight_edit_text)).perform(replaceText("10"));
+
+        mainThreadExecutor.execute(() -> activityRule.getActivity().recreate());
+
+        verifyRecipeCreatingState(
+                "cake without oil", "10",
+                asList(Pair.create("dough", 3)),
+                asList(Pair.create("oil", 222)));
+    }
+
+    @Test
+    public void recipeDisplayingStateRestore() {
+        // Create recipe
+        DBTestingUtils.clearAllData(foodstuffsList, historyWorker, databaseHolder);
+        Recipe recipe = createSavedRecipe(
+                "cake", 123,
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)));
+
+        Intent startIntent =
+                BucketListActivity.createIntent(
+                        InstrumentationRegistry.getTargetContext(),
+                        recipe);
+        activityRule.launchActivity(startIntent);
+        verifyRecipeDisplayingState(
+                "cake", "123",
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)),
+                emptyList());
+
+        // Edit and save
+        onView(withId(R.id.button_edit)).perform(click());
+        verifyRecipeEditingState(
+                "cake", "123",
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)),
+                emptyList());
+
+        onView(withText("oil")).perform(longClick());
+        onView(withText(R.string.delete_ingredient)).perform(click());
+        onView(withText("dough")).perform(click());
+        onView(allOf(
+                withParent(isDescendantOfA(withId(R.id.foodstuff_card_layout))),
+                withId(R.id.weight_edit_text)
+        )).perform(replaceText("3"));
+        onView(withId(R.id.button1)).perform(click());
+        onView(withId(R.id.recipe_name_edit_text)).perform(replaceText("cake without oil"));
+        onView(withId(R.id.total_weight_edit_text)).perform(replaceText("10"));
+
+        onView(withId(R.id.save_as_recipe_button)).perform(click());
+
+        mainThreadExecutor.execute(() -> activityRule.getActivity().recreate());
+
+        verifyRecipeDisplayingState(
+                "cake without oil", "10",
+                asList(Pair.create("dough", 3)),
+                asList(Pair.create("oil", 222)));
+    }
+
+    @Test
+    public void ingredientsClicksInDisplayAndEditRecipeModes() {
+        // Create recipe
+        DBTestingUtils.clearAllData(foodstuffsList, historyWorker, databaseHolder);
+        Recipe recipe = createSavedRecipe(
+                "cake", 123,
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)));
+
+        Intent startIntent =
+                BucketListActivity.createIntent(
+                        InstrumentationRegistry.getTargetContext(),
+                        recipe);
+        activityRule.launchActivity(startIntent);
+        verifyRecipeDisplayingState(
+                "cake", "123",
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)),
+                emptyList());
+
+        // Display mode
+        onView(withText("dough")).perform(click());
+        onView(withId(R.id.foodstuff_card_layout)).check(isNotDisplayed());
+        onView(withText("dough")).perform(longClick());
+        onView(withText(R.string.delete_ingredient)).check(isNotDisplayed());
+
+        // Edit mode
+        onView(withId(R.id.button_edit)).perform(click());
+        onView(withText("dough")).perform(click());
+        onView(withId(R.id.foodstuff_card_layout)).check(matches(isDisplayed()));
+        onView(withId(R.id.button_close)).perform(click());
+        onView(withText("dough")).perform(longClick());
+        onView(withText(R.string.delete_ingredient)).check(matches(isDisplayed()));
+    }
+
+    @Test
+    public void switchingBetweenDisplayAndEditStates_withRecipeEditing() {
+        // Create recipe
+        DBTestingUtils.clearAllData(foodstuffsList, historyWorker, databaseHolder);
+        Recipe recipe = createSavedRecipe(
+                "cake", 123,
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)));
+
+        Intent startIntent =
+                BucketListActivity.createIntent(
+                        InstrumentationRegistry.getTargetContext(),
+                        recipe);
+        activityRule.launchActivity(startIntent);
+        verifyRecipeDisplayingState(
+                "cake", "123",
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)),
+                emptyList());
+
+        // Switch states without editing recipe
+        onView(withId(R.id.button_edit)).perform(click());
+        verifyRecipeEditingState(
+                "cake", "123",
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)),
+                emptyList());
+        onView(withId(R.id.button_close)).perform(click());
+        verifyRecipeDisplayingState(
+                "cake", "123",
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)),
+                emptyList());
+
+        // Switch states with editing recipe
+        onView(withId(R.id.button_edit)).perform(click());
+
+        verifyRecipeEditingState(
+                "cake", "123",
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)),
+                emptyList());
+
+        onView(withText("oil")).perform(longClick());
+        onView(withText(R.string.delete_ingredient)).perform(click());
+        onView(withText("dough")).perform(click());
+        onView(allOf(
+                withParent(isDescendantOfA(withId(R.id.foodstuff_card_layout))),
+                withId(R.id.weight_edit_text)
+        )).perform(replaceText("3"));
+        onView(withId(R.id.button1)).perform(click());
+        onView(withId(R.id.recipe_name_edit_text)).perform(replaceText("cake without oil"));
+        onView(withId(R.id.total_weight_edit_text)).perform(replaceText("10"));
+
+        verifyRecipeEditingState(
+                "cake without oil", "10",
+                asList(Pair.create("dough", 3)),
+                asList(Pair.create("oil", 222)));
+
+        onView(withId(R.id.save_as_recipe_button)).perform(click());
+        verifyRecipeDisplayingState(
+                "cake without oil", "10",
+                asList(Pair.create("dough", 3)),
+                asList(Pair.create("oil", 222)));
+    }
+
+    @Test
+    public void cancelRecipeEditingByBackPress() {
+        cancelRecipeEditing(true);
+    }
+
+    @Test
+    public void cancelRecipeEditingByButtonCloseClick() {
+        cancelRecipeEditing(false);
+    }
+
+    private void cancelRecipeEditing(boolean byBackPress) {
+        // Create recipe
+        DBTestingUtils.clearAllData(foodstuffsList, historyWorker, databaseHolder);
+        Recipe recipe = createSavedRecipe(
+                "cake", 123,
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)));
+
+        Intent startIntent =
+                BucketListActivity.createIntent(
+                        InstrumentationRegistry.getTargetContext(),
+                        recipe);
+        activityRule.launchActivity(startIntent);
+        verifyRecipeDisplayingState("cake", "123", emptyList(), emptyList());
+
+        // Edit, try cancel, but don't cancel
+        onView(withId(R.id.button_edit)).perform(click());
+        verifyRecipeEditingState("cake", "123", emptyList(), emptyList());
+        onView(withId(R.id.recipe_name_edit_text)).perform(replaceText("novel cake"));
+        if (byBackPress) {
+            Espresso.pressBack();
+        } else {
+            onView(withId(R.id.button_close)).perform(click());
+        }
+        onView(withId(R.id.two_options_dialog_layout)).check(matches(isDisplayed()));
+        onView(allOf(
+                isDescendantOfA(withId(R.id.two_options_dialog_layout)),
+                withText(R.string.cancel_recipe_editing_dialog_title)
+        )).perform(click());
+        onView(withId(R.id.negative_button)).perform(click());
+        verifyRecipeEditingState("novel cake", "123", emptyList(), emptyList());
+
+        // This time - confirm cancellation
+        if (byBackPress) {
+            Espresso.pressBack();
+        } else {
+            onView(withId(R.id.button_close)).perform(click());
+        }
+        onView(withId(R.id.two_options_dialog_layout)).check(matches(isDisplayed()));
+        onView(allOf(
+                isDescendantOfA(withId(R.id.two_options_dialog_layout)),
+                withText(R.string.cancel_recipe_editing_dialog_title)
+        )).perform(click());
+        onView(withId(R.id.positive_button)).perform(click());
+        verifyRecipeDisplayingState("cake", "123", emptyList(), emptyList());
+
+        // Verify that the recipe is not changed
+        Set<Recipe> allRecipes = recipesRepository.getAllRecipesRx().blockingGet();
+        assertEquals(1, allRecipes.size());
+        assertEquals("cake", allRecipes.iterator().next().getFoodstuff().getName());
+        assertEquals(recipe, allRecipes.iterator().next());
+    }
+
+    @Test
+    public void cancelRecipeCreationByBackPress() {
+        cancelRecipeCreation(true);
+    }
+
+    @Test
+    public void cancelRecipeCreationByButtonCloseClick() {
+        cancelRecipeCreation(false);
+    }
+
+    private void cancelRecipeCreation(boolean byBackPress) {
+        // Start recipe creation
+        mainThreadExecutor.execute(() -> {
+            bucketList.setName("cake");
+            bucketList.setTotalWeight(123);
+        });
+
+        Intent startIntent =
+                BucketListActivity.createIntent(
+                        InstrumentationRegistry.getTargetContext());
+        activityRule.launchActivity(startIntent);
+        verifyRecipeCreatingState("cake", "123", emptyList(), emptyList());
+
+        // Edit, try cancel, but don't cancel
+        onView(withId(R.id.recipe_name_edit_text)).perform(replaceText("novel cake"));
+        if (byBackPress) {
+            Espresso.pressBack();
+        } else {
+            onView(withId(R.id.button_close)).perform(click());
+        }
+        onView(withId(R.id.two_options_dialog_layout)).check(matches(isDisplayed()));
+        onView(allOf(
+                isDescendantOfA(withId(R.id.two_options_dialog_layout)),
+                withText(R.string.cancel_recipe_creation_dialog_title)
+        )).perform(click());
+        onView(withId(R.id.negative_button)).perform(click());
+        verifyRecipeCreatingState("novel cake", "123", emptyList(), emptyList());
+
+        // This time - confirm cancellation
+        if (byBackPress) {
+            Espresso.pressBack();
+        } else {
+            onView(withId(R.id.button_close)).perform(click());
+        }
+        onView(withId(R.id.two_options_dialog_layout)).check(matches(isDisplayed()));
+        onView(allOf(
+                isDescendantOfA(withId(R.id.two_options_dialog_layout)),
+                withText(R.string.cancel_recipe_creation_dialog_title)
+        )).perform(click());
+        mainThreadExecutor.execute(() -> assertFalse(activityRule.getActivity().isFinishing()));
+        onView(withId(R.id.positive_button)).perform(click());
+        mainThreadExecutor.execute(() -> assertTrue(activityRule.getActivity().isFinishing()));
+
+        // Verify that the recipe was not created and bucket list is cleaned
+        Set<Recipe> allRecipes = recipesRepository.getAllRecipesRx().blockingGet();
+        assertEquals(0, allRecipes.size());
+        assertEquals("", bucketList.getName());
+        assertEquals(0f, bucketList.getTotalWeight(), 0.0001f);
+    }
+
+    @Test
+    public void cancelRecipeEditingWithoutRecipeModification_byCloseButton() {
+        cancelRecipeEditingWithoutRecipeModification(false);
+    }
+
+    private void cancelRecipeEditingWithoutRecipeModification(boolean byBackPress) {
+        DBTestingUtils.clearAllData(foodstuffsList, historyWorker, databaseHolder);
+        Recipe recipe = createSavedRecipe(
+                "cake", 123,
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)));
+
+        Intent startIntent =
+                BucketListActivity.createIntent(
+                        InstrumentationRegistry.getTargetContext(),
+                        recipe);
+        activityRule.launchActivity(startIntent);
+        verifyRecipeDisplayingState("cake", "123", emptyList(), emptyList());
+
+        onView(withId(R.id.button_edit)).perform(click());
+        verifyRecipeEditingState("cake", "123", emptyList(), emptyList());
+        mainThreadExecutor.execute(() -> assertEquals(recipe, bucketList.getRecipe()));
+
+        if (byBackPress) {
+            onView(withId(R.id.button_close)).perform(click());
+        } else {
+            Espresso.pressBack();
+        }
+        onView(withId(R.id.two_options_dialog_layout)).check(isNotDisplayed());
+        verifyRecipeDisplayingState("cake", "123", emptyList(), emptyList());
+        // BucketList expected to be cleaned
+        mainThreadExecutor.execute(() -> assertNotEquals(recipe, bucketList.getRecipe()));
+        mainThreadExecutor.execute(() -> assertEquals("", bucketList.getName()));
+    }
+
+    @Test
+    public void cancelRecipeEditingWithoutRecipeModification_byBackPress() {
+        cancelRecipeEditingWithoutRecipeModification(true);
+    }
+
+    @Test
+    public void cancelRecipeCreationWithoutRecipeModification_byCloseButton() {
+        cancelRecipeCreationWithoutRecipeModification(false);
+    }
+
+    private void cancelRecipeCreationWithoutRecipeModification(boolean byBackPress) {
+        DBTestingUtils.clearAllData(foodstuffsList, historyWorker, databaseHolder);
+        Recipe recipe = createRecipe(
+                "cake", 123,
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)));
+        mainThreadExecutor.execute(() -> bucketList.setRecipe(recipe));
+
+        Intent startIntent =
+                BucketListActivity.createIntent(
+                        InstrumentationRegistry.getTargetContext());
+        activityRule.launchActivity(startIntent);
+        verifyRecipeCreatingState("cake", "123", emptyList(), emptyList());
+        mainThreadExecutor.execute(() -> assertEquals(recipe, bucketList.getRecipe()));
+
+        if (byBackPress) {
+            onView(withId(R.id.button_close)).perform(click());
+        } else {
+            Espresso.pressBack();
+        }
+        onView(withId(R.id.two_options_dialog_layout)).check(matches(isDisplayed()));
+        onView(withId(R.id.positive_button)).perform(click());
+
+        // BucketList expected to be cleaned
+        mainThreadExecutor.execute(() -> assertNotEquals(recipe, bucketList.getRecipe()));
+        mainThreadExecutor.execute(() -> assertEquals("", bucketList.getName()));
+        // Activtiy expected to be finished
+        assertEquals(Activity.RESULT_CANCELED, activityRule.getActivityResult().getResultCode());
+    }
+
+    @Test
+    public void cancelRecipeCreationWithoutRecipeModification_byBackPress() {
+        cancelRecipeCreationWithoutRecipeModification(true);
+    }
+
+    @Test
+    public void openWithEditedExistingRecipeInBucketList() {
+        DBTestingUtils.clearAllData(foodstuffsList, historyWorker, databaseHolder);
+        Recipe recipe = createSavedRecipe(
+                "cake", 123,
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)));
+        mainThreadExecutor.execute(() -> bucketList.setRecipe(recipe));
+
+        Intent startIntent =
+                BucketListActivity.createIntent(
+                        InstrumentationRegistry.getTargetContext());
+        activityRule.launchActivity(startIntent);
+
+        verifyRecipeEditingState(
+                "cake", "123",
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)),
+                emptyList());
+    }
+
+    @Test
+    public void cancelRecipeEditing_whenOpenedWithAlreadyChangedEditedRecipe() {
+        DBTestingUtils.clearAllData(foodstuffsList, historyWorker, databaseHolder);
+        Recipe recipe = createSavedRecipe(
+                "cake", 123,
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)));
+
+        Recipe changedRecipe = new Recipe(
+                recipe.getId(),
+                recipe.getFoodstuff().recreateWithName("novel cake"),
+                recipe.getIngredients(),
+                123,
+                recipe.getComment());
+        mainThreadExecutor.execute(() -> bucketList.setRecipe(changedRecipe));
+
+        Intent startIntent =
+                BucketListActivity.createIntent(
+                        InstrumentationRegistry.getTargetContext());
+        activityRule.launchActivity(startIntent);
+
+        verifyRecipeEditingState(
+                "novel cake", "123",
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)),
+                emptyList());
+
+        onView(withId(R.id.button_close)).perform(click());
+        // Cancellation dialog is expected
+        onView(withText(R.string.cancel_recipe_editing_dialog_title)).check(matches(isDisplayed()));
+        onView(withId(R.id.positive_button)).perform(click());
+
+        verifyRecipeDisplayingState(
+                "cake", "123",
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)),
+                emptyList());
+    }
+
+    @Test
+    public void addIngredientButtonBehaviour_onRecipeCreation() {
+        DBTestingUtils.clearAllData(foodstuffsList, historyWorker, databaseHolder);
+        Recipe notSavedRecipe = createRecipe(
+                "cake", 123,
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)));
+        mainThreadExecutor.execute(() -> {
+            bucketList.setRecipe(notSavedRecipe);
+        });
+
+        Intent startIntent =
+                BucketListActivity.createIntent(
+                        InstrumentationRegistry.getTargetContext());
+        activityRule.launchActivity(startIntent);
+
+        onView(withId(R.id.bucket_list_add_ingredient_button)).perform(click());
+        // Button closes activity
+        assertEquals(Activity.RESULT_CANCELED, activityRule.getActivityResult().getResultCode());
+        // But doesn't clean BucketList
+        mainThreadExecutor.execute(() -> assertEquals(notSavedRecipe, bucketList.getRecipe()));
+    }
+
+    @Test
+    public void addIngredientButtonBehaviour_onRecipeEditing() {
+        // Create recipe
+        DBTestingUtils.clearAllData(foodstuffsList, historyWorker, databaseHolder);
+        Recipe recipe = createSavedRecipe(
+                "cake", 123,
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)));
+
+        Intent startIntent =
+                BucketListActivity.createIntent(
+                        InstrumentationRegistry.getTargetContext(),
+                        recipe);
+        activityRule.launchActivity(startIntent);
+        onView(withId(R.id.button_edit)).perform(click());
+
+        onView(withId(R.id.bucket_list_add_ingredient_button)).perform(click());
+        // Button closes activity
+        assertEquals(Activity.RESULT_CANCELED, activityRule.getActivityResult().getResultCode());
+        // But doesn't clean BucketList
+        mainThreadExecutor.execute(() -> assertEquals(recipe, bucketList.getRecipe()));
+    }
+
+    @Test
+    public void saveAsRecipeButtonEnabledAndDisabledStates() {
+        DBTestingUtils.clearAllData(foodstuffsList, historyWorker, databaseHolder);
+        Recipe notSavedRecipe = createRecipe(
+                "cake", 123,
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)));
+        mainThreadExecutor.execute(() -> {
+            bucketList.setRecipe(notSavedRecipe);
+        });
+
+        Intent startIntent =
+                BucketListActivity.createIntent(
+                        InstrumentationRegistry.getTargetContext());
+        activityRule.launchActivity(startIntent);
+
+        verifyRecipeCreatingState(
+                "cake",
+                "123",
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)),
+                emptyList());
+
+        onView(withId(R.id.save_as_recipe_button)).check(matches(isEnabled()));
+
+        // Name
+        onView(withId(R.id.recipe_name_edit_text)).perform(replaceText(""));
+        onView(withId(R.id.save_as_recipe_button)).check(matches(not(isEnabled())));
+        onView(withId(R.id.recipe_name_edit_text)).perform(replaceText("novel cake"));
+        onView(withId(R.id.save_as_recipe_button)).check(matches(isEnabled()));
+
+        // Weight
+        onView(withId(R.id.total_weight_edit_text)).perform(replaceText(""));
+        onView(withId(R.id.save_as_recipe_button)).check(matches(not(isEnabled())));
+        onView(withId(R.id.total_weight_edit_text)).perform(replaceText("321"));
+        onView(withId(R.id.save_as_recipe_button)).check(matches(isEnabled()));
+
+        // Ingredients
+        onView(withText("dough")).perform(longClick());
+        onView(withText(R.string.delete_ingredient)).perform(click());
+        onView(withId(R.id.save_as_recipe_button)).check(matches(isEnabled()));
+        onView(withText("oil")).perform(longClick());
+        onView(withText(R.string.delete_ingredient)).perform(click());
+        onView(withId(R.id.save_as_recipe_button)).check(matches(not(isEnabled())));
+    }
+
+    @Test
+    public void saveAsRecipeButtonEnabled_whenBucketListOpenedWithFilledCreatingRecipe() {
+        DBTestingUtils.clearAllData(foodstuffsList, historyWorker, databaseHolder);
+        Recipe notSavedRecipe = createRecipe(
+                "cake", 123,
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)));
+        mainThreadExecutor.execute(() -> bucketList.setRecipe(notSavedRecipe));
+
+        Intent startIntent =
+                BucketListActivity.createIntent(
+                        InstrumentationRegistry.getTargetContext());
+        activityRule.launchActivity(startIntent);
+
+        verifyRecipeCreatingState(
+                "cake",
+                "123",
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)),
+                emptyList());
+
+        onView(withId(R.id.save_as_recipe_button)).check(matches(isEnabled()));
+    }
+
+    @Test
+    public void saveAsRecipeButtonNotEnabled_whenBucketListOpenedWithCreatingRecipe_withoutName() {
+        DBTestingUtils.clearAllData(foodstuffsList, historyWorker, databaseHolder);
+        Recipe notSavedRecipe = createRecipe(
+                "", 123,
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)));
+        mainThreadExecutor.execute(() -> bucketList.setRecipe(notSavedRecipe));
+
+        Intent startIntent =
+                BucketListActivity.createIntent(
+                        InstrumentationRegistry.getTargetContext());
+        activityRule.launchActivity(startIntent);
+
+        verifyRecipeCreatingState(
+                "",
+                "123",
+                asList(Pair.create("dough", 111), Pair.create("oil", 222)),
+                emptyList());
+
+        onView(withId(R.id.save_as_recipe_button)).check(matches(not(isEnabled())));
+    }
+
+    @Test
+    public void saveAsRecipeButtonNotEnabled_whenBucketListOpenedWithCreatingRecipe_withoutIngredients() {
+        DBTestingUtils.clearAllData(foodstuffsList, historyWorker, databaseHolder);
+        Recipe notSavedRecipe = createRecipe("cake", 123, emptyList());
+        mainThreadExecutor.execute(() -> bucketList.setRecipe(notSavedRecipe));
+
+        Intent startIntent =
+                BucketListActivity.createIntent(
+                        InstrumentationRegistry.getTargetContext());
+        activityRule.launchActivity(startIntent);
+
+        verifyRecipeCreatingState(
+                "cake",
+                "123",
+                emptyList(),
+                emptyList());
+
+        onView(withId(R.id.save_as_recipe_button)).check(matches(not(isEnabled())));
+    }
+
+    private Recipe createSavedRecipe(
+            String name,
+            Integer weight,
+            List<Pair<String, Integer>> ingredientsNamesAndWeights) {
+        Recipe notSavedRecipe = createRecipe(name, weight, ingredientsNamesAndWeights);
+        CreateRecipeResult recipeResult = recipesRepository.saveRecipeRx(notSavedRecipe).blockingGet();
+        return ((CreateRecipeResult.Ok)recipeResult).getRecipe();
+    }
+
+    private Recipe createRecipe(
+            String name,
+            Integer weight,
+            List<Pair<String, Integer>> ingredientsNamesAndWeights) {
+        List<Ingredient> ingredients = new ArrayList<>();
+        for (Pair<String, Integer> ingredientPair : ingredientsNamesAndWeights) {
+            Foodstuff ingredient = Foodstuff.withName(ingredientPair.first).withNutrition(1, 2, 3, 4);
+            ingredient = foodstuffsList.saveFoodstuff(ingredient).blockingGet();
+            ingredients.add(Ingredient.create(ingredient, ingredientPair.second, "comment"));
+        }
+
+        Foodstuff foodstuff = Foodstuff.withName(name).withNutrition(1, 2, 3, 4);
+        return Recipe.create(foodstuff, ingredients, weight, "comment");
+    }
+
+
+    private void verifyRecipeDisplayingState(
+            String recipeName,
+            String weightText,
+            List<Pair<String, Integer>> expectedIngredients,
+            List<Pair<String, Integer>> notExpectedIngredients) {
+        onView(withId(R.id.button_edit)).check(matches(isDisplayed()));
+        onView(withId(R.id.title_text)).check(matches(withText(R.string.bucket_list_title_recipe)));
+        onView(withId(R.id.save_as_recipe_button)).check(isNotDisplayed());
+        onView(withId(R.id.recipe_name_edit_text)).check(matches(withText(recipeName)));
+        onView(withId(R.id.recipe_name_edit_text)).check(matches(not(isEnabled())));
+        onView(withId(R.id.total_weight_edit_text)).check(matches(withText(weightText)));
+        onView(withId(R.id.total_weight_edit_text)).check(matches(not(isEnabled())));
+        onView(withId(R.id.bucket_list_add_ingredient_button)).check(isNotDisplayed());
+
+        verifyDisplayedIngredients(expectedIngredients, notExpectedIngredients);
+    }
+
+    private void verifyDisplayedIngredients(
+            List<Pair<String, Integer>> expectedIngredients,
+            List<Pair<String, Integer>> notExpectedIngredients) {
+        for (Pair<String, Integer> ingredient : expectedIngredients) {
+            String expectedGramsText = activityRule.getActivity().getString(
+                    R.string.n_gramms,
+                    ingredient.second);
+            onView(allOf(
+                    withParent(isDescendantOfA(withId(R.id.ingredients_list))),
+                    hasDescendant(withText(ingredient.first)),
+                    hasDescendant(withText(expectedGramsText))))
+                    .check(matches(isDisplayed()));
+        }
+
+        for (Pair<String, Integer> ingredient : notExpectedIngredients) {
+            String expectedGramsText = activityRule.getActivity().getString(
+                    R.string.n_gramms,
+                    ingredient.second);
+            onView(allOf(
+                    withParent(isDescendantOfA(withId(R.id.ingredients_list))),
+                    hasDescendant(withText(ingredient.first)),
+                    hasDescendant(withText(expectedGramsText))))
+                    .check(isNotDisplayed());
+        }
+    }
+
+    private void verifyRecipeEditingState(
+            String recipeName,
+            String weightText,
+            List<Pair<String, Integer>> expectedIngredients,
+            List<Pair<String, Integer>> notExpectedIngredients) {
+        onView(withId(R.id.button_edit)).check(isNotDisplayed());
+        onView(withId(R.id.title_text)).check(matches(withText(R.string.bucket_list_title_recipe_modification)));
+        onView(withId(R.id.save_as_recipe_button)).check(matches(isDisplayed()));
+        onView(withId(R.id.recipe_name_edit_text)).check(matches(withText(recipeName)));
+        onView(withId(R.id.recipe_name_edit_text)).check(matches(isEnabled()));
+        onView(withId(R.id.total_weight_edit_text)).check(matches(withText(weightText)));
+        onView(withId(R.id.total_weight_edit_text)).check(matches(isEnabled()));
+        onView(withId(R.id.bucket_list_add_ingredient_button)).check(matches(isDisplayed()));
+
+        verifyDisplayedIngredients(expectedIngredients, notExpectedIngredients);
+    }
+
+    private void verifyRecipeCreatingState(
+            String recipeName,
+            String weightText,
+            List<Pair<String, Integer>> expectedIngredients,
+            List<Pair<String, Integer>> notExpectedIngredients) {
+        onView(withId(R.id.button_edit)).check(isNotDisplayed());
+        onView(withId(R.id.title_text)).check(matches(withText(R.string.bucket_list_title_recipe_creation)));
+        onView(withId(R.id.save_as_recipe_button)).check(matches(isDisplayed()));
+        onView(withId(R.id.recipe_name_edit_text)).check(matches(withText(recipeName)));
+        onView(withId(R.id.recipe_name_edit_text)).check(matches(isEnabled()));
+        onView(withId(R.id.total_weight_edit_text)).check(matches(withText(weightText)));
+        onView(withId(R.id.total_weight_edit_text)).check(matches(isEnabled()));
+        onView(withId(R.id.bucket_list_add_ingredient_button)).check(matches(isDisplayed()));
+
+        verifyDisplayedIngredients(expectedIngredients, notExpectedIngredients);
     }
 }

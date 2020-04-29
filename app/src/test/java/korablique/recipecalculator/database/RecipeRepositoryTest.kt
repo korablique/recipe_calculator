@@ -343,6 +343,28 @@ class RecipeRepositoryTest {
         verify(foodstuffsList).editFoodstuff(any(), any(), any())
     }
 
+    @Test
+    fun `can update recipe even when provided initial recipe not fully same`() {
+        val initialRecipes = createRecipes("1", "2", "3")
+        fakeDatabaseWorker.setInitialRecipes(initialRecipes)
+
+        val updatedRecipe = initialRecipes[0].copy(comment = "new comment")
+        val initialRecipeChanged = initialRecipes[0].copy(weight = initialRecipes[0].weight + 1)
+        var returnedUpdatedRecipe: Recipe? = null
+        GlobalScope.async(instantExecutor) {
+            val result = recipesRepository.updateRecipe(initialRecipeChanged, updatedRecipe)
+            assertTrue(result is UpdateRecipeResult.Ok)
+            returnedUpdatedRecipe = (result as UpdateRecipeResult.Ok).recipe
+        }
+
+        GlobalScope.launch(instantExecutor) {
+            assertTrue(updatedRecipe in recipesRepository.getAllRecipes())
+            assertTrue(returnedUpdatedRecipe in recipesRepository.getAllRecipes())
+            assertEquals(updatedRecipe, recipesRepository.getRecipeOfFoodstuff(updatedRecipe.foodstuff))
+            assertEquals(updatedRecipe, returnedUpdatedRecipe)
+        }
+    }
+
     private fun createRecipes(vararg names: String): List<Recipe> {
         val foodstuffs = names.map { Foodstuff.withId(randID()).withName(it).withNutrition(1f, 2f, 3f, 4f) }
         return createRecipes(foodstuffs)

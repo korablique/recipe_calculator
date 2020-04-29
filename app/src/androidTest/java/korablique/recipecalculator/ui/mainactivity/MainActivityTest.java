@@ -42,6 +42,7 @@ import static androidx.test.espresso.matcher.ViewMatchers.isDescendantOfA;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.isRoot;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
+import static androidx.test.espresso.matcher.ViewMatchers.withParent;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertContains;
 import static korablique.recipecalculator.util.EspressoUtils.matches;
@@ -279,6 +280,29 @@ public class MainActivityTest extends MainActivityTestsBase {
         intended(allOf(
                 hasAction(expectedIntent.getAction()),
                 hasComponent(expectedIntent.getComponent())));
+    }
+
+    @Test
+    public void cardReactsToSuddenFoodstuffChange() {
+        mActivityRule.launchActivity(null);
+
+        onView(allOf(
+                withText(foodstuffs[0].getName()),
+                matches(isCompletelyBelow(withText(R.string.all_foodstuffs_header)))))
+                .perform(click());
+        onView(withId(R.id.foodstuff_card_layout)).check(matches(isDisplayed()));
+
+        onView(withId(R.id.foodstuff_name_text_view))
+                .check(matches(withText(foodstuffs[0].getName())));
+
+        mainThreadExecutor.execute(() -> {
+            foodstuffsList.editFoodstuff(
+                    foodstuffs[0].getId(),
+                    foodstuffs[0].recreateWithName(foodstuffs[0].getName() + "new"));
+        });
+
+        onView(withId(R.id.foodstuff_name_text_view))
+                .check(matches(withText(foodstuffs[0].getName() + "new")));
     }
 
     private List<Foodstuff> extractFoodstuffsTopFromDB() {

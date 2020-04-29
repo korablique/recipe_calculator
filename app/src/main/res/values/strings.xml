@@ -49,8 +49,10 @@
     <string name="add_foodstuff">Добавить продукт</string>
     <string name="add_foodstuff_to_recipe">В рецепт</string>
     <string name="add_foodstuff_to_history">В журнал</string>
-    <string name="selected_foodstuffs">Выбранные продукты</string>
+    <string name="selected_foodstuffs_snackbar_title_recipe_creation">Создание рецепта</string>
+    <string name="selected_foodstuffs_snackbar_title_recipe_editing">Редактирование рецепта</string>
     <string name="bucket_list_title_recipe_creation">Создание рецепта</string>
+    <string name="bucket_list_title_recipe_modification">Редактирование рецепта</string>
     <string name="bucket_list_title_recipe">Рецепт</string>
     <string name="meal">Приём пищи</string>
     <string name="meal_notification">Не забудьте внести в приложение, что вы кушали</string>
@@ -66,7 +68,7 @@
     <string name="nutrition_per_100_g">Белки, жиры и углеводы указаны на 100 г</string>
     <string name="undo">Отмена</string>
     <string name="foodstuff_deleted">Продукт удалён</string>
-    <string name="foodstuffs_deleted">Продукты удалены</string>
+    <string name="work_with_recipe_canceled">Работа с рецептом прекращена</string>
     <string name="change_foodstuff">Изменить продукт</string>
     <string name="search_results">Результаты поиска \"%s\"</string>
     <string name="add_new_foodstuff">Добавить новый продукт</string>
@@ -158,6 +160,7 @@
     <string name="send_to_partner">Отправить партнёру</string>
     <string name="delete_partner">Удалить партнёра</string>
     <string name="delete_ingredient">Удалить ингредиент</string>
+    <string name="add_ingredient">Добавить ингредиент</string>
     <string name="sign_in_with_google">Войти с Google</string>
     <string name="something_went_wrong">Упс, что-то пошло не так</string>
     <string name="possibly_no_network_connection">Возможно интернет не подключен</string>
@@ -170,6 +173,11 @@
     <string name="foodstuff_is_sent">Продукт отправлен</string>
     <string name="foodstuff_is_received">Получен продукт: %s</string>
     <string name="show_received_foodstuff">Показать</string>
+
+    <string name="cancel_recipe_creation_dialog_title">Удалить создаваемый рецепт?</string>
+    <string name="cancel_recipe_editing_dialog_title">Удалить внесённые изменения?</string>
+    <string name="cancel_recipe_dialog_confirmation">Да</string>
+    <string name="cancel_recipe_dialog_cancellation">Отмена</string>
 
     <string-array name="gender_array">
         <item name="not_selected">—</item>
