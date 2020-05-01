@@ -8,8 +8,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.annotation.IdRes
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintSet
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
+import androidx.transition.TransitionManager
 import korablique.recipecalculator.R
 import korablique.recipecalculator.base.ActivityCallbacks
 import korablique.recipecalculator.base.executors.MainThreadExecutor
@@ -190,6 +193,14 @@ class BucketListActivityController @Inject constructor(
         } else {
             adapter.deinitAddIngredientButton()
         }
+
+        findViewById<TextView>(R.id.title_text).setText(currentState.getTitleStringID())
+
+        val root = activity.findViewById<ConstraintLayout>(R.id.bucket_list_activity_layout)
+        val newConstraintSet = ConstraintSet()
+        newConstraintSet.clone(activity, currentState.getConstraintSetDescriptionLayout())
+        TransitionManager.beginDelayedTransition(root)
+        newConstraintSet.applyTo(root)
     }
 
     override fun finish(finishResult: FinishResult) {

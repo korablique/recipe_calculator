@@ -56,6 +56,8 @@ abstract class BucketListActivityState {
 
     abstract fun saveInstanceState(): Bundle
     abstract fun getStateID(): ID
+    abstract fun getTitleStringID(): Int
+    abstract fun getConstraintSetDescriptionLayout(): Int
 
     protected abstract fun initImpl()
     protected abstract fun destroyImpl()

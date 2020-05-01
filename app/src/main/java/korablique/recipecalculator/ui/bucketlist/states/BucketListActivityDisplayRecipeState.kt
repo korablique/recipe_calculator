@@ -4,6 +4,9 @@ import android.os.Bundle
 import android.view.View
 import android.widget.EditText
 import android.widget.TextView
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintSet
+import androidx.transition.TransitionManager
 import korablique.recipecalculator.R
 import korablique.recipecalculator.base.BaseActivity
 import korablique.recipecalculator.base.executors.MainThreadExecutor
@@ -30,6 +33,8 @@ class BucketListActivityDisplayRecipeState(
                     activity, bucketList, recipesRepository, mainThreadExecutor)
 
     override fun getStateID(): ID = ID.DisplayState
+    override fun getTitleStringID(): Int = R.string.bucket_list_title_recipe
+    override fun getConstraintSetDescriptionLayout(): Int = R.layout.activity_bucket_list_state_displaying
 
     override fun saveInstanceState(): Bundle {
         val result = Bundle()
@@ -38,13 +43,10 @@ class BucketListActivityDisplayRecipeState(
     }
 
     override fun initImpl() {
-        findViewById<TextView>(R.id.title_text).setText(R.string.bucket_list_title_recipe)
         findViewById<View>(R.id.button_close).setOnClickListener { finish(FinishResult.Canceled) }
         findViewById<EditText>(R.id.recipe_name_edit_text).isEnabled = false
         findViewById<EditText>(R.id.total_weight_edit_text).isEnabled = false
-        findViewById<View>(R.id.save_as_recipe_button).visibility = View.GONE
 
-        findViewById<View>(R.id.button_edit).visibility = View.VISIBLE
         findViewById<View>(R.id.button_edit).setOnClickListener {
             switchState(BucketListActivityRecipeEditingState(
                     recipe, activity, bucketList, recipesRepository, mainThreadExecutor))
@@ -55,9 +57,7 @@ class BucketListActivityDisplayRecipeState(
         findViewById<View>(R.id.button_close).setOnClickListener(null)
         findViewById<EditText>(R.id.recipe_name_edit_text).isEnabled = true
         findViewById<EditText>(R.id.total_weight_edit_text).isEnabled = true
-        findViewById<View>(R.id.save_as_recipe_button).visibility = View.VISIBLE
         findViewById<View>(R.id.button_edit).setOnClickListener(null)
-        findViewById<View>(R.id.button_edit).visibility = View.GONE
     }
 
     override fun getRecipe(): Recipe = recipe

@@ -6,9 +6,11 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintSet
+import androidx.transition.TransitionManager
 import com.arlib.floatingsearchview.util.adapter.TextWatcherAdapter
 import korablique.recipecalculator.R
 import korablique.recipecalculator.base.BaseActivity
@@ -68,6 +70,12 @@ class BucketListActivityRecipeEditingState private constructor(
                     activity, bucketList, recipesRepository, mainThreadExecutor)
 
     override fun getStateID(): ID = ID.EditingState
+    override fun getTitleStringID(): Int =
+        when (initialDisplayedRecipe.isFromDB) {
+            true -> R.string.bucket_list_title_recipe_editing
+            else -> R.string.bucket_list_title_recipe_creation
+        }
+    override fun getConstraintSetDescriptionLayout(): Int = R.layout.activity_bucket_list_state_editing
 
     override fun saveInstanceState(): Bundle {
         val result = Bundle()
@@ -79,13 +87,6 @@ class BucketListActivityRecipeEditingState private constructor(
         // Close the card if it's open
         CardDialog.findCard(activity)?.dismiss()
 
-        if (initialDisplayedRecipe.isFromDB) {
-            findViewById<TextView>(R.id.title_text).setText(R.string.bucket_list_title_recipe_modification)
-        } else {
-            findViewById<TextView>(R.id.title_text).setText(R.string.bucket_list_title_recipe_creation)
-        }
-        findViewById<View>(R.id.button_edit).visibility = View.GONE
-
         buttonClose = findViewById(R.id.button_close)
         saveAsRecipeButton = findViewById(R.id.save_as_recipe_button)
         recipeNameEditText = findViewById(R.id.recipe_name_edit_text)
@@ -93,7 +94,6 @@ class BucketListActivityRecipeEditingState private constructor(
 
         recipeNameEditText.isEnabled = true
         totalWeightEditText.isEnabled = true
-        saveAsRecipeButton.visibility = View.VISIBLE
 
         // If we're not restored and BucketList doesn't contain the initial recipe yet for
         // some reason - let's put it in.
@@ -191,7 +191,6 @@ class BucketListActivityRecipeEditingState private constructor(
         saveAsRecipeButton.setOnClickListener(null)
         recipeNameEditText.removeTextChangedListener(recipeNameTextWatcher)
         totalWeightEditText.removeTextChangedListener(totalWeightTextWatcher)
-        saveAsRecipeButton.visibility = View.GONE
     }
 
     override fun getRecipe(): Recipe = bucketList.getRecipe()

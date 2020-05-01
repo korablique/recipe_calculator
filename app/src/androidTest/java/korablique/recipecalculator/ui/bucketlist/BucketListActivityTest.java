@@ -1286,7 +1286,7 @@ public class BucketListActivityTest {
             List<Pair<String, Integer>> expectedIngredients,
             List<Pair<String, Integer>> notExpectedIngredients) {
         onView(withId(R.id.button_edit)).check(isNotDisplayed());
-        onView(withId(R.id.title_text)).check(matches(withText(R.string.bucket_list_title_recipe_modification)));
+        onView(withId(R.id.title_text)).check(matches(withText(R.string.bucket_list_title_recipe_editing)));
         onView(withId(R.id.save_as_recipe_button)).check(matches(isDisplayed()));
         onView(withId(R.id.recipe_name_edit_text)).check(matches(withText(recipeName)));
         onView(withId(R.id.recipe_name_edit_text)).check(matches(isEnabled()));
