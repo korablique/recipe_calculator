@@ -18,6 +18,7 @@ import korablique.recipecalculator.base.ActivityCallbacks
 import korablique.recipecalculator.base.executors.MainThreadExecutor
 import korablique.recipecalculator.dagger.ActivityScope
 import korablique.recipecalculator.database.RecipesRepository
+import korablique.recipecalculator.model.Ingredient
 import korablique.recipecalculator.model.Nutrition
 import korablique.recipecalculator.model.Recipe
 import korablique.recipecalculator.ui.DecimalUtils
@@ -100,12 +101,16 @@ class BucketListActivityController @Inject constructor(
         adapter = BucketListAdapter(activity)
         findViewById<RecyclerView>(R.id.ingredients_list).adapter = adapter
 
-        adapter.setOnItemClickedObserver { ingredient, position ->
-            currentState.onDisplayedIngredientClicked(ingredient, position)
-        }
-        adapter.setOnItemLongClickedObserver { ingredient, position, view ->
-            currentState.onDisplayedIngredientLongClicked(ingredient, position, view)
-        }
+        adapter.setOnItemClickedObserver(object : BucketListAdapter.OnItemClickedObserver {
+            override fun onItemClicked(ingredient: Ingredient, position: Int) {
+                currentState.onDisplayedIngredientClicked(ingredient, position)
+            }
+        })
+        adapter.setOnItemLongClickedObserver(object : BucketListAdapter.OnItemLongClickedObserver {
+            override fun onItemLongClicked(ingredient: Ingredient, position: Int, view: View): Boolean {
+                return currentState.onDisplayedIngredientLongClicked(ingredient, position, view)
+            }
+        })
 
         switchStateImpl(createFirstState(savedInstanceState), first = true)
         onRecipeUpdated(currentState.getRecipe())
@@ -187,9 +192,9 @@ class BucketListActivityController @Inject constructor(
         onRecipeUpdated(currentState.getRecipe())
 
         if (currentState.supportsIngredientsAddition()) {
-            adapter.setUpAddIngredientButton {
+            adapter.setUpAddIngredientButton(Runnable {
                 currentState.onAddIngredientButtonClicked()
-            }
+            })
         } else {
             adapter.deinitAddIngredientButton()
         }
