@@ -3,10 +3,6 @@ package korablique.recipecalculator.ui.bucketlist.states
 import android.os.Bundle
 import android.view.View
 import android.widget.EditText
-import android.widget.TextView
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.constraintlayout.widget.ConstraintSet
-import androidx.transition.TransitionManager
 import korablique.recipecalculator.R
 import korablique.recipecalculator.base.BaseActivity
 import korablique.recipecalculator.base.executors.MainThreadExecutor
@@ -38,6 +34,7 @@ class BucketListActivityDisplayRecipeState(
 
     override fun getStateID(): ID = ID.DisplayState
     override fun getTitleStringID(): Int = R.string.bucket_list_title_recipe
+    override fun getMainConstraintSetDescriptionLayout(): Int = R.layout.activity_bucket_list_main_state_displaying
     override fun getConstraintSetDescriptionLayout(): Int = R.layout.activity_bucket_list_state_displaying
 
     override fun saveInstanceState(): Bundle {

@@ -8,9 +8,6 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.constraintlayout.widget.ConstraintSet
-import androidx.transition.TransitionManager
 import com.arlib.floatingsearchview.util.adapter.TextWatcherAdapter
 import korablique.recipecalculator.R
 import korablique.recipecalculator.base.BaseActivity
@@ -81,6 +78,7 @@ class BucketListActivityRecipeEditingState private constructor(
             true -> R.string.bucket_list_title_recipe_editing
             else -> R.string.bucket_list_title_recipe_creation
         }
+    override fun getMainConstraintSetDescriptionLayout(): Int = R.layout.activity_bucket_list_main_state_editing
     override fun getConstraintSetDescriptionLayout(): Int = R.layout.activity_bucket_list_state_editing
 
     override fun saveInstanceState(): Bundle {

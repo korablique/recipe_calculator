@@ -205,10 +205,15 @@ class BucketListActivityController @Inject constructor(
 
         findViewById<TextView>(R.id.title_text).setText(currentState.getTitleStringID())
 
-        val root = activity.findViewById<ConstraintLayout>(R.id.bucket_list_activity_layout)
+        TransitionManager.beginDelayedTransition(findViewById(R.id.bucket_list_activity_layout))
+        switchConstraints(R.id.bucket_list_activity_main_content_layout, currentState.getMainConstraintSetDescriptionLayout())
+        switchConstraints(R.id.bucket_list_activity_layout, currentState.getConstraintSetDescriptionLayout())
+    }
+
+    private fun switchConstraints(rootId: Int, newConstraintsId: Int) {
+        val root = activity.findViewById<ConstraintLayout>(rootId)
         val newConstraintSet = ConstraintSet()
-        newConstraintSet.clone(activity, currentState.getConstraintSetDescriptionLayout())
-        TransitionManager.beginDelayedTransition(root)
+        newConstraintSet.clone(activity, newConstraintsId)
         newConstraintSet.applyTo(root)
     }
 
