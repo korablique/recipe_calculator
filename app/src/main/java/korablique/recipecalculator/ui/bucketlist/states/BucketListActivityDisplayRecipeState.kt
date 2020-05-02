@@ -13,11 +13,13 @@ import korablique.recipecalculator.base.executors.MainThreadExecutor
 import korablique.recipecalculator.database.RecipesRepository
 import korablique.recipecalculator.model.Recipe
 import korablique.recipecalculator.ui.bucketlist.BucketList
+import korablique.recipecalculator.ui.bucketlist.CommentLayoutController
 
 const val EXTRA_DISPLAYED_RECIPE = "EXTRA_DISPLAYED_RECIPE"
 
 class BucketListActivityDisplayRecipeState(
         private val recipe: Recipe,
+        private val commentLayoutController: CommentLayoutController,
         private val activity: BaseActivity,
         private val bucketList: BucketList,
         private val recipesRepository: RecipesRepository,
@@ -25,11 +27,13 @@ class BucketListActivityDisplayRecipeState(
 ) : BucketListActivityState() {
 
     constructor(savedInstanceState: Bundle,
+                commentLayoutController: CommentLayoutController,
                 activity: BaseActivity,
                 bucketList: BucketList,
                 recipesRepository: RecipesRepository,
                 mainThreadExecutor: MainThreadExecutor):
             this(savedInstanceState.getParcelable(EXTRA_DISPLAYED_RECIPE) as Recipe,
+                    commentLayoutController,
                     activity, bucketList, recipesRepository, mainThreadExecutor)
 
     override fun getStateID(): ID = ID.DisplayState
@@ -49,8 +53,11 @@ class BucketListActivityDisplayRecipeState(
 
         findViewById<View>(R.id.button_edit).setOnClickListener {
             switchState(BucketListActivityRecipeEditingState(
-                    recipe, activity, bucketList, recipesRepository, mainThreadExecutor))
+                    recipe, commentLayoutController, activity, bucketList,
+                    recipesRepository, mainThreadExecutor))
         }
+
+        commentLayoutController.setEditable(false)
     }
 
     override fun destroyImpl() {

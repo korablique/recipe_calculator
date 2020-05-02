@@ -53,7 +53,6 @@ abstract class BucketListActivityState {
         delegate.switchState(newState)
     }
 
-
     abstract fun saveInstanceState(): Bundle
     abstract fun getStateID(): ID
     abstract fun getTitleStringID(): Int

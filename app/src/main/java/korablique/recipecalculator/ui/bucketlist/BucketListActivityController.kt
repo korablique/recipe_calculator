@@ -44,6 +44,7 @@ class BucketListActivityController @Inject constructor(
     private lateinit var pluralProgressBar: PluralProgressBar
     private lateinit var nutritionValuesWrapper: NutritionValuesWrapper
     private lateinit var adapter: BucketListAdapter
+    private lateinit var commentLayoutController: CommentLayoutController
     private lateinit var currentState: BucketListActivityState
 
     companion object {
@@ -111,6 +112,7 @@ class BucketListActivityController @Inject constructor(
                 return currentState.onDisplayedIngredientLongClicked(ingredient, position, view)
             }
         })
+        commentLayoutController = CommentLayoutController(findViewById(R.id.comment_layout))
 
         switchStateImpl(createFirstState(savedInstanceState), first = true)
         onRecipeUpdated(currentState.getRecipe())
@@ -124,12 +126,12 @@ class BucketListActivityController @Inject constructor(
             return when (stateId) {
                 BucketListActivityState.ID.DisplayState -> {
                     BucketListActivityDisplayRecipeState(
-                            stateOfState, activity, bucketList,
+                            stateOfState, commentLayoutController, activity, bucketList,
                             recipesRepository, mainThreadExecutor)
                 }
                 BucketListActivityState.ID.EditingState -> {
                     BucketListActivityRecipeEditingState(
-                            stateOfState, activity, bucketList,
+                            stateOfState, commentLayoutController, activity, bucketList,
                             recipesRepository, mainThreadExecutor)
                 }
             }
@@ -138,11 +140,11 @@ class BucketListActivityController @Inject constructor(
         return if (ACTION_EDIT_RECIPE == activity.intent.action) {
             val recipe: Recipe = activity.intent.getParcelableExtra(EXTRA_RECIPE)
             BucketListActivityDisplayRecipeState(
-                    recipe, activity, bucketList,
+                    recipe, commentLayoutController, activity, bucketList,
                     recipesRepository, mainThreadExecutor)
         } else {
             BucketListActivityRecipeEditingState(
-                    bucketList.getRecipe(), activity, bucketList,
+                    bucketList.getRecipe(), commentLayoutController, activity, bucketList,
                     recipesRepository, mainThreadExecutor)
         }
     }
@@ -177,6 +179,8 @@ class BucketListActivityController @Inject constructor(
             nameEditText.text = recipe.name
         }
         adapter.setItems(recipe.ingredients)
+
+        commentLayoutController.setComment(recipe.comment)
     }
 
     override fun switchState(newState: BucketListActivityState) {

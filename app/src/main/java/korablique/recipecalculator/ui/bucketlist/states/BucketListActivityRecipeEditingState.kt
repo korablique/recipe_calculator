@@ -22,6 +22,7 @@ import korablique.recipecalculator.model.Ingredient
 import korablique.recipecalculator.model.Recipe
 import korablique.recipecalculator.ui.TwoOptionsDialog
 import korablique.recipecalculator.ui.bucketlist.BucketList
+import korablique.recipecalculator.ui.bucketlist.CommentLayoutController
 import korablique.recipecalculator.ui.card.Card
 import korablique.recipecalculator.ui.card.CardDialog
 import korablique.recipecalculator.util.FloatUtils
@@ -34,6 +35,7 @@ private const val EXTRA_INITIAL_RECIPE = "EXTRA_INITIAL_RECIPE"
 
 class BucketListActivityRecipeEditingState private constructor(
         private val initialDisplayedRecipe: Recipe,
+        private val commentLayoutController: CommentLayoutController,
         private val savedInstanceState: Bundle?,
         private val activity: BaseActivity,
         private val bucketList: BucketList,
@@ -49,23 +51,27 @@ class BucketListActivityRecipeEditingState private constructor(
 
     private lateinit var totalWeightTextWatcher: TextWatcherAdapter
     private lateinit var recipeNameTextWatcher: TextWatcherAdapter
+    private lateinit var commentEditsObserver: CommentLayoutController.CommentEditsObserver
 
     constructor(
             initialRecipe: Recipe,
+            commentLayoutController: CommentLayoutController,
             activity: BaseActivity,
             bucketList: BucketList,
             recipesRepository: RecipesRepository,
             mainThreadExecutor: MainThreadExecutor) :
-            this(initialRecipe, null,
+            this(initialRecipe, commentLayoutController, null,
                     activity, bucketList, recipesRepository, mainThreadExecutor)
 
     constructor(
             savedInstanceState: Bundle,
+            commentLayoutController: CommentLayoutController,
             activity: BaseActivity,
             bucketList: BucketList,
             recipesRepository: RecipesRepository,
             mainThreadExecutor: MainThreadExecutor) :
             this(savedInstanceState.getParcelable(EXTRA_INITIAL_RECIPE) as Recipe,
+                    commentLayoutController,
                     savedInstanceState,
                     activity, bucketList, recipesRepository, mainThreadExecutor)
 
@@ -148,6 +154,16 @@ class BucketListActivityRecipeEditingState private constructor(
         recipeNameEditText.addTextChangedListener(recipeNameTextWatcher)
         totalWeightEditText.addTextChangedListener(totalWeightTextWatcher)
 
+        commentEditsObserver = object : CommentLayoutController.CommentEditsObserver {
+            override fun onCommentViewTextEdited(comment: String) {
+                val recipe = getRecipe().copy(comment = comment)
+                bucketList.setRecipe(recipe)
+                onRecipeUpdated(recipe)
+            }
+        }
+        commentLayoutController.setEditable(true)
+        commentLayoutController.addCommentEditsObserver(commentEditsObserver)
+
         updateSaveButtonsEnability()
     }
 
@@ -165,7 +181,8 @@ class BucketListActivityRecipeEditingState private constructor(
             }
             bucketList.clear()
             switchState(BucketListActivityDisplayRecipeState(
-                    recipe, activity, bucketList, recipesRepository, mainThreadExecutor))
+                    recipe, commentLayoutController, activity,
+                    bucketList, recipesRepository, mainThreadExecutor))
         }
     }
 
@@ -191,6 +208,7 @@ class BucketListActivityRecipeEditingState private constructor(
         saveAsRecipeButton.setOnClickListener(null)
         recipeNameEditText.removeTextChangedListener(recipeNameTextWatcher)
         totalWeightEditText.removeTextChangedListener(totalWeightTextWatcher)
+        commentLayoutController.removeCommentEditsObserver(commentEditsObserver)
     }
 
     override fun getRecipe(): Recipe = bucketList.getRecipe()
@@ -274,7 +292,8 @@ class BucketListActivityRecipeEditingState private constructor(
                 // let's clean BucketList and display the recipe.
                 bucketList.clear()
                 switchState(BucketListActivityDisplayRecipeState(
-                        recipeBeforeEditing, activity, bucketList, recipesRepository, mainThreadExecutor))
+                        recipeBeforeEditing, commentLayoutController, activity,
+                        bucketList, recipesRepository, mainThreadExecutor))
                 return
             }
         }
@@ -305,7 +324,8 @@ class BucketListActivityRecipeEditingState private constructor(
                                         + "Recipe: $initialDisplayedRecipe")
                             }
                             switchState(BucketListActivityDisplayRecipeState(
-                                    recipeBeforeEditing, activity, bucketList, recipesRepository, mainThreadExecutor))
+                                    recipeBeforeEditing, commentLayoutController,
+                                    activity, bucketList, recipesRepository, mainThreadExecutor))
                         }
                     } else {
                         finish(FinishResult.Canceled)

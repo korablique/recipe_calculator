@@ -15,7 +15,7 @@ public class EditProgressTextCommonMaxController {
 
     public void init() {
         for (EditProgressText view : views) {
-            view.addTextChangedListener(new SimpleTextWatcher<>(this::onTextChanged, view));
+            view.addTextChangedListener(new SimpleTextWatcher<>(view, this::onTextChanged));
         }
         updateCommonMaxes();
     }
