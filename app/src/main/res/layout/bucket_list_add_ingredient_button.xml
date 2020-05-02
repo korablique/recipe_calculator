@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/bucket_list_add_ingredient_button_layout"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginLeft="10dp"
@@ -9,13 +10,22 @@
     android:paddingTop="2.5dp"
     android:paddingBottom="2.5dp">
 
-    <Button
+    <FrameLayout
         android:id="@+id/bucket_list_add_ingredient_button"
-        style="@style/VioletLiningButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="horizontal"
         android:paddingTop="8dp"
         android:paddingBottom="8dp"
-        android:text="@string/add_ingredient"
-        android:backgroundTint="@color/colorIcons" />
-</LinearLayout>
+        android:background="@drawable/main_screen_element_background">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:layout_gravity="center"
+            style="@style/RobotoMonoHintText"
+            android:text="@string/add_ingredient"/>
+    </FrameLayout>
+
+</FrameLayout>
