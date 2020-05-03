@@ -1,7 +1,8 @@
 package korablique.recipecalculator.ui.bucketlist
 
 import android.app.Activity
-import androidx.core.util.Pair
+import android.text.TextUtils
+import android.view.View
 import androidx.test.InstrumentationRegistry
 import androidx.test.espresso.Espresso
 import androidx.test.espresso.Espresso.onView
@@ -68,6 +69,7 @@ import korablique.recipecalculator.util.InjectableActivityTestRule
 import korablique.recipecalculator.util.SyncMainThreadExecutor
 import korablique.recipecalculator.util.TestingTimeProvider
 import org.hamcrest.CoreMatchers
+import org.hamcrest.Matchers.any
 import org.hamcrest.Matchers.not
 import org.junit.Assert
 import org.junit.Assert.assertEquals
@@ -76,6 +78,11 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito
 import java.util.*
+
+data class UIIngredient(
+        val name: String,
+        val weight: String,
+        val comment: String = "")
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
@@ -247,7 +254,7 @@ class BucketListActivityTest {
         clearAllData(foodstuffsList, historyWorker, databaseHolder)
         val recipe = createSavedRecipe(
                 "cake", 123,
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)))
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")))
         val startIntent = createIntent(
                 InstrumentationRegistry.getTargetContext(),
                 recipe)
@@ -429,7 +436,7 @@ class BucketListActivityTest {
         clearAllData(foodstuffsList, historyWorker, databaseHolder)
         val recipe = createSavedRecipe(
                 "cake", 123,
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)))
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")))
         val startIntent = createIntent(
                 InstrumentationRegistry.getTargetContext(),
                 recipe)
@@ -438,8 +445,7 @@ class BucketListActivityTest {
         // Verify valid values
         verifyRecipeDisplayingState(
                 "cake", "123",
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)),
-                emptyList())
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")))
 
         // Edit
         onView(withId(R.id.button_edit)).perform(click())
@@ -471,8 +477,8 @@ class BucketListActivityTest {
         // Validate updated recipe UI
         verifyRecipeDisplayingState(
                 "cake without oil", "10",
-                listOf(Pair.create("dough", 3)),
-                listOf(Pair.create("oil", 222)),
+                listOf(UIIngredient("dough", "3")),
+                listOf(UIIngredient("oil", "222")),
                 "novel comment")
     }
 
@@ -482,7 +488,7 @@ class BucketListActivityTest {
         clearAllData(foodstuffsList, historyWorker, databaseHolder)
         val recipe = createSavedRecipe(
                 "cake", 123,
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)))
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")))
         val startIntent = createIntent(
                 InstrumentationRegistry.getTargetContext(),
                 recipe)
@@ -492,9 +498,8 @@ class BucketListActivityTest {
         onView(withId(R.id.button_edit)).perform(click())
         verifyRecipeEditingState(
                 "cake", "123",
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)),
-                emptyList(),
-                recipe.comment)
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")),
+                expectedComment = recipe.comment)
         onView(withText("oil")).perform(longClick())
         onView(withText(R.string.delete_ingredient)).perform(click())
         onView(withText("dough")).perform(click())
@@ -510,8 +515,8 @@ class BucketListActivityTest {
         mainThreadExecutor.execute { activityRule.activity.recreate() }
         verifyRecipeEditingState(
                 "cake without oil", "10",
-                listOf(Pair.create("dough", 3)),
-                listOf(Pair.create("oil", 222)),
+                listOf(UIIngredient("dough", "3")),
+                listOf(UIIngredient("oil", "222")),
                 "novel comment")
     }
 
@@ -521,7 +526,7 @@ class BucketListActivityTest {
         clearAllData(foodstuffsList, historyWorker, databaseHolder)
         val recipe = createRecipe(
                 "cake", 123,
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)))
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")))
         mainThreadExecutor.execute { bucketList.setRecipe(recipe) }
         val startIntent = createIntent(
                 InstrumentationRegistry.getTargetContext())
@@ -530,9 +535,8 @@ class BucketListActivityTest {
         // Verify displayed data, verify creating state, edit the recipe
         verifyRecipeCreatingState(
                 "cake", "123",
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)),
-                emptyList(),
-                recipe.comment)
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")),
+                expectedComment = recipe.comment)
         onView(withText("oil")).perform(longClick())
         onView(withText(R.string.delete_ingredient)).perform(click())
         onView(withText("dough")).perform(click())
@@ -548,8 +552,8 @@ class BucketListActivityTest {
         mainThreadExecutor.execute { activityRule.activity.recreate() }
         verifyRecipeCreatingState(
                 "cake without oil", "10",
-                listOf(Pair.create("dough", 3)),
-                listOf(Pair.create("oil", 222)),
+                listOf(UIIngredient("dough", "3")),
+                listOf(UIIngredient("oil", "222")),
                 "novel comment")
     }
 
@@ -559,23 +563,21 @@ class BucketListActivityTest {
         clearAllData(foodstuffsList, historyWorker, databaseHolder)
         val recipe = createSavedRecipe(
                 "cake", 123,
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)))
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")))
         val startIntent = createIntent(
                 InstrumentationRegistry.getTargetContext(),
                 recipe)
         activityRule.launchActivity(startIntent)
         verifyRecipeDisplayingState(
                 "cake", "123",
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)),
-                emptyList())
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")))
 
         // Edit and save
         onView(withId(R.id.button_edit)).perform(click())
         verifyRecipeEditingState(
                 "cake", "123",
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)),
-                emptyList(),
-                recipe.comment)
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")),
+                expectedComment = recipe.comment)
         onView(withText("oil")).perform(longClick())
         onView(withText(R.string.delete_ingredient)).perform(click())
         onView(withText("dough")).perform(click())
@@ -592,8 +594,8 @@ class BucketListActivityTest {
         mainThreadExecutor.execute { activityRule.activity.recreate() }
         verifyRecipeDisplayingState(
                 "cake without oil", "10",
-                listOf(Pair.create("dough", 3)),
-                listOf(Pair.create("oil", 222)),
+                listOf(UIIngredient("dough", "3")),
+                listOf(UIIngredient("oil", "222")),
                 "novel comment")
     }
 
@@ -603,21 +605,21 @@ class BucketListActivityTest {
         clearAllData(foodstuffsList, historyWorker, databaseHolder)
         val recipe = createSavedRecipe(
                 "cake", 123,
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)))
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")))
         val startIntent = createIntent(
                 InstrumentationRegistry.getTargetContext(),
                 recipe)
         activityRule.launchActivity(startIntent)
         verifyRecipeDisplayingState(
                 "cake", "123",
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)),
-                emptyList())
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")))
 
         // Display mode
         onView(withText("dough")).perform(click())
         onView(withId(R.id.foodstuff_card_layout)).check(isNotDisplayed())
         onView(withText("dough")).perform(longClick())
         onView(withText(R.string.delete_ingredient)).check(isNotDisplayed())
+        onView(withText(R.string.edit_ingredient_comment)).check(isNotDisplayed())
 
         // Edit mode
         onView(withId(R.id.button_edit)).perform(click())
@@ -626,6 +628,7 @@ class BucketListActivityTest {
         onView(withId(R.id.button_close)).perform(click())
         onView(withText("dough")).perform(longClick())
         onView(withText(R.string.delete_ingredient)).check(matches(isDisplayed()))
+        onView(withText(R.string.edit_ingredient_comment)).check(matches(isDisplayed()))
     }
 
     @Test
@@ -634,37 +637,33 @@ class BucketListActivityTest {
         clearAllData(foodstuffsList, historyWorker, databaseHolder)
         val recipe = createSavedRecipe(
                 "cake", 123,
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)))
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")))
         val startIntent = createIntent(
                 InstrumentationRegistry.getTargetContext(),
                 recipe)
         activityRule.launchActivity(startIntent)
         verifyRecipeDisplayingState(
                 "cake", "123",
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)),
-                emptyList(),
-                recipe.comment)
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")),
+                expectedComment = recipe.comment)
 
         // Switch states without editing recipe
         onView(withId(R.id.button_edit)).perform(click())
         verifyRecipeEditingState(
                 "cake", "123",
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)),
-                emptyList(),
-                recipe.comment)
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")),
+                expectedComment = recipe.comment)
         onView(withId(R.id.button_close)).perform(click())
         verifyRecipeDisplayingState(
                 "cake", "123",
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)),
-                emptyList(),
-                recipe.comment)
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")),
+                expectedComment = recipe.comment)
 
         // Switch states with editing recipe
         onView(withId(R.id.button_edit)).perform(click())
         verifyRecipeEditingState(
                 "cake", "123",
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)),
-                emptyList())
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")))
         onView(withText("oil")).perform(longClick())
         onView(withText(R.string.delete_ingredient)).perform(click())
         onView(withText("dough")).perform(click())
@@ -679,14 +678,14 @@ class BucketListActivityTest {
         onView(withId(R.id.comment)).perform(replaceText("novel comment"))
         verifyRecipeEditingState(
                 "cake without oil", "10",
-                listOf(Pair.create("dough", 3)),
-                listOf(Pair.create("oil", 222)),
+                listOf(UIIngredient("dough", "3")),
+                listOf(UIIngredient("oil", "222")),
                 "novel comment")
         onView(withId(R.id.save_as_recipe_button)).perform(click())
         verifyRecipeDisplayingState(
                 "cake without oil", "10",
-                listOf(Pair.create("dough", 3)),
-                listOf(Pair.create("oil", 222)),
+                listOf(UIIngredient("dough", "3")),
+                listOf(UIIngredient("oil", "222")),
                 "novel comment")
     }
 
@@ -705,16 +704,16 @@ class BucketListActivityTest {
         clearAllData(foodstuffsList, historyWorker, databaseHolder)
         val recipe = createSavedRecipe(
                 "cake", 123,
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)))
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")))
         val startIntent = createIntent(
                 InstrumentationRegistry.getTargetContext(),
                 recipe)
         activityRule.launchActivity(startIntent)
-        verifyRecipeDisplayingState("cake", "123", emptyList(), emptyList())
+        verifyRecipeDisplayingState("cake", "123", emptyList())
 
         // Edit, try cancel, but don't cancel
         onView(withId(R.id.button_edit)).perform(click())
-        verifyRecipeEditingState("cake", "123", emptyList(), emptyList())
+        verifyRecipeEditingState("cake", "123", emptyList())
         onView(withId(R.id.recipe_name_edit_text)).perform(replaceText("novel cake"))
         if (byBackPress) {
             Espresso.pressBack()
@@ -727,7 +726,7 @@ class BucketListActivityTest {
                 withText(R.string.cancel_recipe_editing_dialog_title)
         )).perform(click())
         onView(withId(R.id.negative_button)).perform(click())
-        verifyRecipeEditingState("novel cake", "123", emptyList(), emptyList())
+        verifyRecipeEditingState("novel cake", "123", emptyList())
 
         // This time - confirm cancellation
         if (byBackPress) {
@@ -741,7 +740,7 @@ class BucketListActivityTest {
                 withText(R.string.cancel_recipe_editing_dialog_title)
         )).perform(click())
         onView(withId(R.id.positive_button)).perform(click())
-        verifyRecipeDisplayingState("cake", "123", emptyList(), emptyList())
+        verifyRecipeDisplayingState("cake", "123", emptyList())
 
         // Verify that the recipe is not changed
         val allRecipes = recipesRepository.getAllRecipesRx().blockingGet()
@@ -769,7 +768,7 @@ class BucketListActivityTest {
         val startIntent = createIntent(
                 InstrumentationRegistry.getTargetContext())
         activityRule.launchActivity(startIntent)
-        verifyRecipeCreatingState("cake", "123", emptyList(), emptyList())
+        verifyRecipeCreatingState("cake", "123", emptyList())
 
         // Edit, try cancel, but don't cancel
         onView(withId(R.id.recipe_name_edit_text)).perform(replaceText("novel cake"))
@@ -784,7 +783,7 @@ class BucketListActivityTest {
                 withText(R.string.cancel_recipe_creation_dialog_title)
         )).perform(click())
         onView(withId(R.id.negative_button)).perform(click())
-        verifyRecipeCreatingState("novel cake", "123", emptyList(), emptyList())
+        verifyRecipeCreatingState("novel cake", "123", emptyList())
 
         // This time - confirm cancellation
         if (byBackPress) {
@@ -822,14 +821,14 @@ class BucketListActivityTest {
         clearAllData(foodstuffsList, historyWorker, databaseHolder)
         val recipe = createSavedRecipe(
                 "cake", 123,
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)))
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")))
         val startIntent = createIntent(
                 InstrumentationRegistry.getTargetContext(),
                 recipe)
         activityRule.launchActivity(startIntent)
-        verifyRecipeDisplayingState("cake", "123", emptyList(), emptyList())
+        verifyRecipeDisplayingState("cake", "123", emptyList())
         onView(withId(R.id.button_edit)).perform(click())
-        verifyRecipeEditingState("cake", "123", emptyList(), emptyList())
+        verifyRecipeEditingState("cake", "123", emptyList())
         mainThreadExecutor.execute { assertEquals(recipe, bucketList.getRecipe()) }
         if (byBackPress) {
             onView(withId(R.id.button_close)).perform(click())
@@ -837,7 +836,7 @@ class BucketListActivityTest {
             Espresso.pressBack()
         }
         onView(withId(R.id.two_options_dialog_layout)).check(isNotDisplayed())
-        verifyRecipeDisplayingState("cake", "123", emptyList(), emptyList())
+        verifyRecipeDisplayingState("cake", "123", emptyList())
         // BucketList expected to be cleaned
         mainThreadExecutor.execute { Assert.assertNotEquals(recipe, bucketList.getRecipe()) }
         mainThreadExecutor.execute { assertEquals("", bucketList.getName()) }
@@ -857,12 +856,12 @@ class BucketListActivityTest {
         clearAllData(foodstuffsList, historyWorker, databaseHolder)
         val recipe = createRecipe(
                 "cake", 123,
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)))
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")))
         mainThreadExecutor.execute { bucketList.setRecipe(recipe) }
         val startIntent = createIntent(
                 InstrumentationRegistry.getTargetContext())
         activityRule.launchActivity(startIntent)
-        verifyRecipeCreatingState("cake", "123", emptyList(), emptyList())
+        verifyRecipeCreatingState("cake", "123", emptyList())
         mainThreadExecutor.execute { assertEquals(recipe, bucketList.getRecipe()) }
         if (byBackPress) {
             onView(withId(R.id.button_close)).perform(click())
@@ -884,7 +883,7 @@ class BucketListActivityTest {
         clearAllData(foodstuffsList, historyWorker, databaseHolder)
         val recipe = createSavedRecipe(
                 "cake", 123,
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)),
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")),
                 "novel comment")
         mainThreadExecutor.execute { bucketList.setRecipe(recipe) }
         val startIntent = createIntent(
@@ -892,9 +891,8 @@ class BucketListActivityTest {
         activityRule.launchActivity(startIntent)
         verifyRecipeEditingState(
                 "cake", "123",
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)),
-                emptyList(),
-                "novel comment")
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")),
+                expectedComment = "novel comment")
     }
 
     @Test
@@ -902,7 +900,7 @@ class BucketListActivityTest {
         clearAllData(foodstuffsList, historyWorker, databaseHolder)
         val (id, foodstuff, ingredients, _, _) = createSavedRecipe(
                 "cake", 123,
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)),
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")),
                 "comment")
         val changedRecipe = Recipe(
                 id,
@@ -916,18 +914,16 @@ class BucketListActivityTest {
         activityRule.launchActivity(startIntent)
         verifyRecipeEditingState(
                 "novel cake", "123",
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)),
-                emptyList(),
-                "novel comment")
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")),
+                expectedComment = "novel comment")
         onView(withId(R.id.button_close)).perform(click())
         // Cancellation dialog is expected
         onView(withText(R.string.cancel_recipe_editing_dialog_title)).check(matches(isDisplayed()))
         onView(withId(R.id.positive_button)).perform(click())
         verifyRecipeDisplayingState(
                 "cake", "123",
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)),
-                emptyList(),
-                "comment")
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")),
+                expectedComment = "comment")
     }
 
     @Test
@@ -935,7 +931,7 @@ class BucketListActivityTest {
         clearAllData(foodstuffsList, historyWorker, databaseHolder)
         val notSavedRecipe = createRecipe(
                 "cake", 123,
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)))
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")))
         mainThreadExecutor.execute { bucketList.setRecipe(notSavedRecipe) }
         val startIntent = createIntent(
                 InstrumentationRegistry.getTargetContext())
@@ -953,7 +949,7 @@ class BucketListActivityTest {
         clearAllData(foodstuffsList, historyWorker, databaseHolder)
         val recipe = createSavedRecipe(
                 "cake", 123,
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)))
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")))
         val startIntent = createIntent(
                 InstrumentationRegistry.getTargetContext(),
                 recipe)
@@ -971,7 +967,7 @@ class BucketListActivityTest {
         clearAllData(foodstuffsList, historyWorker, databaseHolder)
         val notSavedRecipe = createRecipe(
                 "cake", 123,
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)))
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")))
         mainThreadExecutor.execute { bucketList.setRecipe(notSavedRecipe) }
         val startIntent = createIntent(
                 InstrumentationRegistry.getTargetContext())
@@ -979,8 +975,7 @@ class BucketListActivityTest {
         verifyRecipeCreatingState(
                 "cake",
                 "123",
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)),
-                emptyList())
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")))
         onView(withId(R.id.save_as_recipe_button)).check(matches(isEnabled()))
 
         // Name
@@ -1009,7 +1004,7 @@ class BucketListActivityTest {
         clearAllData(foodstuffsList, historyWorker, databaseHolder)
         val notSavedRecipe = createRecipe(
                 "cake", 123,
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)))
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")))
         mainThreadExecutor.execute { bucketList.setRecipe(notSavedRecipe) }
         val startIntent = createIntent(
                 InstrumentationRegistry.getTargetContext())
@@ -1017,8 +1012,7 @@ class BucketListActivityTest {
         verifyRecipeCreatingState(
                 "cake",
                 "123",
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)),
-                emptyList())
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")))
         onView(withId(R.id.save_as_recipe_button)).check(matches(isEnabled()))
     }
 
@@ -1027,7 +1021,7 @@ class BucketListActivityTest {
         clearAllData(foodstuffsList, historyWorker, databaseHolder)
         val notSavedRecipe = createRecipe(
                 "", 123,
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)))
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")))
         mainThreadExecutor.execute { bucketList.setRecipe(notSavedRecipe) }
         val startIntent = createIntent(
                 InstrumentationRegistry.getTargetContext())
@@ -1035,8 +1029,7 @@ class BucketListActivityTest {
         verifyRecipeCreatingState(
                 "",
                 "123",
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)),
-                emptyList())
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")))
         onView(withId(R.id.save_as_recipe_button)).check(matches(not(isEnabled())))
     }
 
@@ -1051,7 +1044,6 @@ class BucketListActivityTest {
         verifyRecipeCreatingState(
                 "cake",
                 "123",
-                emptyList(),
                 emptyList())
         onView(withId(R.id.save_as_recipe_button)).check(matches(not(isEnabled())))
     }
@@ -1062,7 +1054,7 @@ class BucketListActivityTest {
         clearAllData(foodstuffsList, historyWorker, databaseHolder)
         val recipe = createRecipe(
                 "cake", 123,
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)),
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")),
                 comment = "")
         mainThreadExecutor.execute { bucketList.setRecipe(recipe) }
         val startIntent = createIntent(
@@ -1070,9 +1062,8 @@ class BucketListActivityTest {
         activityRule.launchActivity(startIntent)
 
         verifyRecipeCreatingState("cake", "123",
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)),
-                emptyList(),
-                "")
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")),
+                expectedComment = "")
 
         onView(withId(R.id.add_comment_button)).check(matches(isDisplayed()))
         onView(withId(R.id.comment_title)).check(matches(isDisplayed()))
@@ -1106,7 +1097,7 @@ class BucketListActivityTest {
         clearAllData(foodstuffsList, historyWorker, databaseHolder)
         val recipe = createSavedRecipe(
                 "cake", 123,
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)),
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")),
                 "comment")
         val startIntent = createIntent(
                 InstrumentationRegistry.getTargetContext(),
@@ -1115,9 +1106,8 @@ class BucketListActivityTest {
 
         // Verify initial filled state
         verifyRecipeDisplayingState("cake", "123",
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)),
-                emptyList(),
-                "comment")
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")),
+                expectedComment = "comment")
         onView(withId(R.id.add_comment_button)).check(isNotDisplayed())
         onView(withId(R.id.comment_title)).check(matches(isDisplayed()))
         onView(withId(R.id.comment)).check(matches(isDisplayed()))
@@ -1126,9 +1116,8 @@ class BucketListActivityTest {
         // Verify initial editing state
         onView(withId(R.id.button_edit)).perform(click())
         verifyRecipeEditingState("cake", "123",
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)),
-                emptyList(),
-                "comment")
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")),
+                expectedComment = "comment")
         onView(withId(R.id.add_comment_button)).check(matches(isDisplayed()))
         onView(withId(R.id.comment_title)).check(matches(isDisplayed()))
         onView(withId(R.id.comment)).check(matches(isDisplayed()))
@@ -1138,9 +1127,8 @@ class BucketListActivityTest {
         onView(withId(R.id.comment)).perform(replaceText("novel comment"))
         onView(withId(R.id.save_as_recipe_button)).perform(click())
         verifyRecipeDisplayingState("cake", "123",
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)),
-                emptyList(),
-                "novel comment")
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")),
+                expectedComment = "novel comment")
         onView(withId(R.id.add_comment_button)).check(isNotDisplayed())
         onView(withId(R.id.comment_title)).check(matches(isDisplayed()))
         onView(withId(R.id.comment)).check(matches(isDisplayed()))
@@ -1165,9 +1153,8 @@ class BucketListActivityTest {
         // Save and verify displaying empty comment
         onView(withId(R.id.save_as_recipe_button)).perform(click())
         verifyRecipeDisplayingState("cake", "123",
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)),
-                emptyList(),
-                "")
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")),
+                expectedComment = "")
         onView(withId(R.id.add_comment_button)).check(isNotDisplayed())
         onView(withId(R.id.comment_title)).check(isNotDisplayed())
         onView(withId(R.id.comment)).check(isNotDisplayed())
@@ -1184,7 +1171,7 @@ class BucketListActivityTest {
         clearAllData(foodstuffsList, historyWorker, databaseHolder)
         val recipe = createRecipe(
                 "cake", 123,
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)),
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")),
                 comment = "comment")
         mainThreadExecutor.execute { bucketList.setRecipe(recipe) }
         val startIntent = createIntent(
@@ -1192,16 +1179,18 @@ class BucketListActivityTest {
         activityRule.launchActivity(startIntent)
 
         verifyRecipeCreatingState("cake", "123",
-                listOf(Pair.create("dough", 111), Pair.create("oil", 222)),
-                emptyList(),
-                "comment")
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")),
+                expectedComment = "comment")
 
         onView(withId(R.id.comment)).check(matches(isDisplayed()))
         onView(withId(R.id.comment)).perform(replaceText("    "))
 
-        // Change focus and verify that comment is not displayed, even though we entered whitespaces
+        // Change focus and verify that comment is still displayed - even
+        // though we will trim the whitespaces, we will do that later (so we don't
+        // disturb user's intention by editing what they're typing in).
         onView(withId(R.id.recipe_name_edit_text)).perform(click())
-        onView(withId(R.id.comment)).check(isNotDisplayed())
+        onView(withId(R.id.comment)).check(matches(isDisplayed()))
+        onView(withId(R.id.comment)).check(matches(withText("    ")))
 
         Espresso.closeSoftKeyboard()
         onView(withId(R.id.save_as_recipe_button)).perform(click())
@@ -1211,12 +1200,139 @@ class BucketListActivityTest {
         assertEquals("", resultRecipe.comment)
     }
 
+    @Test
+    fun ingredientCommentBehaviour() {
+        // Create recipe
+        clearAllData(foodstuffsList, historyWorker, databaseHolder)
+        val recipe = createSavedRecipe(
+                "cake", 123,
+                listOf(UIIngredient("dough", "111", ""), UIIngredient("oil", "222", "")))
+        val startIntent = createIntent(
+                InstrumentationRegistry.getTargetContext(),
+                recipe)
+        activityRule.launchActivity(startIntent)
+
+        verifyRecipeDisplayingState("cake", "123",
+                listOf(UIIngredient("dough", "111", ""), UIIngredient("oil", "222", "")))
+
+        onView(withId(R.id.button_edit)).perform(click())
+
+        verifyRecipeEditingState("cake", "123",
+                listOf(UIIngredient("dough", "111", ""), UIIngredient("oil", "222", "")))
+
+        onView(withText("dough")).perform(longClick())
+        onView(withText(R.string.edit_ingredient_comment)).perform(click())
+        onView(withId(R.id.comment)).perform(replaceText("novel comment"))
+        onView(withId(R.id.save_button)).perform(click())
+
+        verifyRecipeEditingState("cake", "123",
+                listOf(UIIngredient("dough", "111", "novel comment"),
+                        UIIngredient("oil", "222", "")))
+
+        onView(withId(R.id.save_as_recipe_button)).perform(click())
+        verifyRecipeDisplayingState("cake", "123",
+                listOf(UIIngredient("dough", "111", "novel comment"),
+                        UIIngredient("oil", "222", "")))
+
+        // Verify saved ingredient comment
+        val allRecipes: List<Recipe> = ArrayList(recipesRepository.getAllRecipesRx().blockingGet())
+        assertEquals(1, allRecipes.size.toLong())
+        val savedIngredient = allRecipes[0].ingredients.find { it.foodstuff.name == "dough" }!!
+        assertEquals("novel comment", savedIngredient.comment)
+    }
+
+    @Test
+    fun ingredientCommentIsTrimmed() {
+        // Create recipe
+        clearAllData(foodstuffsList, historyWorker, databaseHolder)
+        val recipe = createSavedRecipe(
+                "cake", 123,
+                listOf(UIIngredient("dough", "111", "comment"), UIIngredient("oil", "222", "")))
+        val startIntent = createIntent(
+                InstrumentationRegistry.getTargetContext(),
+                recipe)
+        activityRule.launchActivity(startIntent)
+
+        verifyRecipeDisplayingState("cake", "123",
+                listOf(UIIngredient("dough", "111", "comment"), UIIngredient("oil", "222", "")))
+
+        onView(withId(R.id.button_edit)).perform(click())
+
+        verifyRecipeEditingState("cake", "123",
+                listOf(UIIngredient("dough", "111", "comment"), UIIngredient("oil", "222", "")))
+
+        onView(withText("dough")).perform(longClick())
+        onView(withText(R.string.edit_ingredient_comment)).perform(click())
+        onView(withId(R.id.comment)).perform(replaceText("      "))
+        onView(withId(R.id.save_button)).perform(click())
+
+        // Whitespaces erased
+        verifyRecipeEditingState("cake", "123",
+                listOf(UIIngredient("dough", "111", ""),
+                        UIIngredient("oil", "222", "")))
+
+        onView(withId(R.id.save_as_recipe_button)).perform(click())
+        verifyRecipeDisplayingState("cake", "123",
+                listOf(UIIngredient("dough", "111", ""),
+                        UIIngredient("oil", "222", "")))
+
+        // Verify saved ingredient comment
+        val allRecipes: List<Recipe> = ArrayList(recipesRepository.getAllRecipesRx().blockingGet())
+        assertEquals(1, allRecipes.size.toLong())
+        val savedIngredient = allRecipes[0].ingredients.find { it.foodstuff.name == "dough" }!!
+        assertEquals("", savedIngredient.comment)
+    }
+
+    @Test
+    fun ingredientCommentDialog_restoredOnSaveAndRestoreInstanceState() {
+        // Create recipe
+        clearAllData(foodstuffsList, historyWorker, databaseHolder)
+        val recipe = createSavedRecipe(
+                "cake", 123,
+                listOf(UIIngredient("dough", "111", ""), UIIngredient("oil", "222", "")))
+        val startIntent = createIntent(
+                InstrumentationRegistry.getTargetContext(),
+                recipe)
+        activityRule.launchActivity(startIntent)
+
+        verifyRecipeDisplayingState("cake", "123",
+                listOf(UIIngredient("dough", "111", ""), UIIngredient("oil", "222", "")))
+
+        onView(withId(R.id.button_edit)).perform(click())
+        verifyRecipeEditingState("cake", "123",
+                listOf(UIIngredient("dough", "111", ""), UIIngredient("oil", "222", "")))
+
+        onView(withText("dough")).perform(longClick())
+        onView(withText(R.string.edit_ingredient_comment)).perform(click())
+        onView(withId(R.id.comment)).perform(replaceText("novel comment"))
+
+        // Recreate activity!
+        mainThreadExecutor.execute { activityRule.activity.recreate() }
+        
+        onView(withId(R.id.save_button)).perform(click())
+
+        verifyRecipeEditingState("cake", "123",
+                listOf(UIIngredient("dough", "111", "novel comment"),
+                        UIIngredient("oil", "222", "")))
+
+        onView(withId(R.id.save_as_recipe_button)).perform(click())
+        verifyRecipeDisplayingState("cake", "123",
+                listOf(UIIngredient("dough", "111", "novel comment"),
+                        UIIngredient("oil", "222", "")))
+
+        // Verify saved ingredient comment
+        val allRecipes: List<Recipe> = ArrayList(recipesRepository.getAllRecipesRx().blockingGet())
+        assertEquals(1, allRecipes.size.toLong())
+        val savedIngredient = allRecipes[0].ingredients.find { it.foodstuff.name == "dough" }!!
+        assertEquals("novel comment", savedIngredient.comment)
+    }
+
     private fun createSavedRecipe(
             name: String,
             weight: Int,
-            ingredientsNamesAndWeights: List<Pair<String, Int>>,
+            ingredients: List<UIIngredient>,
             comment: String = "comment"): Recipe {
-        val notSavedRecipe = createRecipe(name, weight, ingredientsNamesAndWeights, comment)
+        val notSavedRecipe = createRecipe(name, weight, ingredients, comment)
         val recipeResult = recipesRepository.saveRecipeRx(notSavedRecipe).blockingGet()
         return (recipeResult as CreateRecipeResult.Ok).recipe
     }
@@ -1224,13 +1340,13 @@ class BucketListActivityTest {
     private fun createRecipe(
             name: String,
             weight: Int,
-            ingredientsNamesAndWeights: List<Pair<String, Int>>,
+            uiIngredients: List<UIIngredient>,
             comment: String = "comment"): Recipe {
         val ingredients: MutableList<Ingredient> = ArrayList()
-        for (ingredientPair in ingredientsNamesAndWeights) {
-            var ingredient = Foodstuff.withName(ingredientPair.first).withNutrition(1f, 2f, 3f, 4f)
+        for (uiIngredient in uiIngredients) {
+            var ingredient = Foodstuff.withName(uiIngredient.name).withNutrition(1f, 2f, 3f, 4f)
             ingredient = foodstuffsList.saveFoodstuff(ingredient).blockingGet()
-            ingredients.add(create(ingredient, ingredientPair.second!!.toFloat(), "comment"))
+            ingredients.add(create(ingredient, uiIngredient.weight.toFloat(), uiIngredient.comment))
         }
         val foodstuff = Foodstuff.withName(name).withNutrition(1f, 2f, 3f, 4f)
         return create(foodstuff, ingredients, weight.toFloat(), comment)
@@ -1239,8 +1355,8 @@ class BucketListActivityTest {
     private fun verifyRecipeDisplayingState(
             recipeName: String,
             weightText: String,
-            expectedIngredients: List<Pair<String, Int>>,
-            notExpectedIngredients: List<Pair<String, Int>>,
+            expectedIngredients: List<UIIngredient>,
+            notExpectedIngredients: List<UIIngredient> = emptyList(),
             expectedComment: String? = null) {
         onView(withId(R.id.button_edit)).check(matches(isDisplayed()))
         onView(withId(R.id.title_text)).check(matches(withText(R.string.bucket_list_title_recipe)))
@@ -1265,26 +1381,38 @@ class BucketListActivityTest {
     }
 
     private fun verifyDisplayedIngredients(
-            expectedIngredients: List<Pair<String, Int>>,
-            notExpectedIngredients: List<Pair<String, Int>>) {
+            expectedIngredients: List<UIIngredient>,
+            notExpectedIngredients: List<UIIngredient>) {
         for (ingredient in expectedIngredients) {
             val expectedGramsText = activityRule.activity.getString(
                     R.string.n_gramms,
-                    ingredient.second)
+                    ingredient.weight.toInt())
+            val commentMatcher = if (!TextUtils.isEmpty(ingredient.comment)) {
+                hasDescendant(withText(ingredient.comment))
+            } else {
+                any(View::class.java)
+            }
             onView(CoreMatchers.allOf(
                     withParent(isDescendantOfA(withId(R.id.ingredients_list))),
-                    hasDescendant(withText(ingredient.first)),
-                    hasDescendant(withText(expectedGramsText))))
+                    hasDescendant(withText(ingredient.name)),
+                    hasDescendant(withText(expectedGramsText)),
+                    commentMatcher))
                     .check(matches(isDisplayed()))
         }
         for (ingredient in notExpectedIngredients) {
             val expectedGramsText = activityRule.activity.getString(
                     R.string.n_gramms,
-                    ingredient.second)
+                    ingredient.weight.toInt())
+            val commentMatcher = if (!TextUtils.isEmpty(ingredient.comment)) {
+                hasDescendant(withText(ingredient.comment))
+            } else {
+                any(View::class.java)
+            }
             onView(CoreMatchers.allOf(
                     withParent(isDescendantOfA(withId(R.id.ingredients_list))),
-                    hasDescendant(withText(ingredient.first)),
-                    hasDescendant(withText(expectedGramsText))))
+                    hasDescendant(withText(ingredient.name)),
+                    hasDescendant(withText(expectedGramsText)),
+                    commentMatcher))
                     .check(isNotDisplayed())
         }
     }
@@ -1292,8 +1420,8 @@ class BucketListActivityTest {
     private fun verifyRecipeEditingState(
             recipeName: String,
             weightText: String,
-            expectedIngredients: List<Pair<String, Int>>,
-            notExpectedIngredients: List<Pair<String, Int>>,
+            expectedIngredients: List<UIIngredient>,
+            notExpectedIngredients: List<UIIngredient> = emptyList(),
             expectedComment: String? = null) {
         onView(withId(R.id.button_edit)).check(isNotDisplayed())
         onView(withId(R.id.title_text)).check(matches(withText(R.string.bucket_list_title_recipe_editing)))
@@ -1320,8 +1448,8 @@ class BucketListActivityTest {
     private fun verifyRecipeCreatingState(
             recipeName: String,
             weightText: String,
-            expectedIngredients: List<Pair<String, Int>>,
-            notExpectedIngredients: List<Pair<String, Int>>,
+            expectedIngredients: List<UIIngredient>,
+            notExpectedIngredients: List<UIIngredient> = emptyList(),
             expectedComment: String? = null) {
         onView(withId(R.id.button_edit)).check(isNotDisplayed())
         onView(withId(R.id.title_text)).check(matches(withText(R.string.bucket_list_title_recipe_creation)))

@@ -12,10 +12,10 @@ import korablique.recipecalculator.model.Ingredient
 import korablique.recipecalculator.ui.MyViewHolder
 import java.util.*
 
-class BucketListAdapter(private val context: Context) : RecyclerView.Adapter<MyViewHolder>() {
-    private val VIEW_TYPE_INGREDIENT = 0
-    private val VIEW_TYPE_ADD_INGREDIENT_BUTTON = 1
+private const val VIEW_TYPE_INGREDIENT = 0
+private const val VIEW_TYPE_ADD_INGREDIENT_BUTTON = 1
 
+class BucketListAdapter(private val context: Context) : RecyclerView.Adapter<MyViewHolder>() {
     interface OnItemClickedObserver {
         fun onItemClicked(ingredient: Ingredient, position: Int) = Unit
     }
@@ -63,7 +63,7 @@ class BucketListAdapter(private val context: Context) : RecyclerView.Adapter<MyV
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
         return if (viewType == VIEW_TYPE_INGREDIENT) {
             MyViewHolder(LayoutInflater.from(parent.context)
-                    .inflate(R.layout.new_foodstuff_layout, parent, false))
+                    .inflate(R.layout.bucket_list_igredient_layout, parent, false))
         } else if (viewType == VIEW_TYPE_ADD_INGREDIENT_BUTTON) {
             MyViewHolder(LayoutInflater.from(parent.context)
                     .inflate(R.layout.bucket_list_add_ingredient_button, parent, false))
@@ -74,13 +74,21 @@ class BucketListAdapter(private val context: Context) : RecyclerView.Adapter<MyV
 
     override fun onBindViewHolder(holder: MyViewHolder, displayedPosition: Int) {
         if (onAddIngredientButtonObserver != null && displayedPosition == ingredients.size) {
-            holder.item.findViewById<View>(R.id.bucket_list_add_ingredient_button).setOnClickListener { v: View? -> onAddIngredientButtonObserver!!.run() }
+            holder.item.findViewById<View>(R.id.bucket_list_add_ingredient_button).setOnClickListener {
+                onAddIngredientButtonObserver?.run()
+            }
             return
         }
         val item = holder.item
         val ingredient = ingredients[displayedPosition]
         setTextViewText(item, R.id.name, ingredient.foodstuff.name)
         setTextViewText(item, R.id.extra_info_block, context.getString(R.string.n_gramms, Math.round(ingredient.weight)))
+        if (!ingredient.comment.isEmpty()) {
+            item.findViewById<View>(R.id.ingredient_comment).visibility = View.VISIBLE
+            setTextViewText(item, R.id.ingredient_comment, ingredient.comment)
+        } else {
+            item.findViewById<View>(R.id.ingredient_comment).visibility = View.GONE
+        }
         item.setOnClickListener { onItemClickedObserver?.onItemClicked(ingredient, holder.adapterPosition) }
         item.setOnLongClickListener {
             onItemLongClickedObserver?.onItemLongClicked(

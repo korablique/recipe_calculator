@@ -20,6 +20,7 @@ import korablique.recipecalculator.model.Recipe
 import korablique.recipecalculator.ui.TwoOptionsDialog
 import korablique.recipecalculator.ui.bucketlist.BucketList
 import korablique.recipecalculator.ui.bucketlist.CommentLayoutController
+import korablique.recipecalculator.ui.bucketlist.IngredientCommentDialog
 import korablique.recipecalculator.ui.card.Card
 import korablique.recipecalculator.ui.card.CardDialog
 import korablique.recipecalculator.util.FloatUtils
@@ -29,9 +30,11 @@ import java.lang.IllegalStateException
 
 private const val TAG_CANCELLATION_DIALOG = "TAG_CANCELLATION_DIALOG"
 private const val EXTRA_INITIAL_RECIPE = "EXTRA_INITIAL_RECIPE"
+private const val EXTRA_COMMENTED_INGREDIENT_POSITION = "EXTRA_COMMENTED_INGREDIENT_POSITION"
 
 class BucketListActivityRecipeEditingState private constructor(
         private val initialDisplayedRecipe: Recipe,
+        private var commentDialogIngredientPosition: Int?,
         private val commentLayoutController: CommentLayoutController,
         private val savedInstanceState: Bundle?,
         private val activity: BaseActivity,
@@ -57,7 +60,7 @@ class BucketListActivityRecipeEditingState private constructor(
             bucketList: BucketList,
             recipesRepository: RecipesRepository,
             mainThreadExecutor: MainThreadExecutor) :
-            this(initialRecipe, commentLayoutController, null,
+            this(initialRecipe, null, commentLayoutController, null,
                     activity, bucketList, recipesRepository, mainThreadExecutor)
 
     constructor(
@@ -68,6 +71,7 @@ class BucketListActivityRecipeEditingState private constructor(
             recipesRepository: RecipesRepository,
             mainThreadExecutor: MainThreadExecutor) :
             this(savedInstanceState.getParcelable(EXTRA_INITIAL_RECIPE) as Recipe,
+                    extractCommentedIngredientPosition(savedInstanceState),
                     commentLayoutController,
                     savedInstanceState,
                     activity, bucketList, recipesRepository, mainThreadExecutor)
@@ -84,12 +88,28 @@ class BucketListActivityRecipeEditingState private constructor(
     override fun saveInstanceState(): Bundle {
         val result = Bundle()
         result.putParcelable(EXTRA_INITIAL_RECIPE, initialDisplayedRecipe)
+        val commentedIngredientPosition = commentDialogIngredientPosition ?: -1
+        result.putInt(EXTRA_COMMENTED_INGREDIENT_POSITION, commentedIngredientPosition)
         return result
     }
 
     override fun initImpl() {
         // Close the card if it's open
         CardDialog.findCard(activity)?.dismiss()
+
+        // Reinit comment dialog - the user might've written a long comment
+        // and it's bad to lose it
+        val ingredientCommentDialog = IngredientCommentDialog.findDialog(activity.supportFragmentManager)
+        if (ingredientCommentDialog != null) {
+            val pos = commentDialogIngredientPosition
+            if (pos != null) {
+                initCommentDialog(ingredientCommentDialog, pos)
+            } else {
+                // We don't know for which position the dialog is shown
+                ingredientCommentDialog.dismiss()
+                // TODO: report an error
+            }
+        }
 
         buttonClose = findViewById(R.id.button_close)
         saveAsRecipeButton = findViewById(R.id.save_as_recipe_button)
@@ -116,6 +136,7 @@ class BucketListActivityRecipeEditingState private constructor(
         }
 
         saveAsRecipeButton.setOnClickListener {
+            bucketList.setComment(bucketList.getComment().trim())
             if (initialDisplayedRecipe.isFromDB) {
                 saveAndDisplayRecipe()
             } else {
@@ -268,11 +289,31 @@ class BucketListActivityRecipeEditingState private constructor(
                 onRecipeUpdated(bucketList.getRecipe())
                 updateSaveButtonsEnability()
                 true
+            } else if (item.itemId == R.id.comment_ingredient) {
+                val dialog = IngredientCommentDialog.showDialog(activity.supportFragmentManager, ingredient.comment)
+                initCommentDialog(dialog, position)
+                true
             } else {
                 false
             }
         }
         return true
+    }
+
+    private fun initCommentDialog(dialog: IngredientCommentDialog, position: Int) {
+        commentDialogIngredientPosition = position
+        dialog.setOnDismissListener {
+            commentDialogIngredientPosition = null
+        }
+        dialog.setOnSaveButtonClickListener { newComment ->
+            var recipe = getRecipe()
+            val newIngredients = recipe.ingredients.toMutableList()
+            newIngredients[position] = newIngredients[position].copy(comment = newComment.trim())
+            recipe = recipe.copy(ingredients = newIngredients)
+            bucketList.setRecipe(recipe)
+            onRecipeUpdated(bucketList.getRecipe())
+            dialog.dismiss()
+        }
     }
 
     override fun onActivityBackPressed(): Boolean {
@@ -341,5 +382,14 @@ class BucketListActivityRecipeEditingState private constructor(
         // Finish the Activity without cleaning BucketList - filled bucket list
         // effectively keeps all changes and lets the user to add new ingredients into it.
         finish(FinishResult.Canceled)
+    }
+}
+
+private fun extractCommentedIngredientPosition(savedState: Bundle): Int? {
+    val position = savedState.getInt(EXTRA_COMMENTED_INGREDIENT_POSITION, -1)
+    return if (position >= 0) {
+        position
+    } else {
+        null
     }
 }

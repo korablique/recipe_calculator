@@ -47,7 +47,7 @@ class CommentLayoutController(private val layout: ConstraintLayout) {
 
     private fun onCommentChanged() {
         updateEmptiessState()
-        commentEditsObservers.forEach { it.onCommentViewTextEdited(commentView.text.toString().trim()) }
+        commentEditsObservers.forEach { it.onCommentViewTextEdited(commentView.text.toString()) }
     }
 
     fun setEditable(editable: Boolean) {
