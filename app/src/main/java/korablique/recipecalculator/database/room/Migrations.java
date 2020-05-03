@@ -173,6 +173,7 @@ public class Migrations {
                             IngredientContract.COLUMN_NAME_INGREDIENT_WEIGHT + " REAL NOT NULL, " +
                             IngredientContract.COLUMN_NAME_INGREDIENT_FOODSTUFF_ID + " INTEGER NOT NULL, " +
                             IngredientContract.COLUMN_NAME_COMMENT + " TEXT NOT NULL, " +
+                            IngredientContract.COLUMN_INDEX + " INTEGER NOT NULL, " +
                             "FOREIGN KEY (" + IngredientContract.COLUMN_NAME_RECIPE_ID + ") " +
                             "REFERENCES " + RECIPE_TABLE_NAME + "(" + RecipeContract.ID + "), " +
                             "FOREIGN KEY (" + IngredientContract.COLUMN_NAME_INGREDIENT_FOODSTUFF_ID + ") " +

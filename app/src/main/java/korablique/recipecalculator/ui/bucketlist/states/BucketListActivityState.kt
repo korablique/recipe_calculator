@@ -71,5 +71,6 @@ abstract class BucketListActivityState {
     }
     open fun onActivityBackPressed(): Boolean = false
     open fun supportsIngredientsAddition(): Boolean = false
+    open fun createIngredientsDragAndDropObserver(): BucketListAdapter.ItemDragAndDropObserver? = null
     open fun onAddIngredientButtonClicked() {}
 }

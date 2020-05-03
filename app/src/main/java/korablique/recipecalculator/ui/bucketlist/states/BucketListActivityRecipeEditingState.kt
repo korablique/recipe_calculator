@@ -19,6 +19,7 @@ import korablique.recipecalculator.model.Ingredient
 import korablique.recipecalculator.model.Recipe
 import korablique.recipecalculator.ui.TwoOptionsDialog
 import korablique.recipecalculator.ui.bucketlist.BucketList
+import korablique.recipecalculator.ui.bucketlist.BucketListAdapter
 import korablique.recipecalculator.ui.bucketlist.CommentLayoutController
 import korablique.recipecalculator.ui.bucketlist.IngredientCommentDialog
 import korablique.recipecalculator.ui.card.Card
@@ -373,6 +374,19 @@ class BucketListActivityRecipeEditingState private constructor(
                 TwoOptionsDialog.ButtonName.NEGATIVE -> {
                     // The dialog is dismissed anyway
                 }
+            }
+        }
+    }
+
+    override fun createIngredientsDragAndDropObserver(): BucketListAdapter.ItemDragAndDropObserver? {
+        return object : BucketListAdapter.ItemDragAndDropObserver {
+            override fun onItemDraggedAndDropped(oldPosition: Int, newPosition: Int) {
+                var recipe = getRecipe()
+                val newIngredients = recipe.ingredients.toMutableList()
+                newIngredients.add(newPosition, newIngredients.removeAt(oldPosition))
+                recipe = recipe.copy(ingredients = newIngredients)
+                bucketList.setRecipe(recipe)
+                onRecipeUpdated(bucketList.getRecipe())
             }
         }
     }

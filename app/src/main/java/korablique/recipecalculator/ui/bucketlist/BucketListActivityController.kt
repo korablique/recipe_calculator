@@ -206,6 +206,7 @@ class BucketListActivityController @Inject constructor(
         findViewById<TextView>(R.id.title_text).setText(currentState.getTitleStringID())
 
         TransitionManager.beginDelayedTransition(findViewById(R.id.bucket_list_activity_layout))
+        adapter.initDragAndDrop(currentState.createIngredientsDragAndDropObserver())
         switchConstraints(R.id.bucket_list_activity_main_content_layout, currentState.getMainConstraintSetDescriptionLayout())
         switchConstraints(R.id.bucket_list_activity_layout, currentState.getConstraintSetDescriptionLayout())
     }

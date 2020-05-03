@@ -6,10 +6,17 @@ import android.view.View
 import androidx.test.InstrumentationRegistry
 import androidx.test.espresso.Espresso
 import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.ViewAction
+import androidx.test.espresso.action.CoordinatesProvider
+import androidx.test.espresso.action.GeneralLocation
+import androidx.test.espresso.action.GeneralSwipeAction
+import androidx.test.espresso.action.Press
+import androidx.test.espresso.action.Swipe
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
 import androidx.test.espresso.action.ViewActions.longClick
 import androidx.test.espresso.action.ViewActions.replaceText
+import androidx.test.espresso.assertion.PositionAssertions.isCompletelyBelow
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.hasDescendant
 import androidx.test.espresso.matcher.ViewMatchers.isDescendantOfA
@@ -64,11 +71,12 @@ import korablique.recipecalculator.ui.mainactivity.history.HistoryController
 import korablique.recipecalculator.ui.mainactivity.history.HistoryFragment
 import korablique.recipecalculator.util.DBTestingUtils.Companion.clearAllData
 import korablique.recipecalculator.util.EspressoUtils.isNotDisplayed
+import korablique.recipecalculator.util.EspressoUtils.matches
 import korablique.recipecalculator.util.FloatUtils
 import korablique.recipecalculator.util.InjectableActivityTestRule
 import korablique.recipecalculator.util.SyncMainThreadExecutor
 import korablique.recipecalculator.util.TestingTimeProvider
-import org.hamcrest.CoreMatchers
+import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.Matchers.any
 import org.hamcrest.Matchers.not
 import org.junit.Assert
@@ -379,12 +387,12 @@ class BucketListActivityTest {
         val startIntent = createIntent(
                 InstrumentationRegistry.getTargetContext())
         activityRule.launchActivity(startIntent)
-        onView(CoreMatchers.allOf(
+        onView(allOf(
                 isDescendantOfA(withId(R.id.protein_layout)),
                 withId(R.id.nutrition_text_view)))
                 .check(matches(withText("10")))
         onView(withId(R.id.total_weight_edit_text)).perform(replaceText("50"))
-        onView(CoreMatchers.allOf(
+        onView(allOf(
                 isDescendantOfA(withId(R.id.protein_layout)),
                 withId(R.id.nutrition_text_view)))
                 .check(matches(withText("20")))
@@ -406,7 +414,7 @@ class BucketListActivityTest {
 
         // Initial weight
         onView(withId(R.id.total_weight_edit_text)).check(matches(withText("100")))
-        onView(CoreMatchers.allOf(
+        onView(allOf(
                 isDescendantOfA(withId(R.id.protein_layout)),
                 withId(R.id.nutrition_text_view)))
                 .check(matches(withText("10")))
@@ -414,7 +422,7 @@ class BucketListActivityTest {
         // Dividing total weight by 2 gives the resulted recipe
         // nutrition: 20 + 20 + 20 = 60, which is valid
         onView(withId(R.id.total_weight_edit_text)).perform(replaceText("50"))
-        onView(CoreMatchers.allOf(
+        onView(allOf(
                 isDescendantOfA(withId(R.id.protein_layout)),
                 withId(R.id.nutrition_text_view)))
                 .check(matches(withText("20")))
@@ -424,7 +432,7 @@ class BucketListActivityTest {
         // Thus, the activity is expected to alter the nutrition to make the nutrition fit
         // the 100 grams limit.
         onView(withId(R.id.total_weight_edit_text)).perform(replaceText("25"))
-        onView(CoreMatchers.allOf(
+        onView(allOf(
                 isDescendantOfA(withId(R.id.protein_layout)),
                 withId(R.id.nutrition_text_view)))
                 .check(matches(withText("33.3")))
@@ -452,7 +460,7 @@ class BucketListActivityTest {
         onView(withText("oil")).perform(longClick())
         onView(withText(R.string.delete_ingredient)).perform(click())
         onView(withText("dough")).perform(click())
-        onView(CoreMatchers.allOf(
+        onView(allOf(
                 withParent(isDescendantOfA(withId(R.id.foodstuff_card_layout))),
                 withId(R.id.weight_edit_text)
         )).perform(replaceText("3"))
@@ -503,7 +511,7 @@ class BucketListActivityTest {
         onView(withText("oil")).perform(longClick())
         onView(withText(R.string.delete_ingredient)).perform(click())
         onView(withText("dough")).perform(click())
-        onView(CoreMatchers.allOf(
+        onView(allOf(
                 withParent(isDescendantOfA(withId(R.id.foodstuff_card_layout))),
                 withId(R.id.weight_edit_text)
         )).perform(replaceText("3"))
@@ -540,7 +548,7 @@ class BucketListActivityTest {
         onView(withText("oil")).perform(longClick())
         onView(withText(R.string.delete_ingredient)).perform(click())
         onView(withText("dough")).perform(click())
-        onView(CoreMatchers.allOf(
+        onView(allOf(
                 withParent(isDescendantOfA(withId(R.id.foodstuff_card_layout))),
                 withId(R.id.weight_edit_text)
         )).perform(replaceText("3"))
@@ -581,7 +589,7 @@ class BucketListActivityTest {
         onView(withText("oil")).perform(longClick())
         onView(withText(R.string.delete_ingredient)).perform(click())
         onView(withText("dough")).perform(click())
-        onView(CoreMatchers.allOf(
+        onView(allOf(
                 withParent(isDescendantOfA(withId(R.id.foodstuff_card_layout))),
                 withId(R.id.weight_edit_text)
         )).perform(replaceText("3"))
@@ -667,7 +675,7 @@ class BucketListActivityTest {
         onView(withText("oil")).perform(longClick())
         onView(withText(R.string.delete_ingredient)).perform(click())
         onView(withText("dough")).perform(click())
-        onView(CoreMatchers.allOf(
+        onView(allOf(
                 withParent(isDescendantOfA(withId(R.id.foodstuff_card_layout))),
                 withId(R.id.weight_edit_text)
         )).perform(replaceText("3"))
@@ -721,7 +729,7 @@ class BucketListActivityTest {
             onView(withId(R.id.button_close)).perform(click())
         }
         onView(withId(R.id.two_options_dialog_layout)).check(matches(isDisplayed()))
-        onView(CoreMatchers.allOf(
+        onView(allOf(
                 isDescendantOfA(withId(R.id.two_options_dialog_layout)),
                 withText(R.string.cancel_recipe_editing_dialog_title)
         )).perform(click())
@@ -735,7 +743,7 @@ class BucketListActivityTest {
             onView(withId(R.id.button_close)).perform(click())
         }
         onView(withId(R.id.two_options_dialog_layout)).check(matches(isDisplayed()))
-        onView(CoreMatchers.allOf(
+        onView(allOf(
                 isDescendantOfA(withId(R.id.two_options_dialog_layout)),
                 withText(R.string.cancel_recipe_editing_dialog_title)
         )).perform(click())
@@ -778,7 +786,7 @@ class BucketListActivityTest {
             onView(withId(R.id.button_close)).perform(click())
         }
         onView(withId(R.id.two_options_dialog_layout)).check(matches(isDisplayed()))
-        onView(CoreMatchers.allOf(
+        onView(allOf(
                 isDescendantOfA(withId(R.id.two_options_dialog_layout)),
                 withText(R.string.cancel_recipe_creation_dialog_title)
         )).perform(click())
@@ -792,7 +800,7 @@ class BucketListActivityTest {
             onView(withId(R.id.button_close)).perform(click())
         }
         onView(withId(R.id.two_options_dialog_layout)).check(matches(isDisplayed()))
-        onView(CoreMatchers.allOf(
+        onView(allOf(
                 isDescendantOfA(withId(R.id.two_options_dialog_layout)),
                 withText(R.string.cancel_recipe_creation_dialog_title)
         )).perform(click())
@@ -1327,6 +1335,45 @@ class BucketListActivityTest {
         assertEquals("novel comment", savedIngredient.comment)
     }
 
+    @Test
+    fun ingredientsRearranging() {
+        // Create recipe
+        clearAllData(foodstuffsList, historyWorker, databaseHolder)
+        val recipe = createSavedRecipe(
+                "cake", 123,
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")))
+        val startIntent = createIntent(
+                InstrumentationRegistry.getTargetContext(),
+                recipe)
+        activityRule.launchActivity(startIntent)
+
+        verifyRecipeDisplayingState("cake", "123",
+                listOf(UIIngredient("dough", "111"), UIIngredient("oil", "222")))
+
+        val oilDragHandleParent = allOf(
+                withParent(isDescendantOfA(withId(R.id.ingredients_list))),
+                hasDescendant(withText("oil")))
+        val oilDragHandle = allOf(
+                withParent(oilDragHandleParent),
+                withId(R.id.drag_handle))
+
+        // Cannot drag and drop initially
+        onView(oilDragHandle).check(isNotDisplayed())
+
+        onView(withId(R.id.button_edit)).perform(click())
+        onView(oilDragHandle).check(matches(isDisplayed()))
+
+        // Drag and drop!
+        onView(oilDragHandle).perform(swipeToTop())
+
+        // Verify changed order
+        verifyRecipeEditingState("cake", "123",
+                listOf(UIIngredient("oil", "222"), UIIngredient("dough", "111")))
+        onView(withId(R.id.save_as_recipe_button)).perform(click())
+        verifyRecipeDisplayingState("cake", "123",
+                listOf(UIIngredient("oil", "222"), UIIngredient("dough", "111")))
+    }
+
     private fun createSavedRecipe(
             name: String,
             weight: Int,
@@ -1383,38 +1430,54 @@ class BucketListActivityTest {
     private fun verifyDisplayedIngredients(
             expectedIngredients: List<UIIngredient>,
             notExpectedIngredients: List<UIIngredient>) {
-        for (ingredient in expectedIngredients) {
-            val expectedGramsText = activityRule.activity.getString(
-                    R.string.n_gramms,
-                    ingredient.weight.toInt())
-            val commentMatcher = if (!TextUtils.isEmpty(ingredient.comment)) {
-                hasDescendant(withText(ingredient.comment))
+        expectedIngredients.forEachIndexed { index, ingredient ->
+            val previous = if (index != 0) {
+                expectedIngredients[index - 1]
             } else {
-                any(View::class.java)
+                null
             }
-            onView(CoreMatchers.allOf(
-                    withParent(isDescendantOfA(withId(R.id.ingredients_list))),
-                    hasDescendant(withText(ingredient.name)),
-                    hasDescendant(withText(expectedGramsText)),
-                    commentMatcher))
-                    .check(matches(isDisplayed()))
+            checkDisplayStatus(ingredient, previous, true)
         }
-        for (ingredient in notExpectedIngredients) {
-            val expectedGramsText = activityRule.activity.getString(
-                    R.string.n_gramms,
-                    ingredient.weight.toInt())
-            val commentMatcher = if (!TextUtils.isEmpty(ingredient.comment)) {
-                hasDescendant(withText(ingredient.comment))
+        notExpectedIngredients.forEachIndexed { index, ingredient ->
+            val previous = if (index != 0) {
+                expectedIngredients[index - 1]
             } else {
-                any(View::class.java)
+                null
             }
-            onView(CoreMatchers.allOf(
-                    withParent(isDescendantOfA(withId(R.id.ingredients_list))),
-                    hasDescendant(withText(ingredient.name)),
-                    hasDescendant(withText(expectedGramsText)),
-                    commentMatcher))
-                    .check(isNotDisplayed())
+            checkDisplayStatus(ingredient, previous, false)
         }
+    }
+
+    private fun checkDisplayStatus(ingredient: UIIngredient,
+                                   previousIngredient: UIIngredient?,
+                                   expectedDisplayed: Boolean) {
+        val expectedGramsText = activityRule.activity.getString(
+                R.string.n_gramms,
+                ingredient.weight.toInt())
+        val commentMatcher = if (!TextUtils.isEmpty(ingredient.comment)) {
+            hasDescendant(withText(ingredient.comment))
+        } else {
+            any(View::class.java)
+        }
+        val visibilityCheck = if (expectedDisplayed) {
+            matches(isDisplayed())
+        } else {
+            isNotDisplayed()
+        }
+        val previousIngredientMatcher = if (previousIngredient != null) {
+            matches(isCompletelyBelow(allOf(
+                    withParent(isDescendantOfA(withId(R.id.ingredients_list))),
+                    hasDescendant(withText(previousIngredient.name)))))
+        } else {
+            any(View::class.java)
+        }
+        onView(allOf(
+                withParent(isDescendantOfA(withId(R.id.ingredients_list))),
+                hasDescendant(withText(ingredient.name)),
+                hasDescendant(withText(expectedGramsText)),
+                commentMatcher,
+                previousIngredientMatcher))
+                .check(visibilityCheck)
     }
 
     private fun verifyRecipeEditingState(
@@ -1472,4 +1535,15 @@ class BucketListActivityTest {
             }
         }
     }
+
+    fun swipeToTop(): ViewAction {
+        return GeneralSwipeAction(Swipe.SLOW,
+                GeneralLocation.CENTER,
+                CoordinatesProvider { view ->
+                    val coordinates = GeneralLocation.CENTER.calculateCoordinates(view)
+                    coordinates[1] = 0f
+                    coordinates
+                }, Press.FINGER)
+    }
+
 }

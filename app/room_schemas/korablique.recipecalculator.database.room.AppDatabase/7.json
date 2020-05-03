@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 7,
-    "identityHash": "5a1995188a947b74c7cf9971542c8b48",
+    "identityHash": "b36d87e9f2b190b880af3d6b12f584b1",
     "entities": [
       {
         "tableName": "foodstuffs",
@@ -266,7 +266,7 @@
       },
       {
         "tableName": "ingredient",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `recipe_id` INTEGER NOT NULL, `ingredient_weight` REAL NOT NULL, `ingredient_foodstuff_id` INTEGER NOT NULL, `comment` TEXT NOT NULL, FOREIGN KEY(`recipe_id`) REFERENCES `recipe`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION , FOREIGN KEY(`ingredient_foodstuff_id`) REFERENCES `foodstuffs`(`ID`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `recipe_id` INTEGER NOT NULL, `ingredient_weight` REAL NOT NULL, `ingredient_foodstuff_id` INTEGER NOT NULL, `comment` TEXT NOT NULL, `ingredient_index` INTEGER NOT NULL, FOREIGN KEY(`recipe_id`) REFERENCES `recipe`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION , FOREIGN KEY(`ingredient_foodstuff_id`) REFERENCES `foodstuffs`(`ID`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
         "fields": [
           {
             "fieldPath": "id",
@@ -296,6 +296,12 @@
             "fieldPath": "comment",
             "columnName": "comment",
             "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "index",
+            "columnName": "ingredient_index",
+            "affinity": "INTEGER",
             "notNull": true
           }
         ],
@@ -352,7 +358,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5a1995188a947b74c7cf9971542c8b48')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b36d87e9f2b190b880af3d6b12f584b1')"
     ]
   }
 }

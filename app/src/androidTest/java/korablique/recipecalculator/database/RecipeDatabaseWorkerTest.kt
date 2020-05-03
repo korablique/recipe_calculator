@@ -187,6 +187,34 @@ class RecipeDatabaseWorkerTest {
         assertTrue(selectedRecipe!!.isFromDB)
     }
 
+    @Test
+    fun rearrangingIngredients() = runBlocking {
+        val foodstuff = saveFoodstuffWith("recipe", 10f, 20f, 30f, 40f)
+
+        // Create
+        val ingredients = listOf(
+                Ingredient.create(saveFoodstuffWith("apple", 10f, 20f, 30f, 40f), 10f, ""),
+                Ingredient.create(saveFoodstuffWith("banana", 10f, 20f, 30f, 40f), 10f, ""))
+        val recipe = Recipe.create(foodstuff, ingredients, 123f, "")
+
+        // Insert
+        val insertedRecipe = recipeDatabaseWorker.createRecipe(
+                recipe.foodstuff, recipe.ingredients, recipe.comment, recipe.weight)
+        assertEquals(ingredients[0].copy(id = 0), insertedRecipe.ingredients[0].copy(id = 0))
+        assertEquals(ingredients[1].copy(id = 0), insertedRecipe.ingredients[1].copy(id = 0))
+
+        // Rearrange
+        val rearrangedRecipe = insertedRecipe.copy(ingredients = listOf(
+                ingredients[1],
+                ingredients[0]))
+        recipeDatabaseWorker.updateRecipe(rearrangedRecipe)
+
+        // Verify order
+        val selectedRecipe = recipeDatabaseWorker.getRecipeOfFoodstuff(insertedRecipe.foodstuff)!!
+        assertEquals(ingredients[1].copy(id = 0), selectedRecipe.ingredients[0].copy(id = 0))
+        assertEquals(ingredients[0].copy(id = 0), selectedRecipe.ingredients[1].copy(id = 0))
+    }
+
     private fun saveFoodstuffWith(
             name: String,
             protein: Float,

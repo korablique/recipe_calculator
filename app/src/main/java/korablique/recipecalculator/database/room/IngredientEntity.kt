@@ -3,6 +3,7 @@ package korablique.recipecalculator.database.room
 import androidx.room.*
 import korablique.recipecalculator.database.FoodstuffsContract
 import korablique.recipecalculator.database.IngredientContract
+import korablique.recipecalculator.database.IngredientContract.COLUMN_INDEX
 import korablique.recipecalculator.database.IngredientContract.COLUMN_NAME_COMMENT
 import korablique.recipecalculator.database.IngredientContract.COLUMN_NAME_INGREDIENT_FOODSTUFF_ID
 import korablique.recipecalculator.database.IngredientContract.COLUMN_NAME_INGREDIENT_WEIGHT
@@ -39,13 +40,17 @@ class IngredientEntity {
     @ColumnInfo(name = COLUMN_NAME_COMMENT)
     val comment: String
 
+    @ColumnInfo(name = COLUMN_INDEX)
+    val index: Int
+
     constructor(id: Long, recipeId: Long, ingredientWeight: Float, ingredientFoodstuffId: Long,
-                comment: String) {
+                comment: String, index: Int) {
         this.id = id
         this.recipeId = recipeId
         this.ingredientWeight = ingredientWeight
         this.ingredientFoodstuffId = ingredientFoodstuffId
         this.comment = comment
+        this.index = index
     }
 }
 

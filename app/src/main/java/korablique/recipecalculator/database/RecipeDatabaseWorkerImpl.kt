@@ -9,11 +9,6 @@ import korablique.recipecalculator.model.Foodstuff
 import korablique.recipecalculator.model.Ingredient
 import korablique.recipecalculator.model.Recipe
 import kotlinx.coroutines.withContext
-import java.lang.IllegalArgumentException
-import java.lang.IllegalStateException
-import java.lang.RuntimeException
-import javax.inject.Inject
-import javax.inject.Singleton
 
 class RecipeDatabaseWorkerImpl constructor(
         private val ioExecutor: IOExecutor,
@@ -37,7 +32,9 @@ class RecipeDatabaseWorkerImpl constructor(
         val recipeFoodstuff = recipeFoodstuffs[0]
         val db = databaseHolder.database
 
-        val ingredientsEntities = db.ingredientDao().selectIngredientsByRecipe(entity.id)
+        val ingredientsEntities = db.ingredientDao()
+                .selectIngredientsByRecipe(entity.id)
+                .sortedBy { it.index }
         val ingredientsIds = ingredientsEntities.map { it.ingredientFoodstuffId }
         val ingredientsFoodstuffs = databaseWorker.requestFoodstuffsByIds(ingredientsIds)
         if (ingredientsEntities.size != ingredientsFoodstuffs.size) {
@@ -114,8 +111,8 @@ class RecipeDatabaseWorkerImpl constructor(
             }
         }
 
-        val ingredientsEntities = ingredients.map {
-            IngredientEntity(0, entity.id, it.weight, it.foodstuff.id, it.comment)
+        val ingredientsEntities = ingredients.mapIndexed { index, it ->
+            IngredientEntity(0, entity.id, it.weight, it.foodstuff.id, it.comment, index)
         }
         val ids = db.ingredientDao().insertIngredients(ingredientsEntities)
         val ingredientsWithIds = ingredients.zip(ids) { ingredient, id ->
