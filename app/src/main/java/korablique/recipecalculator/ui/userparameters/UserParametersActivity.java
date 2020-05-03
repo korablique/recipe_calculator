@@ -14,11 +14,13 @@ import android.widget.TextView;
 import com.crashlytics.android.Crashlytics;
 
 import org.joda.time.LocalDate;
+import org.joda.time.format.DateTimeFormatter;
 
 import javax.inject.Inject;
 
 import io.reactivex.Completable;
 import io.reactivex.Single;
+import korablique.recipecalculator.BuildConfig;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.Optional;
@@ -167,6 +169,17 @@ public class UserParametersActivity extends BaseActivity {
                 fillUserName(userNameProvider.getUserName());
             }
         });
+
+        if (BuildConfig.DEBUG) {
+            findViewById(R.id.personal_info_title).setOnClickListener(v -> {
+                UserParameters debugUserParams = new UserParameters(
+                        65, Gender.MALE, LocalDate.parse("1993-07-15"),
+                        165, 62, Lifestyle.PASSIVE_LIFESTYLE,
+                        Formula.HARRIS_BENEDICT, 0);
+                fillWithOldUserParameters(debugUserParams);
+                fillUserName(new FullName("Debug", "Debug"));
+            });
+        }
     }
 
     @Override
