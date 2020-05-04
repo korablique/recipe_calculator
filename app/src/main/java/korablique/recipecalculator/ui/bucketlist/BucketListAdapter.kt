@@ -61,6 +61,7 @@ class BucketListAdapter(private val context: Context)
 
     private fun setDraggableMode(value: Boolean) {
         draggableMode = value
+        dragHelperCallback.draggableMode = value
         ingredientViews.forEach {
             makeViewDraggable(it, draggableMode)
         }

@@ -8,9 +8,9 @@ class AdapterDragHelperCallback(private val delegate: Delegate) : ItemTouchHelpe
         fun onItemMove(oldPosition: Int, newPosition: Int)
     }
 
-    override fun isLongPressDragEnabled(): Boolean {
-        return true
-    }
+    var draggableMode = false
+
+    override fun isLongPressDragEnabled(): Boolean = draggableMode
 
     override fun getMovementFlags(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
         val dragFlags = ItemTouchHelper.UP or ItemTouchHelper.DOWN
