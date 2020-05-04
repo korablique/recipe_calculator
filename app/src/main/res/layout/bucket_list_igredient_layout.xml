@@ -9,8 +9,7 @@
     android:layout_marginLeft="10dp"
     android:layout_marginRight="10dp"
     android:paddingTop="2.5dp"
-    android:paddingBottom="2.5dp"
-    android:background="#EFF1F6">
+    android:paddingBottom="2.5dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/bucket_list_igredient_inner_layout"
