@@ -62,15 +62,10 @@ abstract class BucketListActivityState {
     protected abstract fun initImpl()
     protected abstract fun destroyImpl()
     abstract fun getRecipe(): Recipe
-    open fun onDisplayedIngredientClicked(ingredient: Ingredient, position: Int) {}
-    open fun onDisplayedIngredientLongClicked(
-            ingredient: Ingredient,
-            position: Int,
-            view: View): Boolean {
-        return false
-    }
     open fun onActivityBackPressed(): Boolean = false
     open fun supportsIngredientsAddition(): Boolean = false
     open fun createIngredientsDragAndDropObserver(): BucketListAdapter.ItemDragAndDropObserver? = null
-    open fun onAddIngredientButtonClicked() {}
+    open fun createIngredientsClickObserver(): BucketListAdapter.OnItemClickedObserver? = null
+    open fun createIngredientsLongClickObserver(): BucketListAdapter.OnItemLongClickedObserver? = null
+    open fun createAddIngredientClickObserver(): Runnable? = null
 }

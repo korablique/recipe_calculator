@@ -1231,6 +1231,7 @@ class BucketListActivityTest {
         onView(withText("dough")).perform(longClick())
         onView(withText(R.string.edit_ingredient_comment)).perform(click())
         onView(withId(R.id.comment)).perform(replaceText("novel comment"))
+        Espresso.closeSoftKeyboard()
         onView(withId(R.id.save_button)).perform(click())
 
         verifyRecipeEditingState("cake", "123",

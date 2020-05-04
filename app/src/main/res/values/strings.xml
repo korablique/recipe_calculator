@@ -51,8 +51,8 @@
     <string name="add_foodstuff_to_history">В журнал</string>
     <string name="selected_foodstuffs_snackbar_title_recipe_creation">Создание рецепта</string>
     <string name="selected_foodstuffs_snackbar_title_recipe_editing">Редактирование рецепта</string>
-    <string name="bucket_list_title_recipe_creation">Создание рецепта</string>
-    <string name="bucket_list_title_recipe_editing">Редактирование рецепта</string>
+    <string name="bucket_list_title_recipe_creation">Новый рецепт</string>
+    <string name="bucket_list_title_recipe_editing">Редактирование</string>
     <string name="bucket_list_title_recipe">Рецепт</string>
     <string name="meal">Приём пищи</string>
     <string name="meal_notification">Не забудьте внести в приложение, что вы кушали</string>
@@ -63,7 +63,7 @@
     <string name="name">Название</string>
     <string name="saved">Сохранено</string>
     <string name="foodstuff_already_exists">Такой продукт уже существует</string>
-    <string name="result_weight">Масса готового продукта, граммов</string>
+    <string name="result_weight">Масса готового продукта, граммов:</string>
     <string name="new_foodstuff">Новый продукт</string>
     <string name="nutrition_per_100_g">Белки, жиры и углеводы указаны на 100 г</string>
     <string name="undo">Отмена</string>

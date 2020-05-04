@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import korablique.recipecalculator.R
 import korablique.recipecalculator.model.Ingredient
 import korablique.recipecalculator.ui.MyViewHolder
+import java.lang.ref.WeakReference
 import java.util.*
 
 private const val VIEW_TYPE_INGREDIENT = 0
@@ -43,27 +44,48 @@ class BucketListAdapter(private val context: Context)
     private var onItemDragAndDropObserver: ItemDragAndDropObserver? = null
     private var onAddIngredientButtonObserver: Runnable? = null
 
-    private val ingredientViews: MutableSet<ViewGroup> = Collections.newSetFromMap(WeakHashMap())
+    private var recyclerView = WeakReference<RecyclerView>(null)
+
+    private val ingredientViewHolders: List<RecyclerView.ViewHolder?>
+        get() {
+            val recyclerView = recyclerView.get() ?: return emptyList()
+            val result = mutableListOf<RecyclerView.ViewHolder?>()
+            for (index in 0 until ingredients.size) {
+                result.add(recyclerView.findViewHolderForAdapterPosition(index))
+            }
+            return result
+        }
+    private val ingredientViews: List<ViewGroup?>
+        get() = ingredientViewHolders.map { it?.itemView as ViewGroup? }
+
     private var draggableMode = false
 
     fun setOnItemClickedObserver(observer: OnItemClickedObserver?) {
         onItemClickedObserver = observer
+        ingredientViewHolders.forEachIndexed { index, viewHolder ->
+            if (viewHolder != null) {
+                initViewClicksProperties(viewHolder)
+            }
+        }
     }
 
     fun setOnItemLongClickedObserver(observer: OnItemLongClickedObserver?) {
         onItemLongClickedObserver = observer
+        ingredientViewHolders.forEachIndexed { index, viewHolder ->
+            if (viewHolder != null) {
+                initViewClicksProperties(viewHolder)
+            }
+        }
     }
 
     fun initDragAndDrop(observer: ItemDragAndDropObserver?) {
         onItemDragAndDropObserver = observer
-        setDraggableMode(onItemDragAndDropObserver != null)
-    }
-
-    private fun setDraggableMode(value: Boolean) {
-        draggableMode = value
-        dragHelperCallback.draggableMode = value
-        ingredientViews.forEach {
-            makeViewDraggable(it, draggableMode)
+        draggableMode = onItemDragAndDropObserver != null
+        dragHelperCallback.draggableMode = draggableMode
+        ingredientViewHolders.forEachIndexed { index, viewHolder ->
+            if (viewHolder != null) {
+                initViewClicksProperties(viewHolder)
+            }
         }
     }
 
@@ -78,10 +100,6 @@ class BucketListAdapter(private val context: Context)
         }
     }
 
-    fun deinitAddIngredientButton() {
-        setUpAddIngredientButton(null)
-    }
-
     override fun getItemViewType(position: Int): Int {
         return if (onAddIngredientButtonObserver != null && position == ingredients.size) {
             VIEW_TYPE_ADD_INGREDIENT_BUTTON
@@ -91,17 +109,18 @@ class BucketListAdapter(private val context: Context)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
-        return if (viewType == VIEW_TYPE_INGREDIENT) {
-            val ingredientView = LayoutInflater.from(parent.context)
-                    .inflate(R.layout.bucket_list_igredient_layout, parent, false)
-            ingredientViews += ingredientView as ViewGroup
-            makeViewDraggable(ingredientView, draggableMode)
-            MyViewHolder(ingredientView)
-        } else if (viewType == VIEW_TYPE_ADD_INGREDIENT_BUTTON) {
-            MyViewHolder(LayoutInflater.from(parent.context)
-                    .inflate(R.layout.bucket_list_add_ingredient_button, parent, false))
-        } else {
-            throw Error("Not supported view type")
+        return when (viewType) {
+            VIEW_TYPE_INGREDIENT -> {
+                MyViewHolder(LayoutInflater.from(parent.context)
+                        .inflate(R.layout.bucket_list_igredient_layout, parent, false))
+            }
+            VIEW_TYPE_ADD_INGREDIENT_BUTTON -> {
+                MyViewHolder(LayoutInflater.from(parent.context)
+                        .inflate(R.layout.bucket_list_add_ingredient_button, parent, false))
+            }
+            else -> {
+                throw Error("Not supported view type")
+            }
         }
     }
 
@@ -112,6 +131,7 @@ class BucketListAdapter(private val context: Context)
             }
             return
         }
+
         val item = holder.item
         val ingredient = ingredients[displayedPosition]
         setTextViewText(item, R.id.name, ingredient.foodstuff.name)
@@ -122,21 +142,70 @@ class BucketListAdapter(private val context: Context)
         } else {
             item.findViewById<View>(R.id.ingredient_comment).visibility = View.GONE
         }
-        item.setOnClickListener { onItemClickedObserver?.onItemClicked(ingredient, holder.adapterPosition) }
-        item.setOnLongClickListener {
-            onItemLongClickedObserver?.onItemLongClicked(
-                    ingredient, holder.adapterPosition, holder.itemView)
-                    ?: false
+
+        initViewClicksProperties(holder)
+    }
+
+    private fun initViewClicksProperties(viewHolder: RecyclerView.ViewHolder) {
+        val ingredient = ingredients[viewHolder.adapterPosition]
+        val view = viewHolder.itemView
+
+        val onItemClickedObserver = onItemClickedObserver
+        if (onItemClickedObserver != null) {
+            view.setOnClickListener {
+                onItemClickedObserver.onItemClicked(ingredient, viewHolder.adapterPosition)
+            }
+        } else {
+            view.setOnClickListener(null)
         }
-        item.findViewById<View>(R.id.drag_handle).setOnTouchListener { _, event ->
+
+        val onItemLongClickedObserver = onItemLongClickedObserver
+        if (onItemLongClickedObserver != null) {
+            view.setOnLongClickListener {
+                onItemLongClickedObserver.onItemLongClicked(
+                        ingredient, viewHolder.adapterPosition, view)
+            }
+        } else {
+            view.setOnLongClickListener(null)
+        }
+
+        makeViewDraggable(view, draggableMode)
+
+        view.findViewById<View>(R.id.drag_handle).setOnTouchListener { _, event ->
             if (event.action == MotionEvent.ACTION_DOWN) {
-                itemTouchHelper?.startDrag(holder)
+                itemTouchHelper?.startDrag(viewHolder)
             }
             false
         }
+
         // Always consume long tap so that the long tap listener of the parent item
         // won't get triggered on drag_handle long tap
-        item.findViewById<View>(R.id.drag_handle).setOnLongClickListener { true }
+        view.findViewById<View>(R.id.drag_handle).setOnLongClickListener { true }
+
+        val background = if (onItemClickedObserver != null || onItemLongClickedObserver != null) {
+            view.context.getDrawable(R.drawable.bucket_list_ingredient_background_with_ripple)
+        } else {
+            view.context.getDrawable(R.drawable.bucket_list_ingredient_background_without_ripple)
+        }
+        view.findViewById<View>(R.id.bucket_list_ingredient_inner_layout).background = background
+    }
+
+    private fun makeViewDraggable(view: View, draggable: Boolean) {
+        val constraintLayout = view.findViewById<ConstraintLayout>(R.id.bucket_list_ingredient_inner_layout)
+        val newConstraintSet = ConstraintSet()
+        newConstraintSet.clone(constraintLayout)
+        if (draggable) {
+            newConstraintSet.setVisibility(R.id.drag_handle, View.VISIBLE)
+            newConstraintSet.connect(
+                    R.id.extra_info_wrapper_layout, ConstraintSet.RIGHT,
+                    R.id.drag_handle, ConstraintSet.LEFT)
+        } else {
+            newConstraintSet.setVisibility(R.id.drag_handle, View.GONE)
+            newConstraintSet.connect(
+                    R.id.extra_info_wrapper_layout, ConstraintSet.RIGHT,
+                    ConstraintSet.PARENT_ID, ConstraintSet.RIGHT)
+        }
+        newConstraintSet.applyTo(constraintLayout)
     }
 
     override fun getItemCount(): Int {
@@ -189,26 +258,10 @@ class BucketListAdapter(private val context: Context)
         (parent.findViewById<View>(viewId) as TextView).text = text.toString()
     }
 
-    private fun makeViewDraggable(view: View, draggable: Boolean) {
-        val constraintLayout = view.findViewById<ConstraintLayout>(R.id.bucket_list_igredient_inner_layout)
-        val newConstraintSet = ConstraintSet()
-        newConstraintSet.clone(constraintLayout)
-        if (draggable) {
-            newConstraintSet.setVisibility(R.id.drag_handle, View.VISIBLE)
-            newConstraintSet.connect(
-                    R.id.extra_info_wrapper_layout, ConstraintSet.RIGHT,
-                    R.id.drag_handle, ConstraintSet.LEFT)
-        } else {
-            newConstraintSet.setVisibility(R.id.drag_handle, View.GONE)
-            newConstraintSet.connect(
-                    R.id.extra_info_wrapper_layout, ConstraintSet.RIGHT,
-                    ConstraintSet.PARENT_ID, ConstraintSet.RIGHT)
-        }
-        newConstraintSet.applyTo(constraintLayout)
-    }
-
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
         super.onAttachedToRecyclerView(recyclerView)
+
+        this.recyclerView = WeakReference(recyclerView)
 
         itemTouchHelper = ItemTouchHelper(dragHelperCallback)
         itemTouchHelper!!.attachToRecyclerView(recyclerView);

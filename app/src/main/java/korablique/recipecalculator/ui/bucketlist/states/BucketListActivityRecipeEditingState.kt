@@ -243,62 +243,67 @@ class BucketListActivityRecipeEditingState private constructor(
                         && !bucketList.getList().isEmpty()
     }
 
-    override fun onDisplayedIngredientClicked(ingredient: Ingredient, position: Int) {
-        displayedInCardFoodstuffPosition = position
-        val cardDialog: CardDialog = CardDialog.showCard(
-                activity, ingredient.toWeightedFoodstuff())
+    override fun createIngredientsClickObserver(): BucketListAdapter.OnItemClickedObserver? {
+        return object : BucketListAdapter.OnItemClickedObserver {
+            override fun onItemClicked(ingredient: Ingredient, position: Int) {
+                displayedInCardFoodstuffPosition = position
+                val cardDialog: CardDialog = CardDialog.showCard(
+                        activity, ingredient.toWeightedFoodstuff())
 
-        val cardSaveButtonClickListener = Card.OnMainButtonSimpleClickListener { newFoodstuff ->
-            CardDialog.hideCard(activity)
+                val cardSaveButtonClickListener = Card.OnMainButtonSimpleClickListener { newFoodstuff ->
+                    CardDialog.hideCard(activity)
 
-            var recipe = getRecipe()
-            val oldIngredient = recipe.ingredients[displayedInCardFoodstuffPosition]
-            val newIngredient = Ingredient.create(newFoodstuff, oldIngredient.comment)
-            val newIngredients = recipe.ingredients.toMutableList()
-            newIngredients[displayedInCardFoodstuffPosition] = newIngredient
+                    var recipe = getRecipe()
+                    val oldIngredient = recipe.ingredients[displayedInCardFoodstuffPosition]
+                    val newIngredient = Ingredient.create(newFoodstuff, oldIngredient.comment)
+                    val newIngredients = recipe.ingredients.toMutableList()
+                    newIngredients[displayedInCardFoodstuffPosition] = newIngredient
 
-            var newTotalWeight = 0f
-            newIngredients.forEach { newTotalWeight += it.weight }
+                    var newTotalWeight = 0f
+                    newIngredients.forEach { newTotalWeight += it.weight }
 
-            recipe = recipe.copy(ingredients = newIngredients, weight = newTotalWeight)
-            bucketList.setRecipe(recipe)
-            onRecipeUpdated(recipe)
-            updateSaveButtonsEnability()
-        }
+                    recipe = recipe.copy(ingredients = newIngredients, weight = newTotalWeight)
+                    bucketList.setRecipe(recipe)
+                    onRecipeUpdated(recipe)
+                    updateSaveButtonsEnability()
+                }
 
-        cardDialog.setUpButton1(cardSaveButtonClickListener, R.string.save)
-    }
-
-    override fun onDisplayedIngredientLongClicked(
-            ingredient: Ingredient,
-            position: Int,
-            view: View): Boolean {
-        val menu = PopupMenu(activity, view)
-        menu.inflate(R.menu.bucket_list_menu)
-        menu.show()
-        menu.setOnMenuItemClickListener { item: MenuItem ->
-            if (item.itemId == R.id.delete_ingredient) {
-                var recipe = getRecipe()
-                val newIngredients = recipe.ingredients.toMutableList()
-                newIngredients.removeAt(position)
-
-                var newTotalWeight = 0f
-                newIngredients.forEach { newTotalWeight += it.weight }
-
-                recipe = recipe.copy(ingredients = newIngredients, weight = newTotalWeight)
-                bucketList.setRecipe(recipe)
-                onRecipeUpdated(bucketList.getRecipe())
-                updateSaveButtonsEnability()
-                true
-            } else if (item.itemId == R.id.comment_ingredient) {
-                val dialog = IngredientCommentDialog.showDialog(activity.supportFragmentManager, ingredient.comment)
-                initCommentDialog(dialog, position)
-                true
-            } else {
-                false
+                cardDialog.setUpButton1(cardSaveButtonClickListener, R.string.save)
             }
         }
-        return true
+    }
+
+    override fun createIngredientsLongClickObserver(): BucketListAdapter.OnItemLongClickedObserver? {
+        return object : BucketListAdapter.OnItemLongClickedObserver {
+            override fun onItemLongClicked(ingredient: Ingredient, position: Int, view: View): Boolean {
+                val menu = PopupMenu(activity, view)
+                menu.inflate(R.menu.bucket_list_menu)
+                menu.show()
+                menu.setOnMenuItemClickListener { item: MenuItem ->
+                    if (item.itemId == R.id.delete_ingredient) {
+                        var recipe = getRecipe()
+                        val newIngredients = recipe.ingredients.toMutableList()
+                        newIngredients.removeAt(position)
+
+                        var newTotalWeight = 0f
+                        newIngredients.forEach { newTotalWeight += it.weight }
+
+                        recipe = recipe.copy(ingredients = newIngredients, weight = newTotalWeight)
+                        bucketList.setRecipe(recipe)
+                        onRecipeUpdated(bucketList.getRecipe())
+                        updateSaveButtonsEnability()
+                        true
+                    } else if (item.itemId == R.id.comment_ingredient) {
+                        val dialog = IngredientCommentDialog.showDialog(activity.supportFragmentManager, ingredient.comment)
+                        initCommentDialog(dialog, position)
+                        true
+                    } else {
+                        false
+                    }
+                }
+                return true
+            }
+        }
     }
 
     private fun initCommentDialog(dialog: IngredientCommentDialog, position: Int) {
@@ -391,11 +396,12 @@ class BucketListActivityRecipeEditingState private constructor(
         }
     }
 
-    override fun supportsIngredientsAddition(): Boolean = true
-    override fun onAddIngredientButtonClicked() {
-        // Finish the Activity without cleaning BucketList - filled bucket list
-        // effectively keeps all changes and lets the user to add new ingredients into it.
-        finish(FinishResult.Canceled)
+    override fun createAddIngredientClickObserver(): Runnable? {
+        return Runnable {
+            // Finish the Activity without cleaning BucketList - filled bucket list
+            // effectively keeps all changes and lets the user to add new ingredients into it.
+            finish(FinishResult.Canceled)
+        }
     }
 }
 

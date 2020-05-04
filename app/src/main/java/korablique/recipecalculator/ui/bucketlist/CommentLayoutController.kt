@@ -91,7 +91,7 @@ class CommentLayoutController(private val layout: ConstraintLayout) {
             }
             State.NOT_EMPTY_NOT_EDITABLE -> {
                 commentView.visibility = View.VISIBLE
-                addCommentButton.visibility = View.GONE
+                addCommentButton.visibility = View.INVISIBLE
                 commentTitle.visibility = View.VISIBLE
             }
             State.NOT_EMPTY_EDITABLE -> {

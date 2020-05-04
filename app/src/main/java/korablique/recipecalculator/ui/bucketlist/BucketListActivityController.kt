@@ -102,16 +102,6 @@ class BucketListActivityController @Inject constructor(
         adapter = BucketListAdapter(activity)
         findViewById<RecyclerView>(R.id.ingredients_list).adapter = adapter
 
-        adapter.setOnItemClickedObserver(object : BucketListAdapter.OnItemClickedObserver {
-            override fun onItemClicked(ingredient: Ingredient, position: Int) {
-                currentState.onDisplayedIngredientClicked(ingredient, position)
-            }
-        })
-        adapter.setOnItemLongClickedObserver(object : BucketListAdapter.OnItemLongClickedObserver {
-            override fun onItemLongClicked(ingredient: Ingredient, position: Int, view: View): Boolean {
-                return currentState.onDisplayedIngredientLongClicked(ingredient, position, view)
-            }
-        })
         commentLayoutController = CommentLayoutController(findViewById(R.id.comment_layout))
 
         switchStateImpl(createFirstState(savedInstanceState), first = true)
@@ -188,6 +178,9 @@ class BucketListActivityController @Inject constructor(
     }
 
     private fun switchStateImpl(state: BucketListActivityState, first: Boolean) {
+        // We want all transitions of all children object to be run with pretty animations
+        TransitionManager.beginDelayedTransition(findViewById(R.id.bucket_list_activity_layout))
+
         if (!first) {
             currentState.destroy()
         }
@@ -195,17 +188,12 @@ class BucketListActivityController @Inject constructor(
         currentState.init(this, adapter)
         onRecipeUpdated(currentState.getRecipe())
 
-        if (currentState.supportsIngredientsAddition()) {
-            adapter.setUpAddIngredientButton(Runnable {
-                currentState.onAddIngredientButtonClicked()
-            })
-        } else {
-            adapter.deinitAddIngredientButton()
-        }
+        adapter.setUpAddIngredientButton(currentState.createAddIngredientClickObserver())
+        adapter.setOnItemClickedObserver(currentState.createIngredientsClickObserver())
+        adapter.setOnItemLongClickedObserver(currentState.createIngredientsLongClickObserver())
 
         findViewById<TextView>(R.id.title_text).setText(currentState.getTitleStringID())
 
-        TransitionManager.beginDelayedTransition(findViewById(R.id.bucket_list_activity_layout))
         adapter.initDragAndDrop(currentState.createIngredientsDragAndDropObserver())
         switchConstraints(R.id.bucket_list_activity_main_content_layout, currentState.getMainConstraintSetDescriptionLayout())
         switchConstraints(R.id.bucket_list_activity_layout, currentState.getConstraintSetDescriptionLayout())
