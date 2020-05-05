@@ -18,15 +18,16 @@ import korablique.recipecalculator.base.ActivityCallbacks
 import korablique.recipecalculator.base.executors.MainThreadExecutor
 import korablique.recipecalculator.dagger.ActivityScope
 import korablique.recipecalculator.database.RecipesRepository
-import korablique.recipecalculator.model.Ingredient
 import korablique.recipecalculator.model.Nutrition
 import korablique.recipecalculator.model.Recipe
 import korablique.recipecalculator.ui.DecimalUtils
 import korablique.recipecalculator.ui.NutritionValuesWrapper
+import korablique.recipecalculator.ui.bucketlist.states.BucketListActivityCookingState
 import korablique.recipecalculator.ui.bucketlist.states.BucketListActivityDisplayRecipeState
 import korablique.recipecalculator.ui.bucketlist.states.BucketListActivityRecipeEditingState
 import korablique.recipecalculator.ui.bucketlist.states.BucketListActivityState
 import korablique.recipecalculator.ui.bucketlist.states.BucketListActivityState.FinishResult
+import korablique.recipecalculator.ui.calckeyboard.CalcKeyboardController
 import korablique.recipecalculator.ui.pluralprogressbar.PluralProgressBar
 import korablique.recipecalculator.util.FloatUtils
 import javax.inject.Inject
@@ -39,7 +40,8 @@ class BucketListActivityController @Inject constructor(
         private val activity: BucketListActivity,
         private val recipesRepository: RecipesRepository,
         private val bucketList: BucketList,
-        private val mainThreadExecutor: MainThreadExecutor)
+        private val mainThreadExecutor: MainThreadExecutor,
+        private val calcKeyboardController: CalcKeyboardController)
     : ActivityCallbacks.Observer, BucketListActivityState.Delegate {
     private lateinit var pluralProgressBar: PluralProgressBar
     private lateinit var nutritionValuesWrapper: NutritionValuesWrapper
@@ -104,6 +106,10 @@ class BucketListActivityController @Inject constructor(
 
         commentLayoutController = CommentLayoutController(findViewById(R.id.comment_layout))
 
+        calcKeyboardController.useCalcKeyboardWith(
+                findViewById(R.id.total_weight_edit_text),
+                activity)
+
         switchStateImpl(createFirstState(savedInstanceState), first = true)
         onRecipeUpdated(currentState.getRecipe())
     }
@@ -123,6 +129,10 @@ class BucketListActivityController @Inject constructor(
                     BucketListActivityRecipeEditingState(
                             stateOfState, commentLayoutController, activity, bucketList,
                             recipesRepository, mainThreadExecutor)
+                }
+                BucketListActivityState.ID.CookingState -> {
+                    BucketListActivityCookingState(stateOfState, commentLayoutController,
+                            activity, bucketList, recipesRepository, mainThreadExecutor)
                 }
             }
         }
@@ -191,6 +201,7 @@ class BucketListActivityController @Inject constructor(
         adapter.setUpAddIngredientButton(currentState.createAddIngredientClickObserver())
         adapter.setOnItemClickedObserver(currentState.createIngredientsClickObserver())
         adapter.setOnItemLongClickedObserver(currentState.createIngredientsLongClickObserver())
+        adapter.setUpWeightEditing(currentState.createIngredientWeightEditionObserver())
 
         findViewById<TextView>(R.id.title_text).setText(currentState.getTitleStringID())
 

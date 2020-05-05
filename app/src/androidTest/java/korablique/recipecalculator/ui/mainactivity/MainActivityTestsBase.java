@@ -136,6 +136,7 @@ public class MainActivityTestsBase {
     protected NetworkSnackbarControllersFactory networkSnackbarControllersFactory;
     protected RecipeDatabaseWorker recipeDatabaseWorker;
     protected RecipesRepository recipesRepository;
+    protected CalcKeyboardController calcKeyboardController;
 
     @Rule
     public ActivityTestRule<MainActivity> mActivityRule =
@@ -203,10 +204,12 @@ public class MainActivityTestsBase {
                         recipesRepository = new RecipesRepository(
                                 recipeDatabaseWorker, foodstuffsList, mainThreadExecutor);
 
+                        calcKeyboardController = new CalcKeyboardController();
+
                         return Arrays.asList(databaseWorker, historyWorker, userParametersWorker,
                                 foodstuffsList, databaseHolder, userNameProvider,
                                 timeProvider, currentActivityProvider, sessionController,
-                                new CalcKeyboardController(), bucketList, foodstuffsSearchEngine,
+                                calcKeyboardController, bucketList, foodstuffsSearchEngine,
                                 serverUserParamsRegistry, httpContext, recipesRepository,
                                 mainThreadExecutor);
                     })
@@ -217,7 +220,7 @@ public class MainActivityTestsBase {
                                 BucketListActivityController bucketListActivityController =
                                         new BucketListActivityController(
                                                 activity, recipesRepository, bucketList,
-                                                mainThreadExecutor);
+                                                mainThreadExecutor, calcKeyboardController);
                                 return Arrays.asList(bucketListActivityController);
                             }
                             return Collections.emptyList();

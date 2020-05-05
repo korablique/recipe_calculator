@@ -1,10 +1,13 @@
 package korablique.recipecalculator.ui.bucketlist
 
 import android.content.Context
+import android.text.TextUtils
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
@@ -14,8 +17,10 @@ import androidx.recyclerview.widget.RecyclerView
 import korablique.recipecalculator.R
 import korablique.recipecalculator.model.Ingredient
 import korablique.recipecalculator.ui.MyViewHolder
+import korablique.recipecalculator.ui.numbersediting.SimpleTextWatcher
 import java.lang.ref.WeakReference
 import java.util.*
+import kotlin.math.roundToInt
 
 private const val VIEW_TYPE_INGREDIENT = 0
 private const val VIEW_TYPE_ADD_INGREDIENT_BUTTON = 1
@@ -35,6 +40,10 @@ class BucketListAdapter(private val context: Context)
         fun onItemDraggedAndDropped(oldPosition: Int, newPosition: Int)
     }
 
+    interface ItemWeightEditionObserver {
+        fun onItemWeightEdited(ingredient: Ingredient, newWeight: Float, position: Int)
+    }
+
     private val dragHelperCallback = AdapterDragHelperCallback(this)
     private var itemTouchHelper: ItemTouchHelper? = null
 
@@ -42,9 +51,12 @@ class BucketListAdapter(private val context: Context)
     private var onItemClickedObserver: OnItemClickedObserver? = null
     private var onItemLongClickedObserver: OnItemLongClickedObserver? = null
     private var onItemDragAndDropObserver: ItemDragAndDropObserver? = null
+    private var onItemWeightEditionObserver: ItemWeightEditionObserver? = null
     private var onAddIngredientButtonObserver: Runnable? = null
 
     private var recyclerView = WeakReference<RecyclerView>(null)
+
+    private var weightEditWatchers: MutableMap<View, TextWatcher> = WeakHashMap()
 
     private val ingredientViewHolders: List<RecyclerView.ViewHolder?>
         get() {
@@ -55,25 +67,24 @@ class BucketListAdapter(private val context: Context)
             }
             return result
         }
-    private val ingredientViews: List<ViewGroup?>
-        get() = ingredientViewHolders.map { it?.itemView as ViewGroup? }
 
     private var draggableMode = false
+    private var editableMode = false
 
     fun setOnItemClickedObserver(observer: OnItemClickedObserver?) {
         onItemClickedObserver = observer
-        ingredientViewHolders.forEachIndexed { index, viewHolder ->
+        ingredientViewHolders.forEachIndexed { _, viewHolder ->
             if (viewHolder != null) {
-                initViewClicksProperties(viewHolder)
+                initItemView(viewHolder)
             }
         }
     }
 
     fun setOnItemLongClickedObserver(observer: OnItemLongClickedObserver?) {
         onItemLongClickedObserver = observer
-        ingredientViewHolders.forEachIndexed { index, viewHolder ->
-            if (viewHolder != null) {
-                initViewClicksProperties(viewHolder)
+        ingredientViewHolders.forEach {
+            if (it != null) {
+                initItemView(it)
             }
         }
     }
@@ -82,9 +93,19 @@ class BucketListAdapter(private val context: Context)
         onItemDragAndDropObserver = observer
         draggableMode = onItemDragAndDropObserver != null
         dragHelperCallback.draggableMode = draggableMode
-        ingredientViewHolders.forEachIndexed { index, viewHolder ->
-            if (viewHolder != null) {
-                initViewClicksProperties(viewHolder)
+        ingredientViewHolders.forEach {
+            if (it != null) {
+                initItemView(it)
+            }
+        }
+    }
+
+    fun setUpWeightEditing(observer: ItemWeightEditionObserver?) {
+        onItemWeightEditionObserver = observer
+        editableMode = onItemWeightEditionObserver != null
+        ingredientViewHolders.forEach {
+            if (it != null) {
+                switchEditableInfoViews(it.itemView, editableMode)
             }
         }
     }
@@ -132,23 +153,21 @@ class BucketListAdapter(private val context: Context)
             return
         }
 
-        val item = holder.item
-        val ingredient = ingredients[displayedPosition]
-        setTextViewText(item, R.id.name, ingredient.foodstuff.name)
-        setTextViewText(item, R.id.extra_info_block, context.getString(R.string.n_gramms, Math.round(ingredient.weight)))
-        if (!ingredient.comment.isEmpty()) {
-            item.findViewById<View>(R.id.ingredient_comment).visibility = View.VISIBLE
-            setTextViewText(item, R.id.ingredient_comment, ingredient.comment)
-        } else {
-            item.findViewById<View>(R.id.ingredient_comment).visibility = View.GONE
-        }
-
-        initViewClicksProperties(holder)
+        initItemView(holder)
     }
 
-    private fun initViewClicksProperties(viewHolder: RecyclerView.ViewHolder) {
+    private fun initItemView(viewHolder: RecyclerView.ViewHolder) {
         val ingredient = ingredients[viewHolder.adapterPosition]
         val view = viewHolder.itemView
+
+        setTextViewText(view, R.id.name, ingredient.foodstuff.name)
+        setTextViewText(view, R.id.extra_info_block, context.getString(R.string.n_gramms, weightOf(ingredient)))
+        if (!ingredient.comment.isEmpty()) {
+            view.findViewById<View>(R.id.ingredient_comment).visibility = View.VISIBLE
+            setTextViewText(view, R.id.ingredient_comment, ingredient.comment)
+        } else {
+            view.findViewById<View>(R.id.ingredient_comment).visibility = View.GONE
+        }
 
         val onItemClickedObserver = onItemClickedObserver
         if (onItemClickedObserver != null) {
@@ -170,13 +189,14 @@ class BucketListAdapter(private val context: Context)
         }
 
         makeViewDraggable(view, draggableMode)
-
         view.findViewById<View>(R.id.drag_handle).setOnTouchListener { _, event ->
             if (event.action == MotionEvent.ACTION_DOWN) {
                 itemTouchHelper?.startDrag(viewHolder)
             }
             false
         }
+
+        switchEditableInfoViews(view, editableMode)
 
         // Always consume long tap so that the long tap listener of the parent item
         // won't get triggered on drag_handle long tap
@@ -187,11 +207,58 @@ class BucketListAdapter(private val context: Context)
         } else {
             view.context.getDrawable(R.drawable.bucket_list_ingredient_background_without_ripple)
         }
-        view.findViewById<View>(R.id.bucket_list_ingredient_inner_layout).background = background
+        view.findViewById<View>(R.id.bucket_list_ingredient_background).background = background
+
+        initEditableWeightView(ingredient, viewHolder)
+    }
+
+    private fun initEditableWeightView(ingredient: Ingredient, viewHolder: RecyclerView.ViewHolder) {
+        val view = viewHolder.itemView
+        val weightEditText = view.findViewById<EditText>(R.id.extra_info_block_editable)
+
+        weightEditText.removeTextChangedListener(weightEditWatchers.remove(weightEditText))
+
+        // Let's set the displayed weight in such a way, that if it's equal to
+        // current weight, we won't change the displayed weight.
+        // This way the user won't be interrupted if they modify the displayed weight right now.
+        val weight = weightOf(ingredient)
+        var displayedWeight = 0
+        if (!TextUtils.isEmpty(weightEditText.text.toString())) {
+            displayedWeight = weightEditText.text.toString().toInt()
+        }
+        if (displayedWeight != weight) {
+            weightEditText.setText(weight.toString())
+        }
+
+        val weightWatcher = SimpleTextWatcher(weightEditText) {
+            val onItemWeightEditionObserver = onItemWeightEditionObserver
+            if (onItemWeightEditionObserver != null) {
+                val updatedText = weightEditText.text.toString()
+                var updatedWeight = 0
+                if (!TextUtils.isEmpty(updatedText)) {
+                    val textWeight = updatedText.toBigDecimal()
+                    updatedWeight = if (textWeight > Int.MAX_VALUE.toBigDecimal()) {
+                        Int.MAX_VALUE
+                    } else {
+                        textWeight.toInt()
+                    }
+                }
+                val pos = viewHolder.adapterPosition
+                ingredients[pos] = ingredients[pos].copy(weight = updatedWeight.toFloat())
+                setTextViewText(
+                        view,
+                        R.id.extra_info_block,
+                        context.getString(R.string.n_gramms, updatedWeight))
+                onItemWeightEditionObserver.onItemWeightEdited(
+                        ingredient, updatedWeight.toFloat(), viewHolder.adapterPosition)
+            }
+        }
+        weightEditWatchers[weightEditText] = weightWatcher
+        weightEditText.addTextChangedListener(weightWatcher)
     }
 
     private fun makeViewDraggable(view: View, draggable: Boolean) {
-        val constraintLayout = view.findViewById<ConstraintLayout>(R.id.bucket_list_ingredient_inner_layout)
+        val constraintLayout = view.findViewById<ConstraintLayout>(R.id.bucket_list_ingredient_layout)
         val newConstraintSet = ConstraintSet()
         newConstraintSet.clone(constraintLayout)
         if (draggable) {
@@ -204,6 +271,26 @@ class BucketListAdapter(private val context: Context)
             newConstraintSet.connect(
                     R.id.extra_info_wrapper_layout, ConstraintSet.RIGHT,
                     ConstraintSet.PARENT_ID, ConstraintSet.RIGHT)
+        }
+        newConstraintSet.applyTo(constraintLayout)
+    }
+
+    private fun switchEditableInfoViews(view: View, useEditable: Boolean) {
+        val constraintLayout = view.findViewById<ConstraintLayout>(R.id.bucket_list_ingredient_layout)
+        val newConstraintSet = ConstraintSet()
+        newConstraintSet.clone(constraintLayout)
+        if (useEditable) {
+            newConstraintSet.setVisibility(R.id.extra_info_block, View.GONE)
+            newConstraintSet.setVisibility(R.id.extra_info_block_editable, View.VISIBLE)
+            newConstraintSet.connect(
+                    R.id.extra_info_wrapper_layout, ConstraintSet.LEFT,
+                    R.id.extra_info_block_editable, ConstraintSet.LEFT)
+        } else {
+            newConstraintSet.setVisibility(R.id.extra_info_block, View.VISIBLE)
+            newConstraintSet.setVisibility(R.id.extra_info_block_editable, View.GONE)
+            newConstraintSet.connect(
+                    R.id.extra_info_wrapper_layout, ConstraintSet.LEFT,
+                    R.id.extra_info_block, ConstraintSet.LEFT)
         }
         newConstraintSet.applyTo(constraintLayout)
     }
@@ -240,12 +327,22 @@ class BucketListAdapter(private val context: Context)
             override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
                 // We ignore IDs because ingredients and their foodstuffs can be resaved,
                 // so we recreate Foodstuffs and Ingredients.
-                val lhs = ingredients[oldItemPosition].copy(
+                // We also reset weights, because we support only Int weights, and 2 compared
+                // Float weights might be same by design, but different because of some
+                // arithmetic operations (e.g., weights "1.0000001" and "1.0000002" differ,
+                // but we don't care about the tail part).
+
+                var lhs = ingredients[oldItemPosition]
+                var rhs = newIngredients[newItemPosition]
+
+                lhs = lhs.copy(
                         id = 0,
-                        foodstuff = ingredients[oldItemPosition].foodstuff.recreateWithId(0))
-                val rhs = newIngredients[newItemPosition].copy(
+                        foodstuff = ingredients[oldItemPosition].foodstuff.recreateWithId(0),
+                        weight = lhs.weight.roundToInt().toFloat())
+                rhs = rhs.copy(
                         id = 0,
-                        foodstuff = newIngredients[newItemPosition].foodstuff.recreateWithId(0))
+                        foodstuff = newIngredients[newItemPosition].foodstuff.recreateWithId(0),
+                        weight = rhs.weight.roundToInt().toFloat())
                 return lhs == rhs
             }
         })
@@ -269,5 +366,10 @@ class BucketListAdapter(private val context: Context)
 
     override fun onItemMove(oldPosition: Int, newPosition: Int) {
         onItemDragAndDropObserver?.onItemDraggedAndDropped(oldPosition, newPosition)
+    }
+
+    private fun weightOf(ingredient: Ingredient): Int = when (ingredient.weight.isFinite()) {
+        true -> ingredient.weight.roundToInt()
+        else -> 0
     }
 }

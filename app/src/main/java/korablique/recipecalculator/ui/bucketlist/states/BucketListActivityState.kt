@@ -14,6 +14,7 @@ abstract class BucketListActivityState {
     enum class ID {
         DisplayState,
         EditingState,
+        CookingState
     }
 
     interface Delegate {
@@ -63,9 +64,9 @@ abstract class BucketListActivityState {
     protected abstract fun destroyImpl()
     abstract fun getRecipe(): Recipe
     open fun onActivityBackPressed(): Boolean = false
-    open fun supportsIngredientsAddition(): Boolean = false
     open fun createIngredientsDragAndDropObserver(): BucketListAdapter.ItemDragAndDropObserver? = null
     open fun createIngredientsClickObserver(): BucketListAdapter.OnItemClickedObserver? = null
     open fun createIngredientsLongClickObserver(): BucketListAdapter.OnItemLongClickedObserver? = null
     open fun createAddIngredientClickObserver(): Runnable? = null
+    open fun createIngredientWeightEditionObserver(): BucketListAdapter.ItemWeightEditionObserver? = null
 }

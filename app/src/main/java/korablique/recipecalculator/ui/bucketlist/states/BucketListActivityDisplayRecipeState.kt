@@ -11,7 +11,7 @@ import korablique.recipecalculator.model.Recipe
 import korablique.recipecalculator.ui.bucketlist.BucketList
 import korablique.recipecalculator.ui.bucketlist.CommentLayoutController
 
-const val EXTRA_DISPLAYED_RECIPE = "EXTRA_DISPLAYED_RECIPE"
+private const val EXTRA_DISPLAYED_RECIPE = "EXTRA_DISPLAYED_RECIPE"
 
 class BucketListActivityDisplayRecipeState(
         private val recipe: Recipe,
@@ -54,7 +54,11 @@ class BucketListActivityDisplayRecipeState(
                     recipesRepository, mainThreadExecutor))
         }
 
-        commentLayoutController.setEditable(false)
+        findViewById<View>(R.id.button_cooking).setOnClickListener {
+            switchState(BucketListActivityCookingState(
+                    recipe, commentLayoutController, activity, bucketList,
+                    recipesRepository, mainThreadExecutor))
+        }
     }
 
     override fun destroyImpl() {

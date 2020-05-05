@@ -22,6 +22,7 @@ import korablique.recipecalculator.ui.bucketlist.BucketList
 import korablique.recipecalculator.ui.bucketlist.BucketListAdapter
 import korablique.recipecalculator.ui.bucketlist.CommentLayoutController
 import korablique.recipecalculator.ui.bucketlist.IngredientCommentDialog
+import korablique.recipecalculator.ui.calckeyboard.CalcEditText
 import korablique.recipecalculator.ui.card.Card
 import korablique.recipecalculator.ui.card.CardDialog
 import korablique.recipecalculator.util.FloatUtils
@@ -46,7 +47,7 @@ class BucketListActivityRecipeEditingState private constructor(
     private var displayedInCardFoodstuffPosition = 0
 
     private lateinit var buttonClose: View
-    private lateinit var totalWeightEditText: EditText
+    private lateinit var totalWeightEditText: CalcEditText
     private lateinit var recipeNameEditText: EditText
     private lateinit var saveAsRecipeButton: Button
 
@@ -160,9 +161,9 @@ class BucketListActivityRecipeEditingState private constructor(
             override fun afterTextChanged(s: Editable) {
                 updateSaveButtonsEnability()
 
-                var totalWeight = 0f
-                if (!s.toString().isEmpty()) {
-                    totalWeight = s.toString().toFloat()
+                var totalWeight = totalWeightEditText.getCurrentCalculatedValue()
+                if (totalWeight == null) {
+                    totalWeight = 0f
                 }
                 if (totalWeight == bucketList.getTotalWeight()) {
                     return;
@@ -229,17 +230,18 @@ class BucketListActivityRecipeEditingState private constructor(
         recipeNameEditText.removeTextChangedListener(recipeNameTextWatcher)
         totalWeightEditText.removeTextChangedListener(totalWeightTextWatcher)
         commentLayoutController.removeCommentEditsObserver(commentEditsObserver)
+        commentLayoutController.setEditable(false)
     }
 
     override fun getRecipe(): Recipe = bucketList.getRecipe()
 
     private fun updateSaveButtonsEnability() {
-        val weightText = totalWeightEditText.text.toString()
+        val weightVal = totalWeightEditText.getCurrentCalculatedValue()
         val name = recipeNameEditText.text.toString().trim()
         saveAsRecipeButton.isEnabled =
-                !weightText.isEmpty()
+                weightVal != null
                         && !name.isEmpty()
-                        && !FloatUtils.areFloatsEquals(weightText.toDouble(), 0.0)
+                        && !FloatUtils.areFloatsEquals(weightVal, 0f)
                         && !bucketList.getList().isEmpty()
     }
 

@@ -75,6 +75,22 @@
             android:background="@drawable/rectangular_button_click_selector"
             android:src="@drawable/ic_edit_white"/>
     </FrameLayout>
+    <FrameLayout
+        android:id="@+id/button_cooking_rippled_wrapper"
+        android:layout_width="49dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="@id/title_view"
+        app:layout_constraintEnd_toStartOf="@+id/button_edit_rippled_wrapper"
+        app:layout_constraintTop_toTopOf="@id/title_view"
+        android:background="@android:color/transparent">
+        <ImageView
+            android:id="@+id/button_cooking"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_gravity="center"
+            android:background="@drawable/rectangular_button_click_selector"
+            android:src="@drawable/ic_cooking_white"/>
+    </FrameLayout>
 
     <EditText
         android:id="@+id/recipe_name_edit_text"
@@ -131,12 +147,12 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="17dp"
         android:layout_marginBottom="8dp"
-        android:inputType="numberDecimal"
         android:paddingTop="15dp"
         android:paddingBottom="9dp"
         android:maxLines="1"
         android:maxLength="30"
-        custom:max_value="99999"
+        custom:min_value="0"
+        custom:max_value="9999999"
         custom:digits_after_decimal_dot="1"
         tools:text="100"
         app:layout_constraintLeft_toRightOf="@id/weight_text_view"

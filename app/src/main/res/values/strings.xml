@@ -54,6 +54,7 @@
     <string name="bucket_list_title_recipe_creation">Новый рецепт</string>
     <string name="bucket_list_title_recipe_editing">Редактирование</string>
     <string name="bucket_list_title_recipe">Рецепт</string>
+    <string name="bucket_list_title_cooking">Рассчёт соотношений</string>
     <string name="meal">Приём пищи</string>
     <string name="meal_notification">Не забудьте внести в приложение, что вы кушали</string>
     <string name="channel_name">Напоминание о приеме пищи</string>
