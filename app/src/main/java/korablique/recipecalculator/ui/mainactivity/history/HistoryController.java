@@ -79,6 +79,8 @@ public class HistoryController implements
 
     @Override
     public void onFragmentSaveInstanceState(Bundle outState) {
+        // If we don't save and restore the initial date, PageViewer2 will do it by itself,
+        // which will cause a bug of pages displaying wrong days: https://trello.com/c/gYv0yJz6/
         outState.putString(EXTRA_INITIAL_DATE, initialDate.toString());
     }
 
