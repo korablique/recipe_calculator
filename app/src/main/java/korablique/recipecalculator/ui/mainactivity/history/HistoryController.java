@@ -38,6 +38,7 @@ public class HistoryController implements
         FragmentCallbacks.Observer,
         HistoryWorker.HistoryChangeObserver,
         MainActivitySelectedDateStorage.Observer {
+    private static final String EXTRA_INITIAL_DATE = "EXTRA_INITIAL_DATE";
     private BaseActivity context;
     private BaseFragment fragment;
     private View fragmentView;
@@ -47,6 +48,7 @@ public class HistoryController implements
     private MainActivitySelectedDateStorage mainActivitySelectedDateStorage;
     private ViewPager2 historyViewPager;
     private HistoryPagesAdapter historyPagesAdapter;
+    private LocalDate initialDate;
     private boolean initialized = false;
 
     private DatePickerFragment.DateSetListener dateSetListener = new DatePickerFragment.DateSetListener() {
@@ -76,9 +78,20 @@ public class HistoryController implements
     }
 
     @Override
+    public void onFragmentSaveInstanceState(Bundle outState) {
+        outState.putString(EXTRA_INITIAL_DATE, initialDate.toString());
+    }
+
+    @Override
     public void onFragmentViewCreated(View fragmentView, Bundle savedInstanceState) {
         this.fragmentView = fragmentView;
         historyViewPager = fragmentView.findViewById(R.id.history_view_pager);
+
+        if (savedInstanceState != null) {
+            initialDate = LocalDate.parse(savedInstanceState.getString(EXTRA_INITIAL_DATE));
+        } else {
+            initialDate = timeProvider.now().toLocalDate();
+        }
 
         FloatingActionButton fab = fragmentView.findViewById(R.id.history_fab);
         fab.setOnClickListener(v -> {
@@ -92,7 +105,7 @@ public class HistoryController implements
             existedDatePicker.setOnDateSetListener(dateSetListener);
         }
 
-        initViewPager();
+        initViewPager(initialDate);
         initCalendarButton(fragmentView);
         initReturnToCurrentDateButton(fragmentView);
         updateReturnButtonVisibility(fragmentView);
@@ -103,9 +116,8 @@ public class HistoryController implements
         initialized = true;
     }
 
-    private void initViewPager() {
-        LocalDate now = timeProvider.now().toLocalDate();
-        historyPagesAdapter = new HistoryPagesAdapter(fragment, now);
+    private void initViewPager(LocalDate initialDate) {
+        historyPagesAdapter = new HistoryPagesAdapter(fragment, initialDate);
         historyViewPager.setAdapter(historyPagesAdapter);
         historyViewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
@@ -115,7 +127,7 @@ public class HistoryController implements
                 }
             }
         });
-        historyViewPager.setCurrentItem(historyPagesAdapter.dateToPosition(now), false);
+        historyViewPager.setCurrentItem(historyPagesAdapter.dateToPosition(initialDate), false);
         historyViewPager.setOffscreenPageLimit(1);
     }
 
@@ -134,7 +146,13 @@ public class HistoryController implements
         setDateInToolbar(date, fragmentView);
         int datePosition = historyPagesAdapter.dateToPosition(date);
         if (datePosition != historyViewPager.getCurrentItem()) {
-            boolean animated = !TestEnvironmentDetector.isInTests();
+            // fragment.isVisible() is needed, because used version of ViewPager2 has broken current item
+            // changing, it doesn't work properly when the ViewPager2 is not visible and animated
+            // current item change is requested.
+            // TestEnvironmentDetector.isInTests() is needed, because ViewPager2 doesn't disable its
+            // animations when animations are disabled system-wide from Developer Options, and
+            // tests don't work properly (they expect instant animations).
+            boolean animated = fragment.isVisible() && !TestEnvironmentDetector.isInTests();
             historyViewPager.setCurrentItem(
                     historyPagesAdapter.dateToPosition(date),
                     animated);

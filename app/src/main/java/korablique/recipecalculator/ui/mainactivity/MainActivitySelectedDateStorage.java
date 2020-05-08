@@ -94,7 +94,7 @@ public class MainActivitySelectedDateStorage implements
 
     @Override
     public void onNewSession() {
-        selectedDate = timeProvider.now().toLocalDate();
+        setSelectedDate(timeProvider.now().toLocalDate());
         sessionController.onClientStartedNewSession(SessionClient.MAIN_ACTIVITY_SELECTED_DATE);
     }
 
