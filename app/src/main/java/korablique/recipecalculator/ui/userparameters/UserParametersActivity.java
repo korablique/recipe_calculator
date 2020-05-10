@@ -100,9 +100,8 @@ public class UserParametersActivity extends BaseActivity {
         saveUserParamsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String firstName = ((EditText) findViewById(R.id.first_name)).getText().toString();
-                String lastName = ((EditText) findViewById(R.id.last_name)).getText().toString();
-                FullName fullName = new FullName(firstName, lastName);
+                String name = ((EditText) findViewById(R.id.name)).getText().toString();
+                FullName fullName = new FullName(name, "");
                 userNameProvider.saveUserName(fullName);
                 serverUserParamsRegistry.updateUserNameIgnoreResult(fullName.toString());
 
@@ -147,10 +146,8 @@ public class UserParametersActivity extends BaseActivity {
             }
         });
 
-        EditText firstNameEditText = findViewById(R.id.first_name);
-        firstNameEditText.addTextChangedListener(textWatcher);
-        EditText lastNameEditText = findViewById(R.id.last_name);
-        lastNameEditText.addTextChangedListener(textWatcher);
+        EditText nameEditText = findViewById(R.id.name);
+        nameEditText.addTextChangedListener(textWatcher);
         dateOfBirthView.addTextChangedListener(textWatcher);
         EditText targetWeightEditText = findViewById(R.id.target_weight);
         targetWeightEditText.addTextChangedListener(textWatcher);
@@ -198,15 +195,13 @@ public class UserParametersActivity extends BaseActivity {
     }
 
     private void updateSaveButtonEnability() {
-        EditText nameView = findViewById(R.id.first_name);
-        EditText surnameView = findViewById(R.id.last_name);
+        EditText nameView = findViewById(R.id.name);
         EditText ageView = findViewById(R.id.date_of_birth);
         EditText heightView = findViewById(R.id.height);
         EditText weightView = findViewById(R.id.weight);
         EditText targetWeight = findViewById(R.id.target_weight);
         Spinner genderSpinner = findViewById(R.id.gender_spinner);
         boolean allFieldsFilled = !nameView.getText().toString().isEmpty()
-                && !surnameView.getText().toString().isEmpty()
                 && !ageView.getText().toString().isEmpty()
                 && !heightView.getText().toString().isEmpty()
                 && !weightView.getText().toString().isEmpty()
@@ -273,10 +268,7 @@ public class UserParametersActivity extends BaseActivity {
     }
 
     private void fillUserName(FullName userFullName) {
-        EditText firstNameEditText = findViewById(R.id.first_name);
-        firstNameEditText.setText(userFullName.getFirstName());
-        EditText lastNameEditText = findViewById(R.id.last_name);
-
-        lastNameEditText.setText(userFullName.getLastName());
+        EditText nameEditText = findViewById(R.id.name);
+        nameEditText.setText(userFullName.toString());
     }
 }
