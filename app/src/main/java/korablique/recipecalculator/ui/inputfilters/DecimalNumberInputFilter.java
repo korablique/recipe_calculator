@@ -52,7 +52,7 @@ public class DecimalNumberInputFilter implements InputFilter {
 
         if (maxDigitsAfterPoint == 0 && result.contains(".")) {
             // No point allowed when max digits is 0
-            return "";
+            return result.substring(0, result.indexOf("."));
         }
 
         int pointIndex = result.indexOf(".");
@@ -63,7 +63,8 @@ public class DecimalNumberInputFilter implements InputFilter {
 
         int digitsAfterPoint = result.substring(pointIndex).length() - 1;
         if (maxDigitsAfterPoint < digitsAfterPoint) {
-            return "";
+            // Cut out extra digits
+            return result.substring(0, pointIndex + maxDigitsAfterPoint + 1);
         } else {
             return null;
         }

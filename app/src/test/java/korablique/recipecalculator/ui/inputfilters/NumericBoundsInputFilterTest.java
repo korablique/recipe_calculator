@@ -18,11 +18,11 @@ public class NumericBoundsInputFilterTest {
     public void works() {
         NumericBoundsInputFilter filter = NumericBoundsInputFilter.withBounds(-10, 10);
 
-        Assert.assertEquals("", filterPastedText("-10.1", filter));
+        Assert.assertEquals("-10", filterPastedText("-10.1", filter));
         Assert.assertNull(filterPastedText("-10", filter));
         Assert.assertNull(filterPastedText("5", filter));
         Assert.assertNull(filterPastedText("10", filter));
-        Assert.assertEquals("", filterPastedText("10.1", filter));
+        Assert.assertEquals("10", filterPastedText("10.1", filter));
     }
 
     @Nullable
