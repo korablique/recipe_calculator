@@ -8,13 +8,13 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.crashlytics.android.Crashlytics;
 
 import org.joda.time.LocalDate;
-import org.joda.time.format.DateTimeFormatter;
 
 import javax.inject.Inject;
 
@@ -73,12 +73,10 @@ public class UserParametersActivity extends BaseActivity {
         });
 
         // гендер
-        Spinner genderSpinner = findViewById(R.id.gender_spinner);
-        startTuningSpinner(genderSpinner)
-                .withItems(R.array.gender_array)
-                .addDisabledItemAt(0)
-                .onItemSelected((position, id) -> updateSaveButtonEnability())
-                .tune();
+        RadioButton radioMale = findViewById(R.id.radio_male);
+        RadioButton radioFemale = findViewById(R.id.radio_female);
+        radioMale.setOnCheckedChangeListener((buttonView, isChecked) -> updateSaveButtonEnability());
+        radioFemale.setOnCheckedChangeListener((buttonView, isChecked) -> updateSaveButtonEnability());
 
         // образ жизни
         Spinner lifestyleSpinner = findViewById(R.id.lifestyle_spinner);
@@ -200,21 +198,27 @@ public class UserParametersActivity extends BaseActivity {
         EditText heightView = findViewById(R.id.height);
         EditText weightView = findViewById(R.id.weight);
         EditText targetWeight = findViewById(R.id.target_weight);
-        Spinner genderSpinner = findViewById(R.id.gender_spinner);
+        RadioButton radioMale = findViewById(R.id.radio_male);
+        RadioButton radioFemale = findViewById(R.id.radio_female);
         boolean allFieldsFilled = !nameView.getText().toString().isEmpty()
                 && !ageView.getText().toString().isEmpty()
                 && !heightView.getText().toString().isEmpty()
                 && !weightView.getText().toString().isEmpty()
                 && !targetWeight.getText().toString().isEmpty()
-                && genderSpinner.getSelectedItemPosition() != 0;
+                && (radioMale.isChecked() || radioFemale.isChecked());
         saveUserParamsButton.setEnabled(allFieldsFilled);
     }
 
     private UserParameters extractUserParameters() {
         float targetWeight = Float.parseFloat(((EditText) findViewById(R.id.target_weight)).getText().toString());
 
-        int genderSelectedPosition = ((Spinner) findViewById(R.id.gender_spinner)).getSelectedItemPosition();
-        Gender gender = Gender.POSITIONS.get(genderSelectedPosition - 1);
+        Gender gender;
+        RadioButton radioMale = findViewById(R.id.radio_male);
+        if (radioMale.isChecked()) {
+            gender = Gender.MALE;
+        } else {
+            gender = Gender.FEMALE;
+        }
 
         String dateOfBirthString = ((EditText) findViewById(R.id.date_of_birth)).getText().toString();
         LocalDate dateOfBirth = parseDateOfBirth(dateOfBirthString);
@@ -237,7 +241,8 @@ public class UserParametersActivity extends BaseActivity {
         EditText dateOfBirthView = findViewById(R.id.date_of_birth);
         EditText heightView = findViewById(R.id.height);
         EditText weightView = findViewById(R.id.weight);
-        Spinner genderSpinner = findViewById(R.id.gender_spinner);
+        RadioButton radioMale = findViewById(R.id.radio_male);
+        RadioButton radioFemale = findViewById(R.id.radio_female);
         EditText targetWeightView = findViewById(R.id.target_weight);
         Spinner lifestyleSpinner = findViewById(R.id.lifestyle_spinner);
         Spinner formulaSpinner = findViewById(R.id.formula_spinner);
@@ -250,7 +255,11 @@ public class UserParametersActivity extends BaseActivity {
         targetWeightView.setText(DecimalUtils.toDecimalString(oldUserParams.getTargetWeight()));
 
         Gender gender = oldUserParams.getGender();
-        genderSpinner.setSelection(Gender.POSITIONS_REVERSED.get(gender) + 1);
+        if (gender == Gender.MALE) {
+            radioMale.setChecked(true);
+        } else {
+            radioFemale.setChecked(true);
+        }
 
         Lifestyle lifestyle = oldUserParams.getLifestyle();
         lifestyleSpinner.setSelection(Lifestyle.POSITIONS_REVERSED.get(lifestyle));

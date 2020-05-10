@@ -86,65 +86,75 @@
                     style="@style/RobotoMonoText"
                     app:layout_constraintTop_toBottomOf="@+id/row_fake_top_1" />
 
-                <!--gender-->
-                <TextView
-                    android:id="@+id/gender_text_view"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/name"
-                    android:layout_marginStart="4.5dp"
-                    android:layout_marginTop="8dp"
-                    style="@style/RobotoMonoHintText"
-                    android:text="@string/gender" />
-
-                <Spinner
-                    android:id="@+id/gender_spinner"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:entries="@array/gender_array"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/gender_text_view" />
-
-                <ImageView
-                    android:id="@+id/line1"
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginStart="4dp"
-                    android:layout_marginEnd="4dp"
-                    android:src="@drawable/line"
-                    app:layout_constraintTop_toBottomOf="@id/gender_spinner" />
-
-                <View
-                    android:id="@+id/row_fake_top_3"
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:layout_marginTop="16dp"
-                    app:layout_constraintTop_toBottomOf="@+id/line1"
-                    app:layout_constraintStart_toStartOf="parent" />
-
                 <!--date of birth-->
                 <TextView
                     android:id="@+id/date_of_birth_text_view"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/line1"
+                    app:layout_constraintTop_toBottomOf="@+id/name"
                     android:layout_marginStart="4.5dp"
                     android:layout_marginTop="13dp"
                     style="@style/RobotoMonoHintText"
                     android:text="@string/date_of_birth" />
+
+                <View
+                    android:id="@+id/row_fake_top_2"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_marginTop="4dp"
+                    app:layout_constraintTop_toTopOf="@+id/date_of_birth_text_view"
+                    app:layout_constraintStart_toStartOf="parent" />
 
                 <EditText
                     android:id="@+id/date_of_birth"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/row_fake_top_3"
+                    app:layout_constraintTop_toTopOf="@id/row_fake_top_2"
                     android:layout_marginTop="5dp"
                     android:backgroundTint="@color/colorAccent"
                     style="@style/RobotoMonoText"
                     android:focusable="false" />
+
+                <!--gender-->
+                <TextView
+                    android:id="@+id/gender_text_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/date_of_birth"
+                    android:layout_marginStart="4.5dp"
+                    android:layout_marginTop="8dp"
+                    style="@style/RobotoMonoHintText"
+                    android:text="@string/gender"/>
+
+                <View
+                    android:id="@+id/row_fake_top_3"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_marginTop="4dp"
+                    app:layout_constraintTop_toTopOf="@+id/gender_text_view"
+                    app:layout_constraintStart_toStartOf="parent" />
+
+                <RadioGroup
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="6dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/row_fake_top_3">
+                    <RadioButton android:id="@+id/radio_male"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        style="@style/RobotoMonoText"
+                        android:text="@string/male"/>
+                    <RadioButton android:id="@+id/radio_female"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        style="@style/RobotoMonoText"
+                        android:text="@string/female"/>
+                </RadioGroup>
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <FrameLayout
