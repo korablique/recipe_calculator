@@ -410,7 +410,7 @@ public class MainActivityHistoryTest extends MainActivityTestsBase {
     }
 
     @Test
-    public void toolbarDateIsCorrectOnScreenRotation() {
+    public void toolbarDateIsCorrectOnScreenRotation() throws InterruptedException {
         mActivityRule.launchActivity(null);
         onView(withId(R.id.menu_item_history)).perform(click());
         // выбрать дату
@@ -423,6 +423,7 @@ public class MainActivityHistoryTest extends MainActivityTestsBase {
         // повернуть экран, проверить
         Activity activity = mActivityRule.getActivity();
         activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        Thread.sleep(250); // Попытка исправить флакучесть
         onView(withId(R.id.title_text)).check(matches(withText(anyDay.toString("dd.MM.yy"))));
 
         // выбрать дату
