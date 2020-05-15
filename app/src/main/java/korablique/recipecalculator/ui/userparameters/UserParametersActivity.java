@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.InputFilter;
 import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
@@ -12,9 +13,17 @@ import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import com.crashlytics.android.Crashlytics;
+import androidx.annotation.Nullable;
 
+import com.crashlytics.android.Crashlytics;
+import com.redmadrobot.inputmask.MaskedTextChangedListener;
+
+import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
+import org.joda.time.format.DateTimeFormat;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.inject.Inject;
 
@@ -37,6 +46,7 @@ import korablique.recipecalculator.outside.userparams.ServerUserParamsRegistry;
 import korablique.recipecalculator.ui.DatePickerFragment;
 import korablique.recipecalculator.ui.DecimalUtils;
 import korablique.recipecalculator.ui.TextWatcherAfterTextChangedAdapter;
+import korablique.recipecalculator.ui.inputfilters.GeneralDateFormatInputFilter;
 import korablique.recipecalculator.ui.mainactivity.MainScreenLoader;
 
 import static korablique.recipecalculator.util.SpinnerTuner.startTuningSpinner;
@@ -121,19 +131,28 @@ public class UserParametersActivity extends BaseActivity {
             }
         });
 
-        EditText dateOfBirthView = findViewById(R.id.date_of_birth);
-        dateOfBirthView.setOnClickListener(new View.OnClickListener() {
+        DateTime minBirthdayDate = timeProvider.now().minusYears(100);
+        DateTime maxBirthdayDate = timeProvider.now().minusYears(14);
+
+        View calendarView = findViewById(R.id.calendar_button);
+        calendarView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 EditText dateOfBirthView = findViewById(R.id.date_of_birth);
-                String dateOfBirthString = dateOfBirthView.getText().toString();
+                LocalDate birthday = parseDateOfBirth(dateOfBirthView.getText().toString());
 
                 DatePickerFragment datePickerFragment;
-                if (dateOfBirthString.isEmpty()) {
-                    datePickerFragment = DatePickerFragment.showDialog(getSupportFragmentManager());
+                if (birthday == null) {
+                    datePickerFragment = DatePickerFragment.showDialog(
+                            getSupportFragmentManager(),
+                            minBirthdayDate.getMillis(),
+                            maxBirthdayDate.getMillis());
                 } else {
-                    LocalDate dateOfBirth = parseDateOfBirth(dateOfBirthString);
-                    datePickerFragment = DatePickerFragment.showDialog(getSupportFragmentManager(), dateOfBirth);
+                    datePickerFragment = DatePickerFragment.showDialog(
+                            getSupportFragmentManager(),
+                            birthday,
+                            minBirthdayDate.getMillis(),
+                            maxBirthdayDate.getMillis());
                 }
                 datePickerFragment.setOnDateSetListener(new DatePickerFragment.DateSetListener() {
                     @Override
@@ -144,9 +163,21 @@ public class UserParametersActivity extends BaseActivity {
             }
         });
 
+        EditText birthdayEditText = findViewById(R.id.date_of_birth);
+        MaskedTextChangedListener.Companion.installOn(
+                birthdayEditText,
+                "[09]{.}[09]{.}[0000]",
+                (maskFilled, extractedValue, formattedValue) -> {});
+        ArrayList<InputFilter> filters = new ArrayList<>(Arrays.asList(birthdayEditText.getFilters()));
+        filters.add(new GeneralDateFormatInputFilter(
+                minBirthdayDate.getYear(),
+                maxBirthdayDate.getYear()));
+        birthdayEditText.setFilters(filters.toArray(new InputFilter[0]));
+        birthdayEditText.setHint("20.12.1993");
+
         EditText nameEditText = findViewById(R.id.name);
         nameEditText.addTextChangedListener(textWatcher);
-        dateOfBirthView.addTextChangedListener(textWatcher);
+        birthdayEditText.addTextChangedListener(textWatcher);
         EditText targetWeightEditText = findViewById(R.id.target_weight);
         targetWeightEditText.addTextChangedListener(textWatcher);
         EditText heightEditText = findViewById(R.id.height);
@@ -195,13 +226,14 @@ public class UserParametersActivity extends BaseActivity {
     private void updateSaveButtonEnability() {
         EditText nameView = findViewById(R.id.name);
         EditText ageView = findViewById(R.id.date_of_birth);
+        LocalDate birthday = parseDateOfBirth(ageView.getText().toString());
         EditText heightView = findViewById(R.id.height);
         EditText weightView = findViewById(R.id.weight);
         EditText targetWeight = findViewById(R.id.target_weight);
         RadioButton radioMale = findViewById(R.id.radio_male);
         RadioButton radioFemale = findViewById(R.id.radio_female);
         boolean allFieldsFilled = !nameView.getText().toString().isEmpty()
-                && !ageView.getText().toString().isEmpty()
+                && birthday != null
                 && !heightView.getText().toString().isEmpty()
                 && !weightView.getText().toString().isEmpty()
                 && !targetWeight.getText().toString().isEmpty()
@@ -268,12 +300,13 @@ public class UserParametersActivity extends BaseActivity {
         formulaSpinner.setSelection(Formula.POSITIONS_REVERSED.get(formula));
     }
 
+    @Nullable
     private LocalDate parseDateOfBirth(String dateString) {
-        String[] dateSplited = dateString.split("\\.");
-        int day = Integer.parseInt(dateSplited[0]);
-        int month = Integer.parseInt(dateSplited[1]);
-        int year = Integer.parseInt(dateSplited[2]);
-        return new LocalDate(year, month, day);
+        try {
+            return LocalDate.parse(dateString, DateTimeFormat.forPattern("dd.MM.yyyy"));
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     private void fillUserName(FullName userFullName) {

@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.os.Bundle;
 import android.widget.DatePicker;
 
+import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 
 import java.util.Calendar;
@@ -15,7 +16,9 @@ import androidx.fragment.app.FragmentManager;
 
 public class DatePickerFragment extends DialogFragment implements DatePickerDialog.OnDateSetListener {
     private static final String DATE_PICKER_FRAGMENT_TAG = "DATE_PICKER";
-    public static final String DATE = "DATE";
+    private static final String MIN_TIME = "MIN_TIME";
+    private static final String MAX_TIME = "MAX_TIME";
+    private static final String DATE = "DATE";
 
     public interface DateSetListener {
         void onDateSet(LocalDate date);
@@ -42,8 +45,21 @@ public class DatePickerFragment extends DialogFragment implements DatePickerDial
             day = c.get(Calendar.DAY_OF_MONTH);
         }
 
+        long minTime;
+        long maxTime;
+        if (args != null) {
+            minTime = args.getLong(MIN_TIME);
+            maxTime = args.getLong(MAX_TIME);
+        } else {
+            minTime = 0;
+            maxTime = Long.MAX_VALUE;
+        }
+
         // Create a new instance of DatePickerDialog and return it
-        return new DatePickerDialog(getActivity(), this, year, month, day);
+        DatePickerDialog dialog = new DatePickerDialog(requireContext(), this, year, month, day);
+        dialog.getDatePicker().setMaxDate(maxTime);
+        dialog.getDatePicker().setMinDate(minTime);
+        return dialog;
     }
 
     @Override
@@ -58,17 +74,40 @@ public class DatePickerFragment extends DialogFragment implements DatePickerDial
         onDateSetListener = listener;
     }
 
-    public static DatePickerFragment showDialog(FragmentManager fragmentManager) {
+    public static DatePickerFragment showDialog(
+            FragmentManager fragmentManager,
+            @Nullable Long minTime, @Nullable Long maxTime) {
         DatePickerFragment datePickerFragment = new DatePickerFragment();
+        Bundle bundle = new Bundle();
+        if (minTime != null) {
+            bundle.putLong(MIN_TIME, minTime);
+        }
+        if (maxTime != null) {
+            bundle.putLong(MAX_TIME, maxTime);
+        }
+        datePickerFragment.setArguments(bundle);
         datePickerFragment.show(fragmentManager, DATE_PICKER_FRAGMENT_TAG);
         return datePickerFragment;
     }
 
-    public static DatePickerFragment showDialog(FragmentManager fragmentManager, LocalDate date) {
+    public static DatePickerFragment showDialog(
+            FragmentManager fragmentManager, LocalDate date) {
+        return showDialog(fragmentManager, date, null, null);
+    }
+
+    public static DatePickerFragment showDialog(
+            FragmentManager fragmentManager, LocalDate date,
+            @Nullable Long minTime, @Nullable Long maxTime) {
         DatePickerFragment datePickerFragment = new DatePickerFragment();
         Bundle bundle = new Bundle();
         long dateLong = date.toDate().getTime();
         bundle.putLong(DATE, dateLong);
+        if (minTime != null) {
+            bundle.putLong(MIN_TIME, minTime);
+        }
+        if (maxTime != null) {
+            bundle.putLong(MAX_TIME, maxTime);
+        }
         datePickerFragment.setArguments(bundle);
         datePickerFragment.show(fragmentManager, DATE_PICKER_FRAGMENT_TAG);
         return datePickerFragment;
