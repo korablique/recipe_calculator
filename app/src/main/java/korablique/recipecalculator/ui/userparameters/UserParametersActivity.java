@@ -14,6 +14,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
 
 import com.crashlytics.android.Crashlytics;
 import com.redmadrobot.inputmask.MaskedTextChangedListener;
@@ -24,6 +25,8 @@ import org.joda.time.format.DateTimeFormat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -47,11 +50,19 @@ import korablique.recipecalculator.ui.DatePickerFragment;
 import korablique.recipecalculator.ui.DecimalUtils;
 import korablique.recipecalculator.ui.TextWatcherAfterTextChangedAdapter;
 import korablique.recipecalculator.ui.inputfilters.GeneralDateFormatInputFilter;
+import korablique.recipecalculator.ui.inputfilters.NumericBoundsInputFilter;
 import korablique.recipecalculator.ui.mainactivity.MainScreenLoader;
 
 import static korablique.recipecalculator.util.SpinnerTuner.startTuningSpinner;
 
 public class UserParametersActivity extends BaseActivity {
+    private static final int MIN_AGE = 14;
+    private static final int MAX_AGE = 100;
+    private static final int MIN_WEIGHT = 35;
+    private static final int MAX_WEIGHT = 300;
+    private static final int MIN_HEIGHT = 130;
+    private static final int MAX_HEIGHT = 300;
+
     @Inject
     UserParametersWorker userParametersWorker;
     @Inject
@@ -64,8 +75,17 @@ public class UserParametersActivity extends BaseActivity {
     MainScreenLoader mainScreenLoader;
     @Inject
     ServerUserParamsRegistry serverUserParamsRegistry;
-    private TextWatcher textWatcher = new TextWatcherAfterTextChangedAdapter(editable -> updateSaveButtonEnability());
+
     private Button saveUserParamsButton;
+    private EditText nameEditText;
+    private EditText weightEditText;
+    private EditText targetWeightEditText;
+    private EditText heightEditText;
+    private EditText birthdayEditText;
+    private RadioButton radioMale;
+    private RadioButton radioFemale;
+
+    private Set<EditText> editedEditTexts = new HashSet<>();
 
     @Override
     protected Integer getLayoutId() {
@@ -76,6 +96,15 @@ public class UserParametersActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        saveUserParamsButton = findViewById(R.id.button_save);
+        nameEditText = findViewById(R.id.name);
+        weightEditText = findViewById(R.id.weight);
+        targetWeightEditText = findViewById(R.id.target_weight);
+        heightEditText = findViewById(R.id.height);
+        birthdayEditText = findViewById(R.id.date_of_birth);
+        radioMale = findViewById(R.id.radio_male);
+        radioFemale = findViewById(R.id.radio_female);
+
         findViewById(R.id.privacy_policy).setOnClickListener((v) -> {
             Intent browserIntent = new Intent(Intent.ACTION_VIEW);
             browserIntent.setData(Uri.parse(getString(R.string.privacy_policy_address)));
@@ -83,8 +112,6 @@ public class UserParametersActivity extends BaseActivity {
         });
 
         // гендер
-        RadioButton radioMale = findViewById(R.id.radio_male);
-        RadioButton radioFemale = findViewById(R.id.radio_female);
         radioMale.setOnCheckedChangeListener((buttonView, isChecked) -> updateSaveButtonEnability());
         radioFemale.setOnCheckedChangeListener((buttonView, isChecked) -> updateSaveButtonEnability());
 
@@ -104,11 +131,10 @@ public class UserParametersActivity extends BaseActivity {
                 .withItems(R.array.formula_array)
                 .tune();
 
-        saveUserParamsButton = findViewById(R.id.button_save);
         saveUserParamsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String name = ((EditText) findViewById(R.id.name)).getText().toString();
+                String name = nameEditText.getText().toString();
                 FullName fullName = new FullName(name, "");
                 userNameProvider.saveUserName(fullName);
                 serverUserParamsRegistry.updateUserNameIgnoreResult(fullName.toString());
@@ -134,12 +160,10 @@ public class UserParametersActivity extends BaseActivity {
         DateTime minBirthdayDate = timeProvider.now().minusYears(100);
         DateTime maxBirthdayDate = timeProvider.now().minusYears(14);
 
-        View calendarView = findViewById(R.id.calendar_button);
-        calendarView.setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.calendar_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                EditText dateOfBirthView = findViewById(R.id.date_of_birth);
-                LocalDate birthday = parseDateOfBirth(dateOfBirthView.getText().toString());
+                LocalDate birthday = parseDateOfBirth(birthdayEditText.getText().toString());
 
                 DatePickerFragment datePickerFragment;
                 if (birthday == null) {
@@ -154,36 +178,47 @@ public class UserParametersActivity extends BaseActivity {
                             minBirthdayDate.getMillis(),
                             maxBirthdayDate.getMillis());
                 }
-                datePickerFragment.setOnDateSetListener(new DatePickerFragment.DateSetListener() {
-                    @Override
-                    public void onDateSet(LocalDate date) {
-                        dateOfBirthView.setText(date.toString(getString(R.string.date_format)));
-                    }
+                datePickerFragment.setOnDateSetListener(date -> {
+                    birthdayEditText.setText(date.toString(getString(R.string.date_format)));
                 });
             }
         });
 
-        EditText birthdayEditText = findViewById(R.id.date_of_birth);
         MaskedTextChangedListener.Companion.installOn(
                 birthdayEditText,
                 "[09]{.}[09]{.}[0000]",
                 (maskFilled, extractedValue, formattedValue) -> {});
-        ArrayList<InputFilter> filters = new ArrayList<>(Arrays.asList(birthdayEditText.getFilters()));
-        filters.add(new GeneralDateFormatInputFilter(
+        birthdayEditText.setHint("20.12.1993");
+        addInputFilter(birthdayEditText, new GeneralDateFormatInputFilter(
                 minBirthdayDate.getYear(),
                 maxBirthdayDate.getYear()));
-        birthdayEditText.setFilters(filters.toArray(new InputFilter[0]));
-        birthdayEditText.setHint("20.12.1993");
 
-        EditText nameEditText = findViewById(R.id.name);
-        nameEditText.addTextChangedListener(textWatcher);
+        // 0 is min because to type "65" the user first needs to type "6", only then "5".
+        addInputFilter(weightEditText, NumericBoundsInputFilter.withBounds(0, MAX_WEIGHT));
+        addInputFilter(targetWeightEditText, NumericBoundsInputFilter.withBounds(0, MAX_WEIGHT));
+        addInputFilter(heightEditText, NumericBoundsInputFilter.withBounds(0, MAX_HEIGHT));
+
+        TextWatcher textWatcher =
+                new TextWatcherAfterTextChangedAdapter(editable -> updateSaveButtonEnability());
         birthdayEditText.addTextChangedListener(textWatcher);
-        EditText targetWeightEditText = findViewById(R.id.target_weight);
+        nameEditText.addTextChangedListener(textWatcher);
         targetWeightEditText.addTextChangedListener(textWatcher);
-        EditText heightEditText = findViewById(R.id.height);
         heightEditText.addTextChangedListener(textWatcher);
-        EditText weightEditText = findViewById(R.id.weight);
         weightEditText.addTextChangedListener(textWatcher);
+
+        View.OnFocusChangeListener focusWatcher = (v, hasFocus) -> {
+            if (!hasFocus) {
+                // lost focus
+                editedEditTexts.add((EditText) v);
+                updateAllHintsStates();
+            }
+        };
+        birthdayEditText.setOnFocusChangeListener(focusWatcher);
+        nameEditText.setOnFocusChangeListener(focusWatcher);
+        targetWeightEditText.setOnFocusChangeListener(focusWatcher);
+        heightEditText.setOnFocusChangeListener(focusWatcher);
+        weightEditText.setOnFocusChangeListener(focusWatcher);
+
         // run once to disable if empty
         updateSaveButtonEnability();
 
@@ -192,7 +227,12 @@ public class UserParametersActivity extends BaseActivity {
             if (userParametersOptional.isPresent()) {
                 UserParameters oldUserParams = userParametersOptional.get();
                 fillWithOldUserParameters(oldUserParams);
-                fillUserName(userNameProvider.getUserName());
+                nameEditText.setText(userNameProvider.getUserName().toString());
+            } else {
+                // Let's not confuse the user by showing them complex formulas names on first start
+                findViewById(R.id.formula_text_view).setVisibility(View.GONE);
+                findViewById(R.id.formula_spinner).setVisibility(View.GONE);
+                findViewById(R.id.line4).setVisibility(View.GONE);
             }
         });
 
@@ -203,9 +243,15 @@ public class UserParametersActivity extends BaseActivity {
                         165, 62, Lifestyle.PASSIVE_LIFESTYLE,
                         Formula.HARRIS_BENEDICT, 0);
                 fillWithOldUserParameters(debugUserParams);
-                fillUserName(new FullName("Debug", "Debug"));
+                nameEditText.setText("Debug Name");
             });
         }
+    }
+
+    void addInputFilter(EditText editText, InputFilter filter) {
+        ArrayList<InputFilter> filters = new ArrayList<>(Arrays.asList(editText.getFilters()));
+        filters.add(filter);
+        editText.setFilters(filters.toArray(new InputFilter[0]));
     }
 
     @Override
@@ -223,40 +269,100 @@ public class UserParametersActivity extends BaseActivity {
         context.startActivity(intent);
     }
 
+    private void updateAllHintsStates() {
+        updateIvalidValuesHints();
+        updateSaveButtonEnability();
+    }
+
+    private void updateIvalidValuesHints() {
+        if (parseDateOfBirth(birthdayEditText.getText().toString()) != null) {
+            birthdayEditText.setError(null);
+        } else if (editedEditTexts.contains(birthdayEditText)) {
+            birthdayEditText.setError("Упс, дата какая-то не такая!");
+        }
+
+        if (!nameEditText.getText().toString().trim().isEmpty()) {
+            nameEditText.setError(null);
+        } else if (editedEditTexts.contains(nameEditText)) {
+            nameEditText.setError("А как же вас зовут?");
+        }
+
+        setUpNumberFieldErrorHint(
+                weightEditText, MIN_WEIGHT, MAX_WEIGHT,
+                R.string.user_weight_invalid_format, R.string.user_weight_too_small, R.string.user_weight_too_big);
+        setUpNumberFieldErrorHint(
+                targetWeightEditText, MIN_WEIGHT, MAX_WEIGHT,
+                R.string.user_weight_invalid_format, R.string.user_weight_too_small, R.string.user_weight_too_big);
+        setUpNumberFieldErrorHint(
+                heightEditText, MIN_HEIGHT, MAX_HEIGHT,
+                R.string.user_height_invalid_format, R.string.user_height_too_small, R.string.user_height_too_big);
+    }
+
+    private void setUpNumberFieldErrorHint(EditText numberField,
+                                           int min,
+                                           int max,
+                                           @StringRes int invalidFormatHint,
+                                           @StringRes int valBelowMinHit,
+                                           @StringRes int valAboveMaxHint) {
+        if (isNumberFieldValid(numberField, min, max)) {
+            numberField.setError(null);
+        } else if (editedEditTexts.contains(numberField)) {
+            Integer weight;
+            try {
+                weight = Integer.valueOf(numberField.getText().toString());
+            } catch (NumberFormatException e) {
+                weight = null;
+            }
+            if (weight == null) {
+                numberField.setError(getText(invalidFormatHint));
+            } else if (weight < min) {
+                numberField.setError(getText(valBelowMinHit));
+            } else if (weight > max) {
+                numberField.setError(getText(valAboveMaxHint));
+            }
+        }
+    }
+
     private void updateSaveButtonEnability() {
-        EditText nameView = findViewById(R.id.name);
-        EditText ageView = findViewById(R.id.date_of_birth);
-        LocalDate birthday = parseDateOfBirth(ageView.getText().toString());
-        EditText heightView = findViewById(R.id.height);
-        EditText weightView = findViewById(R.id.weight);
-        EditText targetWeight = findViewById(R.id.target_weight);
         RadioButton radioMale = findViewById(R.id.radio_male);
         RadioButton radioFemale = findViewById(R.id.radio_female);
-        boolean allFieldsFilled = !nameView.getText().toString().isEmpty()
-                && birthday != null
-                && !heightView.getText().toString().isEmpty()
-                && !weightView.getText().toString().isEmpty()
-                && !targetWeight.getText().toString().isEmpty()
+        boolean allFieldsFilled = !nameEditText.getText().toString().trim().isEmpty()
+                && parseDateOfBirth(birthdayEditText.getText().toString()) != null
+                && isNumberFieldValid(heightEditText, MIN_HEIGHT, MAX_HEIGHT)
+                && isNumberFieldValid(weightEditText, MIN_WEIGHT, MAX_WEIGHT)
+                && isNumberFieldValid(targetWeightEditText, MIN_WEIGHT, MAX_WEIGHT)
                 && (radioMale.isChecked() || radioFemale.isChecked());
         saveUserParamsButton.setEnabled(allFieldsFilled);
     }
 
+    private boolean isNumberFieldValid(EditText numberField, int min, int max) {
+        if (numberField.getText().toString().isEmpty()) {
+            return false;
+        }
+        int number;
+        try {
+            number = Integer.parseInt(numberField.getText().toString());
+        } catch (NumberFormatException e) {
+            return false;
+        }
+        return min <= number && number <= max;
+    }
+
     private UserParameters extractUserParameters() {
-        float targetWeight = Float.parseFloat(((EditText) findViewById(R.id.target_weight)).getText().toString());
+        float targetWeight = Float.parseFloat(targetWeightEditText.getText().toString());
 
         Gender gender;
-        RadioButton radioMale = findViewById(R.id.radio_male);
         if (radioMale.isChecked()) {
             gender = Gender.MALE;
         } else {
             gender = Gender.FEMALE;
         }
 
-        String dateOfBirthString = ((EditText) findViewById(R.id.date_of_birth)).getText().toString();
+        String dateOfBirthString = birthdayEditText.getText().toString();
         LocalDate dateOfBirth = parseDateOfBirth(dateOfBirthString);
 
-        int height = Integer.parseInt(((EditText) findViewById(R.id.height)).getText().toString());
-        float weight = Float.parseFloat(((EditText) findViewById(R.id.weight)).getText().toString());
+        int height = Integer.parseInt(heightEditText.getText().toString());
+        float weight = Float.parseFloat(weightEditText.getText().toString());
 
         int lifestyleSelectedPosition = ((Spinner) findViewById(R.id.lifestyle_spinner)).getSelectedItemPosition();
         Lifestyle lifestyle = Lifestyle.POSITIONS.get(lifestyleSelectedPosition);
@@ -270,21 +376,15 @@ public class UserParametersActivity extends BaseActivity {
     }
 
     private void fillWithOldUserParameters(UserParameters oldUserParams) {
-        EditText dateOfBirthView = findViewById(R.id.date_of_birth);
-        EditText heightView = findViewById(R.id.height);
-        EditText weightView = findViewById(R.id.weight);
-        RadioButton radioMale = findViewById(R.id.radio_male);
-        RadioButton radioFemale = findViewById(R.id.radio_female);
-        EditText targetWeightView = findViewById(R.id.target_weight);
         Spinner lifestyleSpinner = findViewById(R.id.lifestyle_spinner);
         Spinner formulaSpinner = findViewById(R.id.formula_spinner);
 
         LocalDate dateOfBirth = oldUserParams.getDateOfBirth();
-        dateOfBirthView.setText(dateOfBirth.toString(getString(R.string.date_format)));
+        birthdayEditText.setText(dateOfBirth.toString(getString(R.string.date_format)));
 
-        heightView.setText(String.valueOf(oldUserParams.getHeight()));
-        weightView.setText(DecimalUtils.toDecimalString(oldUserParams.getWeight()));
-        targetWeightView.setText(DecimalUtils.toDecimalString(oldUserParams.getTargetWeight()));
+        heightEditText.setText(String.valueOf(oldUserParams.getHeight()));
+        weightEditText.setText(DecimalUtils.toDecimalString(oldUserParams.getWeight()));
+        targetWeightEditText.setText(DecimalUtils.toDecimalString(oldUserParams.getTargetWeight()));
 
         Gender gender = oldUserParams.getGender();
         if (gender == Gender.MALE) {
@@ -307,10 +407,5 @@ public class UserParametersActivity extends BaseActivity {
         } catch (IllegalArgumentException e) {
             return null;
         }
-    }
-
-    private void fillUserName(FullName userFullName) {
-        EditText nameEditText = findViewById(R.id.name);
-        nameEditText.setText(userFullName.toString());
     }
 }

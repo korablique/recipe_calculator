@@ -26,6 +26,7 @@ public class NumericBoundsInputFilter implements InputFilter {
     @Override
     public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
         String result = FiltersUtils.inputToString(source, start, end, dest, dstart, dend);
+        String initialStr = dest.toString().substring(dstart, dend);
 
         if (result.isEmpty()) {
             return null;
@@ -39,10 +40,9 @@ public class NumericBoundsInputFilter implements InputFilter {
             return "";
         }
 
-        if (FloatUtils.isLhsGreater(min, number)) {
-            return DecimalUtils.toDecimalString(min);
-        } else if (FloatUtils.isLhsGreater(number, max)) {
-            return DecimalUtils.toDecimalString(max);
+        if (FloatUtils.isLhsGreater(min, number)
+            || FloatUtils.isLhsGreater(number, max)) {
+            return initialStr;
         } else {
             return null;
         }
