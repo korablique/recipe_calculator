@@ -13,13 +13,11 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Lifecycle;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -28,12 +26,14 @@ import korablique.recipecalculator.R;
 import korablique.recipecalculator.RequestCodes;
 import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.base.BaseFragment;
-import korablique.recipecalculator.base.RxFragmentSubscriptions;
-import korablique.recipecalculator.dagger.InjectorHolder;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
 import korablique.recipecalculator.ui.mainactivity.MainActivity;
+import korablique.recipecalculator.ui.nestingadapters.AdapterChild;
+import korablique.recipecalculator.ui.nestingadapters.AdapterParent;
+import korablique.recipecalculator.ui.nestingadapters.FoodstuffsAdapterChild;
+import korablique.recipecalculator.ui.nestingadapters.SingleItemAdapterChild;
 
 public class SearchResultsFragment extends BaseFragment implements ActivityCallbacks.Observer {
     private static final String SEARCH_RESULTS_FRAGMENT_TAG = "SEARCH_RESULTS_FRAGMENT_TAG";
@@ -46,12 +46,29 @@ public class SearchResultsFragment extends BaseFragment implements ActivityCallb
     MainActivity mainActivity;
     @Inject
     MainScreenCardController cardController;
+    @Inject
+    TempLongClickedFoodstuffsHandler tempLongClickedFoodstuffsHandler;
 
-    private SearchResultsAdapter adapter;
+    private AdapterParent adapter = new AdapterParent();
+
+    private AdapterChild topTitleAdapter = new SingleItemAdapterChild(R.layout.top_foodstuffs_header);
+    private FoodstuffsAdapterChild topAdapter =
+            new FoodstuffsAdapterChild(this::onFoodstuffClicked, this::onFoodstuffLongClicked);
+    private AdapterChild allTitleAdapter =
+            new SingleItemAdapterChild(R.layout.all_foodstuffs_header_no_add_button);
+    private FoodstuffsAdapterChild allAdapter =
+            new FoodstuffsAdapterChild(this::onFoodstuffClicked, this::onFoodstuffLongClicked);
+
     @Nullable
     private String query;
-    @Nullable
-    private List<Foodstuff> searchResults;
+
+    private void onFoodstuffClicked(Foodstuff foodstuff, int displayedPosition) {
+        cardController.showCard(foodstuff);
+    }
+
+    private boolean onFoodstuffLongClicked(Foodstuff foodstuff, int displayedPosition, View view) {
+        return tempLongClickedFoodstuffsHandler.onLongClick(foodstuff, view);
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -75,20 +92,17 @@ public class SearchResultsFragment extends BaseFragment implements ActivityCallb
         } else {
             displayQuery(fragmentView, getArguments().getString(INITIAL_QUERY));
         }
-        if (searchResults != null) {
-            displaySearchResults(fragmentView, searchResults);
-        }
 
         RecyclerView searchResultsRecyclerView = fragmentView.findViewById(R.id.search_results_recycler_view);
-        adapter = new SearchResultsAdapter(getActivity(), (foodstuff, position) -> {
-            cardController.showCard(foodstuff);
-        });
         searchResultsRecyclerView.setAdapter(adapter);
 
         Button addNewFoodstuffButton = fragmentView.findViewById(R.id.add_new_foodstuff_button);
         addNewFoodstuffButton.setOnClickListener(v -> {
             EditFoodstuffActivity.startForCreation(this, RequestCodes.MAIN_SCREEN_SEARCH_RESULTS_CREATE_FOODSTUFF);
         });
+
+        updateNothingFoundView(fragmentView);
+
         return fragmentView;
     }
 
@@ -114,18 +128,52 @@ public class SearchResultsFragment extends BaseFragment implements ActivityCallb
         searchRequestTextView.setText(getResources().getString(R.string.search_results, query));
     }
 
-    public void setDisplayedSearchResults(List<Foodstuff> searchResults) {
-        this.searchResults = new ArrayList<>(searchResults);
-        View fragmentView = getView();
-        if (fragmentView != null) {
-            displaySearchResults(fragmentView, searchResults);
-        }
+    public void setFoundFromTop(List<Foodstuff> foundFromTop) {
+        topAdapter.clear();
+        topAdapter.addItems(foundFromTop);
+        updateDisplayedContent();
     }
 
-    private void displaySearchResults(View fragmentView, List<Foodstuff> searchResults) {
-        adapter.clear();
-        adapter.addItems(searchResults);
-        if (adapter.getItemCount() == 0) {
+    private void updateDisplayedContent() {
+        // Удалим все адаптеры
+        adapter.removeChild(topTitleAdapter);
+        adapter.removeChild(topAdapter);
+        adapter.removeChild(allTitleAdapter);
+        adapter.removeChild(allAdapter);
+
+        // Если есть топ, то добавим адаптеры заголовка и содержимого топа
+        if (topAdapter.getItemCount() > 0) {
+            adapter.addChild(topTitleAdapter);
+            adapter.addChild(topAdapter);
+        }
+
+        // Если есть найденное во всех продуктах ...
+        if (allAdapter.getItemCount() > 0) {
+            // ... добавим заголовок "Все продукты", только если заголовок для Топа тоже добавлен, ...
+            if (topAdapter.getItemCount() > 0) {
+                adapter.addChild(allTitleAdapter);
+            }
+            // ... и добавим найденное во всех продуктах
+            adapter.addChild(allAdapter);
+        }
+
+        // Уберём или добавим надпись "Ничего не найдено"
+        View fragmentView = getView();
+        if (fragmentView == null) {
+            return;
+        }
+        updateNothingFoundView(fragmentView);
+    }
+
+    public void setFoundFromAll(List<Foodstuff> foundFromAll) {
+        allAdapter.clear();
+        allAdapter.addItems(foundFromAll);
+        updateDisplayedContent();
+    }
+
+    private void updateNothingFoundView(View fragmentView) {
+        if (topAdapter.getItemCount() == 0
+                && allAdapter.getItemCount() == 0) {
             fragmentView.findViewById(R.id.nothing_found_view).setVisibility(View.VISIBLE);
         } else {
             fragmentView.findViewById(R.id.nothing_found_view).setVisibility(View.GONE);

@@ -28,6 +28,7 @@
                 android:paddingStart="16dp">
 
                 <TextView
+                    android:id="@+id/personal_info_title"
                     style="@style/MontserratHeaderText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -67,7 +68,7 @@
 
                 <!--user name-->
                 <TextView
-                    android:id="@+id/first_name_text_view"
+                    android:id="@+id/name_text_view"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="4.5dp"
@@ -77,7 +78,7 @@
                     android:text="@string/user_name" />
 
                 <EditText
-                    android:id="@+id/first_name"
+                    android:id="@+id/name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textCapSentences"
@@ -85,35 +86,52 @@
                     style="@style/RobotoMonoText"
                     app:layout_constraintTop_toBottomOf="@+id/row_fake_top_1" />
 
+                <!--date of birth-->
+                <TextView
+                    android:id="@+id/date_of_birth_text_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/name"
+                    android:layout_marginStart="4.5dp"
+                    android:layout_marginTop="13dp"
+                    style="@style/RobotoMonoHintText"
+                    android:text="@string/date_of_birth" />
+
                 <View
                     android:id="@+id/row_fake_top_2"
                     android:layout_width="0dp"
                     android:layout_height="0dp"
-                    android:layout_marginTop="16dp"
-                    app:layout_constraintTop_toBottomOf="@+id/first_name"
+                    android:layout_marginTop="8dp"
+                    app:layout_constraintTop_toTopOf="@+id/date_of_birth_text_view"
                     app:layout_constraintStart_toStartOf="parent" />
 
-                <!--surname-->
-                <TextView
-                    android:id="@+id/last_name_text_view"
+                <ImageView
+                    android:id="@+id/calendar_button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:paddingTop="5dp"
+                    android:paddingEnd="5dp"
+                    android:paddingBottom="5dp"
+                    android:paddingStart="3.5dp"
+                    android:layout_marginTop="9dp"
+                    android:src="@drawable/ic_calendar_gray"
+                    android:background="@drawable/rectangular_button_click_selector"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/first_name"
-                    android:layout_marginStart="4.5dp"
-                    android:layout_marginTop="8dp"
-                    style="@style/RobotoMonoHintText"
-                    android:text="@string/user_surname" />
+                    app:layout_constraintTop_toBottomOf="@+id/row_fake_top_2"/>
 
                 <EditText
-                    android:id="@+id/last_name"
-                    android:layout_width="match_parent"
+                    android:id="@+id/date_of_birth"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/row_fake_top_2"
+                    app:layout_constraintStart_toEndOf="@+id/calendar_button"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@id/row_fake_top_2"
+                    android:layout_marginTop="5dp"
                     android:backgroundTint="@color/colorAccent"
-                    style="@style/RobotoMonoText"
-                    android:inputType="textCapSentences" />
+                    android:digits="1234567890."
+                    android:inputType="date"
+                    style="@style/RobotoMonoText" />
 
                 <!--gender-->
                 <TextView
@@ -121,59 +139,38 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/last_name"
+                    app:layout_constraintTop_toBottomOf="@+id/date_of_birth"
                     android:layout_marginStart="4.5dp"
                     android:layout_marginTop="8dp"
                     style="@style/RobotoMonoHintText"
-                    android:text="@string/gender" />
-
-                <Spinner
-                    android:id="@+id/gender_spinner"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:entries="@array/gender_array"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/gender_text_view" />
-
-                <ImageView
-                    android:id="@+id/line1"
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginStart="4dp"
-                    android:layout_marginEnd="4dp"
-                    android:src="@drawable/line"
-                    app:layout_constraintTop_toBottomOf="@id/gender_spinner" />
+                    android:text="@string/gender"/>
 
                 <View
                     android:id="@+id/row_fake_top_3"
                     android:layout_width="0dp"
                     android:layout_height="0dp"
-                    android:layout_marginTop="16dp"
-                    app:layout_constraintTop_toBottomOf="@+id/line1"
+                    android:layout_marginTop="4dp"
+                    app:layout_constraintTop_toTopOf="@+id/gender_text_view"
                     app:layout_constraintStart_toStartOf="parent" />
 
-                <!--date of birth-->
-                <TextView
-                    android:id="@+id/date_of_birth_text_view"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/line1"
-                    android:layout_marginStart="4.5dp"
-                    android:layout_marginTop="13dp"
-                    style="@style/RobotoMonoHintText"
-                    android:text="@string/date_of_birth" />
-
-                <EditText
-                    android:id="@+id/date_of_birth"
+                <RadioGroup
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="6dp"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/row_fake_top_3"
-                    android:layout_marginTop="5dp"
-                    android:backgroundTint="@color/colorAccent"
-                    style="@style/RobotoMonoText"
-                    android:focusable="false" />
+                    app:layout_constraintTop_toBottomOf="@+id/row_fake_top_3">
+                    <RadioButton android:id="@+id/radio_male"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        style="@style/RobotoMonoText"
+                        android:text="@string/male"/>
+                    <RadioButton android:id="@+id/radio_female"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        style="@style/RobotoMonoText"
+                        android:text="@string/female"/>
+                </RadioGroup>
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <FrameLayout

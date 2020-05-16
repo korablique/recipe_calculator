@@ -9,18 +9,32 @@ import dagger.Provides;
 import dagger.android.ContributesAndroidInjector;
 import dagger.android.support.AndroidSupportInjectionModule;
 import korablique.recipecalculator.base.BaseActivityModule;
+import korablique.recipecalculator.base.RxGlobalSubscriptions;
 import korablique.recipecalculator.base.TimeProvider;
 import korablique.recipecalculator.base.TimeProviderImpl;
 import korablique.recipecalculator.base.executors.ComputationThreadsExecutor;
 import korablique.recipecalculator.base.executors.ComputationThreadsExecutorImpl;
+import korablique.recipecalculator.base.executors.IOExecutor;
+import korablique.recipecalculator.base.executors.IOExecutorImpl;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.base.executors.MainThreadExecutorImpl;
+import korablique.recipecalculator.database.RecipeDatabaseWorker;
+import korablique.recipecalculator.database.RecipeDatabaseWorkerImpl;
 import korablique.recipecalculator.database.room.DatabaseHolder;
 import korablique.recipecalculator.database.DatabaseThreadExecutor;
 import korablique.recipecalculator.database.DatabaseThreadExecutorImpl;
 import korablique.recipecalculator.database.DatabaseWorker;
 import korablique.recipecalculator.database.UserParametersWorker;
+import korablique.recipecalculator.outside.fcm.FCMService;
+import korablique.recipecalculator.outside.fcm.FCMServiceModule;
+import korablique.recipecalculator.outside.http.HttpClient;
+import korablique.recipecalculator.outside.http.HttpClientImpl;
+import korablique.recipecalculator.outside.network.NetworkStateDispatcher;
+import korablique.recipecalculator.outside.network.NetworkStateDispatcherImpl;
+import korablique.recipecalculator.outside.thirdparty.GPAuthorizer;
+import korablique.recipecalculator.outside.thirdparty.GPAuthorizerImpl;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
+import korablique.recipecalculator.ui.bucketlist.BucketListActivityModule;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
 import korablique.recipecalculator.ui.mainactivity.MainActivity;
 import korablique.recipecalculator.ui.mainactivity.MainScreenActivityModule;
@@ -52,6 +66,12 @@ public abstract class BroccalcApplicationModule {
 
     @Provides
     @Singleton
+    public static IOExecutor provideIOExecutor() {
+        return new IOExecutorImpl();
+    }
+
+    @Provides
+    @Singleton
     public static DatabaseWorker provideDatabaseWorker(
             DatabaseHolder databaseHolder,
             MainThreadExecutor mainThreadExecutor,
@@ -70,14 +90,37 @@ public abstract class BroccalcApplicationModule {
 
     @Provides
     @Singleton
-    public static FoodReminder provideFoodReminder(Context context, TimeProvider timeProvider) {
-        return new FoodReminder(context, timeProvider);
+    public static HttpClient provideHttpClient() {
+        return new HttpClientImpl();
+    }
+
+    @Provides
+    @Singleton
+    public static NetworkStateDispatcher provideNetStateDispatcher(
+            Context context, RxGlobalSubscriptions subscriptions,
+            MainThreadExecutor mainThreadExecutor) {
+        return new NetworkStateDispatcherImpl(context, subscriptions, mainThreadExecutor);
     }
 
     @Provides
     @Singleton
     public static TimeProvider provideTimeProvider() {
         return new TimeProviderImpl();
+    }
+
+    @Provides
+    @Singleton
+    public static GPAuthorizer provideGpAuthorizer() {
+        return new GPAuthorizerImpl();
+    }
+
+    @Provides
+    @Singleton
+    public static RecipeDatabaseWorker provideRecipeDatabaseWorker(
+            IOExecutor ioExecutor,
+            DatabaseHolder databaseHolder,
+            DatabaseWorker databaseWorker) {
+        return new RecipeDatabaseWorkerImpl(ioExecutor, databaseHolder, databaseWorker);
     }
 
     @ActivityScope
@@ -89,7 +132,7 @@ public abstract class BroccalcApplicationModule {
     abstract FoodReminderReceiver contributeFoodReminderReceiver();
 
     @ActivityScope
-    @ContributesAndroidInjector
+    @ContributesAndroidInjector(modules = { BaseActivityModule.class, BucketListActivityModule.class })
     abstract BucketListActivity contributeBucketListActivityInjector();
 
     @ActivityScope
@@ -103,4 +146,8 @@ public abstract class BroccalcApplicationModule {
     @ActivityScope
     @ContributesAndroidInjector(modules = { BaseActivityModule.class, SplashScreenActivityModule.class })
     abstract SplashScreenActivity contributeSplashScreenActivityInjector();
+
+    @ServiceScope
+    @ContributesAndroidInjector(modules = FCMServiceModule.class)
+    abstract FCMService contributeFCMService();
 }

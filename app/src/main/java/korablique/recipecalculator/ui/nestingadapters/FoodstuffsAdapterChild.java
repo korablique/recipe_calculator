@@ -1,19 +1,18 @@
 package korablique.recipecalculator.ui.nestingadapters;
 
 
-import android.content.Context;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.model.Foodstuff;
-import korablique.recipecalculator.ui.DecimalUtils;
 import korablique.recipecalculator.ui.MyViewHolder;
 
 import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
@@ -22,14 +21,27 @@ public class FoodstuffsAdapterChild extends AdapterChild {
     public interface ClickObserver {
         void onItemClicked(Foodstuff foodstuff, int displayedPosition);
     }
+    public interface LongClickObserver {
+        boolean onItemClicked(Foodstuff foodstuff, int displayedPosition, View view);
+        LongClickObserver EMPTY = new LongClickObserver() {
+            @Override
+            public boolean onItemClicked(Foodstuff foodstuff, int displayedPosition, View view) {
+                return false;
+            }
+        };
+    }
     protected List<Foodstuff> foodstuffs = new ArrayList<>();
-    private Context context;
     private ClickObserver clickObserver;
+    private LongClickObserver longClickObserver;
 
-    public FoodstuffsAdapterChild(Context context, ClickObserver clickObserver) {
+    public FoodstuffsAdapterChild(ClickObserver clickObserver, LongClickObserver longClickObserver) {
         super(1);
-        this.context = context;
         this.clickObserver = clickObserver;
+        this.longClickObserver = longClickObserver;
+    }
+
+    public FoodstuffsAdapterChild(ClickObserver clickObserver) {
+        this(clickObserver, LongClickObserver.EMPTY);
     }
 
     @Override
@@ -41,7 +53,7 @@ public class FoodstuffsAdapterChild extends AdapterChild {
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int childPosition) {
-        ViewGroup item = ((MyViewHolder) holder).getItem();
+        View item = ((MyViewHolder) holder).getItem();
         Foodstuff foodstuff = foodstuffs.get(childPosition);
         setTextViewText(item, R.id.name, foodstuff.getName());
 
@@ -49,6 +61,9 @@ public class FoodstuffsAdapterChild extends AdapterChild {
 
         item.setOnClickListener((v) -> {
             clickObserver.onItemClicked(foodstuff, holder.getAdapterPosition());
+        });
+        item.setOnLongClickListener((v) -> {
+            return longClickObserver.onItemClicked(foodstuff, holder.getAdapterPosition(), item);
         });
     }
 
@@ -99,8 +114,8 @@ public class FoodstuffsAdapterChild extends AdapterChild {
     }
 
     private void setCalories(View foodstuffView, double calories) {
-        setTextViewText(foodstuffView, R.id.extra_info_block,
-                context.getString(R.string.n_calories, toDecimalString(calories)));
+        String text = foodstuffView.getContext().getString(R.string.n_calories, toDecimalString(calories));
+        setTextViewText(foodstuffView, R.id.extra_info_block, text);
     }
 
     public List<Foodstuff> getItems() {

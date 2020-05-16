@@ -9,7 +9,9 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import androidx.annotation.AnyThread;
+import androidx.annotation.VisibleForTesting;
 import androidx.room.Room;
+
 import korablique.recipecalculator.util.FileSystemUtils;
 import korablique.recipecalculator.TestEnvironmentDetector;
 import korablique.recipecalculator.database.DatabaseThreadExecutor;
@@ -19,6 +21,7 @@ import static korablique.recipecalculator.database.room.Migrations.MIGRATION_2_3
 import static korablique.recipecalculator.database.room.Migrations.MIGRATION_3_4;
 import static korablique.recipecalculator.database.room.Migrations.MIGRATION_4_5;
 import static korablique.recipecalculator.database.room.Migrations.MIGRATION_5_6;
+import static korablique.recipecalculator.database.room.Migrations.MIGRATION_6_7;
 
 /**
  * Владелец объекта БД. Отвечает за его хранение и инициализацию.
@@ -50,7 +53,8 @@ public class DatabaseHolder {
      * Метод не стоит использовать вне тестов - нет смысла, и Room не особо
      * даёт гарантии о результатах закрытия.
      */
-    synchronized void closeDatabaseConnection() {
+    @VisibleForTesting
+    public synchronized void closeDatabaseConnection() {
         if (db == null) {
             return;
         }
@@ -70,7 +74,8 @@ public class DatabaseHolder {
         // Все фоновые операции Room должен выполнять на специальном фоновом БД-потоке.
         builder.setQueryExecutor(databaseThreadExecutor::execute);
         // Сообщим о миграциях.
-        builder.addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6);
+        builder.addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6,
+                MIGRATION_6_7);
         // Позволим работу на главном потоке в тестах.
         if (TestEnvironmentDetector.isInTests()) {
             builder.allowMainThreadQueries();
@@ -78,7 +83,8 @@ public class DatabaseHolder {
         return builder.build();
     }
 
-    File getDBFile() {
+    @VisibleForTesting
+    public File getDBFile() {
         return new File(context.getFilesDir(), DATABASE_NAME);
     }
 

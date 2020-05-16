@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,12 +31,13 @@ public class PopularProductsUtils {
 
         @Override
         public int compareTo(@NonNull FoodstuffFrequency foodstuffFrequency) {
-            return frequency - foodstuffFrequency.frequency;
+            return foodstuffFrequency.frequency - frequency;
         }
     }
 
     public static List<FoodstuffFrequency> getTop(List<Foodstuff> from) {
-        HashMap<Foodstuff, Integer> foodstuffsWithFrequency = new HashMap<>();
+        // LinkedHashMap is used so that the insertion order would be preserved
+        HashMap<Foodstuff, Integer> foodstuffsWithFrequency = new LinkedHashMap<>();
         for (Foodstuff foodstuff : from) {
             Integer currentCount = foodstuffsWithFrequency.get(foodstuff);
             if (currentCount == null) {
@@ -48,7 +50,6 @@ public class PopularProductsUtils {
             result.add(new FoodstuffFrequency(entry.getKey(), entry.getValue()));
         }
         Collections.sort(result);
-        Collections.reverse(result);
         return result;
     }
 }

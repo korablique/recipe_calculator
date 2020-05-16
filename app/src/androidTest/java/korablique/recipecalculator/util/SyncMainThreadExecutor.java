@@ -1,9 +1,14 @@
 package korablique.recipecalculator.util;
 
+import android.os.Looper;
+
+import org.jetbrains.annotations.NotNull;
+
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Scheduler;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
+import kotlin.coroutines.CoroutineContext;
 
 /**
  * Выполняет переданный Runnable на главном потоке.
@@ -30,7 +35,7 @@ import korablique.recipecalculator.base.executors.MainThreadExecutor;
  * <br>
  * В Rx, например, эту проблему частично решает Schedulers.trampoline.
  */
-public class SyncMainThreadExecutor implements MainThreadExecutor {
+public class SyncMainThreadExecutor extends MainThreadExecutor {
     private final Scheduler scheduler = new SyncMainThreadScheduler();
 
     @Override
@@ -48,11 +53,20 @@ public class SyncMainThreadExecutor implements MainThreadExecutor {
         return scheduler;
     }
 
+    @Override
+    public void dispatch(@NotNull CoroutineContext coroutineContext, @NotNull Runnable runnable) {
+        execute(runnable);
+    }
+
     private static class SyncMainThreadScheduler extends Scheduler {
         @Override
         public Worker createWorker() {
             return new SyncMainThreadRxWorker();
         }
+    }
 
+    @Override
+    public boolean isCurrentThreadMain() {
+        return Looper.getMainLooper().getThread() == Thread.currentThread();
     }
 }

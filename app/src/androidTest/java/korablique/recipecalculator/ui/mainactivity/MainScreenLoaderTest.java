@@ -18,10 +18,13 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import io.reactivex.Observable;
+import io.reactivex.Single;
 import korablique.recipecalculator.base.Callback;
 import korablique.recipecalculator.base.CurrentActivityProvider;
 import korablique.recipecalculator.dagger.InjectorHolder;
@@ -29,8 +32,8 @@ import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.FoodstuffsTopList;
 import korablique.recipecalculator.model.Nutrition;
+import korablique.recipecalculator.outside.userparams.InteractiveServerUserParamsObtainer;
 import korablique.recipecalculator.test.FakeTestActivity;
-import korablique.recipecalculator.util.InjectableActivityTestRule;
 import korablique.recipecalculator.util.TestingInjector;
 
 import static androidx.test.espresso.intent.Intents.intended;
@@ -40,6 +43,7 @@ import static korablique.recipecalculator.util.EspressoUtils.hasValueRecursive;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
 @RunWith(AndroidJUnit4.class)
@@ -64,11 +68,16 @@ public class MainScreenLoaderTest {
         context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         injector = new TestingInjector(
                 () -> Collections.singletonList(new CurrentActivityProvider()),
-                (activity) -> Collections.singletonList(mock(MainActivityController.class)),
+                (activity) -> Arrays.asList(
+                        mock(MainActivityController.class),
+                        mock(InteractiveServerUserParamsObtainer.class)),
                 null);
 
         // Init all @Mocks
         MockitoAnnotations.initMocks(this);
+        doReturn(Single.just(Collections.emptyList())).when(foodstuffsTopList).getMonthTop();
+        doReturn(Single.just(Collections.emptyList())).when(foodstuffsTopList).getWeekTop();
+
         // Init the library which checks intents
         Intents.init();
         // Provide an injector which is capable of giving basic dependencies
@@ -161,10 +170,8 @@ public class MainScreenLoaderTest {
         }
 
         doAnswer(invocation -> {
-            Callback<List<Foodstuff>> callback = invocation.getArgument(0);
-            callback.onResult(topFoodstuffs);
-            return null;
-        }).when(foodstuffsTopList).getTopList(any());
+            return Single.just(topFoodstuffs);
+        }).when(foodstuffsTopList).getWeekTop();
 
         return topFoodstuffs;
     }

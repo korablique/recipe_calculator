@@ -11,7 +11,7 @@ import org.robolectric.annotation.Config;
 import korablique.recipecalculator.BuildConfig;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class)
+@Config(manifest=Config.NONE)
 public class FiltersUtilsTest {
     @Test
     public void insertionWorks() {

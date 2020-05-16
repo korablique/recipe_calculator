@@ -11,16 +11,24 @@ import junit.framework.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Arrays;
+import java.util.Collections;
+
 import korablique.recipecalculator.R;
-import korablique.recipecalculator.model.WeightedFoodstuff;
+import korablique.recipecalculator.database.CreateRecipeResult;
+import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.Ingredient;
+import korablique.recipecalculator.model.Recipe;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.swipeRight;
+import static androidx.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
+import static java.util.Collections.emptyList;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -31,14 +39,14 @@ public class MainActivityMainScreenSnackbarTest extends MainActivityTestsBase {
     @Test
     public void snackbarUpdatesAfterChangingBucketList() {
         // добавляем в bucket list продукты, запускаем активити, в снекбаре должно быть 3 фудстаффа
-        WeightedFoodstuff wf0 = foodstuffs[0].withWeight(100);
-        WeightedFoodstuff wf1 = foodstuffs[1].withWeight(100);
-        WeightedFoodstuff wf2 = foodstuffs[2].withWeight(100);
+        Ingredient ingr0 = Ingredient.create(foodstuffs[0].withWeight(100), "");
+        Ingredient ingr1 = Ingredient.create(foodstuffs[1].withWeight(100), "");
+        Ingredient ingr2 = Ingredient.create(foodstuffs[2].withWeight(100), "");
 
         mainThreadExecutor.execute(() -> {
-            bucketList.add(wf0);
-            bucketList.add(wf1);
-            bucketList.add(wf2);
+            bucketList.add(ingr0);
+            bucketList.add(ingr1);
+            bucketList.add(ingr2);
         });
 
         mActivityRule.launchActivity(null);
@@ -46,7 +54,7 @@ public class MainActivityMainScreenSnackbarTest extends MainActivityTestsBase {
 
         // убираем один продукт, перезапускаем активити, в снекбаре должно быть 2 фудстаффа
         mainThreadExecutor.execute(() -> {
-            bucketList.remove(foodstuffs[0].withWeight(100));
+            bucketList.remove(Ingredient.create(foodstuffs[0].withWeight(100), ""));
         });
 
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
@@ -54,8 +62,8 @@ public class MainActivityMainScreenSnackbarTest extends MainActivityTestsBase {
         instrumentation.waitForIdleSync();
         onView(withId(R.id.selected_foodstuffs_counter)).check(matches(isDisplayed()));
         onView(withId(R.id.selected_foodstuffs_counter)).check(matches(withText("2")));
-        Assert.assertTrue(bucketList.getList().contains(wf1));
-        Assert.assertTrue(bucketList.getList().contains(wf2));
+        Assert.assertTrue(bucketList.getList().contains(ingr1));
+        Assert.assertTrue(bucketList.getList().contains(ingr2));
 
         // убираем все продукты, перезапускаем активити, снекбара быть не должно
         mainThreadExecutor.execute(() -> {
@@ -67,14 +75,14 @@ public class MainActivityMainScreenSnackbarTest extends MainActivityTestsBase {
     }
 
     @Test
-    public void swipedOutSnackbar_cleansBuckerList() throws InterruptedException {
+    public void swipedOutSnackbar_cleansBucketList() throws InterruptedException {
         // добавляем в bucket list продукты, запускаем активити
-        WeightedFoodstuff wf0 = foodstuffs[0].withWeight(100);
-        WeightedFoodstuff wf1 = foodstuffs[1].withWeight(100);
+        Ingredient ingr0 = Ingredient.create(foodstuffs[0].withWeight(100), "");
+        Ingredient ingr1 = Ingredient.create(foodstuffs[1].withWeight(100), "");
 
         mainThreadExecutor.execute(() -> {
-            bucketList.add(wf0);
-            bucketList.add(wf1);
+            bucketList.add(ingr0);
+            bucketList.add(ingr1);
             assertEquals(2, bucketList.getList().size());
         });
 
@@ -94,12 +102,12 @@ public class MainActivityMainScreenSnackbarTest extends MainActivityTestsBase {
     @Test
     public void swipedOutSnackbar_canBeCanceled() throws InterruptedException {
         // добавляем в bucket list продукты, запускаем активити
-        WeightedFoodstuff wf0 = foodstuffs[0].withWeight(100);
-        WeightedFoodstuff wf1 = foodstuffs[1].withWeight(100);
+        Ingredient ingr0 = Ingredient.create(foodstuffs[0].withWeight(100), "");
+        Ingredient ingr1 = Ingredient.create(foodstuffs[1].withWeight(100), "");
 
         mainThreadExecutor.execute(() -> {
-            bucketList.add(wf0);
-            bucketList.add(wf1);
+            bucketList.add(ingr0);
+            bucketList.add(ingr1);
             assertEquals(2, bucketList.getList().size());
         });
 
@@ -117,5 +125,40 @@ public class MainActivityMainScreenSnackbarTest extends MainActivityTestsBase {
         mainThreadExecutor.execute(() -> {
             assertEquals(2, bucketList.getList().size());
         });
+    }
+
+    @Test
+    public void snackbarRecipeCreationText() {
+        mActivityRule.launchActivity(null);
+
+        onView(withText(R.string.selected_foodstuffs_snackbar_title_recipe_creation))
+                .check(doesNotExist());
+
+        Ingredient ingr = Ingredient.create(foodstuffs[1].withWeight(100), "");
+        mainThreadExecutor.execute(() -> bucketList.add(ingr));
+
+        onView(withText(R.string.selected_foodstuffs_snackbar_title_recipe_creation))
+                .check(matches(isDisplayed()));
+    }
+
+    @Test
+    public void snackbarRecipeEditingText() {
+        mActivityRule.launchActivity(null);
+
+        onView(withText(R.string.selected_foodstuffs_snackbar_title_recipe_editing))
+                .check(doesNotExist());
+
+        Ingredient ingr = Ingredient.create(foodstuffs[1].withWeight(100), "");
+        Recipe notSavedRecipe = Recipe.create(
+                Foodstuff.withName("Cake").withNutrition(1, 2, 3, 4),
+                Collections.singletonList(ingr),
+                123,
+                "comment");
+        CreateRecipeResult recipeResult = recipesRepository.saveRecipeRx(notSavedRecipe).blockingGet();
+        Recipe recipe = ((CreateRecipeResult.Ok) recipeResult).getRecipe();
+        mainThreadExecutor.execute(() -> bucketList.setRecipe(recipe));
+
+        onView(withText(R.string.selected_foodstuffs_snackbar_title_recipe_editing))
+                .check(matches(isDisplayed()));
     }
 }

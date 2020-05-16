@@ -14,7 +14,7 @@ import korablique.recipecalculator.DishNutritionCalculator;
 import korablique.recipecalculator.util.FloatUtils;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class)
+@Config(manifest=Config.NONE)
 public class DishNutritionCalculatorTest {
     @Test
     public void dishNutritionCalculatesRight() {

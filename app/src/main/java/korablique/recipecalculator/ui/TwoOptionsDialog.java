@@ -1,5 +1,6 @@
 package korablique.recipecalculator.ui;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,11 +11,13 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
 import androidx.fragment.app.FragmentManager;
 
 import org.joda.time.DateTime;
 
 import korablique.recipecalculator.R;
+import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.BaseBottomDialog;
 import korablique.recipecalculator.model.UserParameters;
 
@@ -34,6 +37,8 @@ public class TwoOptionsDialog extends BaseBottomDialog {
 
     @Nullable
     private ButtonsClickListener buttonsClickListener;
+    @Nullable
+    private Runnable dismissListener;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -68,8 +73,34 @@ public class TwoOptionsDialog extends BaseBottomDialog {
         return dialogLayout;
     }
 
+    @Override
+    public void onDismiss(@NonNull DialogInterface dialog) {
+        super.onDismiss(dialog);
+        if (dismissListener != null) {
+            dismissListener.run();
+        }
+    }
+
     public void setOnButtonsClickListener(ButtonsClickListener listener) {
         this.buttonsClickListener = listener;
+    }
+
+    public void setOnDismissListener(Runnable listener) {
+        this.dismissListener = listener;
+    }
+
+    public static TwoOptionsDialog showDialog(
+            BaseActivity baseActivity,
+            String fragmentTag,
+            @StringRes int titleId,
+            @StringRes int positiveButtonTextId,
+            @StringRes int negativeButtonTextId) {
+        return showDialog(
+                baseActivity.getSupportFragmentManager(),
+                fragmentTag,
+                baseActivity.getString(titleId),
+                baseActivity.getString(positiveButtonTextId),
+                baseActivity.getString(negativeButtonTextId));
     }
 
     public static TwoOptionsDialog showDialog(

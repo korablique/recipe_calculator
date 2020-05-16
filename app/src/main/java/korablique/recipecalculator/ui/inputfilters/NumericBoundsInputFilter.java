@@ -3,6 +3,7 @@ package korablique.recipecalculator.ui.inputfilters;
 import android.text.InputFilter;
 import android.text.Spanned;
 
+import korablique.recipecalculator.ui.DecimalUtils;
 import korablique.recipecalculator.util.FloatUtils;
 
 /**
@@ -25,6 +26,7 @@ public class NumericBoundsInputFilter implements InputFilter {
     @Override
     public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
         String result = FiltersUtils.inputToString(source, start, end, dest, dstart, dend);
+        String initialStr = dest.toString().substring(dstart, dend);
 
         if (result.isEmpty()) {
             return null;
@@ -38,12 +40,11 @@ public class NumericBoundsInputFilter implements InputFilter {
             return "";
         }
 
-        // min > number || number > max
         if (FloatUtils.isLhsGreater(min, number)
-                || FloatUtils.isLhsGreater(number, max)) {
-            // Number is not in bounds!
-            return "";
+            || FloatUtils.isLhsGreater(number, max)) {
+            return initialStr;
+        } else {
+            return null;
         }
-        return null;
     }
 }

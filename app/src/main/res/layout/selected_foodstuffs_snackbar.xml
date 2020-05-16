@@ -5,7 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:clickable="true"
-    android:focusable="true">
+    android:focusable="true"
+    android:background="#FF373B4F">
 
     <!--Этот LinearLayout является чайлдом CoordinatorLayout, поэтому на него-->
     <!--можно повесить SwipeDismissBehavior, поэтому он "swipeable".-->
@@ -14,16 +15,17 @@
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#FF373B4F">
+        android:background="@drawable/button_background">
 
         <TextView
+            android:id="@+id/selected_foodstuffs_snackbar_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_marginLeft="16dp"
             android:paddingTop="9dp"
             android:paddingBottom="9dp"
-            android:text="@string/selected_foodstuffs"
+            tools:text="@string/selected_foodstuffs_snackbar_title_recipe_creation"
             android:textColor="#FFFFFF"
             style="@style/MainScreenSnackbarTextStyle" />
 

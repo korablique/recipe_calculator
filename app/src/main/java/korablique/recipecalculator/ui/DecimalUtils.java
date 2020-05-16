@@ -1,8 +1,12 @@
 package korablique.recipecalculator.ui;
 
 import java.text.DecimalFormat;
+import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DecimalUtils {
+    private static ConcurrentHashMap<String, DecimalFormat> decimalFormats = new ConcurrentHashMap<>();
+
     public static String toDecimalString(float decimal) {
         return toDecimalString((double) decimal);
     }
@@ -20,12 +24,17 @@ public class DecimalUtils {
             return String.valueOf((long)decimal);
         }
 
-        StringBuilder formatStr = new StringBuilder();
-        formatStr.append("#.");
+        StringBuilder formatStrBuilder = new StringBuilder();
+        formatStrBuilder.append("#.");
         for (int index = 0; index < digitsAfterDot; ++index) {
-            formatStr.append('#');
+            formatStrBuilder.append('#');
         }
-        DecimalFormat df = new DecimalFormat(formatStr.toString());
+        String formatStr = formatStrBuilder.toString();
+        DecimalFormat df = decimalFormats.get(formatStr);
+        if (df == null) {
+            df = new DecimalFormat(formatStrBuilder.toString());
+            decimalFormats.put(formatStr, df);
+        }
         String result = df.format(decimal).replace(',', '.');
         if ("-0".equals(result)) {
             return "0";

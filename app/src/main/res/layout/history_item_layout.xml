@@ -4,6 +4,8 @@
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp"
     android:background="@android:color/white">
 
     <TextView
@@ -12,111 +14,86 @@
         android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="4dp"
         android:layout_marginStart="8dp"
         style="@style/RobotoMonoText"
         android:text="@string/foodstuff_name_and_weight"
         tools:text="Lentil, 25 g" />
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <View
+        android:id="@+id/protein_color_view"
+        android:layout_width="6dp"
+        android:layout_height="6dp"
+        android:layout_gravity="center"
+        android:background="@drawable/new_card_protein_icon"
+        app:layout_constraintEnd_toStartOf="@+id/protein"
+        app:layout_constraintTop_toTopOf="@id/protein"
+        app:layout_constraintBottom_toBottomOf="@id/protein"/>
+
+    <TextView
+        android:id="@+id/protein"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:paddingStart="5dp"
+        style="@style/RobotoMonoHintText"
+        tools:text="3.4"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/foodstuff_name_and_weight"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginStart="8dp"
+        app:layout_constraintWidth_percent="0.238"
+        android:layout_marginStart="14dp"
+        android:layout_marginTop="1dp"/>
+
+    <View
+        android:id="@+id/fats_color_view"
+        android:layout_width="6dp"
+        android:layout_height="6dp"
+        android:layout_gravity="center"
+        android:background="@drawable/new_card_fats_icon"
+        app:layout_constraintEnd_toStartOf="@+id/fats"
+        app:layout_constraintTop_toTopOf="@id/fats"
+        app:layout_constraintBottom_toBottomOf="@id/fats"/>
+
+    <TextView
+        android:id="@+id/fats"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:paddingStart="5dp"
+        style="@style/RobotoMonoHintText"
+        tools:text="3.4"
+        app:layout_constraintStart_toEndOf="@+id/protein"
+        app:layout_constraintTop_toTopOf="@+id/protein"
+        app:layout_constraintWidth_percent="0.238"/>
+
+    <View
+        android:id="@+id/carbs_color_view"
+        android:layout_width="6dp"
+        android:layout_height="6dp"
+        android:layout_gravity="center"
+        android:background="@drawable/new_card_carbs_icon"
+        app:layout_constraintEnd_toStartOf="@+id/carbs"
+        app:layout_constraintTop_toTopOf="@id/carbs"
+        app:layout_constraintBottom_toBottomOf="@id/carbs"/>
+
+    <TextView
+        android:id="@+id/carbs"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:paddingStart="5dp"
+        style="@style/RobotoMonoHintText"
+        tools:text="3.4"
+        app:layout_constraintStart_toEndOf="@+id/fats"
+        app:layout_constraintTop_toTopOf="@id/fats"
+        app:layout_constraintWidth_percent="0.238"/>
+
+    <TextView
+        android:id="@+id/calories"
+        style="@style/RobotoMonoHintText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toEndOf="@id/carbs"
+        app:layout_constraintTop_toTopOf="@id/carbs"
+        app:layout_constraintWidth_percent="0.238"
         android:layout_marginEnd="8dp"
-        android:layout_marginTop="1dp"
-        android:layout_marginBottom="4dp">
-
-        <LinearLayout
-            android:id="@+id/protein_layout"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintWidth_percent="0.25">
-
-            <View
-                android:id="@+id/protein_color_view"
-                android:layout_width="6dp"
-                android:layout_height="6dp"
-                android:layout_gravity="center"
-                android:background="@drawable/new_card_protein_icon" />
-
-            <TextView
-                android:id="@+id/protein"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingStart="5dp"
-                style="@style/RobotoMonoHintText"
-                tools:text="3.4" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/fats_layout"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            app:layout_constraintStart_toEndOf="@id/protein_layout"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintWidth_percent="0.25">
-
-            <View
-                android:id="@+id/fats_color_view"
-                android:layout_width="6dp"
-                android:layout_height="6dp"
-                android:layout_gravity="center"
-                android:background="@drawable/new_card_fats_icon" />
-
-            <TextView
-                android:id="@+id/fats"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingStart="5dp"
-                style="@style/RobotoMonoHintText"
-                tools:text="3.4" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/carbs_layout"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            app:layout_constraintStart_toEndOf="@id/fats_layout"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintWidth_percent="0.25">
-
-            <View
-                android:id="@+id/carbs_color_view"
-                android:layout_width="6dp"
-                android:layout_height="6dp"
-                android:layout_gravity="center"
-                android:background="@drawable/new_card_carbs_icon" />
-
-            <TextView
-                android:id="@+id/carbs"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingStart="5dp"
-                style="@style/RobotoMonoHintText"
-                tools:text="3.4" />
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/calories"
-            style="@style/RobotoMonoHintText"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            app:layout_constraintStart_toEndOf="@id/carbs_layout"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintWidth_percent="0.25"
-            android:layout_marginEnd="8dp"
-            android:layout_weight="1"
-            tools:text="350" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        android:layout_weight="1"
+        tools:text="350"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

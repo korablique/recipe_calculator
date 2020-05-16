@@ -12,7 +12,7 @@ import androidx.annotation.Nullable;
 import korablique.recipecalculator.BuildConfig;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class)
+@Config(manifest=Config.NONE)
 public class DecimalNumberInputFilterTest {
     @Test
     public void numbersWithoutFractionAllowed() {
@@ -35,15 +35,15 @@ public class DecimalNumberInputFilterTest {
     @Test
     public void lonelyPointNotAllowed_whenDigitsAfterPointNotAllowed() {
         DecimalNumberInputFilter filter = DecimalNumberInputFilter.ofNDigitsAfterPoint(0);
-        Assert.assertEquals("", filterPastedText("123.", filter));
+        Assert.assertEquals("123", filterPastedText("123.", filter));
     }
 
     @Test
-    public void allowedNumberOfDigitrsAfterPoint_isExact() {
+    public void allowedNumberOfDigitsAfterPoint_isExact() {
         DecimalNumberInputFilter filter = DecimalNumberInputFilter.ofNDigitsAfterPoint(2);
         Assert.assertNull(filterPastedText("123.1", filter));
         Assert.assertNull(filterPastedText("123.12", filter));
-        Assert.assertEquals("", filterPastedText("123.123", filter));
+        Assert.assertEquals("123.12", filterPastedText("123.123", filter));
     }
 
     @Nullable

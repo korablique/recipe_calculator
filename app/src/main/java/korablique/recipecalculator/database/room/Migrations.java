@@ -1,19 +1,25 @@
 package korablique.recipecalculator.database.room;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 import korablique.recipecalculator.database.FoodstuffsContract;
 import korablique.recipecalculator.database.HistoryContract;
+import korablique.recipecalculator.database.IngredientContract;
 import korablique.recipecalculator.database.LegacyDatabaseValues;
+import korablique.recipecalculator.database.RecipeContract;
 import korablique.recipecalculator.database.UserParametersContract;
 
+import static korablique.recipecalculator.database.IngredientContract.INGREDIENT_TABLE_NAME;
+import static korablique.recipecalculator.database.RecipeContract.RECIPE_TABLE_NAME;
 import static korablique.recipecalculator.database.UserParametersContract.USER_PARAMETERS_TABLE_NAME;
 
 public class Migrations {
     private Migrations() {}
 
-    static final Migration MIGRATION_1_2 = new Migration(1, 2) {
+    @VisibleForTesting
+    public static final Migration MIGRATION_1_2 = new Migration(1, 2) {
         @Override
         public void migrate(SupportSQLiteDatabase database) {
             LegacyDatabaseUpdater.upgradeIfNeeded(database);
@@ -139,6 +145,47 @@ public class Migrations {
                             UserParametersContract.COLUMN_NAME_LIFESTYLE + " INTEGER NOT NULL, " +
                             UserParametersContract.COLUMN_NAME_FORMULA + " INTEGER NOT NULL," +
                             UserParametersContract.COLUMN_NAME_MEASUREMENTS_TIMESTAMP + " INTEGER NOT NULL)");
+        }
+    };
+
+    static final Migration MIGRATION_6_7 = new Migration(6, 7) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            // add table recipe
+            database.execSQL(
+                    "CREATE TABLE " + RECIPE_TABLE_NAME + " (" +
+                            RecipeContract.ID + " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                            RecipeContract.COLUMN_NAME_FOODSTUFF_ID + " INTEGER NOT NULL, " +
+                            RecipeContract.COLUMN_NAME_INGREDIENTS_TOTAL_WEIGHT + " REAL NOT NULL, " +
+                            RecipeContract.COLUMN_NAME_COMMENT + " TEXT NOT NULL, " +
+                            "FOREIGN KEY (" + RecipeContract.COLUMN_NAME_FOODSTUFF_ID + ") " +
+                            "REFERENCES " + FoodstuffsContract.FOODSTUFFS_TABLE_NAME + "(" + FoodstuffsContract.ID + ")," +
+                            "UNIQUE (" + RecipeContract.COLUMN_NAME_FOODSTUFF_ID + "))");
+            database.execSQL("CREATE INDEX "
+                    + "index_" + RECIPE_TABLE_NAME + "_" + RecipeContract.COLUMN_NAME_FOODSTUFF_ID
+                    + " ON " + RECIPE_TABLE_NAME
+                    + "(" + RecipeContract.COLUMN_NAME_FOODSTUFF_ID + ")");
+            // add table ingredient
+            database.execSQL(
+                    "CREATE TABLE " + INGREDIENT_TABLE_NAME + " (" +
+                            IngredientContract.ID + " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                            IngredientContract.COLUMN_NAME_RECIPE_ID + " INTEGER NOT NULL, " +
+                            IngredientContract.COLUMN_NAME_INGREDIENT_WEIGHT + " REAL NOT NULL, " +
+                            IngredientContract.COLUMN_NAME_INGREDIENT_FOODSTUFF_ID + " INTEGER NOT NULL, " +
+                            IngredientContract.COLUMN_NAME_COMMENT + " TEXT NOT NULL, " +
+                            IngredientContract.COLUMN_INDEX + " INTEGER NOT NULL, " +
+                            "FOREIGN KEY (" + IngredientContract.COLUMN_NAME_RECIPE_ID + ") " +
+                            "REFERENCES " + RECIPE_TABLE_NAME + "(" + RecipeContract.ID + "), " +
+                            "FOREIGN KEY (" + IngredientContract.COLUMN_NAME_INGREDIENT_FOODSTUFF_ID + ") " +
+                            "REFERENCES " + FoodstuffsContract.FOODSTUFFS_TABLE_NAME + "(" + FoodstuffsContract.ID + "))");
+            database.execSQL("CREATE INDEX "
+                    + "index_" + INGREDIENT_TABLE_NAME + "_" + IngredientContract.COLUMN_NAME_RECIPE_ID
+                    + " ON " + INGREDIENT_TABLE_NAME
+                    + "(" + IngredientContract.COLUMN_NAME_RECIPE_ID + ")");
+            database.execSQL("CREATE INDEX "
+                    + "index_" + INGREDIENT_TABLE_NAME + "_" + IngredientContract.COLUMN_NAME_INGREDIENT_FOODSTUFF_ID
+                    + " ON " + INGREDIENT_TABLE_NAME
+                    + "(" + IngredientContract.COLUMN_NAME_INGREDIENT_FOODSTUFF_ID + ")");
         }
     };
 

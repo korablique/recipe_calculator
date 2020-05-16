@@ -1,14 +1,17 @@
 package korablique.recipecalculator.ui.nestingadapters;
 
-import android.content.Context;
-
 import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView;
 
 import org.jetbrains.annotations.NotNull;
 
 public class SectionedFoodstuffsAdapterChild extends FoodstuffsAdapterChild implements FastScrollRecyclerView.SectionedAdapter {
-    public SectionedFoodstuffsAdapterChild(Context context, ClickObserver clickObserver) {
-        super(context, clickObserver);
+    public SectionedFoodstuffsAdapterChild(ClickObserver clickObserver) {
+        super(clickObserver);
+    }
+
+    public SectionedFoodstuffsAdapterChild(ClickObserver clickObserver,
+                                           LongClickObserver longClickObserver) {
+        super(clickObserver, longClickObserver);
     }
 
     @NotNull

@@ -20,14 +20,21 @@ import korablique.recipecalculator.RequestCodes;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.BaseFragment;
 import korablique.recipecalculator.base.FragmentCallbacks;
+import korablique.recipecalculator.base.Optional;
+import korablique.recipecalculator.base.RxFragmentSubscriptions;
 import korablique.recipecalculator.base.TimeProvider;
 import korablique.recipecalculator.dagger.FragmentScope;
+import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.database.HistoryWorker;
+import korablique.recipecalculator.database.RecipesRepository;
 import korablique.recipecalculator.model.Foodstuff;
-import korablique.recipecalculator.model.WeightedFoodstuff;
+import korablique.recipecalculator.model.Ingredient;
+import korablique.recipecalculator.model.Recipe;
 import korablique.recipecalculator.ui.KeyboardHandler;
 import korablique.recipecalculator.ui.TwoOptionsDialog;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
+import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
+import korablique.recipecalculator.ui.bucketlist.BucketListAdapter;
 import korablique.recipecalculator.ui.card.Card;
 import korablique.recipecalculator.ui.card.CardDialog;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
@@ -40,7 +47,7 @@ public class MainScreenCardController implements FragmentCallbacks.Observer {
     private enum CardMode {
         NONE, // Пустой режим для непроинициализированной карточки
         DEFAULT, // Режим по-умолчанию, в карточке обе кнопки
-        DISH_CREATION // Режим создания блюда, в карточке только кнопка добавления блюда
+        RECIPE_CREATION // Режим создания рецепта, в карточке только кнопка добавления рецепта
     }
     private static final String ADD_FOODSTUFF_TO_ANOTHER_DATE_DIALOG_TAG =
             "ADD_FOODSTUFF_TO_ANOTHER_DATE_DIALOG_TAG";
@@ -55,24 +62,36 @@ public class MainScreenCardController implements FragmentCallbacks.Observer {
     private final HistoryWorker historyWorker;
     private final TimeProvider timeProvider;
     private final MainActivitySelectedDateStorage selectedDateStorage;
+    private final RecipesRepository recipesRepository;
+    private final FoodstuffsList foodstuffsList;
+    private final RxFragmentSubscriptions rxSubscriptions;
     private final BucketList.Observer bucketListObserver = new BucketList.Observer() {
         @Override
-        public void onFoodstuffAdded(WeightedFoodstuff wf) {
+        public void onIngredientAdded(Ingredient ingredient) {
             // Первый продукт добавлен в бакетлист
-            if (bucketList.getList().size() == 1) {
-                switchCardMode(CardMode.DISH_CREATION);
+            if (currentCardMode != CardMode.RECIPE_CREATION) {
+                switchCardMode(CardMode.RECIPE_CREATION);
             }
         }
         @Override
-        public void onFoodstuffRemoved(WeightedFoodstuff wf) {
+        public void onIngredientRemoved(Ingredient ingredient) {
             // Последний продукт удален из бакетлиста
-            if (bucketList.getList().isEmpty()) {
+            if (currentCardMode == CardMode.RECIPE_CREATION) {
                 switchCardMode(CardMode.DEFAULT);
             }
         }
     };
-    private Card.OnMainButtonClickListener onAddFoodstuffToRecipeListener;
-    private Card.OnMainButtonClickListener onAddFoodstuffToHistoryListener;
+    private final FoodstuffsList.Observer foodstuffsListObserver = new FoodstuffsList.Observer() {
+        @Override
+        public void onFoodstuffEdited(Foodstuff edited) {
+            CardDialog card = CardDialog.findCard(context);
+            if (card != null && card.extractFoodstuff().getId() == edited.getId()) {
+                showCard(edited);
+            }
+        }
+    };
+    private Card.OnMainButtonSimpleClickListener onAddFoodstuffToRecipeListener;
+    private Card.OnMainButtonSimpleClickListener onAddFoodstuffToHistoryListener;
     private Card.OnEditButtonClickListener onEditButtonClickListener;
     private CardMode currentCardMode = CardMode.NONE;
 
@@ -116,7 +135,10 @@ public class MainScreenCardController implements FragmentCallbacks.Observer {
             BucketList bucketList,
             HistoryWorker historyWorker,
             TimeProvider timeProvider,
-            MainActivitySelectedDateStorage selectedDateStorage) {
+            MainActivitySelectedDateStorage selectedDateStorage,
+            RecipesRepository recipesRepository,
+            FoodstuffsList foodstuffsList,
+            RxFragmentSubscriptions rxSubscriptions) {
         this.context = context;
         this.fragment = fragment;
         this.lifecycle = lifecycle;
@@ -124,6 +146,9 @@ public class MainScreenCardController implements FragmentCallbacks.Observer {
         this.historyWorker = historyWorker;
         this.timeProvider = timeProvider;
         this.selectedDateStorage = selectedDateStorage;
+        this.recipesRepository = recipesRepository;
+        this.foodstuffsList = foodstuffsList;
+        this.rxSubscriptions = rxSubscriptions;
         fragmentCallbacks.addObserver(this);
     }
 
@@ -148,7 +173,13 @@ public class MainScreenCardController implements FragmentCallbacks.Observer {
         onAddFoodstuffToRecipeListener = foodstuff -> {
             hideCardAfterUserAction();
             new KeyboardHandler(context).hideKeyBoard();
-            bucketList.add(foodstuff);
+            bucketList.add(Ingredient.create(foodstuff, ""));
+
+            float totalWeight = 0f;
+            for (Ingredient ingredient : bucketList.getList()) {
+                totalWeight += ingredient.getWeight();
+            }
+            bucketList.setTotalWeight(totalWeight);
         };
         onAddFoodstuffToHistoryListener = foodstuff -> {
             new KeyboardHandler(context).hideKeyBoard();
@@ -187,26 +218,49 @@ public class MainScreenCardController implements FragmentCallbacks.Observer {
             }
         };
         onEditButtonClickListener = foodstuff -> {
-            EditFoodstuffActivity.startForEditing(fragment, foodstuff, RequestCodes.MAIN_SCREEN_CARD_EDIT_FOODSTUFF);
+            rxSubscriptions.subscribe(
+                    recipesRepository.getRecipeOfFoodstuffRx(foodstuff),
+                    (Optional<Recipe> recipe) -> {
+                        if (recipe.isPresent()) {
+                            BucketListActivity.startForRecipe(
+                                    fragment,
+                                    RequestCodes.MAIN_SCREEN_BUCKET_LIST_CREATE_FOODSTUFF,
+                                    recipe.get());
+                        } else {
+                            EditFoodstuffActivity.startForEditing(fragment, foodstuff, RequestCodes.MAIN_SCREEN_CARD_EDIT_FOODSTUFF);
+                        }
+                    });
         };
         bucketList.addObserver(bucketListObserver);
+        foodstuffsList.addObserver(foodstuffsListObserver);
 
         if (bucketList.getList().isEmpty()) {
             switchCardMode(CardMode.DEFAULT);
         } else {
-            switchCardMode(CardMode.DISH_CREATION);
+            switchCardMode(CardMode.RECIPE_CREATION);
         }
     }
 
     @Override
     public void onFragmentDestroy() {
         bucketList.removeObserver(bucketListObserver);
+        foodstuffsList.addObserver(foodstuffsListObserver);
     }
 
     @Override
     public void onFragmentResume() {
         if (dialogAction != null) {
             dialogAction.run();
+        }
+        // If we were resumed with a showing card, and BucketList also
+        // contains card's recipe - we probably were resumed because user
+        // wants to add an ingredient to the recipe.
+        // In such case we should close the card, because user probably doesn't want
+        // to add the recipe into itself as an ingredient.
+        CardDialog cardDialog = CardDialog.findCard(context);
+        if (cardDialog != null
+                && bucketList.getRecipe().getFoodstuff().getId() == cardDialog.extractFoodstuff().getId()) {
+            cardDialog.dismiss();
         }
     }
 
@@ -268,7 +322,6 @@ public class MainScreenCardController implements FragmentCallbacks.Observer {
     private void setUpCard(CardDialog card) {
         lastCardClosingReportedToObservers = false;
         card.setOnEditButtonClickListener(onEditButtonClickListener);
-        card.prohibitDeleting(true);
         card.setOnDismissListener(() -> {
             if (!lastCardClosingReportedToObservers) {
                 lastCardClosingReportedToObservers = true;
@@ -286,7 +339,7 @@ public class MainScreenCardController implements FragmentCallbacks.Observer {
                 card.setUpButton1(onAddFoodstuffToHistoryListener, ADD_FOODSTUFF_TO_HISTORY_CARD_TEXT);
                 card.setUpButton2(onAddFoodstuffToRecipeListener, ADD_FOODSTUFF_TO_RECIPE_CARD_TEXT);
                 break;
-            case DISH_CREATION:
+            case RECIPE_CREATION:
                 card.deinitButton1();
                 card.setUpButton2(onAddFoodstuffToRecipeListener, ADD_FOODSTUFF_TO_RECIPE_CARD_TEXT);
                 break;

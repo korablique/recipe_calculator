@@ -36,12 +36,13 @@ public class CardDialog extends BaseBottomDialog {
     private int button1TextRes;
     @StringRes
     private int button2TextRes;
+    @Nullable
     private Card.OnEditButtonClickListener onEditButtonClickListener;
+    @Nullable
     private Card.OnCloseButtonClickListener onCloseButtonClickListener = this::dismiss;
+    @Nullable
     private Card.OnDeleteButtonClickListener onDeleteButtonClickListener;
     private Runnable onDismissListener;
-    private boolean prohibitEditingFlag;
-    private boolean prohibitDeletingFlag;
 
     private boolean requestedEditingFocus;
 
@@ -65,8 +66,6 @@ public class CardDialog extends BaseBottomDialog {
         card.setOnEditButtonClickListener(onEditButtonClickListener);
         card.setOnCloseButtonClickListener(onCloseButtonClickListener);
         card.setOnDeleteButtonClickListener(onDeleteButtonClickListener);
-        card.prohibitEditing(prohibitEditingFlag);
-        card.prohibitDeleting(prohibitDeletingFlag);
 
         Bundle args = getArguments();
         if (args.containsKey(CLICKED_WEIGHTED_FOODSTUFF)) {
@@ -90,6 +89,25 @@ public class CardDialog extends BaseBottomDialog {
         }
     }
 
+    public Foodstuff extractFoodstuff() {
+        if (card != null) {
+            return card.extractFoodstuff();
+        }
+        Bundle args = getArguments();
+        if (args.containsKey(CLICKED_WEIGHTED_FOODSTUFF)) {
+            WeightedFoodstuff foodstuff = args.getParcelable(CLICKED_WEIGHTED_FOODSTUFF);
+            return foodstuff.withoutWeight();
+        } else {
+            Foodstuff foodstuff = args.getParcelable(CLICKED_FOODSTUFF);
+            return foodstuff;
+        }
+    }
+
+    public void setUpButton1(
+            Card.OnMainButtonSimpleClickListener listener, @StringRes int buttonTextRes) {
+        setUpButton1(listener.convert(), buttonTextRes);
+    }
+
     public void setUpButton1(
             Card.OnMainButtonClickListener listener, @StringRes int buttonTextRes) {
         button1ClickListener = listener;
@@ -97,6 +115,11 @@ public class CardDialog extends BaseBottomDialog {
         if (card != null) {
             card.setUpButton1(listener, buttonTextRes);
         }
+    }
+
+    public void setUpButton2(
+            Card.OnMainButtonSimpleClickListener listener, @StringRes int buttonTextRes) {
+        setUpButton2(listener.convert(), buttonTextRes);
     }
 
     public void setUpButton2(
@@ -153,7 +176,6 @@ public class CardDialog extends BaseBottomDialog {
         CardDialog existingDialog = findCard(activity);
         if (existingDialog != null) {
             existingDialog.card.setFoodstuff(foodstuff);
-            existingDialog.card.prohibitEditing(false);
             return existingDialog;
         }
         Bundle bundle = new Bundle();
@@ -167,20 +189,6 @@ public class CardDialog extends BaseBottomDialog {
         dialog.setArguments(args);
         dialog.show(activity.getSupportFragmentManager(), FOODSTUFF_CARD);
         return dialog;
-    }
-
-    public void prohibitEditing(boolean flag) {
-        prohibitEditingFlag = flag;
-        if (card != null) {
-            card.prohibitEditing(flag);
-        }
-    }
-
-    public void prohibitDeleting(boolean flag) {
-        prohibitDeletingFlag = flag;
-        if (card != null) {
-            card.prohibitDeleting(flag);
-        }
     }
 
     @Override

@@ -3,6 +3,7 @@ package korablique.recipecalculator.base;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.View;
 
 import androidx.annotation.LayoutRes;
 import androidx.annotation.Nullable;
@@ -21,6 +22,11 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     @Inject
     CurrentActivityProvider currentActivityProvider;
+
+    @Nullable
+    public View getContentView() {
+        return findViewById(android.R.id.content);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

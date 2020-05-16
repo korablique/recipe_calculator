@@ -18,11 +18,11 @@ class FunctionalInputFilter(private val isAcceptableStr: (String)->Boolean) : In
                         dest: Spanned, dstart: Int, dend: Int): CharSequence? {
         val potentialResult = FiltersUtils.inputToString(source, start, end, dest, dstart, dend)
         // Либо целиком соглашаемся с вставляемым значением (возвращаем null), либо целиком
-        // его запрещаем ("").
+        // его запрещаем (возвращаем уже имеющуюсю в [dstart..dend) строку).
         if (isAcceptableStr.invoke(potentialResult)) {
             return null
         } else {
-            return ""
+            return dest.toString().substring(dstart, dend)
         }
     }
 }

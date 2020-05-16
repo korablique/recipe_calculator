@@ -2,7 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="korablique.recipecalculator">
 
-    <application>
+<!--    usesCleartextTraffic is for HTTP tests-->
+    <application
+        android:usesCleartextTraffic="true">
         <activity
             android:name=".test.FakeTestActivity">
         </activity>

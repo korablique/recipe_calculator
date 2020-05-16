@@ -19,10 +19,13 @@ import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.WeightedFoodstuff;
+import korablique.recipecalculator.outside.userparams.InteractiveServerUserParamsObtainer;
 
 public class MainActivity extends BaseActivity implements HasSupportFragmentInjector {
     @Inject
     MainActivityController controller;
+    @Inject
+    InteractiveServerUserParamsObtainer interactiveServerUserParamsObtainer;
     @Inject
     DispatchingAndroidInjector<Fragment> fragmentInjector;
 
@@ -46,5 +49,12 @@ public class MainActivity extends BaseActivity implements HasSupportFragmentInje
             List<WeightedFoodstuff> historyList,
             LocalDate selectedDate) {
         MainActivityController.openHistoryAndAddFoodstuffs(context, historyList, selectedDate);
+    }
+
+    /**
+     * Don't call if {@link #getContentView()} returns null!
+     */
+    public void openFoodstuffCard(Foodstuff foodstuff) {
+        controller.openFoodstuffCard(foodstuff);
     }
 }

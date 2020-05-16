@@ -21,6 +21,10 @@ public class FoodstuffBuilderNameStep {
                 nutrition.getCarbs(), nutrition.getCalories());
     }
 
+    public Foodstuff withNutrition(float protein, float fats, float carbs, float calories) {
+        return withNutrition((double) protein, fats, carbs, calories);
+    }
+
     public Foodstuff withNutrition(double protein, double fats, double carbs, double calories) {
         if (idStep != null) {
             return new Foodstuff(idStep.id, name, protein, fats, carbs, calories);

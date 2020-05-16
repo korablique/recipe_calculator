@@ -37,7 +37,7 @@ public class SingleItemAdapterChild extends AdapterChild {
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int childPosition) {
         // У нас всегда 1 чайлд
 
-        ViewGroup item = ((MyViewHolder) holder).getItem();
+        View item = ((MyViewHolder) holder).getItem();
         if (observer != null) {
             observer.onViewShown(item);
         }

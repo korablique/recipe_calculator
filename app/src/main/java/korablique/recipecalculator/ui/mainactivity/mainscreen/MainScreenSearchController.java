@@ -15,24 +15,28 @@ import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
 
-import io.reactivex.Single;
+import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.disposables.Disposables;
 import io.reactivex.subjects.PublishSubject;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.base.FragmentCallbacks;
-import korablique.recipecalculator.base.RxActivitySubscriptions;
+import korablique.recipecalculator.base.RxFragmentSubscriptions;
 import korablique.recipecalculator.base.SoftKeyboardStateWatcher;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.dagger.FragmentScope;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
+import korablique.recipecalculator.model.Ingredient;
 import korablique.recipecalculator.model.WeightedFoodstuff;
+import korablique.recipecalculator.search.FoodstuffsSearchEngine;
+import korablique.recipecalculator.search.FoodstuffsSearchEngine.SearchResults;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.mainactivity.MainActivityFragmentsController;
 
@@ -43,21 +47,23 @@ public class MainScreenSearchController
     private final MainThreadExecutor mainThreadExecutor;
     private final BucketList bucketList;
     private final FoodstuffsList foodstuffsList;
+    private final FoodstuffsSearchEngine foodstuffsSearchEngine;
     private final MainScreenFragment mainFragment;
     private final FragmentActivity context;
     private final ActivityCallbacks activityCallbacks;
     private final MainScreenCardController cardController;
     private final MainScreenReadinessDispatcher mainScreenReadinessDispatcher;
-    private final RxActivitySubscriptions activitySubscriptions;
+    private final RxFragmentSubscriptions subscriptions;
     private final SoftKeyboardStateWatcher softKeyboardStateWatcher;
     private final MainActivityFragmentsController mainActivityFragmentsController;
     private FloatingSearchView searchView;
 
     private BucketList.Observer bucketListObserver = new BucketList.Observer() {
         @Override
-        public void onFoodstuffAdded(WeightedFoodstuff weightedFoodstuff) {
+        public void onIngredientAdded(Ingredient ingredient) {
             searchView.clearQuery();
         }
+        @Override public void onIngredientRemoved(Ingredient ingredient) {}
     };
 
     private FoodstuffsList.Observer foodstuffsListObserver = new FoodstuffsList.Observer() {
@@ -66,14 +72,16 @@ public class MainScreenSearchController
         @Override
         public void onFoodstuffSaved(Foodstuff savedFoodstuff, int index) {
             // Поиск заново
-            SearchResultsFragment.show(searchView.getQuery(), mainFragment);
-            performSearch(searchView.getQuery());
+            if (!searchView.getQuery().isEmpty()) {
+                performSearch(searchView.getQuery());
+            }
         }
         @Override
         public void onFoodstuffDeleted(Foodstuff deleted) {
             // Поиск заново
-            SearchResultsFragment.show(searchView.getQuery(), mainFragment);
-            performSearch(searchView.getQuery());
+            if (!searchView.getQuery().isEmpty()) {
+                performSearch(searchView.getQuery());
+            }
         }
     };
 
@@ -83,37 +91,30 @@ public class MainScreenSearchController
     // По-умолчанию Disposables.empty() чтобы не нужно было делать проверки на null.
     private Disposable lastSearchDisposable = Disposables.empty();
 
-    // Rx-Паблишер, в который мы будем загонять все результаты поиска.
-    // Механика такая:
-    // 1. Стартуем поиск в разных местах класса, и в этих местах не обрабатываем результаты,
-    // 2. Вместо обработки результатов в этих местах, постим их в searchResultsPublisher,
-    // 3. В configureSearch подписываемся на searchResultsPublisher, и при поступлении любых
-    //    результатов отображаем их либо в подсказках, либо в SearchResultFragment.
-    // Т.о. этот Rx-Паблишер "разрывает" старт поиска и обработку его результатов.
-    private PublishSubject<SearchResult> searchResultsPublisher = PublishSubject.create();
-
     @Inject
     public MainScreenSearchController(
             MainThreadExecutor mainThreadExecutor,
             BucketList bucketList,
             FoodstuffsList foodstuffsList,
+            FoodstuffsSearchEngine foodstuffsSearchEngine,
             MainScreenFragment mainFragment,
             ActivityCallbacks activityCallbacks,
             FragmentCallbacks fragmentCallbacks,
             MainScreenCardController cardController,
             MainScreenReadinessDispatcher mainScreenReadinessDispatcher,
-            RxActivitySubscriptions activitySubscriptions,
+            RxFragmentSubscriptions subscriptions,
             SoftKeyboardStateWatcher softKeyboardStateWatcher,
             MainActivityFragmentsController mainActivityFragmentsController) {
         this.mainThreadExecutor = mainThreadExecutor;
         this.bucketList = bucketList;
         this.foodstuffsList = foodstuffsList;
+        this.foodstuffsSearchEngine = foodstuffsSearchEngine;
         this.mainFragment = mainFragment;
         this.context = mainFragment.getActivity();
         this.activityCallbacks = activityCallbacks;
         this.cardController = cardController;
         this.mainScreenReadinessDispatcher = mainScreenReadinessDispatcher;
-        this.activitySubscriptions = activitySubscriptions;
+        this.subscriptions = subscriptions;
         this.softKeyboardStateWatcher = softKeyboardStateWatcher;
         this.mainActivityFragmentsController = mainActivityFragmentsController;
         fragmentCallbacks.addObserver(this);
@@ -211,34 +212,73 @@ public class MainScreenSearchController
             SearchResultsFragment.show(searchView.getQuery(), mainFragment);
             performSearch(searchView.getQuery());
         });
-
-        // Настроим реакцию UI на результаты всех начинаемых нами поисков
-        activitySubscriptions.subscribe(searchResultsPublisher, (searchResult) -> {
-            // Если показан фрагмент с результатами поисков - покажем результаты в нём,
-            // иначе в подсказках.
-            SearchResultsFragment fragment = SearchResultsFragment.findFragment(mainFragment);
-            if (fragment != null) {
-                fragment.setDisplayedSearchResults(searchResult.foodstuffs);
-                fragment.setDisplayedQuery(searchResult.query);
-            } else {
-                List<Foodstuff> foodstuffs = searchResult.foodstuffs;
-                List<FoodstuffSearchSuggestion> newSuggestions = new ArrayList<>();
-                for (int index = 0; index < SEARCH_SUGGESTIONS_NUMBER && index < foodstuffs.size(); ++index) {
-                    FoodstuffSearchSuggestion suggestion = new FoodstuffSearchSuggestion(foodstuffs.get(index));
-                    newSuggestions.add(suggestion);
-                }
-                searchView.swapSuggestions(newSuggestions);
-            }
-        });
     }
 
     private void performSearch(String query) {
+        SearchResults searchResults =
+                foodstuffsSearchEngine.requestFoodstuffsLike(query);
+
         lastSearchDisposable.dispose();
-        Single<List<Foodstuff>> searchResultSingle = foodstuffsList.requestFoodstuffsLike(query);
-        lastSearchDisposable = searchResultSingle.subscribe((foundFoodstuffs) -> {
-            searchResultsPublisher.onNext(new SearchResult(query, foundFoodstuffs));
-        });
-        activitySubscriptions.storeDisposable(lastSearchDisposable);
+        lastSearchDisposable = searchResults.getTopFoodstuffs()
+                // Сперва получаем результаты TopFoodstuffs, затем AllFoodstuffs
+                .concatWith(searchResults.getAllFoodstuffs())
+                // Сделаем так, чтобы вместо событий "List<Foodstuffs>", мы получали
+                // список списков продуктов, который будет увеличиваться с каждым новым списком.
+                //
+                // Т.е. сперва в subscribe придёт List<List<Foodstuff>> с size == 1, который будет
+                // содержать только найденные по запросу продукты в топе.
+                // Затем, вторым событием, в subscribe придёт List<List<Foodstuff>> с size == 2,
+                // который будет содержать как предыдущие продукты из топа, так и продукты,
+                // найденные в списке всех продуктов.
+                //
+                // Это уродство нужно, т.к. SearchView не имеет операции addSuggestions, имеет только
+                // swapSuggestions, а нам нужно сперва в него вставить найденые продукты в топе,
+                // а затем добавить к ним продукты, найденные в полном списке продуктов.
+                // Т.о. мы заменяем 2 операции addSuggestions(fromTop) и addSuggestions(fromAll) на
+                // 2 операции swapSuggestions(fromTop) и swapSuggestions(fromTop + fromAll).
+                .scan(new ArrayList<List<Foodstuff>>(), (allLists, list) -> {
+                    allLists.add(list);
+                    return allLists;
+                })
+                .subscribe((allLists) -> {
+                    if (allLists.isEmpty()) {
+                        // Поиск может быть отменён не начавшись, тогда мы получим
+                        // пустой список, который создали для scan выше
+                        return;
+                    }
+                    // Если показан фрагмент с результатами поисков - покажем результаты в нём,
+                    // иначе в подсказках.
+                    SearchResultsFragment fragment = SearchResultsFragment.findFragment(mainFragment);
+                    if (fragment != null) {
+                        fragment.setDisplayedQuery(searchResults.getQuery());
+                        fragment.setFoundFromTop(allLists.get(0));
+                        if (allLists.size() > 1) {
+                            fragment.setFoundFromAll(allLists.get(1));
+                        } else {
+                            fragment.setFoundFromAll(Collections.emptyList());
+                        }
+                    } else {
+                        List<FoodstuffSearchSuggestion> suggestions =
+                                Observable
+                                        // List<List<Foodstuff>> -> Observable<List<Foodstuff>>
+                                        .fromIterable(allLists)
+                                        // Observable<List<Foodstuff>> -> Observable<Foodstuff>
+                                        .flatMapIterable(list -> list)
+                                        // [1, 2, 2, 3, ..] -> [1, 2, 3, ..]
+                                        .distinct()
+                                        // [1, 2, 3, .. N] -> [1, 2, 3, .. SEARCH_SUGGESTIONS_NUMBER]
+                                        .take(SEARCH_SUGGESTIONS_NUMBER)
+                                        // Observable<Foodstuff> -> Observable<FoodstuffSearchSuggestion>
+                                        .map(FoodstuffSearchSuggestion::new)
+                                        // Observable<FoodstuffSearchSuggestion> -> Single<List<FoodstuffSearchSuggestion>>
+                                        .toList()
+                                        // Single<List<FoodstuffSearchSuggestion>> -> List<FoodstuffSearchSuggestion>
+                                        .blockingGet();
+
+                        Collections.reverse(suggestions);
+                        searchView.swapSuggestions(suggestions, false/*animate*/);
+                    }
+                });
     }
 
     private void clearSearchQueryIfSearchResultsNotShown() {
@@ -281,15 +321,6 @@ public class MainScreenSearchController
             // Для закрытия фргмента сэмулируем нажатие на back - оно обрабатывается закрытием
             // результатов поиска.
             onActivityBackPressed();
-        }
-    }
-
-    private static class SearchResult {
-        final String query;
-        final List<Foodstuff> foodstuffs;
-        SearchResult(String query, List<Foodstuff> foodstuffs) {
-            this.query = query;
-            this.foodstuffs = foodstuffs;
         }
     }
 }

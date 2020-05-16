@@ -4,15 +4,15 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.widget.EditText;
 
-class SimpleTextWatcher <T extends EditText> implements TextWatcher {
+public class SimpleTextWatcher <T extends EditText> implements TextWatcher {
     private final OnTextChangedListener<T> onTextChangedListener;
     private final T editText;
 
-    interface OnTextChangedListener  <T extends EditText> {
+    public interface OnTextChangedListener  <T extends EditText> {
         void onTextChanged(T editText);
     }
 
-    SimpleTextWatcher(OnTextChangedListener<T> listener, T editText) {
+    public SimpleTextWatcher(T editText, OnTextChangedListener<T> listener) {
         this.onTextChangedListener = listener;
         this.editText = editText;
     }

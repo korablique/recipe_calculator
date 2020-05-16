@@ -1,0 +1,15 @@
+syntax = "proto2";
+
+package model;
+
+option java_package = "korablique.recipecalculator.model.proto";
+option java_outer_classname = "FoodstuffProtos";
+
+message Foodstuff {
+  optional int64 local_id = 1;
+  required string name = 2;
+  required float protein = 3;
+  required float fats = 4;
+  required float carbs = 5;
+  required float calories = 6;
+}

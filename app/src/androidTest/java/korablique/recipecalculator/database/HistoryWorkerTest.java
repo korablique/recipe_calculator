@@ -8,6 +8,7 @@ import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -17,18 +18,28 @@ import java.util.List;
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.LargeTest;
 import androidx.test.runner.AndroidJUnit4;
+
+import io.reactivex.Observable;
+import korablique.recipecalculator.base.TimeProvider;
 import korablique.recipecalculator.database.room.AppDatabase;
 import korablique.recipecalculator.database.room.DatabaseHolder;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.HistoryEntry;
 import korablique.recipecalculator.model.NewHistoryEntry;
-import korablique.recipecalculator.util.InstantDatabaseThreadExecutor;
-import korablique.recipecalculator.util.InstantMainThreadExecutor;
+import korablique.recipecalculator.util.DBTestingUtils;
+import korablique.recipecalculator.InstantComputationsThreadsExecutor;
+import korablique.recipecalculator.InstantDatabaseThreadExecutor;
+import korablique.recipecalculator.InstantMainThreadExecutor;
+import korablique.recipecalculator.util.TestingTimeProvider;
 
 import static korablique.recipecalculator.database.HistoryContract.COLUMN_NAME_DATE;
 import static korablique.recipecalculator.database.HistoryContract.COLUMN_NAME_FOODSTUFF_ID;
 import static korablique.recipecalculator.database.HistoryContract.COLUMN_NAME_WEIGHT;
 import static korablique.recipecalculator.database.HistoryContract.HISTORY_TABLE_NAME;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 
 @RunWith(AndroidJUnit4.class)
 @LargeTest
@@ -37,18 +48,21 @@ public class HistoryWorkerTest {
     private DatabaseHolder databaseHolder;
     private DatabaseWorker databaseWorker;
     private HistoryWorker historyWorker;
+    private TimeProvider timeProvider;
     
     @Before
     public void setUp() throws IOException {
         context = InstrumentationRegistry.getTargetContext();
 
         DatabaseThreadExecutor databaseThreadExecutor = new InstantDatabaseThreadExecutor();
-        databaseHolder = new DatabaseHolder(context, databaseThreadExecutor);
+        databaseHolder = Mockito.spy(new DatabaseHolder(context, databaseThreadExecutor));
         databaseHolder.getDatabase().clearAllTables();
         databaseWorker = new DatabaseWorker(
                 databaseHolder, new InstantMainThreadExecutor(), databaseThreadExecutor);
+        timeProvider = new TestingTimeProvider();
         historyWorker = new HistoryWorker(
-                databaseHolder, new InstantMainThreadExecutor(), databaseThreadExecutor);
+                databaseHolder, new InstantMainThreadExecutor(), databaseThreadExecutor,
+                timeProvider);
     }
 
     @Test
@@ -250,6 +264,89 @@ public class HistoryWorkerTest {
         Assert.assertTrue(foodstuffsForPeriodIds.contains(foodstuffsIds.get(2)));
         Assert.assertTrue(foodstuffsForPeriodIds.contains(foodstuffsIds.get(3)));
         Assert.assertTrue(foodstuffsForPeriodIds.contains(foodstuffsIds.get(4)));
+    }
+
+    @Test
+    public void cacheTest() {
+        clearAllData();
+
+        Foodstuff[] foodstuffs = new Foodstuff[] {
+                Foodstuff.withName("f1").withNutrition(1, 2, 3, 4),
+                Foodstuff.withName("f2").withNutrition(1, 2, 3, 4),
+                Foodstuff.withName("f3").withNutrition(1, 2, 3, 4),
+                Foodstuff.withName("f4").withNutrition(1, 2, 3, 4),
+                Foodstuff.withName("f5").withNutrition(1, 2, 3, 4)
+        };
+        databaseWorker.saveGroupOfFoodstuffs(foodstuffs, ids -> {
+            for (int index = 0; index < foodstuffs.length; ++index) {
+                foodstuffs[index] = foodstuffs[index].recreateWithId(ids.get(index));
+            }
+        });
+
+        long todayMidnight = timeProvider.now().withTimeAtStartOfDay().getMillis();
+        long tomorrowMidnight = timeProvider.now().plusDays(1).withTimeAtStartOfDay().getMillis();
+
+        historyWorker.saveFoodstuffToHistory(new Date(todayMidnight-1000), foodstuffs[0].getId(), 123);
+        historyWorker.saveFoodstuffToHistory(new Date(todayMidnight-1), foodstuffs[1].getId(), 123);
+        historyWorker.saveFoodstuffToHistory(new Date(todayMidnight), foodstuffs[2].getId(), 123);
+        historyWorker.saveFoodstuffToHistory(new Date(todayMidnight+1000), foodstuffs[3].getId(), 123);
+        historyWorker.saveFoodstuffToHistory(new Date(Long.MAX_VALUE), foodstuffs[4].getId(), 123);
+
+        //
+        // Verify today is cached
+        //
+        reset(databaseHolder);
+        Observable<HistoryEntry> todayEntries = historyWorker.requestHistoryForPeriod(
+                todayMidnight,
+                tomorrowMidnight - 1);
+        // Verify correct data
+        Assert.assertEquals(2, todayEntries.toList().blockingGet().size());
+        Assert.assertEquals(foodstuffs[3], todayEntries.toList().blockingGet().get(0).getFoodstuff().withoutWeight());
+        Assert.assertEquals(foodstuffs[2], todayEntries.toList().blockingGet().get(1).getFoodstuff().withoutWeight());
+        // Verify that cache was used
+        verify(databaseHolder, never()).getDatabase();
+
+        //
+        // Verify all future is cached
+        //
+        reset(databaseHolder);
+        Observable<HistoryEntry> todayAndFutureEntries = historyWorker.requestHistoryForPeriod(
+                todayMidnight,
+                Long.MAX_VALUE);
+        // Verify correct data
+        Assert.assertEquals(3, todayAndFutureEntries.toList().blockingGet().size());
+        Assert.assertEquals(foodstuffs[4], todayAndFutureEntries.toList().blockingGet().get(0).getFoodstuff().withoutWeight());
+        Assert.assertEquals(foodstuffs[3], todayAndFutureEntries.toList().blockingGet().get(1).getFoodstuff().withoutWeight());
+        Assert.assertEquals(foodstuffs[2], todayAndFutureEntries.toList().blockingGet().get(2).getFoodstuff().withoutWeight());
+        // Verify that cache was used
+        verify(databaseHolder, never()).getDatabase();
+
+        //
+        // Verify past is NOT cached
+        //
+        reset(databaseHolder);
+        Observable<HistoryEntry> pastAndToday = historyWorker.requestHistoryForPeriod(
+                0,
+                tomorrowMidnight - 1);
+        // Verify correct data
+        Assert.assertEquals(4, pastAndToday.toList().blockingGet().size());
+        Assert.assertEquals(foodstuffs[3], pastAndToday.toList().blockingGet().get(0).getFoodstuff().withoutWeight());
+        Assert.assertEquals(foodstuffs[2], pastAndToday.toList().blockingGet().get(1).getFoodstuff().withoutWeight());
+        Assert.assertEquals(foodstuffs[1], pastAndToday.toList().blockingGet().get(2).getFoodstuff().withoutWeight());
+        Assert.assertEquals(foodstuffs[0], pastAndToday.toList().blockingGet().get(3).getFoodstuff().withoutWeight());
+        // Verify that cache was NOT used
+        verify(databaseHolder, atLeastOnce()).getDatabase();
+    }
+
+    private void clearAllData() {
+        FoodstuffsList foodstuffsList = new FoodstuffsList(
+                databaseWorker,
+                new InstantMainThreadExecutor(),
+                new InstantComputationsThreadsExecutor());
+        DBTestingUtils.clearAllData(
+                foodstuffsList,
+                historyWorker,
+                databaseHolder);
     }
 
     public Foodstuff getAnyFoodstuffFromDb() throws InterruptedException {

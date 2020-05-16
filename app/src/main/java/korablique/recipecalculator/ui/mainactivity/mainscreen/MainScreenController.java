@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -15,31 +16,38 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import io.reactivex.Observable;
 import korablique.recipecalculator.R;
 import korablique.recipecalculator.RequestCodes;
 import korablique.recipecalculator.base.ActivityCallbacks;
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.BaseFragment;
-import korablique.recipecalculator.base.Callback;
 import korablique.recipecalculator.base.FragmentCallbacks;
+import korablique.recipecalculator.base.RxFragmentSubscriptions;
 import korablique.recipecalculator.dagger.FragmentScope;
 import korablique.recipecalculator.database.FoodstuffsList;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.FoodstuffsTopList;
-import korablique.recipecalculator.model.WeightedFoodstuff;
+import korablique.recipecalculator.model.Ingredient;
+import korablique.recipecalculator.model.Recipe;
 import korablique.recipecalculator.ui.bucketlist.BucketList;
 import korablique.recipecalculator.ui.bucketlist.BucketListActivity;
 import korablique.recipecalculator.ui.editfoodstuff.EditFoodstuffActivity;
+import korablique.recipecalculator.ui.mainactivity.MainActivityFragmentsController;
 import korablique.recipecalculator.ui.mainactivity.MainActivitySelectedDateStorage;
 import korablique.recipecalculator.ui.nestingadapters.FoodstuffsAdapterChild;
 import korablique.recipecalculator.ui.nestingadapters.SectionedAdapterParent;
 import korablique.recipecalculator.ui.nestingadapters.SectionedFoodstuffsAdapterChild;
 import korablique.recipecalculator.ui.nestingadapters.SingleItemAdapterChild;
 
+import static korablique.recipecalculator.ui.bucketlist.BucketListActivityKt.EXTRA_PRODUCED_RECIPE;
+
 @FragmentScope
 public class MainScreenController
         implements FragmentCallbacks.Observer,
-        ActivityCallbacks.Observer {
+        ActivityCallbacks.Observer,
+        MainActivityFragmentsController.Observer {
+    public static final int TOP_ITEMS_MAX_COUNT = 5;
     private static final String EXTRA_INITIAL_TOP = "EXTRA_INITIAL_TOP";
     private static final String EXTRA_ALL_FOODSTUFFS_FIRST_BATCH = "EXTRA_ALL_FOODSTUFFS_FIRST_BATCH";
     private final BaseActivity context;
@@ -52,23 +60,15 @@ public class MainScreenController
     private final MainActivitySelectedDateStorage selectedDateStorage;
     private final MainScreenCardController cardController;
     private final MainScreenReadinessDispatcher readinessDispatcher;
+    private final RxFragmentSubscriptions subscriptions;
+    private final TempLongClickedFoodstuffsHandler tempLongClickedFoodstuffsHandler;
+    private final MainActivityFragmentsController mainActivityFragmentsController;
     private SectionedAdapterParent adapterParent;
     private SingleItemAdapterChild topTitleAdapterChild;
     private FoodstuffsAdapterChild topAdapterChild;
     private SectionedFoodstuffsAdapterChild foodstuffAdapterChild;
     private SelectedFoodstuffsSnackbar snackbar;
 
-    private FoodstuffsTopList.Observer topListObserver = new FoodstuffsTopList.Observer() {
-        @Override
-        public void onFoodstuffsTopPossiblyChanged() {
-            topList.getTopList(foodstuffs -> {
-                if (topAdapterChild != null) {
-                    topAdapterChild.clear();
-                }
-                fillTop(foodstuffs);
-            });
-        }
-    };
     private boolean isTopFilledFromArguments;
     private boolean isAllFoodstuffsListFilledFromArguments;
 
@@ -83,7 +83,10 @@ public class MainScreenController
             FoodstuffsList foodstuffsList,
             MainActivitySelectedDateStorage selectedDateStorage,
             MainScreenCardController cardController,
-            MainScreenReadinessDispatcher readinessDispatcher) {
+            MainScreenReadinessDispatcher readinessDispatcher,
+            RxFragmentSubscriptions subscriptions,
+            TempLongClickedFoodstuffsHandler tempLongClickedFoodstuffsHandler,
+            MainActivityFragmentsController mainActivityFragmentsController) {
         this.context = context;
         this.fragment = fragment;
         this.fragmentCallbacks = fragmentCallbacks;
@@ -94,6 +97,9 @@ public class MainScreenController
         this.selectedDateStorage = selectedDateStorage;
         this.cardController = cardController;
         this.readinessDispatcher = readinessDispatcher;
+        this.subscriptions = subscriptions;
+        this.tempLongClickedFoodstuffsHandler = tempLongClickedFoodstuffsHandler;
+        this.mainActivityFragmentsController = mainActivityFragmentsController;
         fragmentCallbacks.addObserver(this);
         activityCallbacks.addObserver(this);
     }
@@ -150,10 +156,10 @@ public class MainScreenController
                     RequestCodes.MAIN_SCREEN_BUCKET_LIST_CREATE_FOODSTUFF);
         });
         snackbar.setOnDismissListener(() -> {
-            List<WeightedFoodstuff> dismissedFoodstuffs = new ArrayList<>(bucketList.getList());
+            List<Ingredient> dismissedFoodstuffs = new ArrayList<>(bucketList.getList());
             bucketList.clear();
 
-            Snackbar snackbar = Snackbar.make(fragmentView, R.string.foodstuffs_deleted, Snackbar.LENGTH_LONG);
+            Snackbar snackbar = Snackbar.make(fragmentView, R.string.work_with_recipe_canceled, Snackbar.LENGTH_LONG);
             snackbar.setAction(R.string.undo, v -> {
                 bucketList.add(dismissedFoodstuffs);
             });
@@ -165,7 +171,7 @@ public class MainScreenController
 
         fillListsFromArguments();
 
-        topList.getTopList(foodstuffs -> {
+        subscriptions.subscribe(topList.getMonthTop(), (foodstuffs -> {
             if (isTopFilledFromArguments && topAdapterChild != null) {
                 topAdapterChild.clear();
             }
@@ -182,8 +188,8 @@ public class MainScreenController
             }, unused -> {
                 readinessDispatcher.onMainScreenReady();
             });
-        });
-        topList.addObserver(topListObserver);
+        }));
+        mainActivityFragmentsController.addObserver(this);
     }
 
     private void fillListsFromArguments() {
@@ -205,8 +211,20 @@ public class MainScreenController
 
     @Override
     public void onFragmentDestroy() {
-        topList.removeObserver(topListObserver);
         activityCallbacks.removeObserver(this);
+        mainActivityFragmentsController.removeObserver(this);
+    }
+
+    @Override
+    public void onMainActivityFragmentSwitch(Fragment oldShownFragment, Fragment newShownFragment) {
+        // Re-request top so that user would get an updated
+        // top when they return to main fragment.
+        subscriptions.subscribe(topList.getWeekTop(), (foodstuffs -> {
+            if (topAdapterChild != null) {
+                topAdapterChild.clear();
+            }
+            fillTop(foodstuffs);
+        }));
     }
 
     private void createAllFoodstuffsAdapter() {
@@ -221,7 +239,9 @@ public class MainScreenController
             SingleItemAdapterChild foodstuffsTitle = new SingleItemAdapterChild(
                     R.layout.all_foodstuffs_header, observer);
             foodstuffAdapterChild = new SectionedFoodstuffsAdapterChild(
-                    context, (foodstuff, pos) -> cardController.showCard(foodstuff));
+                    (foodstuff, pos) -> cardController.showCard(foodstuff),
+                    (foodstuff, pos, view) ->
+                            tempLongClickedFoodstuffsHandler.onLongClick(foodstuff, view));
             adapterParent.addChild(foodstuffsTitle);
             adapterParent.addChild(foodstuffAdapterChild);
         }
@@ -231,11 +251,17 @@ public class MainScreenController
         if (!foodstuffs.isEmpty()) {
             if (topAdapterChild == null) {
                 topAdapterChild = new FoodstuffsAdapterChild(
-                        context, (foodstuff, pos) -> cardController.showCard(foodstuff));
+                        (foodstuff, pos) -> cardController.showCard(foodstuff),
+                        (foodstuff, pos, view) ->
+                                tempLongClickedFoodstuffsHandler.onLongClick(foodstuff, view));
                 topTitleAdapterChild = new SingleItemAdapterChild(R.layout.top_foodstuffs_header);
                 adapterParent.addChildToPosition(topTitleAdapterChild, 0);
                 adapterParent.addChildToPosition(topAdapterChild, 1);
             }
+            foodstuffs = Observable
+                    .fromIterable(foodstuffs)
+                    .take(TOP_ITEMS_MAX_COUNT)
+                    .toList().blockingGet();
             topAdapterChild.addItems(foodstuffs);
         } else {
             if (topAdapterChild != null && topTitleAdapterChild != null) {
@@ -255,9 +281,14 @@ public class MainScreenController
         if (requestCode == RequestCodes.MAIN_SCREEN_CREATE_FOODSTUFF) {
             Foodstuff foodstuff = data.getParcelableExtra(EditFoodstuffActivity.EXTRA_RESULT_FOODSTUFF);
             cardController.showCard(foodstuff);
-        } else if (requestCode == RequestCodes.MAIN_SCREEN_BUCKET_LIST_CREATE_FOODSTUFF) {
-            Foodstuff foodstuff = data.getParcelableExtra(BucketListActivity.EXTRA_CREATED_FOODSTUFF);
-            cardController.showCard(foodstuff);
+        } else if (requestCode == RequestCodes.MAIN_SCREEN_BUCKET_LIST_CREATE_FOODSTUFF
+                    || requestCode == RequestCodes.MAIN_SCREEN_BUCKET_LIST_OPEN_RECIPE) {
+            Recipe recipe = data.getParcelableExtra(EXTRA_PRODUCED_RECIPE);
+            cardController.showCard(recipe.getFoodstuff());
         }
+    }
+
+    void openFoodstuffCard(Foodstuff foodstuff) {
+        cardController.showCard(foodstuff);
     }
 }

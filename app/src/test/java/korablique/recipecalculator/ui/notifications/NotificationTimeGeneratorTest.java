@@ -13,7 +13,7 @@ import java.util.Calendar;
 import korablique.recipecalculator.BuildConfig;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class)
+@Config(manifest=Config.NONE)
 public class NotificationTimeGeneratorTest {
     @Test
     public void nextNotificationTimeComputesCorrectly() {

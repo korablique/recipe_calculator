@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 
 import com.arlib.floatingsearchview.util.adapter.TextWatcherAdapter;
@@ -28,7 +29,19 @@ import static korablique.recipecalculator.ui.DecimalUtils.toDecimalString;
 
 public class Card {
     public interface OnMainButtonClickListener {
+        void onClick(
+                WeightedFoodstuff foodstuff,
+                Foodstuff originalFoodstuff,
+                @Nullable Double originalWeight);
+    }
+
+    public interface OnMainButtonSimpleClickListener {
         void onClick(WeightedFoodstuff foodstuff);
+        default OnMainButtonClickListener convert() {
+            return (WeightedFoodstuff foodstuff,
+                    Foodstuff originalFoodstuff,
+                    @Nullable Double originalWeight) -> onClick(foodstuff);
+        }
     }
 
     public interface OnEditButtonClickListener {
@@ -46,7 +59,9 @@ public class Card {
     public static final String EDITED_FOODSTUFF = "EDITED_FOODSTUFF";
     private final CalcKeyboardController calcKeyboardController;
     private ViewGroup cardLayout;
-    private Foodstuff displayedFoodstuff;
+    private Foodstuff receivedFoodstuff;
+    @Nullable
+    private Double receivedWeight;
     private CalcEditText weightEditText;
     private TextView nameTextView;
     private Button button1;
@@ -75,6 +90,10 @@ public class Card {
         pluralProgressBar = nutritionLayout.findViewById(R.id.new_nutrition_progress_bar);
         nutritionValuesWrapper = new NutritionValuesWrapper(context, nutritionLayout);
 
+        editButton.setVisibility(View.GONE);
+        closeButton.setVisibility(View.GONE);
+        deleteButton.setVisibility(View.GONE);
+
         calcKeyboardController.useCalcKeyboardWith(weightEditText, dialog);
     }
 
@@ -91,19 +110,18 @@ public class Card {
     }
 
     public void setFoodstuff(WeightedFoodstuff weightedFoodstuff) {
-        setFoodstuffImpl(weightedFoodstuff.withoutWeight());
+        setFoodstuffImpl(weightedFoodstuff.withoutWeight(), weightedFoodstuff.getWeight());
         nutritionValuesWrapper.setNutrition(Nutrition.of(weightedFoodstuff));
-        weightEditText.setText(toDecimalString(weightedFoodstuff.getWeight()));
-        weightEditText.setSelection(weightEditText.getText().length());
     }
 
     public void setFoodstuff(Foodstuff foodstuff) {
-        setFoodstuffImpl(foodstuff);
+        setFoodstuffImpl(foodstuff, null);
         nutritionValuesWrapper.setNutrition(Nutrition.of100gramsOf(foodstuff));
     }
 
-    private void setFoodstuffImpl(Foodstuff foodstuff) {
-        displayedFoodstuff = foodstuff;
+    private void setFoodstuffImpl(Foodstuff foodstuff, @Nullable Double weight) {
+        receivedFoodstuff = foodstuff;
+        receivedWeight = weight;
         nameTextView.setText(foodstuff.getName());
         Nutrition foodstuffNutrition = Nutrition.of100gramsOf(foodstuff);
         pluralProgressBar.setProgress(
@@ -112,6 +130,10 @@ public class Card {
                 (float) foodstuffNutrition.getCarbs());
         nutritionValuesWrapper.setFoodstuff(foodstuff);
 
+        if (weight != null) {
+            weightEditText.setText(toDecimalString(weight));
+            weightEditText.setSelection(weightEditText.getText().length());
+        }
         weightEditText.addTextChangedListener(new TextWatcherAdapter() {
             @Override
             public void afterTextChanged(Editable s) {
@@ -142,11 +164,25 @@ public class Card {
         setUpMainButton(button2, listener, buttonTextRes);
     }
 
+    public void setUpButton1(OnMainButtonSimpleClickListener listener, @StringRes int buttonTextRes) {
+        setUpMainButton(
+                button1,
+                (foodstuff, unused1, unused2) -> listener.onClick(foodstuff),
+                buttonTextRes);
+    }
+
+    public void setUpButton2(OnMainButtonSimpleClickListener listener, @StringRes int buttonTextRes) {
+        setUpMainButton(
+                button2,
+                (foodstuff, unused1, unused2) -> listener.onClick(foodstuff),
+                buttonTextRes);
+    }
+
     private void setUpMainButton(Button button, OnMainButtonClickListener listener, @StringRes int buttonTextRes) {
         button.setText(buttonTextRes);
         button.setOnClickListener(v -> {
             WeightedFoodstuff clickedFoodstuff = extractWeightedFoodstuff();
-            listener.onClick(clickedFoodstuff);
+            listener.onClick(clickedFoodstuff, receivedFoodstuff, receivedWeight);
         });
         button.setVisibility(View.VISIBLE);
     }
@@ -170,7 +206,7 @@ public class Card {
             weight = 0f;
         }
         return Foodstuff
-                .withId(displayedFoodstuff.getId())
+                .withId(receivedFoodstuff.getId())
                 .withName(nameTextView.getText().toString())
                 .withNutrition(nutritionValuesWrapper.getFoodstuff().getProtein(),
                         nutritionValuesWrapper.getFoodstuff().getFats(),
@@ -179,39 +215,48 @@ public class Card {
                 .withWeight(weight);
     }
 
-    void setOnEditButtonClickListener(OnEditButtonClickListener listener) {
+    public Foodstuff extractFoodstuff() {
+        return extractWeightedFoodstuff().withoutWeight();
+    }
+
+    void setOnEditButtonClickListener(@Nullable OnEditButtonClickListener listener) {
+        if (listener != null) {
+            editButton.setVisibility(View.VISIBLE);
+        } else {
+            editButton.setVisibility(View.GONE);
+        }
         editButton.setOnClickListener(v -> {
-            listener.onClick(displayedFoodstuff);
+            if (listener != null) {
+                listener.onClick(receivedFoodstuff);
+            }
         });
     }
 
     void setOnCloseButtonClickListener(OnCloseButtonClickListener listener) {
+        if (listener != null) {
+            closeButton.setVisibility(View.VISIBLE);
+        } else {
+            closeButton.setVisibility(View.GONE);
+        }
         closeButton.setOnClickListener(v -> {
-            listener.onClick();
+            if (listener != null) {
+                listener.onClick();
+            }
         });
     }
 
     void setOnDeleteButtonClickListener(OnDeleteButtonClickListener listener) {
-        deleteButton.setOnClickListener(v -> {
-            WeightedFoodstuff clickedFoodstuff = extractWeightedFoodstuff();
-            listener.onClick(clickedFoodstuff);
-        });
-    }
-
-    void prohibitEditing(boolean flag) {
-        if (flag) {
-            editButton.setVisibility(View.GONE);
-        } else {
-            editButton.setVisibility(View.VISIBLE);
-        }
-    }
-
-    void prohibitDeleting(boolean flag) {
-        if (flag) {
-            deleteButton.setVisibility(View.GONE);
-        } else {
+        if (listener != null) {
             deleteButton.setVisibility(View.VISIBLE);
+        } else {
+            deleteButton.setVisibility(View.GONE);
         }
+        deleteButton.setOnClickListener(v -> {
+            if (listener != null) {
+                WeightedFoodstuff clickedFoodstuff = extractWeightedFoodstuff();
+                listener.onClick(clickedFoodstuff);
+            }
+        });
     }
 
     void focusOnEditing() {

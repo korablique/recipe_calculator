@@ -3,7 +3,11 @@ package korablique.recipecalculator.ui.mainactivity.mainscreen;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import androidx.annotation.Nullable;
+
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
+
+import java.util.Objects;
 
 import korablique.recipecalculator.model.Foodstuff;
 
@@ -44,5 +48,19 @@ public class FoodstuffSearchSuggestion implements SearchSuggestion {
 
     public Foodstuff getFoodstuff() {
         return suggestion;
+    }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+        if (!(other instanceof FoodstuffSearchSuggestion)) {
+            return false;
+        }
+        FoodstuffSearchSuggestion otherSuggestion = (FoodstuffSearchSuggestion) other;
+        return Objects.equals(suggestion, otherSuggestion.suggestion);
+    }
+
+    @Override
+    public int hashCode() {
+        return suggestion.hashCode();
     }
 }

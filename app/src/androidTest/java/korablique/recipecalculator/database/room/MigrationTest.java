@@ -15,8 +15,12 @@ import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory;
 import androidx.test.filters.LargeTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
+
+import korablique.recipecalculator.database.DatabaseUtils;
 import korablique.recipecalculator.util.FloatUtils;
 
+import static korablique.recipecalculator.database.IngredientContract.INGREDIENT_TABLE_NAME;
+import static korablique.recipecalculator.database.RecipeContract.RECIPE_TABLE_NAME;
 import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_TARGET_WEIGHT;
 import static korablique.recipecalculator.database.UserParametersContract.COLUMN_NAME_USER_WEIGHT;
 import static korablique.recipecalculator.database.UserParametersContract.USER_PARAMETERS_TABLE_NAME;
@@ -24,6 +28,7 @@ import static korablique.recipecalculator.database.room.Migrations.MIGRATION_2_3
 import static korablique.recipecalculator.database.room.Migrations.MIGRATION_3_4;
 import static korablique.recipecalculator.database.room.Migrations.MIGRATION_4_5;
 import static korablique.recipecalculator.database.room.Migrations.MIGRATION_5_6;
+import static korablique.recipecalculator.database.room.Migrations.MIGRATION_6_7;
 
 @RunWith(AndroidJUnit4.class)
 @LargeTest
@@ -121,5 +126,13 @@ public class MigrationTest {
         db = helper.runMigrationsAndValidate(TEST_DB, 6, true, MIGRATION_5_6);
         Cursor cursor = db.query("SELECT * FROM " + USER_PARAMETERS_TABLE_NAME);
         Assert.assertTrue(!cursor.moveToFirst());
+    }
+
+    @Test
+    public void migrate6To7() throws IOException {
+        helper.createDatabase(TEST_DB, 6);
+        SupportSQLiteDatabase db = helper.runMigrationsAndValidate(TEST_DB, 7, true, MIGRATION_6_7);
+        Assert.assertTrue(DatabaseUtils.tableExists(db, RECIPE_TABLE_NAME));
+        Assert.assertTrue(DatabaseUtils.tableExists(db, INGREDIENT_TABLE_NAME));
     }
 }

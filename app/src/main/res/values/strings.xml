@@ -1,4 +1,7 @@
 <resources>
+    <string name="gp_app_token">818864099682-45o7guahod4e27offl7pugq0tqf6augr.apps.googleusercontent.com</string>
+    <string name="server_address">https://blazern.me/broccalc</string>
+
     <string name="app_name">Broccalc</string>
     <string name="count">Рассчитать</string>
     <string name="product_weight">Масса</string>
@@ -11,7 +14,8 @@
     <string name="product_name">Название продукта</string>
     <string name="delete">Удалить</string>
     <string name="save">Сохранить</string>
-    <string name="recipe_name">Введите название рецепта</string>
+    <string name="enter_recipe_name">Введите название рецепта</string>
+    <string name="recipe_name">Название рецепта</string>
     <string name="start">Для добавления продукта нажмите на +</string>
     <string name="search">Поиск…</string>
     <string name="calculator">Калькулятор</string>
@@ -45,22 +49,27 @@
     <string name="add_foodstuff">Добавить продукт</string>
     <string name="add_foodstuff_to_recipe">В рецепт</string>
     <string name="add_foodstuff_to_history">В журнал</string>
-    <string name="selected_foodstuffs">Выбранные продукты</string>
+    <string name="selected_foodstuffs_snackbar_title_recipe_creation">Создание рецепта</string>
+    <string name="selected_foodstuffs_snackbar_title_recipe_editing">Редактирование рецепта</string>
+    <string name="bucket_list_title_recipe_creation">Новый рецепт</string>
+    <string name="bucket_list_title_recipe_editing">Редактирование</string>
+    <string name="bucket_list_title_recipe">Рецепт</string>
+    <string name="bucket_list_title_cooking">Рассчёт соотношений</string>
     <string name="meal">Приём пищи</string>
     <string name="meal_notification">Не забудьте внести в приложение, что вы кушали</string>
     <string name="channel_name">Напоминание о приеме пищи</string>
-    <string name="save_as_dish">Сохранить как блюдо</string>
+    <string name="save_recipe">Сохранить рецепт</string>
     <string name="add_to_history">Добавить в журнал</string>
-    <string name="selected_foodstuffs_summary">Всего из списка продуктов (на 100 г)</string>
+    <string name="future_recipe_nutrition">Пищевая ценность рецепта (на 100 г)</string>
     <string name="name">Название</string>
     <string name="saved">Сохранено</string>
     <string name="foodstuff_already_exists">Такой продукт уже существует</string>
-    <string name="result_weight">Масса готового продукта, граммов</string>
+    <string name="result_weight">Масса готового продукта, граммов:</string>
     <string name="new_foodstuff">Новый продукт</string>
     <string name="nutrition_per_100_g">Белки, жиры и углеводы указаны на 100 г</string>
     <string name="undo">Отмена</string>
     <string name="foodstuff_deleted">Продукт удалён</string>
-    <string name="foodstuffs_deleted">Продукты удалены</string>
+    <string name="work_with_recipe_canceled">Работа с рецептом прекращена</string>
     <string name="change_foodstuff">Изменить продукт</string>
     <string name="search_results">Результаты поиска \"%s\"</string>
     <string name="add_new_foodstuff">Добавить новый продукт</string>
@@ -142,12 +151,46 @@
     <string name="add_foodstuff_to_other_date_dialog_title">Добавить продукт на %s?</string>
     <string name="add_foodstuff_to_other_date_dialog_other_date_response">На %s</string>
     <string name="add_foodstuff_to_other_date_dialog_current_day_response">На сегодня</string>
+    <string name="partners_list">Партнёры</string>
+    <string name="gp_account_move_request">Аккаунт Google привязан к другому устройству, перепривязать к этому?</string>
+    <string name="gp_account_move_request_confirmation">Да</string>
+    <string name="gp_account_move_request_cancellation">Отмена</string>
+    <string name="you_do_not_have_partners">Нет партнёров</string>
+    <string name="your_pairing_code">Ваш код:</string>
+    <string name="your_partner_pairing_code">Код партнёра:</string>
+    <string name="send_to_partner">Отправить партнёру</string>
+    <string name="delete_partner">Удалить партнёра</string>
+    <string name="delete_ingredient">Удалить ингредиент</string>
+    <string name="edit_ingredient_comment">Изменить комментарий</string>
+    <string name="add_ingredient">Добавить ингредиент</string>
+    <string name="sign_in_with_google">Войти с Google</string>
+    <string name="something_went_wrong">Упс, что-то пошло не так</string>
+    <string name="possibly_no_network_connection">Возможно интернет не подключен</string>
+    <string name="your_code_is_valid_for">Ваш код действителен ещё:</string>
+    <string name="successfully_paired_with">Добавлен новый партнёр: %s</string>
+    <string name="successfully_paired_with_multiple_partners">Добавлены новые партнёры</string>
+    <string name="pairing_request_sent">Запрос отправлен</string>
+    <string name="obtain_pairing_code">Получить код</string>
+    <string name="partner_with_code_not_found">Пользователь с кодом %s не найден</string>
+    <string name="foodstuff_is_sent">Продукт отправлен</string>
+    <string name="foodstuff_is_received">Получен продукт: %s</string>
+    <string name="show_received_foodstuff">Показать</string>
 
-    <string-array name="gender_array">
-        <item name="not_selected">—</item>
-        <item name="male">Мужской</item>
-        <item name="female">Женский</item>
-    </string-array>
+    <string name="cancel_recipe_creation_dialog_title">Удалить создаваемый рецепт?</string>
+    <string name="cancel_recipe_editing_dialog_title">Удалить внесённые изменения?</string>
+    <string name="cancel_recipe_dialog_confirmation">Да</string>
+    <string name="cancel_recipe_dialog_cancellation">Отмена</string>
+
+    <string name="lorem_ipsum_short">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</string>
+    <string name="lorem_ipsum">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+    Curabitur pretium tincidunt lacus. Nulla gravida orci a odio. Nullam varius, turpis et commodo pharetra, est eros bibendum elit, nec luctus magna felis sollicitudin mauris. Integer in mauris eu nibh euismod gravida. Duis ac tellus et risus vulputate vehicula. Donec lobortis risus a elit. Etiam tempor. Ut ullamcorper, ligula eu tempor congue, eros est euismod turpis, id tincidunt sapien risus a quam. Maecenas fermentum consequat mi. Donec fermentum. Pellentesque malesuada nulla a mi. Duis sapien sem, aliquet nec, commodo eget, consequat quis, neque. Aliquam faucibus, elit ut dictum aliquet, felis nisl adipiscing sapien, sed malesuada diam lacus eget erat. Cras mollis scelerisque nunc. Nullam arcu. Aliquam consequat. Curabitur augue lorem, dapibus quis, laoreet et, pretium ac, nisi. Aenean magna nisl, mollis quis, molestie eu, feugiat in, orci. In hac habitasse platea dictumst.</string>
+    <string name="comment">Комментарий</string>
+    <string name="user_weight_invalid_format">Упс, с весом что-то не то!</string>
+    <string name="user_weight_too_small">Что-то вес маловат!</string>
+    <string name="user_weight_too_big">Что-то вес великоват!</string>
+    <string name="user_height_invalid_format">Упс, с ростом что-то не то!</string>
+    <string name="user_height_too_small">Что-то рост маловат!</string>
+    <string name="user_height_too_big">Что-то рост великоват!</string>
 
     <string-array name="physical_activity_array">
         <item name="passive_lifestyle">Сидячий образ жизни</item>

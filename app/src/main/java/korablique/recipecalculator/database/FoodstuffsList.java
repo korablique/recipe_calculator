@@ -20,7 +20,7 @@ import korablique.recipecalculator.base.executors.ComputationThreadsExecutor;
 import korablique.recipecalculator.base.executors.MainThreadExecutor;
 import korablique.recipecalculator.model.Foodstuff;
 import korablique.recipecalculator.model.Nutrition;
-import korablique.recipecalculator.util.FuzzySearcher;
+import korablique.recipecalculator.search.FuzzySearcher;
 
 @Singleton
 public class FoodstuffsList {
@@ -99,6 +99,24 @@ public class FoodstuffsList {
                 });
     }
 
+    /**
+     * @see #getAllFoodstuffs(Callback, Callback)
+     */
+    public Observable<Foodstuff> getAllFoodstuffs() {
+        Observable<Foodstuff> result = Observable.create((subscriber) -> {
+            Callback<List<Foodstuff>> batchCallback = foodstuffs -> {
+                for (Foodstuff foodstuff : foodstuffs) {
+                    subscriber.onNext(foodstuff);
+                }
+            };
+            Callback<List<Foodstuff>> resultCallback = unused -> {
+                subscriber.onComplete();
+            };
+            getAllFoodstuffs(batchCallback, resultCallback);
+        });
+        return result;
+    }
+
     public void saveFoodstuff(Foodstuff foodstuff, SaveFoodstuffCallback callback) {
         getAllFoodstuffs(unused -> {}, unused -> {
             databaseWorker.saveFoodstuff(foodstuff, new DatabaseWorker.SaveFoodstuffCallback() {
@@ -160,6 +178,13 @@ public class FoodstuffsList {
      * @param editedFoodstuff отредактированный фудстафф
      */
     public void editFoodstuff(long id, Foodstuff editedFoodstuff) {
+        editFoodstuff(id, editedFoodstuff, (unused)->{});
+    }
+
+    /**
+     * @see #editFoodstuff(long, Foodstuff)
+     */
+    public void editFoodstuff(long id, Foodstuff editedFoodstuff, Callback<Foodstuff> callback) {
         getAllFoodstuffs(foodstuffs -> {}, foodstuffs -> {
             databaseWorker.editFoodstuff(id, editedFoodstuff, () -> {
                 int editingFoodstuffIndex = -1;
@@ -173,37 +198,12 @@ public class FoodstuffsList {
                 Foodstuff editedFoodstuffWithId = Foodstuff.withId(id).withName(editedFoodstuff.getName())
                         .withNutrition(Nutrition.of100gramsOf(editedFoodstuff));
                 all.set(editingFoodstuffIndex, editedFoodstuffWithId);
+                callback.onResult(editedFoodstuffWithId);
                 for (Observer observer : observers) {
                     observer.onFoodstuffEdited(editedFoodstuffWithId);
                 }
             });
         });
-    }
-
-    public Single<List<Foodstuff>> requestFoodstuffsLike(String nameQuery) {
-        return requestFoodstuffsLike(nameQuery, Integer.MAX_VALUE);
-    }
-
-    public Single<List<Foodstuff>> requestFoodstuffsLike(String nameQuery, int limit) {
-        Single<List<Foodstuff>> allFoodstuffsSingle = Single.create((subscription) -> {
-            getAllFoodstuffs(foodstuffs -> {}, allFoodstuffs -> {
-                subscription.onSuccess(allFoodstuffs);
-            });
-        });
-
-        // Perform search on a computation thread and then pass the result to the main thread.
-        return allFoodstuffsSingle
-            .observeOn(computationThreadsExecutor.asScheduler())
-            .map(allFoodstuffs -> requestFoodstuffsLikeImpl(nameQuery, allFoodstuffs, limit))
-            .observeOn(mainThreadExecutor.asScheduler());
-    }
-
-    private List<Foodstuff> requestFoodstuffsLikeImpl(String nameQuery, List<Foodstuff> foodstuffs, int limit) {
-        return FuzzySearcher.search(
-                nameQuery.toLowerCase(),
-                foodstuffs,
-                (foodstuff) -> foodstuff.getName().toLowerCase(),
-                limit);
     }
 
     public void addObserver(Observer o) {

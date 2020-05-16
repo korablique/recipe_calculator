@@ -1,6 +1,5 @@
 package korablique.recipecalculator.util
 
-import korablique.recipecalculator.BuildConfig
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -8,7 +7,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(constants = BuildConfig::class)
+@Config(manifest=Config.NONE)
 class RussianEnglishTransliteratorTest {
     @Test
     fun transliteration() {

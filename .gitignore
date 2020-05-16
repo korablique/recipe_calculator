@@ -38,4 +38,4 @@ app/app.iml
 RecipeCalculator.iml
 build/
 gradle/
-
+app/release/output.json

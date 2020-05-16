@@ -45,7 +45,6 @@ public class MainActivitySelectedDateStorage implements
         this.mainActivity = mainActivity;
         this.sessionController = sessionController;
         this.timeProvider = timeProvider;
-        sessionController.addObserver(this);
         activityCallbacks.addObserver(this);
 
         // If the activity is already created - perform initialization.
@@ -95,12 +94,23 @@ public class MainActivitySelectedDateStorage implements
 
     @Override
     public void onNewSession() {
-        selectedDate = timeProvider.now().toLocalDate();
+        setSelectedDate(timeProvider.now().toLocalDate());
         sessionController.onClientStartedNewSession(SessionClient.MAIN_ACTIVITY_SELECTED_DATE);
     }
 
     @Override
-    public void onActivityDestroy() {
+    public void onActivityStart() {
+        sessionController.addObserver(this);
+        if (sessionController.shouldStartNewSessionFor(SessionClient.MAIN_ACTIVITY_SELECTED_DATE)) {
+            onNewSession();
+        }
+    }
+
+    @Override
+    public void onActivityStop() {
+        // We don't want to receive new-session events while we're in background -
+        // it's possible that another MainActivity will be created and we don't want to steal
+        // a new session from it.
         sessionController.removeObserver(this);
     }
 }

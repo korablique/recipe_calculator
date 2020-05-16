@@ -6,7 +6,9 @@ import androidx.annotation.Nullable;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.rule.ActivityTestRule;
 
+import org.jetbrains.annotations.NotNull;
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 
 import korablique.recipecalculator.base.BaseActivity;
 import korablique.recipecalculator.base.CurrentActivityProvider;
@@ -20,6 +22,8 @@ public class SessionTestingHelper {
     private Runnable firstSessionRunnable;
     @Nullable
     private Runnable secondSessionRunnable;
+    @Nullable
+    private Duration specifiedTimeUntilSecondSession;
 
     SessionTestingHelper(
             ActivityTestRule<? extends BaseActivity> activityTestRule,
@@ -47,6 +51,11 @@ public class SessionTestingHelper {
         return this;
     }
 
+    public SessionTestingHelper withTimeUntilSecondSession(Duration duration) {
+        this.specifiedTimeUntilSecondSession = duration;
+        return this;
+    }
+
     public void performActivityRecreation() {
         firstSessionRunnable.run();
 
@@ -55,7 +64,7 @@ public class SessionTestingHelper {
         BaseActivity oldActivity = activityTestRule.getActivity();
 
         // Настройка отдачи времени начала второй сессии
-        DateTime secondSessionStartTime = firstSessionEndTime.plus(SessionController.MAX_SESSION_LENGTH + 1);
+        DateTime secondSessionStartTime = createSecondSessionStartTime(firstSessionEndTime);
         timeProvider.setTimeSource(() -> {
             boolean isOldActivityGone =
                     currentActivityProvider.getCurrentActivity() != null
@@ -79,7 +88,7 @@ public class SessionTestingHelper {
 
         // Настройка отдачи времени конца первой сессии
         DateTime firstSessionEndTime = timeProvider.now();
-        DateTime secondSessionStartTime = firstSessionEndTime.plus(SessionController.MAX_SESSION_LENGTH + 1);
+        DateTime secondSessionStartTime = createSecondSessionStartTime(firstSessionEndTime);
 
         // Уход активити в фон
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
@@ -98,5 +107,21 @@ public class SessionTestingHelper {
         });
 
         secondSessionRunnable.run();
+    }
+
+    @NotNull
+    private DateTime createSecondSessionStartTime(DateTime firstSessionEndTime) {
+        DateTime secondSessionStartTime;
+        if (specifiedTimeUntilSecondSession != null) {
+            secondSessionStartTime = firstSessionEndTime.plus(specifiedTimeUntilSecondSession);
+            long timeDiff = secondSessionStartTime.getMillis() - firstSessionEndTime.getMillis();
+            if (timeDiff <= SessionController.MAX_SESSION_LENGTH) {
+                throw new IllegalArgumentException(
+                        "Provided duration until second session is <= than max session length");
+            }
+        } else {
+            secondSessionStartTime = firstSessionEndTime.plus(SessionController.MAX_SESSION_LENGTH + 1);
+        }
+        return secondSessionStartTime;
     }
 }

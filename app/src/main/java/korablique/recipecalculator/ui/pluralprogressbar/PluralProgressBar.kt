@@ -5,6 +5,7 @@ import android.content.res.TypedArray
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
+import korablique.recipecalculator.BuildConfig
 import korablique.recipecalculator.R
 
 open class PluralProgressBar : View {
@@ -138,7 +139,9 @@ open class PluralProgressBar : View {
             }
             val varsValuesStr = barsValues.joinToString()
 
-            throw IllegalStateException("Sum of all progresses must be <=100, but is $totalProgress, progress: $varsValuesStr")
+            if (BuildConfig.DEBUG) {
+                throw IllegalStateException("Sum of all progresses must be <=100, but is $totalProgress, progress: $varsValuesStr")
+            }
         }
     }
 

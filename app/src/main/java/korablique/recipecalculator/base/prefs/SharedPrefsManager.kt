@@ -1,11 +1,13 @@
 package korablique.recipecalculator.base.prefs
 
 import android.content.Context
+import android.util.Base64
 import korablique.recipecalculator.ui.DecimalUtils
 import javax.inject.Inject
 import javax.inject.Singleton
 
 private const val VALS_DELIMETER = ";"
+private const val VAL_EMPTY_LIST = "empty"
 
 /**
  * Обёртка над SharedPreferences для более удобного использования их в тестах
@@ -31,20 +33,85 @@ class SharedPrefsManager @Inject constructor(val context: Context) {
         return getStringList(owner, key)?.map { it.toFloat() }
     }
 
-    private fun putStringList(owner: PrefsOwner, key: String, strList: List<String>) {
+    fun putFloat(owner: PrefsOwner, key: String, value: Float) {
         context.getSharedPreferences(owner.fileName, Context.MODE_PRIVATE)
                 .edit()
-                .putString(key, strList.joinToString(separator = VALS_DELIMETER))
+                .putFloat(key, value)
                 .apply()
     }
 
-    private fun getStringList(owner: PrefsOwner, key: String): List<String>? {
-        val str = context
-                .getSharedPreferences(owner.fileName, Context.MODE_PRIVATE)
-                .getString(key, null)
+    fun getFloat(owner: PrefsOwner, key: String, default: Float): Float {
+        return context.getSharedPreferences(owner.fileName, Context.MODE_PRIVATE)
+                .getFloat(key, default)
+    }
+
+    fun putStringList(owner: PrefsOwner, key: String, strList: List<String>) {
+        val convertedStrs = if (!strList.isEmpty()) {
+            strList.map { String(Base64.encode(it.toByteArray(), 0)) }
+                    .joinToString(
+                            separator = VALS_DELIMETER,
+                            prefix = VALS_DELIMETER,
+                            postfix = VALS_DELIMETER)
+        } else {
+            VAL_EMPTY_LIST
+        }
+        putString(owner, key, convertedStrs)
+    }
+
+    fun getStringList(owner: PrefsOwner, key: String): List<String>? {
+        val str = getString(owner, key)
         if (str == null || str.isEmpty()) {
             return null
         }
-        return str.split(VALS_DELIMETER)
+        if (str == VAL_EMPTY_LIST) {
+            return emptyList()
+        }
+        return str
+                .substring(1, str.length-1)
+                .split(VALS_DELIMETER)
+                .map { String(Base64.decode(it, 0)) }
+    }
+
+    fun putString(owner: PrefsOwner, key: String, value: String?) {
+        val base64 = value?.let { String(Base64.encode(it.toByteArray(), 0)) }
+        context.getSharedPreferences(owner.fileName, Context.MODE_PRIVATE)
+                .edit()
+                .putString(key, base64)
+                .apply()
+    }
+
+    fun getString(owner: PrefsOwner, key: String, default: String? = null): String? {
+        val result = context
+                .getSharedPreferences(owner.fileName, Context.MODE_PRIVATE)
+                .getString(key, default)
+        return result?.let { String(Base64.decode(it, 0)) }
+    }
+
+    fun putBool(owner: PrefsOwner, key: String, value: Boolean) {
+        context.getSharedPreferences(owner.fileName, Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean(key, value)
+                .apply()
+    }
+
+    fun getBool(owner: PrefsOwner, key: String, default: Boolean = false): Boolean {
+        return context
+                .getSharedPreferences(owner.fileName, Context.MODE_PRIVATE)
+                .getBoolean(key, default)
+    }
+
+    fun putBytes(owner: PrefsOwner, key: String, value: ByteArray?) {
+        val base64 = value?.let { String(Base64.encode(it, 0)) }
+        context.getSharedPreferences(owner.fileName, Context.MODE_PRIVATE)
+                .edit()
+                .putString(key, base64)
+                .apply()
+    }
+
+    fun getBytes(owner: PrefsOwner, key: String): ByteArray? {
+        val result = context
+                .getSharedPreferences(owner.fileName, Context.MODE_PRIVATE)
+                .getString(key, null)
+        return result?.let { Base64.decode(it, 0) }
     }
 }

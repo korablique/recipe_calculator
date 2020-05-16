@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
+import androidx.annotation.Nullable;
+
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -12,12 +14,14 @@ public class FragmentCallbacks {
 
     public interface Observer {
         default void onFragmentCreate(Bundle savedInstanceState) {}
-        default void onFragmentViewCreated(View fragmentView, Bundle savedInstanceState) {}
+        default void onFragmentViewCreated(View fragmentView, @Nullable Bundle savedInstanceState) {}
         default void onFragmentStart() {}
         default void onFragmentResume() {}
+        default void onFragmentPause() {}
+        default void onFragmentStop() {}
         default void onFragmentActivityResult(int requestCode, int resultCode, Intent data) {}
         default void onFragmentSaveInstanceState(Bundle outState) {}
-        default void onFragmentRestoreInstanceState(Bundle savedInstanceState) {}
+        default void onFragmentViewStateRestored(Bundle savedInstanceState) {}
         default void onFragmentDestroy() {}
     }
 
@@ -53,6 +57,18 @@ public class FragmentCallbacks {
         }
     }
 
+    void dispatchFragmentPause() {
+        for (Observer observer : observers) {
+            observer.onFragmentPause();
+        }
+    }
+
+    void dispatchFragmentStop() {
+        for (Observer observer : observers) {
+            observer.onFragmentStop();
+        }
+    }
+
     void dispatchActivityResult(int requestCode, int resultCode, Intent data) {
         for (Observer observer : observers) {
             observer.onFragmentActivityResult(requestCode, resultCode, data);
@@ -65,9 +81,9 @@ public class FragmentCallbacks {
         }
     }
 
-    void dispatchFragmentRestoreInstanceState(Bundle savedInstanceState) {
+    void dispatchFragmentViewStateRestored(Bundle savedInstanceState) {
         for (Observer observer : observers) {
-            observer.onFragmentRestoreInstanceState(savedInstanceState);
+            observer.onFragmentViewStateRestored(savedInstanceState);
         }
     }
 

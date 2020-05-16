@@ -17,7 +17,7 @@ class SharedPrefsManagerTest {
 
     @Before
     fun setUp() {
-        val context = InstrumentationRegistry.getInstrumentation().context
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
         PrefsCleaningHelper.cleanAllPrefs(context)
         prefsManager = SharedPrefsManager(context)
     }
@@ -53,6 +53,19 @@ class SharedPrefsManagerTest {
     }
 
     @Test
+    fun canPutAndGetFloat() {
+        val myKey = "myKey"
+        var extractedFloat = prefsManager.getFloat(PrefsOwner.BUCKET_LIST, myKey, 0f)
+        assertEquals(0f, extractedFloat)
+
+        val createdFloat = 1f
+        prefsManager.putFloat(PrefsOwner.BUCKET_LIST, myKey, createdFloat)
+
+        extractedFloat = prefsManager.getFloat(PrefsOwner.BUCKET_LIST, myKey, 0f)
+        assertEquals(1f, extractedFloat)
+    }
+
+    @Test
     fun canChooseStoredFloatsPrecision() {
         val myKey = "myKey"
         val precision = 2.toShort()
@@ -67,14 +80,58 @@ class SharedPrefsManagerTest {
     }
 
     @Test
+    fun canPutAndGetStringList() {
+        val myKey = "myKey"
+        var extractedStringList = prefsManager.getStringList(PrefsOwner.BUCKET_LIST, myKey)
+        assertEquals(null, extractedStringList)
+
+        val createdStringList = listOf("1", "2", "3")
+        prefsManager.putStringList(PrefsOwner.BUCKET_LIST, myKey, createdStringList)
+
+        extractedStringList = prefsManager.getStringList(PrefsOwner.BUCKET_LIST, myKey)
+        assertEquals(createdStringList, extractedStringList!!)
+    }
+
+    @Test
+    fun canPutAndGetBytes() {
+        val myKey = "myKey"
+        var extractedBytes = prefsManager.getBytes(PrefsOwner.BUCKET_LIST, myKey)
+        assertEquals(null, extractedBytes)
+
+        val createdBytes = byteArrayOf(0x01, 0x02, 0x00)
+        prefsManager.putBytes(PrefsOwner.BUCKET_LIST, myKey, createdBytes)
+
+        extractedBytes = prefsManager.getBytes(PrefsOwner.BUCKET_LIST, myKey)
+        assertTrue(createdBytes.contentEquals(extractedBytes!!))
+    }
+
+    @Test
     fun canPutAndGetEmptyFloatList() {
         prefsManager.putFloatList(PrefsOwner.BUCKET_LIST, "mykey", emptyList(), digitsAfterDot = 3)
-        assertEquals(null, prefsManager.getFloatList(PrefsOwner.BUCKET_LIST, "mykey"))
+        assertEquals(0, prefsManager.getFloatList(PrefsOwner.BUCKET_LIST, "mykey")!!.size)
     }
 
     @Test
     fun canPutAndGetEmptyLongList() {
         prefsManager.putLongList(PrefsOwner.BUCKET_LIST, "mykey", emptyList())
-        assertEquals(null, prefsManager.getLongList(PrefsOwner.BUCKET_LIST, "mykey"))
+        assertEquals(0, prefsManager.getLongList(PrefsOwner.BUCKET_LIST, "mykey")!!.size)
+    }
+
+    @Test
+    fun canPutAndGetEmptyStringList() {
+        prefsManager.putStringList(PrefsOwner.BUCKET_LIST, "mykey", emptyList())
+        assertEquals(0, prefsManager.getStringList(PrefsOwner.BUCKET_LIST, "mykey")!!.size)
+    }
+
+    @Test
+    fun canPutAndGetStringListWithSingleEmptyElement() {
+        prefsManager.putStringList(PrefsOwner.BUCKET_LIST, "mykey", listOf(""))
+        assertEquals(listOf(""), prefsManager.getStringList(PrefsOwner.BUCKET_LIST, "mykey"))
+    }
+
+    @Test
+    fun canPutAndGetEmptyBytes() {
+        prefsManager.putBytes(PrefsOwner.BUCKET_LIST, "mykey", byteArrayOf())
+        assertEquals(0, prefsManager.getBytes(PrefsOwner.BUCKET_LIST, "mykey")!!.size)
     }
 }

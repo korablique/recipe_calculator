@@ -54,4 +54,8 @@ public class MainScreenFragment extends BaseFragment implements HasSupportFragme
                            Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_main_screen, container, false);
     }
+
+    public void openFoodstuffCard(Foodstuff foodstuff) {
+        controller.openFoodstuffCard(foodstuff);
+    }
 }
